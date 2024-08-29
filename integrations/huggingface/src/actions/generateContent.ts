@@ -1,7 +1,7 @@
+import { InvalidPayloadError } from "@botpress/client";
 import * as sdk from "@botpress/sdk";
 import { interfaces } from "@botpress/sdk";
 import type { HfInference } from "@huggingface/inference";
-import { InvalidPayloadError } from "@botpress/client";
 
 type HfToolCalls = Awaited<
   ReturnType<HfInference["chatCompletion"]>

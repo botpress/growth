@@ -1,12 +1,15 @@
+import * as sdk from "@botpress/sdk";
 import { interfaces } from "@botpress/sdk";
 import { HfInference } from "@huggingface/inference";
 import * as bp from ".botpress";
 import axios from "axios";
 import { generateContent } from "./actions/generateContent";
+import { fetchModel } from "./misc/client";
 
 export default new bp.Integration({
   register: async ({ ctx, client, logger }) => {
     if (!ctx.configuration.languageModels) {
+      logger.forBot().debug(`No models provided. Skipping...`);
       return;
     }
 
@@ -15,18 +18,14 @@ export default new bp.Integration({
       .map((el) => el.trim());
 
     if (modelIds.length > 10) {
-      logger.forBot().debug(`Too many models provided`);
-      return;
+      throw new sdk.RuntimeError(`Too many models provided`);
     }
     const languageModels: interfaces.llm.Model[] = [];
     for await (const id of modelIds) {
       try {
-        const { data }: { data: { modelId: string; pipeline_tag: string } } =
-          await axios.get(`https://huggingface.co/api/models/${id}`);
+        const { modelId, pipeline_tag } = await fetchModel(id);
 
-        const modelId = data.modelId;
-
-        if (data.pipeline_tag !== "text-generation") {
+        if (pipeline_tag !== "text-generation") {
           logger
             .forBot()
             .debug(`Model ${id} is not a text generation model. Skipping...`);
@@ -70,7 +69,7 @@ export default new bp.Integration({
       type: "integration",
       name: "availableModels",
       id: ctx.integrationId,
-      payload: { languageModels: [] },
+      payload: null,
     });
   },
   actions: {
