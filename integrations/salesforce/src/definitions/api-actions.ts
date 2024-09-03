@@ -10,7 +10,11 @@ const makeApiRequest = {
     ui: MakeApiRequestUi,
   },
   output: {
-    schema: z.object({}).passthrough(),
+    schema: z.object({
+      success: z.boolean(),
+      body: z.object({}).passthrough().optional(),
+      error: z.string().optional(),
+    }),
   },
 };
 
