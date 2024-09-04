@@ -6,7 +6,7 @@ export const makeRequest = async (
   input: Input,
   accessToken: string
 ): Promise<AxiosResponse> => {
-  return await axios({
+  return axios({
     method: input.method,
     url: url,
     data: input.requestBody ? JSON.parse(input.requestBody) : {},

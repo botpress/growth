@@ -20,6 +20,7 @@ export const makeApiRequest: Action["makeApiRequest"] = async (
 
     return {
       success: true,
+      status: res.status,
       body: res.data,
     };
   } catch (e) {

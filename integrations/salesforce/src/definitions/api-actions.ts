@@ -12,7 +12,8 @@ const makeApiRequest = {
   output: {
     schema: z.object({
       success: z.boolean(),
-      body: z.object({}).passthrough().optional(),
+      status: z.number().optional(),
+      body: z.any().optional(),
       error: z.string().optional(),
     }),
   },
