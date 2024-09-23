@@ -11,7 +11,15 @@ export const CreateContactInputSchema = z.object({
     .string()
     .optional()
     .describe("The phone number of the contact (Optional) (e.g. +1-555-1234)"),
-  customFields: z.string().optional().describe("Custom fields (JSON)"),
+  customFields: z.string().displayAs<any>({
+    id: 'text',
+    params: {
+      allowDynamicVariable: true,
+      growVertically: true,
+      multiLine: true,
+      resizable: true
+    }
+  }).optional().describe("Custom fields (JSON)"),
 });
 
 export const UpdateContactInputSchema = z.object({

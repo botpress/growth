@@ -8,7 +8,15 @@ export const CreateLeadInputSchema = z.object({
   Phone: z.string().optional().describe("The phone number of the lead"),
   Title: z.string().optional().describe("The title of the lead"),
   Description: z.string().optional().describe("The title of the lead"),
-  customFields: z.string().optional(),
+  customFields: z.string().displayAs<any>({
+    id: 'text',
+    params: {
+      allowDynamicVariable: true,
+      growVertically: true,
+      multiLine: true,
+      resizable: true
+    }
+  }).optional(),
 });
 
 export const UpdateLeadInputSchema = z.object({
