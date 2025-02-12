@@ -7,7 +7,7 @@ import * as bp from '.botpress'
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, input, logger }) => {
   try {
-    const { userId } = input
+    const { userId, title, description } = input
 
     const { user } = await client.getUser({ id: userId })
 
@@ -58,6 +58,17 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       firstName: (splitName?.length && splitName[0]) || 'Anon',
       _lastName: splitName && splitName?.length > 1 && splitName[splitName.length] || '',
       _email: user.tags?.email || 'anon@email.com',
+    })
+
+    await client.createEvent({
+      type: 'hitlStarted',
+      conversationId: conversation.id,
+      payload: {
+        conversationId: conversation.id,
+        userId,
+        title,
+        description
+      },
     })
 
     return { conversationId: conversation.id }

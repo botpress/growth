@@ -2,31 +2,71 @@ import { AxiosError } from 'axios'
 import * as bp from '../.botpress'
 import { getSalesforceClient } from './client'
 import { SFMessagingConfig } from './definitions/schemas'
-import { closeConversation } from './events/conversation-close'
+import { closeConversation, isConversationClosed } from './events/conversation-close'
+
+const getSalesforceClientFromMessage = async (props: bp.AnyMessageProps) => {
+  const { client, ctx, conversation, logger } = props
+  const {
+    state: {
+      payload: { accessToken },
+    },
+  } = await client.getState({
+    type: 'conversation',
+    id: conversation.id,
+    name: 'messaging',
+  })
+  return getSalesforceClient(
+      logger,
+      { ...(ctx.configuration as SFMessagingConfig) },
+      {
+        accessToken,
+        sseKey: conversation.tags.transportKey,
+        conversationId: conversation.tags.id,
+      }
+  )
+}
 
 export const channels = {
   hitl: {
     messages: {
-      text: async ({ client, ctx, conversation, logger, payload }: bp.AnyMessageProps) => {
-        const {
-          state: {
-            payload: { accessToken },
-          },
-        } = await client.getState({
-          type: 'conversation',
-          id: conversation.id,
-          name: 'messaging',
-        })
+      text: async (props: bp.AnyMessageProps) => {
+        const { client, ctx, conversation, logger, payload } = props
 
-        const salesforceClient = getSalesforceClient(
-          logger,
-          { ...(ctx.configuration as SFMessagingConfig) },
-          {
-            accessToken,
-            sseKey: conversation.tags.transportKey,
-            conversationId: conversation.tags.id,
+        if (isConversationClosed(conversation)) {
+          logger.forBot().error('Tried to send a message from a conversation that is already closed: ' + JSON.stringify({conversation}, null, 2))
+          await closeConversation({ conversation, ctx, client, logger, force: true, forceDelay: true })
+          return
+        }
+
+        if(!conversation.tags.assignedAt && ctx.configuration.stopHITLEscalationKeywords?.length) {
+          const containedKeyword = ctx.configuration.stopHITLEscalationKeywords.find( (keyword) => {
+            return !!payload.text?.includes(keyword)
+          })
+          logger.forBot().warn(JSON.stringify({ containedKeyword }))
+          if(containedKeyword) {
+            await closeConversation({ conversation, ctx, client, logger })
+          } else {
+            const { user: systemUser } = await client.getOrCreateUser({
+              name: 'System',
+              tags: {
+                id: conversation.id,
+              },
+            })
+
+            await client.createMessage({
+              tags: {},
+              type: 'text',
+              userId: systemUser?.id as string,
+              conversationId: conversation.id,
+              payload: {
+                text: ctx.configuration.conversationNotAssignedMessage || 'Conversation not assigned',
+              },
+            })
           }
-        )
+          return
+        }
+
+        const salesforceClient = await getSalesforceClientFromMessage(props)
 
         try {
           await salesforceClient.sendMessage(payload.text)
@@ -36,20 +76,33 @@ export const channels = {
           if ((err as AxiosError)?.response?.status === 403) {
             // Session is no longer valid
             try {
-              // TODO: Fix in future, triggering hitlStopped on messages is very unstable today, but this is an edge case
-              await closeConversation({
-                conversation,
-                ctx,
-                client,
-                logger,
-                force: true,
-              })
+              await closeConversation({ conversation, ctx, client, logger, force: true })
             } catch (e) {
               logger.forBot().error('Failed to finish invalid session: ' + err.message)
             }
           }
         }
       },
+      audio: async (props: bp.AnyMessageProps) => {
+        const { payload } = props
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        await salesforceClient.sendMessage(payload.audioUrl)
+      },
+      image: async (props: bp.AnyMessageProps) => {
+        const { payload } = props
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        await salesforceClient.sendMessage(payload.imageUrl)
+      },
+      video: async (props: bp.AnyMessageProps) => {
+        const { payload } = props
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        await salesforceClient.sendMessage(payload.videoUrl)
+      },
+      file: async (props: bp.AnyMessageProps) => {
+        const { payload } = props
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        await salesforceClient.sendMessage(payload.fileUrl)
+      }
     },
   },
 } satisfies bp.IntegrationProps['channels']

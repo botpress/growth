@@ -19,7 +19,9 @@ export const SFMessagingConfigSchema = z.object({
   }),
   organizationId: z.string(),
   DeveloperName: z.string(),
-  showAgentName: z.boolean().optional().describe('Show agent name or not on Agent messages')
+  showAgentName: z.boolean().optional().describe('Show agent name or not on Agent messages'),
+  stopHITLEscalationKeywords: z.array(z.string()).default([ 'stop-hitl' ]).describe('Keywords that will stop the escalation before the agent is assigned'),
+  conversationNotAssignedMessage: z.string().default("No agent assigned yet, type 'stop-hitl' to stop the escalation and get back to the bot.").describe('Message that will be presented when the user types something but no agent is handling the conversation'),
 })
 
 export type SFMessagingConfig = z.infer<typeof SFMessagingConfigSchema>
