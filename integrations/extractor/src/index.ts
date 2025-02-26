@@ -1,6 +1,6 @@
 import { tmpdir } from 'os'
 import { join } from 'path'
-import { createWriteStream } from 'fs'
+import { createWriteStream, readFileSync } from 'fs'
 import { mkdir, readdir, rm } from 'fs/promises'
 import { extract } from 'tar'
 import axios from 'axios'
@@ -11,13 +11,13 @@ export default new bp.Integration({
   register: async () => {},
   unregister: async () => {},
   actions: {
-    extractTgz: async ({ input }) => {
+    extractTgz: async ({ input, logger }) => {
       const tempDir = join(tmpdir(), uuidv4())
       await mkdir(tempDir, { recursive: true })
 
       const tgzFilePath = join(tempDir, 'file.tgz')
 
-      // Download file first, because streams are less reliable in Lambda
+      // Download .tgz file
       const response = await axios.get(input.fileUrl, { responseType: 'stream' })
       const writer = createWriteStream(tgzFilePath)
 
@@ -27,15 +27,43 @@ export default new bp.Integration({
         writer.on('error', reject)
       })
 
-      // Extract downloaded tgz
+      // Extract .tgz file
       await extract({ file: tgzFilePath, cwd: tempDir })
 
-      // List extracted files
-      const files = await readdir(tempDir, { recursive: true })
+      // Recursive function to list all files
+      async function listFiles(dir: string): Promise<string[]> {
+        const entries = await readdir(dir, { withFileTypes: true })
+        const files = await Promise.all(
+            entries.map((entry) => {
+              const fullPath = join(dir, entry.name)
+              return entry.isDirectory() ? listFiles(fullPath) : [fullPath]
+            })
+        )
+        return files.flat()
+      }
 
+      const filePaths = await listFiles(tempDir)
 
-      // Cleanup downloaded file to save space
-      await rm(tgzFilePath, { force: true })
+      // Helper to detect binary content
+      function isBinary(content: Buffer): boolean {
+        const textChars = content.toString('utf8')
+        return /[\x00-\x08\x0E-\x1F]/.test(textChars)
+      }
+
+      const files = filePaths
+          .filter((name) => name !== tgzFilePath) // exclude original tgz file
+          .map((fullPath) => {
+            const contentBuffer = readFileSync(fullPath)
+            const binary = isBinary(contentBuffer)
+
+            return {
+              fileName: fullPath.replace(`${tempDir}/`, ''),
+              content: binary ? 'Binary File' : contentBuffer.toString('utf-8'),
+            }
+          })
+
+      // Cleanup entire temp directory
+      await rm(tempDir, { recursive: true, force: true })
 
       return { files }
     },

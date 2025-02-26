@@ -15,7 +15,12 @@ export default new IntegrationDefinition({
       },
       output: {
         schema: z.object({
-          files: z.array(z.string()).describe('List of file paths extracted from the .tgz file'),
+          files: z.array(
+              z.object({
+                fileName: z.string().describe('Name of the extracted file'),
+                content: z.string().describe('Content of the extracted file as UTF-8 text'),
+              })
+          ),
         }),
       },
     },
