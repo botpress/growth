@@ -1,6 +1,5 @@
 {
   "name": "@bp-templates/empty-integration",
-  "integrationName": "zoho-sales-iq-hitl",
   "scripts": {
     "check:type": "tsc --noEmit",
     "version": "bp --version",
@@ -23,6 +22,6 @@
     "typescript": "^5.8.2"
   },
   "bpDependencies": {
-    "hitl": "../../interfaces/hitl"
+    "hitl": "interface:hitl@0.4.0"
   }
 }
