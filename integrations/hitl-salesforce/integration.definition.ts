@@ -1,4 +1,4 @@
-import { IntegrationDefinition, IntegrationDefinitionProps } from '@botpress/sdk'
+import {IntegrationDefinition, IntegrationDefinitionProps, messages} from '@botpress/sdk'
 import { INTEGRATION_NAME } from './src/const'
 import hitl from './bp_modules/hitl'
 import { configuration, channels, states } from './src/definitions'
@@ -33,4 +33,30 @@ export default new IntegrationDefinition({
       optional: false,
     },
   },
-}).extend(hitl, () => ({}))
+}).extend(hitl, () => ({
+  entities: {},
+  title: 'Salesforce LiveAgent',
+  messages: {
+    text: messages.defaults.text,
+    audio: messages.defaults.audio,
+    file: messages.defaults.file,
+    image: messages.defaults.image,
+    video: messages.defaults.video,
+  },
+  conversation: {
+    tags: {
+      transportKey: {
+        title: 'Key for SSE',
+        description: 'Key from the TT service used to identify the SSE session',
+      },
+      id: {
+        title: 'Salesforce Conversation ID',
+        description: 'Conversation ID from Salesforce Messaging',
+      },
+      closedAt: {
+        title: 'Closed at',
+        description: 'When the conversation was marked as closed',
+      },
+    },
+  },
+}))
