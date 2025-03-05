@@ -2,11 +2,11 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@botpress/client':
-    specifier: 0.41.2
-    version: 0.41.2
+    specifier: 0.47.0
+    version: 0.47.0
   '@botpress/sdk':
-    specifier: 3.0.2
-    version: 3.0.2(@bpinternal/zui@0.13.6)
+    specifier: 3.3.0
+    version: 3.3.0(@bpinternal/zui@0.13.6)
   '@typescript-eslint/eslint-plugin':
     specifier: ^5.47.0
     version: 5.47.0(@typescript-eslint/parser@5.47.0)(eslint@8.57.1)(typescript@4.9.5)
@@ -54,6 +54,9 @@ devDependencies:
   '@types/lodash':
     specifier: ^4.14.191
     version: 4.14.191
+  '@types/ms':
+    specifier: ^0.7.34
+    version: 0.7.34
   '@types/node':
     specifier: ^18.11.17
     version: 18.11.17
@@ -156,8 +159,8 @@ packages:
       - debug
     dev: true
 
-  /@botpress/client@0.41.2:
-    resolution: {integrity: sha512-i6tMNNyDa+1TtmuXdAOzFxC6Mbd31aQXlAVBp7cbr3BKIsWkjZJuimd2pX9OtTK/J572jn9iD52G4N+XjPcqUw==}
+  /@botpress/client@0.47.0:
+    resolution: {integrity: sha512-k37fLlHzxo30MuyCePE5Vc92OM3OQTzu7OeY296jNCvOw9UZ7wkng2uaXmnCnqh52qgPHPfi5cWRLpLV/Jyo9w==}
     dependencies:
       axios: 1.7.3
       axios-retry: 4.5.0(axios@1.7.3)
@@ -178,8 +181,9 @@ packages:
       - react
     dev: true
 
-  /@botpress/sdk@3.0.2(@bpinternal/zui@0.13.6):
-    resolution: {integrity: sha512-l06XtuNFFdVA3OKPyZQc/EJNjewCu3NnCAFtsJ2y0n687r6pECByRcKDssHU4s5wg+k8zx/9XB0d1/hYmfTuFA==}
+  /@botpress/sdk@3.3.0(@bpinternal/zui@0.13.6):
+    resolution: {integrity: sha512-K/n1ioPAiN50j4EOszSUyQ2VQiVaTqqFAIiweODJ6B3EYcGxv0uHq86sX/FOsg0iOopsX+jtq4WIDjgyf+e6fA==}
+    engines: {node: '>=18.0.0'}
     peerDependencies:
       '@bpinternal/zui': ^0.13.5
       esbuild: ^0.16.12
@@ -187,7 +191,7 @@ packages:
       esbuild:
         optional: true
     dependencies:
-      '@botpress/client': 0.41.2
+      '@botpress/client': 0.47.0
       '@bpinternal/zui': 0.13.6(react@18.3.1)
       browser-or-node: 2.1.1
     transitivePeerDependencies:
@@ -1182,6 +1186,10 @@ packages:
 
   /@types/lodash@4.14.191:
     resolution: {integrity: sha512-BdZ5BCCvho3EIXw6wUCXHe7rS53AIDPLE+JzwgT+OsJk53oBfbSmZZ7CX4VaRoN78N+TJpFi9QPlfIVNmJYWxQ==}
+    dev: true
+
+  /@types/ms@0.7.34:
+    resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
     dev: true
 
   /@types/node@18.11.17:
