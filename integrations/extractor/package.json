@@ -8,6 +8,8 @@
   "dependencies": {
     "@botpress/client": "0.41.2",
     "@botpress/sdk": "3.0.2",
+    "@types/adm-zip": "^0.5.7",
+    "adm-zip": "^0.5.16",
     "axios": "^1.7.9",
     "node-fetch": "^3.3.2",
     "tar": "^7.4.3",

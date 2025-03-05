@@ -5,9 +5,9 @@ export const channels = {
     title: 'Salesforce LiveAgent',
     messages: {
       text: messages.defaults.text,
-      audio: messages.defaults.audio,
-      file: messages.defaults.file,
       image: messages.defaults.image,
+      file: messages.defaults.file,
+      audio: messages.defaults.audio,
       video: messages.defaults.video,
     },
     conversation: {
@@ -19,6 +19,10 @@ export const channels = {
         id: {
           title: 'Salesforce Conversation ID',
           description: 'Conversation ID from Salesforce Messaging',
+        },
+        assignedAt: {
+          title: 'Assigned at',
+          description: 'When the conversation was assigned to an Agent',
         },
         closedAt: {
           title: 'Closed at',

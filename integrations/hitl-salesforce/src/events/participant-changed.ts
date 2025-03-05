@@ -1,4 +1,3 @@
-import { Conversation } from '@botpress/client'
 import { ParticipantChangedDataPayload, ParticipantChangedMessagingTrigger } from '../triggers'
 import { closeConversation } from './conversation-close'
 import * as bp from '.botpress'
@@ -11,7 +10,7 @@ export const executeOnParticipantChanged = async ({
   logger,
 }: {
   messagingTrigger: ParticipantChangedMessagingTrigger
-  conversation: Conversation
+  conversation: bp.AnyMessageProps['conversation']
   ctx: bp.Context
   client: bp.Client
   logger: bp.Logger
@@ -57,8 +56,19 @@ export const executeOnParticipantChanged = async ({
           })
         }
 
+        await client.updateConversation({
+          id: conversation.id,
+          tags: {
+            assignedAt: new Date().toISOString(),
+            transportKey: conversation.tags.transportKey,
+            id: conversation.tags.id,
+            closedAt: conversation.tags.closedAt
+          },
+        })
+
         await client.createEvent({
           type: 'hitlAssigned',
+          conversationId: conversation.id,
           payload: {
             conversationId: conversation.id,
             userId: user.id,

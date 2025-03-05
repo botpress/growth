@@ -15,6 +15,11 @@ export const makeApiRequest: Action["makeApiRequest"] = async (
 
   const url = `${sfCredentials.instanceUrl}/services/data/v54.0/${input.path}`;
 
+  logger.forBot().debug(`Making API request to Salesforce
+    Url:'${url}'
+    Input: ${JSON.stringify(input, null, 2)}
+  `);
+
   try {
     const res = await makeRequest(url, input, sfCredentials.accessToken);
 

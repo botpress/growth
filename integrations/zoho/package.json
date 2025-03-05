@@ -1,0 +1,25 @@
+{
+  "name": "@bp-templates/empty-integration",
+  "integrationName": "zoho",
+  "scripts": {
+    "check:type": "tsc --noEmit",
+    "version": "bp --version",
+    "login": "bp login",
+    "gen": "bp gen",
+    "deploy": "bp deploy"
+  },
+  "private": true,
+  "dependencies": {
+    "@botpress/client": "0.45.0",
+    "@botpress/sdk": "3.2.0",
+    "axios": "^1.7.9",
+    "zod": "^3.24.2",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "@botpress/cli": "^3.2.1",
+    "@types/node": "^18.19.76",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

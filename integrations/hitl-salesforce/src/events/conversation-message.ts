@@ -16,8 +16,12 @@ export const executeOnConversationMessage = async ({
     senderDisplayName,
   } = messagingTrigger.data.conversationEntry
 
-  // Only process Agent or System messages
-  if (senderRole === 'EndUser') {
+  let entryPayload: MessageDataPayload
+
+  try {
+    entryPayload = JSON.parse(messagingTrigger.data.conversationEntry.entryPayload) as MessageDataPayload
+  } catch (e) {
+    logger.forBot().error('Could not parse entry payload', e)
     return
   }
 
@@ -27,6 +31,11 @@ export const executeOnConversationMessage = async ({
       id: senderSubject,
     },
   })
+
+  // Only process Agent or System messages
+  if (senderRole === 'EndUser') {
+    return
+  }
 
   if (!user.name?.length) {
     void client.updateUser({
@@ -38,15 +47,6 @@ export const executeOnConversationMessage = async ({
     })
   }
 
-  let entryPayload: MessageDataPayload
-
-  try {
-    entryPayload = JSON.parse(messagingTrigger.data.conversationEntry.entryPayload) as MessageDataPayload
-  } catch (e) {
-    logger.forBot().error('Could not parse entry payload', e)
-    return
-  }
-
   if (entryPayload.abstractMessage.messageType !== 'StaticContentMessage') {
     logger
       .forBot()
@@ -54,24 +54,50 @@ export const executeOnConversationMessage = async ({
     return
   }
 
-  if (entryPayload.abstractMessage.staticContent.formatType !== 'Text') {
-    logger
-      .forBot()
-      .warn(
-        `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
-      )
-    return
+  const createMessage = async (args: { type: 'text' | 'image' | 'file'; payload: any }) => {
+    return client.createMessage({
+      ...args,
+      tags: {},
+      userId: user?.id as string,
+      conversationId: conversation.id,
+    })
   }
 
-  await client.createMessage({
-    tags: {},
-    type: 'text',
-    userId: user?.id as string,
-    conversationId: conversation.id,
-    payload: {
-      text: `${( ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
-        entryPayload.abstractMessage.staticContent.text
-      }`,
-    },
-  })
+  switch (entryPayload.abstractMessage.staticContent.formatType) {
+    case 'Text':
+      await createMessage({
+        type: 'text',
+        payload: {
+          text: `${( ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
+              entryPayload.abstractMessage.staticContent.text
+          }`
+        }
+      })
+      break
+    case 'Attachments':
+      for(const attachment of entryPayload.abstractMessage.staticContent.attachments) {
+        if(attachment.mimeType.startsWith('image/')) {
+          await createMessage({
+            type: 'image',
+            payload: {
+              imageUrl: attachment.url
+            }
+          })
+        } else {
+          await createMessage({
+            type: 'file',
+            payload: {
+              fileUrl: attachment.url
+            }
+          })
+        }
+      }
+      break
+    default: logger
+        .forBot()
+        .warn(
+            `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
+        )
+    return
+  }
 }

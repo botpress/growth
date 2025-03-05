@@ -18,7 +18,26 @@ export default new IntegrationDefinition({
           files: z.array(
               z.object({
                 fileName: z.string().describe('Name of the extracted file'),
-                content: z.string().describe('Content of the extracted file as UTF-8 text'),
+                filePath: z.string().describe('Full extracted file path inside the temporary directory'),
+                content: z.string().describe('UTF-8 content of file or "Binary File" if binary'),
+              })
+          ),
+        }),
+      },
+    },
+    extractZip: {
+      input: {
+        schema: z.object({
+          fileUrl: z.string().url().describe('URL of the .zip file to download and extract'),
+        }),
+      },
+      output: {
+        schema: z.object({
+          files: z.array(
+              z.object({
+                fileName: z.string().describe('Name of the extracted file'),
+                filePath: z.string().describe('Full extracted file path inside the temporary directory'),
+                content: z.string().describe('UTF-8 content of file or "Binary File" if binary'),
               })
           ),
         }),

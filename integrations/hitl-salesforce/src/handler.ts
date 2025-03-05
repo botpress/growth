@@ -24,97 +24,102 @@ export const handler: IntegrationProps['handler'] = async (props) => {
     return
   }
 
-  if (['DATA', 'TRANSPORT_END', 'TRANSPORT_RESTORED', 'ERROR'].includes(trigger.type)) {
-    const { conversation } = await client.getOrCreateConversation({
-      channel: 'hitl',
-      tags: {
-        transportKey: trigger.transport.key,
-      },
-    })
+  const { conversation } = await client.getOrCreateConversation({
+    channel: 'hitl',
+    tags: {
+      transportKey: trigger.transport.key,
+    },
+  })
 
-    switch (trigger.type) {
-      case 'DATA':
-        const { payload: messagingTrigger } = trigger
+  if(!conversation) {
+    logger.forBot().warn(`No conversation for transport key ${trigger.transport.key}, ignoring event`)
+    return
+  }
 
-        if (messagingTrigger.raw === 'Jwt is expired') {
-          await closeConversation({ conversation, ctx, client, logger })
-          return
-        }
+  switch (trigger.type) {
+    case 'DATA':
+      const { payload: messagingTrigger } = trigger
 
-        try {
-          messagingTrigger.data = JSON.parse(messagingTrigger?.data)
-        } catch (e) {
-          return /* Ignore non json data */
-        }
-
-        switch (messagingTrigger.event) {
-          case 'CONVERSATION_MESSAGE':
-            await executeOnConversationMessage({
-              messagingTrigger,
-              conversation,
-              ...props
-            })
-            break
-          case 'CONVERSATION_PARTICIPANT_CHANGED':
-            await executeOnParticipantChanged({
-              messagingTrigger,
-              ctx,
-              conversation,
-              client,
-              logger,
-            })
-            break
-          case 'CONVERSATION_CLOSE_CONVERSATION':
-            await executeOnConversationClose({
-              messagingTrigger,
-              ctx,
-              conversation,
-              client,
-              logger,
-            })
-            break
-          default:
-            logger.forBot().warn('Got unhandled event: ' + trigger.payload.event)
-        }
-        return
-      case 'ERROR':
-        // If you start the sse session with debug enabled
-        logger.forBot().debug('Got a debug error from the transport session: ' + JSON.stringify({ trigger }, null, 2))
-        return
-      case 'TRANSPORT_END':
+      if (messagingTrigger.raw === 'Jwt is expired') {
         await closeConversation({ conversation, ctx, client, logger })
         return
-      case 'TRANSPORT_RESTORED':
-        if (isConversationClosed(conversation)) {
-          // Restored transport from a conversation that is already closed, ending transport
-          const {
-            state: {
-              payload: { accessToken },
-            },
-          } = await client.getState({
-            type: 'conversation',
-            id: conversation.id,
-            name: 'messaging',
+      }
+
+      try {
+        messagingTrigger.data = JSON.parse(messagingTrigger?.data)
+      } catch (e) {
+        return /* Ignore non json data */
+      }
+
+      switch (messagingTrigger.event) {
+        case 'CONVERSATION_MESSAGE':
+          await executeOnConversationMessage({
+            messagingTrigger,
+            conversation,
+            ...props
           })
-
-          const salesforceClient = getSalesforceClient(
+          break
+        case 'CONVERSATION_PARTICIPANT_CHANGED':
+          await executeOnParticipantChanged({
+            messagingTrigger,
+            ctx,
+            conversation,
+            client,
             logger,
-            { ...(ctx.configuration as SFMessagingConfig) },
-            {
-              accessToken,
-              sseKey: conversation.tags.transportKey,
-              conversationId: conversation.tags.id,
-            }
-          )
+          })
+          break
+        case 'CONVERSATION_CLOSE_CONVERSATION':
+          logger.forBot().warn('Got CONVERSATION_CLOSE_CONVERSATION')
+          await executeOnConversationClose({
+            messagingTrigger,
+            ctx,
+            conversation,
+            client,
+            logger,
+          })
+          break
+        default:
+          logger.forBot().warn('Got unhandled event: ' + trigger.payload.event)
+      }
+      return
+    case 'ERROR':
+      // If you start the sse session with debug enabled
+      logger.forBot().debug('Got a debug error from the transport session: ' + JSON.stringify({ trigger }, null, 2))
+      return
+    case 'TRANSPORT_END':
+      logger.forBot().warn('Got TRANSPORT_END')
+      await closeConversation({ conversation, ctx, client, logger })
+      return
+    case 'TRANSPORT_RESTORED':
+      if (isConversationClosed(conversation)) {
+        // Restored transport from a conversation that is already closed, ending transport
+        const {
+          state: {
+            payload: { accessToken },
+          },
+        } = await client.getState({
+          type: 'conversation',
+          id: conversation.id,
+          name: 'messaging',
+        })
 
-          await salesforceClient.stopSSE(conversation.tags.transportKey as string)
-        }
-        return
+        const salesforceClient = getSalesforceClient(
+          logger,
+          { ...(ctx.configuration as SFMessagingConfig) },
+          {
+            accessToken,
+            sseKey: conversation.tags.transportKey,
+            conversationId: conversation.tags.id,
+          }
+        )
 
-      default:
-        break
-    }
-  } else {
-    logger.forBot().warn('Unsupported trigger type: ' + trigger.type)
+        await salesforceClient.stopSSE(conversation.tags.transportKey as string)
+      }
+      return
+
+    default:
+      logger.forBot().warn('Unsupported trigger type: ' + trigger.type)
+      break
   }
+
 }

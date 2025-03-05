@@ -75,19 +75,36 @@ type EventData = {
 
 // These payloads will be on string format initially
 
+export type AbstractMessageBase = {
+  messageType: 'StaticContentMessage'
+  inReplyToMessageId: string | null
+  id: string
+  references: string[]
+  staticContent: object
+}
+
+export type TextStaticContent = {
+  formatType: 'Text'
+  text: string
+}
+
+export type AttachmentsStaticContent = {
+  formatType: 'Attachments'
+  text: null
+  attachments: {
+    name: string
+    attachmentUploadResult: any
+    id: string
+    mimeType: string
+    url: string
+    referenceId: string
+  }[]
+}
+
 export type MessageDataPayload = {
   entryType: 'Message'
   id: string
-  abstractMessage: {
-    messageType: 'StaticContentMessage'
-    inReplyToMessageId: string | null
-    id: string
-    references: string[]
-    staticContent: {
-      formatType: 'Text'
-      text: string
-    }
-  }
+  abstractMessage: AbstractMessageBase & { staticContent:  TextStaticContent | AttachmentsStaticContent | any }
   messageReason: string | null
 }
 
