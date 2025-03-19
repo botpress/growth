@@ -62,7 +62,7 @@ export const executeOnParticipantChanged = async ({
             assignedAt: new Date().toISOString(),
             transportKey: conversation.tags.transportKey,
             id: conversation.tags.id,
-            closedAt: conversation.tags.closedAt
+            closedAt: conversation.tags.closedAt,
           },
         })
 

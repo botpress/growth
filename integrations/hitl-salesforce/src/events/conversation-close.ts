@@ -31,7 +31,7 @@ export const closeConversation = async ({
   client,
   logger,
   force,
-  forceDelay
+  forceDelay,
 }: {
   conversation: bp.AnyMessageProps['conversation']
   ctx: bp.Context
@@ -40,7 +40,6 @@ export const closeConversation = async ({
   force?: boolean
   forceDelay?: boolean
 }) => {
-
   if (!force && isConversationClosed(conversation)) {
     // Skipping because the conversation was already closed at the Integration
     return
@@ -58,7 +57,7 @@ export const closeConversation = async ({
 
   let delay = 0
 
-  if(!isConversationAssigned(conversation) || forceDelay) {
+  if (!isConversationAssigned(conversation) || forceDelay) {
     // TODO: Weird race condition stuff, remove when the HITL Agent is migrated to plugins and uses it's own state
     delay = 3000
   }
@@ -66,7 +65,7 @@ export const closeConversation = async ({
   void client.createEvent({
     type: 'hitlStopped',
     conversationId: conversation.id,
-    ...( delay && { schedule: { delay }}),
+    ...(delay && { schedule: { delay } }),
     payload: {
       conversationId: conversation.id,
     },
@@ -95,7 +94,7 @@ export const closeConversation = async ({
   // Conversation could already be closed on Salesforce, ignore errors
   try {
     await salesforceClient.closeConversation()
-  } catch (e) {}
+  } catch {}
 
   await salesforceClient.stopSSE(conversation.tags.transportKey as string)
 }
