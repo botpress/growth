@@ -8,13 +8,9 @@
     "build": "pnpm bp build",
     "deploy": "pnpm bp deploy",
     "login": "pnpm bp login",
-    "test": "echo \"Tests not implemented yet.\"",
     "type:check": "tsc --noEmit",
     "eslint": "eslint ./ --ext .ts --ext .tsx --fix\n"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "@botpress/client": "^0.48.0",
     "@botpress/sdk": "^3.5.0",

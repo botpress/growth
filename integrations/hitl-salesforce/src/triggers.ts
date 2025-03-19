@@ -9,22 +9,16 @@ export type TriggerPayload = {
     | CloseConversationMessagingTrigger
     | ParticipantChangedMessagingTrigger
     | UndefinedMessagingTrigger
-    | OtherMessagingTrigger
 }
 
 // https://developer.salesforce.com/docs/service/messaging-api/references/about/server-sent-events-structure.html
 
 export type RawMessagingTrigger = {
-  raw: String
+  raw: string
 }
 
 export type UndefinedMessagingTrigger = {
   event: undefined
-  data: any
-} & RawMessagingTrigger
-
-export type OtherMessagingTrigger = {
-  event: string
   data: any
 } & RawMessagingTrigger
 
@@ -104,7 +98,7 @@ export type AttachmentsStaticContent = {
 export type MessageDataPayload = {
   entryType: 'Message'
   id: string
-  abstractMessage: AbstractMessageBase & { staticContent:  TextStaticContent | AttachmentsStaticContent | any }
+  abstractMessage: AbstractMessageBase & { staticContent: TextStaticContent | AttachmentsStaticContent | any }
   messageReason: string | null
 }
 

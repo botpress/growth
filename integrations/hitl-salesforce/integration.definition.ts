@@ -1,5 +1,4 @@
 import { IntegrationDefinition, IntegrationDefinitionProps } from '@botpress/sdk'
-import { INTEGRATION_NAME } from './src/const'
 import hitl from './bp_modules/hitl'
 import { configuration, channels, states, events, actions } from './src/definitions'
 
@@ -12,7 +11,7 @@ export const user = {
 } satisfies IntegrationDefinitionProps['user']
 
 export default new IntegrationDefinition({
-  name: INTEGRATION_NAME,
+  name: 'hitl-salesforce',
   title: 'SalesForce Messaging (Alpha)',
   version: '0.0.8',
   icon: 'icon.svg',

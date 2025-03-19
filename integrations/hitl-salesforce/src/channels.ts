@@ -16,34 +16,39 @@ const getSalesforceClientFromMessage = async (props: bp.AnyMessageProps) => {
     name: 'messaging',
   })
   return getSalesforceClient(
-      logger,
-      { ...(ctx.configuration as SFMessagingConfig) },
-      {
-        accessToken,
-        sseKey: conversation.tags.transportKey,
-        conversationId: conversation.tags.id,
-      }
+    logger,
+    { ...(ctx.configuration as SFMessagingConfig) },
+    {
+      accessToken,
+      sseKey: conversation.tags.transportKey,
+      conversationId: conversation.tags.id,
+    }
   )
 }
 
 export const channels = {
   hitl: {
     messages: {
-      text: async (props: bp.AnyMessageProps) => {
+      text: async (props) => {
         const { client, ctx, conversation, logger, payload } = props
 
         if (isConversationClosed(conversation)) {
-          logger.forBot().error('Tried to send a message from a conversation that is already closed: ' + JSON.stringify({conversation}, null, 2))
+          logger
+            .forBot()
+            .error(
+              'Tried to send a message from a conversation that is already closed: ' +
+                JSON.stringify({ conversation }, null, 2)
+            )
           await closeConversation({ conversation, ctx, client, logger, force: true, forceDelay: true })
           return
         }
 
-        if(!conversation.tags.assignedAt && ctx.configuration.stopHITLEscalationKeywords?.length) {
-          const containedKeyword = ctx.configuration.stopHITLEscalationKeywords.find( (keyword) => {
+        if (!conversation.tags.assignedAt && ctx.configuration.stopHITLEscalationKeywords?.length) {
+          const containedKeyword = ctx.configuration.stopHITLEscalationKeywords.find((keyword) => {
             return !!payload.text?.includes(keyword)
           })
           logger.forBot().warn(JSON.stringify({ containedKeyword }))
-          if(containedKeyword) {
+          if (containedKeyword) {
             await closeConversation({ conversation, ctx, client, logger })
           } else {
             const { user: systemUser } = await client.getOrCreateUser({
@@ -77,32 +82,32 @@ export const channels = {
             // Session is no longer valid
             try {
               await closeConversation({ conversation, ctx, client, logger, force: true })
-            } catch (e) {
+            } catch {
               logger.forBot().error('Failed to finish invalid session: ' + err.message)
             }
           }
         }
       },
-      audio: async (props: bp.AnyMessageProps) => {
+      audio: async (props) => {
         const { payload } = props
         const salesforceClient = await getSalesforceClientFromMessage(props)
         await salesforceClient.sendMessage(payload.audioUrl)
       },
-      image: async (props: bp.AnyMessageProps) => {
+      image: async (props) => {
         const { payload } = props
         const salesforceClient = await getSalesforceClientFromMessage(props)
         await salesforceClient.sendMessage(payload.imageUrl)
       },
-      video: async (props: bp.AnyMessageProps) => {
+      video: async (props) => {
         const { payload } = props
         const salesforceClient = await getSalesforceClientFromMessage(props)
         await salesforceClient.sendMessage(payload.videoUrl)
       },
-      file: async (props: bp.AnyMessageProps) => {
+      file: async (props) => {
         const { payload } = props
         const salesforceClient = await getSalesforceClientFromMessage(props)
         await salesforceClient.sendMessage(payload.fileUrl)
-      }
+      },
     },
   },
 } satisfies bp.IntegrationProps['channels']

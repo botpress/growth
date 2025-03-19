@@ -50,7 +50,7 @@ class MessagingApi {
         headers: {
           ...this._getMessagingConfig().headers,
         },
-        createConversationData
+        createConversationData,
       })
 
       const { data } = await this._client.post('/conversation', createConversationData)
@@ -77,9 +77,10 @@ class MessagingApi {
 
       this._session = { ...this._session, accessToken: data.accessToken }
       return data
-    } catch (e) {
-      this._logger.forBot().error('Failed to create conversation on Salesforce: ' + e.message)
-      throw new RuntimeError('Failed to create conversation on Salesforce: ' + e.message)
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(String(thrown))
+      this._logger.forBot().error('Failed to create conversation on Salesforce: ' + err.message)
+      throw new RuntimeError('Failed to create conversation on Salesforce: ' + err.message)
     }
   }
 
@@ -140,9 +141,10 @@ class MessagingApi {
 
       this._session.sseKey = data.data.key
       return data
-    } catch (e) {
-      this._logger.forBot().error('Failed to start SSE Session with TT: ' + e.message)
-      throw new RuntimeError('Failed to start SSE Session with TT: ' + e.message)
+    } catch (thrown) {
+      const error = thrown instanceof Error ? thrown : new Error(String(thrown))
+      this._logger.forBot().error('Failed to start SSE Session with TT: ' + error.message)
+      throw new RuntimeError('Failed to start SSE Session with TT: ' + error.message)
     }
   }
 

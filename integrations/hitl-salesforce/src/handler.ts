@@ -31,7 +31,7 @@ export const handler: IntegrationProps['handler'] = async (props) => {
     },
   })
 
-  if(!conversation) {
+  if (!conversation) {
     logger.forBot().warn(`No conversation for transport key ${trigger.transport.key}, ignoring event`)
     return
   }
@@ -47,7 +47,7 @@ export const handler: IntegrationProps['handler'] = async (props) => {
 
       try {
         messagingTrigger.data = JSON.parse(messagingTrigger?.data)
-      } catch (e) {
+      } catch {
         return /* Ignore non json data */
       }
 
@@ -56,7 +56,7 @@ export const handler: IntegrationProps['handler'] = async (props) => {
           await executeOnConversationMessage({
             messagingTrigger,
             conversation,
-            ...props
+            ...props,
           })
           break
         case 'CONVERSATION_PARTICIPANT_CHANGED':
@@ -121,5 +121,4 @@ export const handler: IntegrationProps['handler'] = async (props) => {
       logger.forBot().warn('Unsupported trigger type: ' + trigger.type)
       break
   }
-
 }
