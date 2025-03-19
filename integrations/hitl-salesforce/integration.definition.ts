@@ -35,4 +35,6 @@ export default new IntegrationDefinition({
       optional: false,
     },
   },
-}).extend(hitl, () => ({}))
+}).extend(hitl, () => ({
+  entities: {},
+}))
