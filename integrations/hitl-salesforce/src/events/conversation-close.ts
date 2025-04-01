@@ -66,7 +66,7 @@ export const closeConversation = async ({
   void client.createEvent({
     type: 'hitlStopped',
     conversationId: conversation.id,
-    ...( delay && { schedule: { delay }}),
+    //...( delay && { schedule: { delay }}),
     payload: {
       conversationId: conversation.id,
     },

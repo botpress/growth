@@ -34,7 +34,8 @@ export const channels = {
 
         if (isConversationClosed(conversation)) {
           logger.forBot().error('Tried to send a message from a conversation that is already closed: ' + JSON.stringify({conversation}, null, 2))
-          await closeConversation({ conversation, ctx, client, logger, force: true, forceDelay: true })
+          // There are some issues on the current HITL Agent that keeps sending messages to the downstream, disabling this for now
+          // await closeConversation({ conversation, ctx, client, logger, force: true, forceDelay: true })
           return
         }
 

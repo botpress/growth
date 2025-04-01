@@ -2,7 +2,6 @@ import {IntegrationDefinitionProps, messages} from '@botpress/sdk'
 
 export const channels = {
   hitl: {
-    title: 'Salesforce LiveAgent',
     messages: {
       text: messages.defaults.text,
       image: messages.defaults.image,

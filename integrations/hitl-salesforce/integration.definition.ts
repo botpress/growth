@@ -14,7 +14,7 @@ export const user = {
 export default new IntegrationDefinition({
   name: INTEGRATION_NAME,
   title: 'SalesForce Messaging (Alpha)',
-  version: '0.0.8',
+  version: '0.1.0',
   icon: 'icon.svg',
   description:
     'This integration allows your bot to interact with Salesforce Messaging, this version uses the HITL Interface',
@@ -38,13 +38,6 @@ export default new IntegrationDefinition({
 }).extend(hitl, () => ({
   entities: {},
   title: 'Salesforce LiveAgent',
-  messages: {
-    text: messages.defaults.text,
-    audio: messages.defaults.audio,
-    file: messages.defaults.file,
-    image: messages.defaults.image,
-    video: messages.defaults.video,
-  },
   conversation: {
     tags: {
       transportKey: {
@@ -54,6 +47,10 @@ export default new IntegrationDefinition({
       id: {
         title: 'Salesforce Conversation ID',
         description: 'Conversation ID from Salesforce Messaging',
+      },
+      assignedAt: {
+        title: 'Assigned at',
+        description: 'When the conversation was assigned to an Agent',
       },
       closedAt: {
         title: 'Closed at',
