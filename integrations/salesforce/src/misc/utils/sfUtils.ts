@@ -62,7 +62,6 @@ export const refreshSfToken = async (
   client: Client,
   ctx: Context
 ): Promise<void> => {
-
   const url = `${getEnvironmentUrl(ctx)}/services/oauth2/token`;
   const sfCredentials = await getSfCredentials(client, ctx.integrationId);
 
