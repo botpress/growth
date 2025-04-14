@@ -5,16 +5,12 @@ import * as bp from ".botpress";
 import { getSfCredentials } from "./bpUtils";
 
 export const getOAuth2 = (ctx: Context): OAuth2 => {
-  const loginUrl = ctx.configuration.sandboxEnvironment
-    ? "https://test.salesforce.com"
-    : "https://login.salesforce.com";
-
   return new OAuth2({
     clientId: bp.secrets.CONSUMER_KEY,
     clientSecret: bp.secrets.CONSUMER_SECRET,
     redirectUri:
       "https://webhook.botpress.cloud/integration/intver_01J0PAK7GPBNW7H959MZQRX6N9/oath",
-    loginUrl: loginUrl,
+    loginUrl: getEnvironmentUrl(ctx),
   });
 };
 
@@ -66,7 +62,8 @@ export const refreshSfToken = async (
   client: Client,
   ctx: Context
 ): Promise<void> => {
-  const url = "https://login.salesforce.com/services/oauth2/token";
+
+  const url = `${getEnvironmentUrl(ctx)}/services/oauth2/token`;
   const sfCredentials = await getSfCredentials(client, ctx.integrationId);
 
   const params = new URLSearchParams();
@@ -115,4 +112,10 @@ export const getRequestPayload = <T extends { customFields?: string }>(
   delete payload.customFields;
 
   return payload;
+};
+
+export const getEnvironmentUrl = (ctx: Context): string => {
+  return ctx.configuration.sandboxEnvironment
+      ? "https://test.salesforce.com"
+      : "https://login.salesforce.com";
 };
