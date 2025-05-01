@@ -16,3 +16,8 @@ export const forceCloseConversation = async (ctx: bp.AnyMessageProps['ctx'], con
     // We need to keep the process running for a little bit more, otherwise the lambda will not do the call above
     await new Promise(resolve => setTimeout(resolve, 1000))
 }
+
+export const getFileExtensionFromUrl = (fileUrl: string): string => {
+    const url = new URL(fileUrl.trim())
+    return url.pathname.includes('.') ? (url.pathname.split('.').pop()?.toLowerCase() ?? '') : ''
+}

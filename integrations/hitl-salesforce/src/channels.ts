@@ -89,7 +89,7 @@ export const channels = {
       image: async (props: bp.MessageProps['hitl']['image']) => {
         const { payload } = props
         const salesforceClient = await getSalesforceClientFromMessage(props)
-        await salesforceClient.sendMessage(payload.imageUrl)
+        await salesforceClient.sendFile({ fileUrl: payload.imageUrl })
       },
       video: async (props: bp.MessageProps['hitl']['video']) => {
         const { payload } = props
@@ -97,11 +97,49 @@ export const channels = {
         await salesforceClient.sendMessage(payload.videoUrl)
       },
       file: async (props: bp.MessageProps['hitl']['file']) => {
-        console.log('Will send file', { payload: props.payload })
-        const { payload } = props
+        const { payload: { title, fileUrl } } = props
         const salesforceClient = await getSalesforceClientFromMessage(props)
-        await salesforceClient.sendMessage(payload.fileUrl)
+        await salesforceClient.sendFile({ fileUrl, title })
       },
+      bloc: async (props: bp.MessageProps['hitl']['bloc']) => {
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        for (const item of props.payload.items) {
+          switch (item.type) {
+            case 'text':
+              await salesforceClient.sendMessage(item.payload.text)
+              break
+            case 'markdown':
+              await salesforceClient.sendMessage(item.payload.markdown)
+              break
+            case 'image':
+              await salesforceClient.sendFile({ fileUrl: item.payload.imageUrl })
+              break
+            case 'video':
+              await salesforceClient.sendMessage(item.payload.videoUrl)
+              break
+            case 'audio':
+              await salesforceClient.sendMessage(item.payload.audioUrl)
+              break
+            case 'file':
+              const { title: fileTitle, fileUrl } = item.payload
+              await salesforceClient.sendFile({ fileUrl, title: fileTitle })
+              break
+            case 'location':
+              const { title, address, latitude, longitude } = item.payload
+              const messageParts = []
+
+              if (title) {
+                messageParts.push(title, '')
+              }
+              if (address) {
+                messageParts.push(address, '')
+              }
+              messageParts.push(`Latitude: ${latitude}`, `Longitude: ${longitude}`)
+              await salesforceClient.sendMessage(messageParts.join('\n'))
+              break
+          }
+        }
+      }
     },
   },
 } satisfies bp.IntegrationProps['channels']
