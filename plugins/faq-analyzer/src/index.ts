@@ -8,4 +8,13 @@ const plugin = new bp.Plugin({
   actions: {},
 })
 
+plugin.on.beforeIncomingMessage("*", async (props) => {
+  const schema = {
+    question: { type: 'string', searchable: true },
+    count: { type: 'number' }
+  }
+  await table.createTableIfNotExist(props, schema)
+  return undefined
+})
+
 export default plugin
