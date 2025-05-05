@@ -35,8 +35,11 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
       })
       
     } catch (err) {
-      props.logger.warn(`Table creation attempt: ${err.message}`)
-      
+      if (err instanceof Error) {
+        props.logger.warn(`Table creation attempt: ${err.message}`)
+      } else {
+        props.logger.warn(`Table creation attempt: ${String(err)}`)
+      }
       try {
         await tableClient.setState({ 
           type: 'bot', 
@@ -45,11 +48,19 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
           payload: { tableCreated: true } 
         })
       } catch (stateErr) {
-        props.logger.warn(`Failed to set state: ${stateErr.message}`)
+        if (stateErr instanceof Error) {
+          props.logger.warn(`Failed to set state: ${stateErr.message}`)
+        } else {
+          props.logger.warn(`Failed to set state: ${String(stateErr)}`)
+        }
       }
     }
   } catch (err) {
+    if (err instanceof Error) {
     props.logger.error(`Failed to initialize table: ${err.message}`)
+    } else {
+      props.logger.error(`Failed initialize table: ${String(err)}`)
+    }
   }
   
   return undefined
