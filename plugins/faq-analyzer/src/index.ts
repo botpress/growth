@@ -1,8 +1,9 @@
 import * as bp from '.botpress'
-import * as client from '@botpress/client'
-import * as error from './error'
-import * as vanilla from './vanilla-client'
-import * as table from './table'
+
+// plugin client (it's just the botpress client) --> no need for vanilla
+const getTableClient = (botClient: bp.Client): any => {
+  return botClient as any;
+}
 
 const plugin = new bp.Plugin({
   actions: {},
@@ -15,16 +16,18 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
   }
   
   try {
-    const tableName = props.configuration?.tableName ?? 'QuestionTable'
+    const tableName = 'QuestionTable'
     props.logger.info(`Creating table "${tableName}" with schema ${JSON.stringify(schema)}`)
     
+    const tableClient = getTableClient(props.client)
+    
     try {
-      await props.client.getOrCreateTable({
+      await tableClient.getOrCreateTable({
         table: tableName,
         schema,
       })
       
-      await props.client.setState({ 
+      await tableClient.setState({ 
         type: 'bot', 
         id: props.ctx.botId, 
         name: 'table', 
@@ -35,7 +38,7 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
       props.logger.warn(`Table creation attempt: ${err.message}`)
       
       try {
-        await props.client.setState({ 
+        await tableClient.setState({ 
           type: 'bot', 
           id: props.ctx.botId, 
           name: 'table', 
