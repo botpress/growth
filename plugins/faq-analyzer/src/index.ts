@@ -13,7 +13,42 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
     question: { type: 'string', searchable: true },
     count: { type: 'number' }
   }
-  await table.createTableIfNotExist(props, schema)
+  
+  try {
+    const tableName = props.configuration?.tableName ?? 'QuestionTable'
+    props.logger.info(`Creating table "${tableName}" with schema ${JSON.stringify(schema)}`)
+    
+    try {
+      await props.client.getOrCreateTable({
+        table: tableName,
+        schema,
+      })
+      
+      await props.client.setState({ 
+        type: 'bot', 
+        id: props.ctx.botId, 
+        name: 'table', 
+        payload: { tableCreated: true } 
+      })
+      
+    } catch (err) {
+      props.logger.warn(`Table creation attempt: ${err.message}`)
+      
+      try {
+        await props.client.setState({ 
+          type: 'bot', 
+          id: props.ctx.botId, 
+          name: 'table', 
+          payload: { tableCreated: true } 
+        })
+      } catch (stateErr) {
+        props.logger.warn(`Failed to set state: ${stateErr.message}`)
+      }
+    }
+  } catch (err) {
+    props.logger.error(`Failed to initialize table: ${err.message}`)
+  }
+  
   return undefined
 })
 

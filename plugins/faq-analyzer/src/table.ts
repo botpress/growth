@@ -15,35 +15,43 @@ export const createTableIfNotExist = async (
     return
   }
 
-  const { state } = await props.client
-    .getOrSetState({
-      type: 'bot',
-      id: props.ctx.botId,
-      name: 'table',
-      payload: { tableCreated: false },
-    })
-    .catch(error.mapError('Failed to get state "table"'))
+  try {
+    const client = vanilla.clientFrom(props.client)
+    const schema = escapeObject(item)
+    const tableName = props.configuration?.tableName ?? 'QuestionTable'
 
-  const { tableCreated } = state.payload
-  if (tableCreated) {
-    props.logger.debug(`Table "${props.configuration.tableName}" already exists`)
-    return
+    props.logger.info(`Creating table "${tableName}" with schema ${JSON.stringify(schema)}`)
+    
+    try {
+      await client.getOrCreateTable({
+        table: tableName,
+        schema,
+      })
+      
+      await props.client.setState({ 
+        type: 'bot', 
+        id: props.ctx.botId, 
+        name: 'table', 
+        payload: { tableCreated: true } 
+      })
+      
+    } catch (err) {
+      props.logger.warn(`Table creation attempt: ${err.message}`)
+      
+      try {
+        await props.client.setState({ 
+          type: 'bot', 
+          id: props.ctx.botId, 
+          name: 'table', 
+          payload: { tableCreated: true } 
+        })
+      } catch (stateErr) {
+        props.logger.warn(`Failed to set state: ${stateErr.message}`)
+      }
+    }
+  } catch (err) {
+    props.logger.error(`Failed to initialize table: ${err.message}`)
   }
-
-  const client = vanilla.clientFrom(props.client)
-  const schema = escapeObject(item)
-
-  props.logger.info(`Creating table "${props.configuration.tableName}" with schema ${JSON.stringify(schema)}`)
-  await client
-    .createTable({
-      name: props.configuration.tableName ?? 'QuestionTable',
-      schema,
-    })
-    .catch(error.mapError('Failed to create table'))
-
-  await props.client
-    .setState({ type: 'bot', id: props.ctx.botId, name: 'table', payload: { tableCreated: true } })
-    .catch(error.mapError('Failed to set state "table"'))
 }
 
 export const deleteTableIfExist = async (props: bp.EventHandlerProps | bp.ActionHandlerProps) => {
