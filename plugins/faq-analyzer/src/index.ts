@@ -94,6 +94,17 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     return undefined
   }
 
+  const alreadyProcessed = await tableClient.getState({
+    type: 'conversation',
+    id: props.data.conversationId,
+    name: 'faqAnalyzed'
+  })
+
+  if (alreadyProcessed?.payload?.done) {
+    props.logger.info('Conversation already processed. Skipping analysis.')
+    return
+  }
+
   try {
     const { messages } = await props.client.listMessages({
       conversationId: props.data.conversationId
@@ -185,6 +196,20 @@ plugin.on.afterIncomingMessage("*", async (props) => {
             await tableClient.createRecord({ table: tableName, record: { question: normalizedQuestion, count: 1 } })
           }
         }
+      }
+    }
+    try {
+      await tableClient.setState({
+        type: 'conversation',
+        id: props.data.conversationId,
+        name: 'faqAnalyzed',
+        payload: { done: true }
+      })
+    } catch (err) {
+      if (err instanceof Error) {
+        props.logger.warn(`Failed to set state: ${err.message}`)
+      } else {
+        props.logger.warn(`Failed to set state: ${String(err)}`)
       }
     }
   } catch (err) {
