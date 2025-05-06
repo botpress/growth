@@ -8,6 +8,7 @@ export default new PluginDefinition({
   configuration: {
     schema: sdk.z.object({
       tableName: sdk.z.string()
+        .describe('The name of the table to store the FAQ data. Do not start your table name with a number.')
         .min(1, { message: 'Table name is required' })
         .regex(/^[^\d]/, { message: 'Table name must not start with a number' })
     })
