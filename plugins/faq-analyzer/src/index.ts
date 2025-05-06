@@ -20,6 +20,12 @@ function getTableName(props: any): string | undefined {
   return tableName
 }
 
+interface BotpressApiError {
+  code?: number;
+  type?: string;
+  message?: string;
+}
+
 const plugin = new bp.Plugin({
   actions: {},
 })
@@ -47,12 +53,20 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
         schema,
       })
 
-      await tableClient.setState({
-        type: 'bot',
-        id: props.ctx.botId,
-        name: 'table',
-        payload: { tableCreated: true }
-      })
+      try {
+        await tableClient.setState({
+          type: 'bot',
+          id: props.ctx.botId,
+          name: 'table',
+          payload: { tableCreated: true }
+        })
+      } catch (stateErr) {
+        if (stateErr instanceof Error) {
+          props.logger.warn(`Failed to set table state: ${stateErr.message}`)
+        } else {
+          props.logger.warn(`Failed to set table state: ${String(stateErr)}`)
+        }
+      }
 
     } catch (err) {
       if (err instanceof Error) {
@@ -94,15 +108,30 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     return undefined
   }
 
-  const alreadyProcessed = await tableClient.getState({
-    type: 'conversation',
-    id: props.data.conversationId,
-    name: 'faqAnalyzed'
-  })
+  let alreadyProcessed = undefined;
+  try {
+    alreadyProcessed = await tableClient.getState({
+      type: 'conversation',
+      id: props.data.conversationId,
+      name: 'faqAnalyzed'
+    });
+  } catch (err) {
+    const apiError = err as BotpressApiError;
+    if (typeof apiError === 'object' && apiError && apiError.code === 400 && apiError.type === 'ReferenceNotFound') {
+      props.logger.debug('FAQ analyzed state does not exist yet, treating as not processed');
+      alreadyProcessed = undefined;
+    } else {
+      if (err instanceof Error) {
+        props.logger.warn(`Error checking FAQ state: ${err.message}`);
+      } else {
+        props.logger.warn(`Error checking FAQ state: ${String(err)}`);
+      }
+    }
+  }
 
   if (alreadyProcessed?.payload?.done) {
-    props.logger.info('Conversation already processed. Skipping analysis.')
-    return
+    props.logger.info('Conversation already processed. Skipping analysis.');
+    return;
   }
 
   try {
@@ -198,6 +227,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
         }
       }
     }
+
     try {
       await tableClient.setState({
         type: 'conversation',
@@ -205,11 +235,12 @@ plugin.on.afterIncomingMessage("*", async (props) => {
         name: 'faqAnalyzed',
         payload: { done: true }
       })
+      props.logger.info('Successfully marked conversation as analyzed')
     } catch (err) {
       if (err instanceof Error) {
-        props.logger.warn(`Failed to set state: ${err.message}`)
+        props.logger.warn(`Failed to set analyzed state: ${err.message}`)
       } else {
-        props.logger.warn(`Failed to set state: ${String(err)}`)
+        props.logger.warn(`Failed to set analyzed state: ${String(err)}`)
       }
     }
   } catch (err) {
