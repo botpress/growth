@@ -1,8 +1,23 @@
 import * as bp from '.botpress'
+import * as zai from '@botpress/zai'
+import { z } from 'zod'
 
 // plugin client (it's just the botpress client) --> no need for vanilla
 const getTableClient = (botClient: bp.Client): any => {
   return botClient as any;
+}
+
+function getTableName(props: any): string | undefined {
+  let tableName = (props.configuration as { tableName?: string }).tableName ?? 'QuestionTable'
+  tableName = tableName.replace(/\s+/g, '')
+  if (!tableName || /^\d/.test(tableName)) {
+    props.logger.error('Table name must not start with a number. FAQ Table will not be created.')
+    return undefined
+  }
+  if (!tableName.endsWith('Table')) {
+    tableName += 'Table'
+  }
+  return tableName
 }
 
 const plugin = new bp.Plugin({
@@ -16,16 +31,10 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
   }
   
   try {
-    let tableName = (props.configuration as { tableName?: string }).tableName ?? 'QuestionTable'
-    tableName = tableName.replace(/\s+/g, '')
-    
-    if (!tableName || /^\d/.test(tableName)) {
-      props.logger.error('Table name must not start with a number. FAQ Table will not be created.')
+    const tableName = getTableName(props)
+    if (!tableName) {
+      props.logger.error('Something went wrong with the table name. FAQ Table will not be created.')
       return undefined
-    }
-
-    if (!tableName.endsWith('Table')) {
-      tableName += 'Table'
     }
 
     props.logger.info(`Creating table "${tableName}" with schema ${JSON.stringify(schema)}`)
