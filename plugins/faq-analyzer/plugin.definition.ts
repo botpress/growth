@@ -4,7 +4,7 @@ import * as sdk from '@botpress/sdk'
 
 export default new PluginDefinition({
   name: 'plus/faq-analyzer',
-  version: '1.0.8',
+  version: '1.0.9',
   configuration: {
     schema: sdk.z.object({
       tableName: sdk.z.string()
