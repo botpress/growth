@@ -1,23 +1,27 @@
-import * as bp from '.botpress'
-import { Zai} from '@botpress/zai';
-import { z } from 'zod'
+import * as bp from ".botpress";
+import { Zai } from "@botpress/zai";
+import { z } from "zod";
 
 // plugin client (it's just the botpress client) --> no need for vanilla
 const getTableClient = (botClient: bp.Client): any => {
   return botClient as any;
-}
+};
 
 function getTableName(props: any): string | undefined {
-  let tableName = (props.configuration as { tableName?: string }).tableName ?? 'QuestionTable'
-  tableName = tableName.replace(/\s+/g, '')
+  let tableName =
+    (props.configuration as { tableName?: string }).tableName ??
+    "QuestionTable";
+  tableName = tableName.replace(/\s+/g, "");
   if (!tableName || /^\d/.test(tableName)) {
-    props.logger.error('Table name must not start with a number. FAQ Table will not be created.')
-    return undefined
+    props.logger.error(
+      "Table name must not start with a number. FAQ Table will not be created.",
+    );
+    return undefined;
   }
-  if (!tableName.endsWith('Table')) {
-    tableName += 'Table'
+  if (!tableName.endsWith("Table")) {
+    tableName += "Table";
   }
-  return tableName
+  return tableName;
 }
 
 interface BotpressApiError {
@@ -28,97 +32,107 @@ interface BotpressApiError {
 
 const plugin = new bp.Plugin({
   actions: {},
-})
+});
 
 plugin.on.beforeIncomingMessage("*", async (props) => {
   const schema = {
-    question: { type: 'string', searchable: true, nullable: true },
-    count: { type: 'number', nullable: true }
-  }
+    question: { type: "string", searchable: true, nullable: true },
+    count: { type: "number", nullable: true },
+  };
 
   try {
-    const tableName = getTableName(props)
+    const tableName = getTableName(props);
     if (!tableName) {
-      props.logger.error('Something went wrong with the table name. FAQ Table will not be created.')
-      return undefined
+      props.logger.error(
+        "Something went wrong with the table name. FAQ Table will not be created.",
+      );
+      return undefined;
     }
 
-    props.logger.info(`Creating table "${tableName}" with schema ${JSON.stringify(schema)}`)
+    props.logger.info(
+      `Creating table "${tableName}" with schema ${JSON.stringify(schema)}`,
+    );
 
-    const tableClient = getTableClient(props.client)
+    const tableClient = getTableClient(props.client);
 
     try {
       await tableClient.getOrCreateTable({
         table: tableName,
         schema,
-      })
+      });
 
       try {
         await tableClient.setState({
-          type: 'bot',
+          type: "bot",
           id: props.ctx.botId,
-          name: 'table',
-          payload: { tableCreated: true }
-        })
+          name: "table",
+          payload: { tableCreated: true },
+        });
       } catch (stateErr) {
         if (stateErr instanceof Error) {
-          props.logger.warn(`Failed to set table state: ${stateErr.message}`)
+          props.logger.warn(`Failed to set table state: ${stateErr.message}`);
         } else {
-          props.logger.warn(`Failed to set table state: ${String(stateErr)}`)
+          props.logger.warn(`Failed to set table state: ${String(stateErr)}`);
         }
       }
-
     } catch (err) {
       if (err instanceof Error) {
-        props.logger.warn(`Table creation attempt: ${err.message}`)
+        props.logger.warn(`Table creation attempt: ${err.message}`);
       } else {
-        props.logger.warn(`Table creation attempt: ${String(err)}`)
+        props.logger.warn(`Table creation attempt: ${String(err)}`);
       }
       try {
         await tableClient.setState({
-          type: 'bot',
+          type: "bot",
           id: props.ctx.botId,
-          name: 'table',
-          payload: { tableCreated: true }
-        })
+          name: "table",
+          payload: { tableCreated: true },
+        });
       } catch (stateErr) {
         if (stateErr instanceof Error) {
-          props.logger.warn(`Failed to set state: ${stateErr.message}`)
+          props.logger.warn(`Failed to set state: ${stateErr.message}`);
         } else {
-          props.logger.warn(`Failed to set state: ${String(stateErr)}`)
+          props.logger.warn(`Failed to set state: ${String(stateErr)}`);
         }
       }
     }
   } catch (err) {
     if (err instanceof Error) {
-    props.logger.error(`Failed to initialize table: ${err.message}`)
+      props.logger.error(`Failed to initialize table: ${err.message}`);
     } else {
-      props.logger.error(`Failed initialize table: ${String(err)}`)
+      props.logger.error(`Failed initialize table: ${String(err)}`);
     }
   }
 
-  return undefined
-})
+  return undefined;
+});
 
 plugin.on.afterIncomingMessage("*", async (props) => {
-  const tableClient = getTableClient(props.client)
-  const tableName = getTableName(props)
+  const tableClient = getTableClient(props.client);
+  const tableName = getTableName(props);
   if (!tableName) {
-    props.logger.error('Table name is not set. FAQ Table will not be created.')
-    return undefined
+    props.logger.error("Table name is not set. FAQ Table will not be created.");
+    return undefined;
   }
 
   let alreadyProcessed = undefined;
   try {
     alreadyProcessed = await tableClient.getState({
-      type: 'conversation',
+      type: "conversation",
       id: props.data.conversationId,
-      name: 'faqAnalyzed'
+      name: "faqAnalyzed",
     });
   } catch (err) {
     const apiError = err as BotpressApiError;
-    if (typeof apiError === 'object' && apiError && apiError.code === 400 && apiError.type === 'ReferenceNotFound') {
-      props.logger.debug('FAQ analyzed state does not exist yet, treating as not processed');
+    if (
+      typeof apiError === "object" &&
+      apiError &&
+      apiError.code === 400 &&
+      apiError.type === "ReferenceNotFound"
+    ) {
+      props.logger.debug(
+        "FAQ analyzed state does not exist yet, treating as not processed",
+      );
       alreadyProcessed = undefined;
     } else {
       if (err instanceof Error) {
@@ -130,40 +144,46 @@ plugin.on.afterIncomingMessage("*", async (props) => {
   }
 
   if (alreadyProcessed?.payload?.done) {
-    props.logger.info('Conversation already processed. Skipping analysis.');
+    props.logger.info("Conversation already processed. Skipping analysis.");
     return;
   }
 
   try {
     const { messages } = await props.client.listMessages({
-      conversationId: props.data.conversationId
-    })
+      conversationId: props.data.conversationId,
+    });
 
-    messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    messages.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
 
     const userMessages = messages
-    .filter(m => m.direction === 'incoming')
-    .map(m => m.payload?.text)
-    .filter((text): text is string => Boolean(text));
+      .filter((m) => m.direction === "incoming")
+      .map((m) => m.payload?.text)
+      .filter((text): text is string => Boolean(text));
 
     if (userMessages.length === 0) {
-      props.logger.info('User never interacted with the bot. Skipping analysis.')
-      return
+      props.logger.info(
+        "User never interacted with the bot. Skipping analysis.",
+      );
+      return;
     }
 
-    const fullUserMessages = userMessages.join('\n')
+    const fullUserMessages = userMessages.join("\n");
     const questionSchema = z.array(
       z.object({
         text: z.string(),
-        normalizedText: z.string()
-      })
-    )
+        normalizedText: z.string(),
+      }),
+    );
 
-    const zai = new Zai({ client: getTableClient(props.client) })
+    const zai = new Zai({ client: getTableClient(props.client) });
     const extractedQuestions = await zai.extract(
-      fullUserMessages, 
-      questionSchema as any, {
-      instructions: `Extract all questions from this conversation. For each question:
+      fullUserMessages,
+      questionSchema as any,
+      {
+        instructions: `Extract all questions from this conversation. For each question:
               1. In the "text" field, extract the original question exactly as it appears
               2. In the "normalizedText" field, rewrite each as a complete standalone question:
                 - For follow-up questions (like "what about X?"), transform it using the same pattern as the previous question
@@ -172,57 +192,79 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                 - Remove question numbers or prefixes like "1." or "a."
                 - Convert to lowercase and remove excess spacing or punctuation
               
-              ONLY extract actual questions, not statements or commands.`
-    })
+              ONLY extract actual questions, not statements or commands.`,
+      },
+    );
 
     if (extractedQuestions && extractedQuestions.length > 0) {
-      const existingRecords = await tableClient.findRecords({ table: tableName, query: {} })
+      const existingRecords = await tableClient.findRecords({
+        table: tableName,
+        query: {},
+      });
       for (const question of extractedQuestions) {
-        if (!question.normalizedText) continue
-        const normalizedQuestion = question.normalizedText.trim().toLowerCase()
-        let similarQuestionFound = false
+        if (!question.normalizedText) continue;
+        const normalizedQuestion = question.normalizedText.trim().toLowerCase();
+        let similarQuestionFound = false;
 
         if (existingRecords.length > 0) {
-          const existingQuestions = existingRecords.map((r: any) => r.question)
+          const existingQuestions = existingRecords.map((r: any) => r.question);
           const isSimilarToExisting = await zai.check(
             { newQuestion: normalizedQuestion, existingQuestions },
             `Determine if newQuestion is semantically equivalent to any question in existingQuestions.
-              Return true ONLY if they are asking for the same information, even if phrased differently.`
-          )
+              Return true ONLY if they are asking for the same information, even if phrased differently.`,
+          );
 
           if (isSimilarToExisting) {
             const mostSimilarQuestion = await zai.extract(
-              JSON.stringify({ newQuestion: normalizedQuestion, existingQuestions }),
+              JSON.stringify({
+                newQuestion: normalizedQuestion,
+                existingQuestions,
+              }),
               z.object({ mostSimilarQuestion: z.string() }) as any,
               {
-                instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion and return it exactly as written.`
-              }
-            )
+                instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion and return it exactly as written.`,
+              },
+            );
 
-            if (mostSimilarQuestion && mostSimilarQuestion.mostSimilarQuestion) {
-              const existingRecord = existingRecords.find((r: any) => r.question === mostSimilarQuestion.mostSimilarQuestion)
+            if (
+              mostSimilarQuestion &&
+              mostSimilarQuestion.mostSimilarQuestion
+            ) {
+              const existingRecord = existingRecords.find(
+                (r: any) =>
+                  r.question === mostSimilarQuestion.mostSimilarQuestion,
+              );
               if (existingRecord) {
-                const currentCount = existingRecord.count || 0
+                const currentCount = existingRecord.count || 0;
                 await tableClient.updateRecord({
                   table: tableName,
                   id: existingRecord.id,
-                  record: { 
-                    count: currentCount + 1
-                  }
-                })
-                similarQuestionFound = true
+                  record: {
+                    count: currentCount + 1,
+                  },
+                });
+                similarQuestionFound = true;
               }
             }
           }
         }
 
         if (!similarQuestionFound) {
-          const exactMatch = existingRecords.find((r: any) => r.question.trim().toLowerCase() === normalizedQuestion)
+          const exactMatch = existingRecords.find(
+            (r: any) => r.question.trim().toLowerCase() === normalizedQuestion,
+          );
           if (exactMatch) {
-            const currentCount = exactMatch.count || 0
-            await tableClient.updateRecord({ table: tableName, id: exactMatch.id, record: { count: currentCount + 1 } })
+            const currentCount = exactMatch.count || 0;
+            await tableClient.updateRecord({
+              table: tableName,
+              id: exactMatch.id,
+              record: { count: currentCount + 1 },
+            });
           } else {
-            await tableClient.createRecord({ table: tableName, record: { question: normalizedQuestion, count: 1 } })
+            await tableClient.createRecord({
+              table: tableName,
+              record: { question: normalizedQuestion, count: 1 },
+            });
           }
         }
       }
@@ -230,27 +272,26 @@ plugin.on.afterIncomingMessage("*", async (props) => {
 
     try {
       await tableClient.setState({
-        type: 'conversation',
+        type: "conversation",
         id: props.data.conversationId,
-        name: 'faqAnalyzed',
-        payload: { done: true }
-      })
-      props.logger.info('Successfully marked conversation as analyzed')
+        name: "faqAnalyzed",
+        payload: { done: true },
+      });
+      props.logger.info("Successfully marked conversation as analyzed");
     } catch (err) {
       if (err instanceof Error) {
-        props.logger.warn(`Failed to set analyzed state: ${err.message}`)
+        props.logger.warn(`Failed to set analyzed state: ${err.message}`);
       } else {
-        props.logger.warn(`Failed to set analyzed state: ${String(err)}`)
+        props.logger.warn(`Failed to set analyzed state: ${String(err)}`);
       }
     }
   } catch (err) {
     if (err instanceof Error) {
-      props.logger.error(`Error analyzing FAQ: ${err.message}`)
+      props.logger.error(`Error analyzing FAQ: ${err.message}`);
     } else {
-      props.logger.error(`Error analyzing FAQ: ${String(err)}`)
+      props.logger.error(`Error analyzing FAQ: ${String(err)}`);
     }
   }
+});
 
-})
-
-export default plugin
+export default plugin;
