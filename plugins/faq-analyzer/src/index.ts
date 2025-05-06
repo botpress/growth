@@ -16,12 +16,18 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
   }
   
   try {
-    const tableName = (props.configuration as { tableName?: string }).tableName ?? 'QuestionTable'
+    let tableName = (props.configuration as { tableName?: string }).tableName ?? 'QuestionTable'
+    tableName = tableName.replace(/\s+/g, '')
     
     if (!tableName || /^\d/.test(tableName)) {
       props.logger.error('Table name must not start with a number. FAQ Table will not be created.')
       return undefined
     }
+
+    if (!tableName.endsWith('Table')) {
+      tableName += 'Table'
+    }
+
     props.logger.info(`Creating table "${tableName}" with schema ${JSON.stringify(schema)}`)
     
     const tableClient = getTableClient(props.client)
