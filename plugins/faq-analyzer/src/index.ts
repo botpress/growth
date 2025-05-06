@@ -11,8 +11,8 @@ const plugin = new bp.Plugin({
 
 plugin.on.beforeIncomingMessage("*", async (props) => {
   const schema = {
-    question: { type: 'string', searchable: true },
-    count: { type: 'number' }
+    question: { type: 'string', searchable: true, nullable: true },
+    count: { type: 'number', nullable: true }
   }
   
   try {
