@@ -197,9 +197,9 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     );
 
     if (extractedQuestions && extractedQuestions.length > 0) {
-      const existingRecords = await tableClient.findRecords({
+      const { rows: existingRecords } = await tableClient.findTableRows({
         table: tableName,
-        query: {},
+        filter: {}
       });
       for (const question of extractedQuestions) {
         if (!question.normalizedText) continue;
@@ -236,12 +236,12 @@ plugin.on.afterIncomingMessage("*", async (props) => {
               );
               if (existingRecord) {
                 const currentCount = existingRecord.count || 0;
-                await tableClient.updateRecord({
+                await tableClient.updateTableRows({
                   table: tableName,
-                  id: existingRecord.id,
-                  record: {
-                    count: currentCount + 1,
-                  },
+                  rows: [{
+                    id: existingRecord.id,
+                    count: currentCount + 1
+                  }]
                 });
                 similarQuestionFound = true;
               }
@@ -255,15 +255,20 @@ plugin.on.afterIncomingMessage("*", async (props) => {
           );
           if (exactMatch) {
             const currentCount = exactMatch.count || 0;
-            await tableClient.updateRecord({
+            await tableClient.updateTableRows({
               table: tableName,
-              id: exactMatch.id,
-              record: { count: currentCount + 1 },
+              rows: [{
+                id: exactMatch.id,
+                count: currentCount + 1
+              }]
             });
           } else {
-            await tableClient.createRecord({
+            await tableClient.createTableRows({
               table: tableName,
-              record: { question: normalizedQuestion, count: 1 },
+              rows: [{ 
+                question: normalizedQuestion, 
+                count: 1 
+              }]
             });
           }
         }
