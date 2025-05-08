@@ -1,6 +1,6 @@
 import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
-import { z } from "zod";
+import { z } from '@bpinternal/zui';
 
 // plugin client (it's just the botpress client) --> no need for vanilla
 const getTableClient = (botClient: bp.Client): any => {
