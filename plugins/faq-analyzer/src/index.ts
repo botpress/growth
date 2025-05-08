@@ -369,8 +369,11 @@ async function processQuestion(props: any, tableClient: any, tableName: string, 
           - "how do I reset my password" and "how to reset password" (SAME)
           - "what are your offers" and "are discounts and promotions different" (DIFFERENT)
           - "what services do you provide" and "do you offer any discounts" (DIFFERENT)
-          Return false if they are substantively different questions, ask about different topics, or have different intents.
-          Be strict about similarity - when in doubt, return false.`,
+          - "how old is matthew" and "how old is john" (DIFFERENT) - different subjects matter
+          - "what about X" and "what about Y" (DIFFERENT) - different entities should be treated as different questions
+          Return false if they are substantively different questions, ask about different topics, have different intents, or refer to different entities/people.
+          Be strict about similarity - when in doubt, return false.
+          Questions with the same structure but different subjects/entities should be considered DIFFERENT.`,
       );
 
       if (isSimilarToExisting) {
@@ -403,8 +406,11 @@ async function processQuestion(props: any, tableClient: any, tableName: string, 
                 explanation: `Original: ${normalizedQuestion}\nCandidate: ${existingRecord.question}`
               },
               `Given two questions q1 and q2, determine if they are asking for the same information with the same intent.
-              Return true ONLY if they are VERY similar questions seeking the same information.
-              If they are about different topics or have different intents, return false.
+              Return true ONLY if they are VERY similar questions seeking the same information about the SAME subject or entity.
+              If they refer to different people, products, or entities, return false even if the question structure is identical.
+              Examples:
+              - "how old is matthew?" vs "how old is john?" -> FALSE (different people)
+              - "what discounts do you offer?" vs "what discounts are available?" -> TRUE (same subject)
               Be strict - when in doubt, return false.`
             );
             
