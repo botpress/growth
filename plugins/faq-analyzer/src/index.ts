@@ -32,6 +32,27 @@ interface BotpressApiError {
 
 const plugin = new bp.Plugin({
   actions: {},
+  // i wonder if state definition can be declared off rip
+  // states: {
+  //   bot: {
+  //     table: {
+  //       type: "object",
+  //       description: "Stores table creation status",
+  //       schema: {
+  //         tableCreated: { type: "boolean" }
+  //       }
+  //     }
+  //   },
+  //   conversation: {
+  //     faqAnalyzed: {
+  //       type: "object",
+  //       description: "Tracks if a conversation has been analyzed",
+  //       schema: {
+  //         done: { type: "boolean" }
+  //       }
+  //     }
+  //   }
+  // }
 });
 
 plugin.on.beforeIncomingMessage("*", async (props) => {
@@ -172,7 +193,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
 
     const zai = new Zai({ client: getTableClient(props.client) });
     const extractedQuestions = await zai.extract(
-      fullUserMessages,
+      fullUserMessages.toString(),
       questionSchema,
       {
         instructions: `Extract all questions from this conversation. For each question:
@@ -185,7 +206,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                 - Convert to lowercase and remove excess spacing or punctuation
               
               ONLY extract actual questions, not statements or commands.`,
-      },
+      }
     );
 
     if (extractedQuestions && extractedQuestions.length > 0) {
@@ -287,7 +308,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
       }
     }
   } catch (err) {
-    props.logger.error(`Error analyzing FAQ details: ${JSON.stringify(err)}`);
+    props.logger.error(`Error during extraction: ${err instanceof Error ? err.message : String(err)}`);
     props.logger.error(`Error type: ${typeof err}`);
 
     if (err instanceof Error) {
