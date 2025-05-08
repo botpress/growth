@@ -256,10 +256,9 @@ plugin.on.afterIncomingMessage("*", async (props) => {
       if (extractedQuestions && extractedQuestions.length > 0) {
         props.logger.info(`Found ${extractedQuestions.length} questions in conversation`);
         
-        for (const question of extractedQuestions) {
-          if (!question.normalizedText) continue;
-
-          await processQuestion(props, tableClient, tableName, question.normalizedText);
+        const latestQuestion = extractedQuestions[extractedQuestions.length - 1];
+        if (latestQuestion && latestQuestion.normalizedText) {
+          await processQuestion(props, tableClient, tableName, latestQuestion.normalizedText);
         }
       } else {
         props.logger.info('No questions picked up by zai');
@@ -268,10 +267,9 @@ plugin.on.afterIncomingMessage("*", async (props) => {
       props.logger.warn(`Extraction failed with error: ${err instanceof Error ? err.message : String(err)}`);
       props.logger.info("Falling back to direct message processing");
       
-      for (const msg of userMessages) {
-        if (msg.trim().endsWith('?')) {
-          await processQuestion(props, tableClient, tableName, msg);
-        }
+      const latestMsg = userMessages[userMessages.length - 1];
+      if (latestMsg && latestMsg.trim().endsWith('?')) {
+        await processQuestion(props, tableClient, tableName, latestMsg);
       }
     }
 
