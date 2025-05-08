@@ -173,7 +173,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     const zai = new Zai({ client: getTableClient(props.client) });
     const extractedQuestions = await zai.extract(
       fullUserMessages,
-      questionSchema as any,
+      questionSchema,
       {
         instructions: `Extract all questions from this conversation. For each question:
               1. In the "text" field, extract the original question exactly as it appears
@@ -191,7 +191,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     if (extractedQuestions && extractedQuestions.length > 0) {
       const { rows: existingRecords } = await tableClient.findTableRows({
         table: tableName,
-        filter: {}
+        filter: {},
       });
       for (const question of extractedQuestions) {
         if (!question.normalizedText) continue;
@@ -230,10 +230,12 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                 const currentCount = existingRecord.count || 0;
                 await tableClient.updateTableRows({
                   table: tableName,
-                  rows: [{
-                    id: existingRecord.id,
-                    count: currentCount + 1
-                  }]
+                  rows: [
+                    {
+                      id: existingRecord.id,
+                      count: currentCount + 1,
+                    },
+                  ],
                 });
                 similarQuestionFound = true;
               }
@@ -249,18 +251,22 @@ plugin.on.afterIncomingMessage("*", async (props) => {
             const currentCount = exactMatch.count || 0;
             await tableClient.updateTableRows({
               table: tableName,
-              rows: [{
-                id: exactMatch.id,
-                count: currentCount + 1
-              }]
+              rows: [
+                {
+                  id: exactMatch.id,
+                  count: currentCount + 1,
+                },
+              ],
             });
           } else {
             await tableClient.createTableRows({
               table: tableName,
-              rows: [{ 
-                question: normalizedQuestion, 
-                count: 1 
-              }]
+              rows: [
+                {
+                  question: normalizedQuestion,
+                  count: 1,
+                },
+              ],
             });
           }
         }
@@ -283,7 +289,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
   } catch (err) {
     props.logger.error(`Error analyzing FAQ details: ${JSON.stringify(err)}`);
     props.logger.error(`Error type: ${typeof err}`);
-    
+
     if (err instanceof Error) {
       props.logger.error(`Error analyzing FAQ: ${err.message}`);
       props.logger.error(`Error stack: ${err.stack}`);
