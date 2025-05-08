@@ -3,7 +3,7 @@ import * as sdk from "@botpress/sdk";
 
 export default new PluginDefinition({
   name: "plus/faq-analyzer",
-  version: "1.2.3",
+  version: "1.3.0",
   configuration: {
     schema: sdk.z.object({
       tableName: sdk.z
@@ -17,6 +17,20 @@ export default new PluginDefinition({
           message: "Table name must not start with a number",
         }),
     }),
+  },
+  states: {
+    table: {
+      type: "bot",
+      schema: sdk.z.object({
+        tableCreated: sdk.z.boolean().describe("Whether the FAQ table has been created")
+      })
+    },
+    faqAnalyzed: {
+      type: "conversation",
+      schema: sdk.z.object({
+        done: sdk.z.boolean().describe("Whether the conversation has been analyzed for FAQs")
+      })
+    }
   },
   actions: {},
 });

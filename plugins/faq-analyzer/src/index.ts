@@ -32,27 +32,6 @@ interface BotpressApiError {
 
 const plugin = new bp.Plugin({
   actions: {},
-  // i wonder if state definition can be declared off rip
-  // states: {
-  //   bot: {
-  //     table: {
-  //       type: "object",
-  //       description: "Stores table creation status",
-  //       schema: {
-  //         tableCreated: { type: "boolean" }
-  //       }
-  //     }
-  //   },
-  //   conversation: {
-  //     faqAnalyzed: {
-  //       type: "object",
-  //       description: "Tracks if a conversation has been analyzed",
-  //       schema: {
-  //         done: { type: "boolean" }
-  //       }
-  //     }
-  //   }
-  // }
 });
 
 plugin.on.beforeIncomingMessage("*", async (props) => {
@@ -184,6 +163,8 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     }
 
     const fullUserMessages = userMessages.join("\n");
+    props.logger.debug(`Filtering through ${userMessages.length} user messages: ${fullUserMessages}`);
+    
     const questionSchema = z.array(
       z.object({
         text: z.string(),
@@ -193,7 +174,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
 
     const zai = new Zai({ client: getTableClient(props.client) });
     const extractedQuestions = await zai.extract(
-      fullUserMessages.toString(),
+      fullUserMessages,
       questionSchema,
       {
         instructions: `Extract all questions from this conversation. For each question:
@@ -205,26 +186,38 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                 - Remove question numbers or prefixes like "1." or "a."
                 - Convert to lowercase and remove excess spacing or punctuation
               
-              ONLY extract actual questions, not statements or commands.`,
+              ONLY extract actual questions, not statements or commands.`
       }
     );
 
     if (extractedQuestions && extractedQuestions.length > 0) {
+      props.logger.info(`Found ${extractedQuestions.length} questions in conversation`);
+      
       const { rows: existingRecords } = await tableClient.findTableRows({
         table: tableName,
         filter: {},
       });
+      
       for (const question of extractedQuestions) {
         if (!question.normalizedText) continue;
         const normalizedQuestion = question.normalizedText.trim().toLowerCase();
         let similarQuestionFound = false;
 
-        if (existingRecords.length > 0) {
+        props.logger.debug(`Processing question: "${normalizedQuestion}"`);
+
+        if (existingRecords && existingRecords.length > 0) {
           const existingQuestions = existingRecords.map((r: any) => r.question);
+          
+          props.logger.debug(`Checking similarity with ${existingQuestions.length} existing questions`);
+          
           const isSimilarToExisting = await zai.check(
             { newQuestion: normalizedQuestion, existingQuestions },
             `Determine if newQuestion is semantically equivalent to any question in existingQuestions.
-              Return true ONLY if they are asking for the same information, even if phrased differently.`,
+              Return true ONLY if they are asking for the same information, even if phrased differently.
+              Examples of equivalent questions:
+              - "can i switch my medicare plan anytime" and "can i switch the medicare plan at any time?"
+              - "how do I reset my password" and "how to reset password"
+              Return false if they are substantively different questions.`,
           );
 
           if (isSimilarToExisting) {
@@ -233,7 +226,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                 newQuestion: normalizedQuestion,
                 existingQuestions,
               }),
-              z.object({ mostSimilarQuestion: z.string() }) as any,
+              z.object({ mostSimilarQuestion: z.string() }),
               {
                 instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion and return it exactly as written.`,
               },
@@ -258,6 +251,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                     },
                   ],
                 });
+                props.logger.info(`Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`);
                 similarQuestionFound = true;
               }
             }
@@ -265,7 +259,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
         }
 
         if (!similarQuestionFound) {
-          const exactMatch = existingRecords.find(
+          const exactMatch = existingRecords && existingRecords.find(
             (r: any) => r.question.trim().toLowerCase() === normalizedQuestion,
           );
           if (exactMatch) {
@@ -279,6 +273,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                 },
               ],
             });
+            props.logger.info(`Incremented count for exact question: "${exactMatch.question}" to ${currentCount + 1}`);
           } else {
             await tableClient.createTableRows({
               table: tableName,
@@ -289,9 +284,12 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                 },
               ],
             });
+            props.logger.info(`Added new question to tracking: "${normalizedQuestion}"`);
           }
         }
       }
+    } else {
+      props.logger.info('No questions picked up by zai');
     }
 
     try {
