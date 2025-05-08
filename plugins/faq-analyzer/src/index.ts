@@ -357,78 +357,96 @@ async function processQuestion(props: any, tableClient: any, tableName: string, 
       
       const existingQuestions = existingRecords.map((r: any) => r.question);
       
-      props.logger.debug(`Checking similarity with ${existingQuestions.length} existing questions`);
-      
-      const zai = new Zai({ client: tableClient });
-      const isSimilarToExisting = await zai.check(
-        { newQuestion: normalizedQuestion, existingQuestions },
-        `Determine if newQuestion is semantically equivalent to any question in existingQuestions.
-          Return true ONLY if they are asking for the same information with the same intent, even if phrased differently.
-          Examples of equivalent questions:
-          - "can i switch my medicare plan anytime" and "can i switch the medicare plan at any time?" (SAME)
-          - "how do I reset my password" and "how to reset password" (SAME)
-          - "what are your offers" and "are discounts and promotions different" (DIFFERENT)
-          - "what services do you provide" and "do you offer any discounts" (DIFFERENT)
-          - "how old is matthew" and "how old is john" (DIFFERENT) - different subjects matter
-          - "what about X" and "what about Y" (DIFFERENT) - different entities should be treated as different questions
-          Return false if they are substantively different questions, ask about different topics, have different intents, or refer to different entities/people.
-          Be strict about similarity - when in doubt, return false.
-          Questions with the same structure but different subjects/entities should be considered DIFFERENT.`,
-      );
-
-      if (isSimilarToExisting) {
-        const mostSimilarQuestion = await zai.extract(
-          JSON.stringify({
-            newQuestion: normalizedQuestion,
-            existingQuestions,
-          }),
-          z.object({ mostSimilarQuestion: z.string() }),
-          {
-            instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion and return it exactly as written.
-              Choose ONLY if they are asking about the same exact topic with the same intent.
-              If nothing is very similar, return the empty string.`,
-          },
+      const isLikelyEntityChange = existingQuestions.some((existingQ: string) => {
+        const existingWords = existingQ.split(' ');
+        const newWords = normalizedQuestion.split(' ');
+        if (existingWords.length === newWords.length) {
+          let diffCount = 0;
+          for (let i = 0; i < existingWords.length; i++) {
+            if (existingWords[i] !== newWords[i]) diffCount++;
+          }
+          if (diffCount === 1) {
+            props.logger.info(`Detected likely entity/subject change between: "${existingQ}" and "${normalizedQuestion}". Treating as new question.`);
+            return true;
+          }
+        }
+        return false;
+      });
+      if (isLikelyEntityChange) {
+        props.logger.info(`Skipping similarity check due to likely entity/subject change`);
+      } else {
+        props.logger.debug(`Checking similarity with ${existingQuestions.length} existing questions`);
+        const zai = new Zai({ client: tableClient });
+        const isSimilarToExisting = await zai.check(
+          { newQuestion: normalizedQuestion, existingQuestions },
+          `Determine if newQuestion is semantically equivalent to any question in existingQuestions.
+            Return true ONLY if they are asking for the same information with the same intent, even if phrased differently.
+            Examples of equivalent questions:
+            - "can i switch my medicare plan anytime" and "can i switch the medicare plan at any time?" (SAME)
+            - "how do I reset my password" and "how to reset password" (SAME)
+            - "what are your offers" and "are discounts and promotions different" (DIFFERENT)
+            - "what services do you provide" and "do you offer any discounts" (DIFFERENT)
+            - "how old is matthew" and "how old is john" (DIFFERENT) - different subjects matter
+            - "what about X" and "what about Y" (DIFFERENT) - different entities should be treated as different questions
+            Return false if they are substantively different questions, ask about different topics, have different intents, or refer to different entities/people.
+            Be strict about similarity - when in doubt, return false.
+            Questions with the same structure but different subjects/entities should be considered DIFFERENT.`,
         );
 
-        if (
-          mostSimilarQuestion &&
-          mostSimilarQuestion.mostSimilarQuestion
-        ) {
-          const existingRecord = existingRecords.find(
-            (r: any) =>
-              r.question === mostSimilarQuestion.mostSimilarQuestion,
+        if (isSimilarToExisting) {
+          const mostSimilarQuestion = await zai.extract(
+            JSON.stringify({
+              newQuestion: normalizedQuestion,
+              existingQuestions,
+            }),
+            z.object({ mostSimilarQuestion: z.string() }),
+            {
+              instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion and return it exactly as written.
+                Choose ONLY if they are asking about the same exact topic with the same intent.
+                If nothing is very similar, return the empty string.`,
+            },
           );
-          if (existingRecord) {
-            const confirmSimilarity = await zai.check(
-              { 
-                q1: normalizedQuestion, 
-                q2: existingRecord.question,
-                explanation: `Original: ${normalizedQuestion}\nCandidate: ${existingRecord.question}`
-              },
-              `Given two questions q1 and q2, determine if they are asking for the same information with the same intent.
-              Return true ONLY if they are VERY similar questions seeking the same information about the SAME subject or entity.
-              If they refer to different people, products, or entities, return false even if the question structure is identical.
-              Examples:
-              - "how old is matthew?" vs "how old is john?" -> FALSE (different people)
-              - "what discounts do you offer?" vs "what discounts are available?" -> TRUE (same subject)
-              Be strict - when in doubt, return false.`
+
+          if (
+            mostSimilarQuestion &&
+            mostSimilarQuestion.mostSimilarQuestion
+          ) {
+            const existingRecord = existingRecords.find(
+              (r: any) =>
+                r.question === mostSimilarQuestion.mostSimilarQuestion,
             );
-            
-            if (confirmSimilarity) {
-              const currentCount = existingRecord.count || 0;
-              await tableClient.updateTableRows({
-                table: tableName,
-                rows: [
-                  {
-                    id: existingRecord.id,
-                    count: currentCount + 1,
-                  },
-                ],
-              });
-              props.logger.info(`Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`);
-              similarQuestionFound = true;
-            } else {
-              props.logger.info(`Secondary check determined questions are not similar enough`);
+            if (existingRecord) {
+              const confirmSimilarity = await zai.check(
+                { 
+                  q1: normalizedQuestion, 
+                  q2: existingRecord.question,
+                  explanation: `Original: ${normalizedQuestion}\nCandidate: ${existingRecord.question}`
+                },
+                `Given two questions q1 and q2, determine if they are asking for the same information with the same intent.
+                Return true ONLY if they are VERY similar questions seeking the same information about the SAME subject or entity.
+                If they refer to different people, products, or entities, return false even if the question structure is identical.
+                Examples:
+                - "how old is matthew?" vs "how old is john?" -> FALSE (different people)
+                - "what discounts do you offer?" vs "what discounts are available?" -> TRUE (same subject)
+                Be strict - when in doubt, return false.`
+              );
+              
+              if (confirmSimilarity) {
+                const currentCount = existingRecord.count || 0;
+                await tableClient.updateTableRows({
+                  table: tableName,
+                  rows: [
+                    {
+                      id: existingRecord.id,
+                      count: currentCount + 1,
+                    },
+                  ],
+                });
+                props.logger.info(`Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`);
+                similarQuestionFound = true;
+              } else {
+                props.logger.info(`Secondary check determined questions are not similar enough`);
+              }
             }
           }
         }
