@@ -71,15 +71,11 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
       } catch (stateErr) {
         if (stateErr instanceof Error) {
           props.logger.warn(`Failed to set table state: ${stateErr.message}`);
-        } else {
-          props.logger.warn(`Failed to set table state: ${String(stateErr)}`);
         }
       }
     } catch (err) {
       if (err instanceof Error) {
         props.logger.warn(`Table creation attempt: ${err.message}`);
-      } else {
-        props.logger.warn(`Table creation attempt: ${String(err)}`);
       }
       try {
         await tableClient.setState({
@@ -99,8 +95,6 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
   } catch (err) {
     if (err instanceof Error) {
       props.logger.error(`Failed to initialize table: ${err.message}`);
-    } else {
-      props.logger.error(`Failed initialize table: ${String(err)}`);
     }
   }
 
@@ -137,8 +131,6 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     } else {
       if (err instanceof Error) {
         props.logger.warn(`Error checking FAQ state: ${err.message}`);
-      } else {
-        props.logger.warn(`Error checking FAQ state: ${String(err)}`);
       }
     }
   }
@@ -286,15 +278,15 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     } catch (err) {
       if (err instanceof Error) {
         props.logger.warn(`Failed to set analyzed state: ${err.message}`);
-      } else {
-        props.logger.warn(`Failed to set analyzed state: ${String(err)}`);
       }
     }
   } catch (err) {
+    props.logger.error(`Error analyzing FAQ details: ${JSON.stringify(err)}`);
+    props.logger.error(`Error type: ${typeof err}`);
+    
     if (err instanceof Error) {
       props.logger.error(`Error analyzing FAQ: ${err.message}`);
-    } else {
-      props.logger.error(`Error analyzing FAQ: ${String(err)}`);
+      props.logger.error(`Error stack: ${err.stack}`);
     }
   }
 });
