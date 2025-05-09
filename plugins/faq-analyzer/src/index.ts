@@ -2,6 +2,21 @@ import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
 import { z } from "@bpinternal/zui";
 
+async function setBotTableState(tableClient: any, botId: string, logger: any): Promise<void> {
+  try {
+    await tableClient.setState({
+      type: "bot",
+      id: botId,
+      name: "table",
+      payload: { tableCreated: true },
+    });
+  } catch (stateErr) {
+    if (stateErr instanceof Error) {
+      logger.warn(`Failed to set table state: ${stateErr.message}`);
+    }
+  }
+}
+
 const schema = {
   question: { type: "string", searchable: true, nullable: true },
   count: { type: "number", nullable: true },
@@ -61,36 +76,12 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
         schema,
       });
 
-      try {
-        await tableClient.setState({
-          type: "bot",
-          id: props.ctx.botId,
-          name: "table",
-          payload: { tableCreated: true },
-        });
-      } catch (stateErr) {
-        if (stateErr instanceof Error) {
-          props.logger.warn(`Failed to set table state: ${stateErr.message}`);
-        }
-      }
+      await setBotTableState(tableClient, props.ctx.botId, props.logger);
     } catch (err) {
       if (err instanceof Error) {
         props.logger.warn(`Table creation attempt: ${err.message}`);
       }
-      try {
-        await tableClient.setState({
-          type: "bot",
-          id: props.ctx.botId,
-          name: "table",
-          payload: { tableCreated: true },
-        });
-      } catch (stateErr) {
-        if (stateErr instanceof Error) {
-          props.logger.warn(`Failed to set state: ${stateErr.message}`);
-        } else {
-          props.logger.warn(`Failed to set state: ${String(stateErr)}`);
-        }
-      }
+      await setBotTableState(tableClient, props.ctx.botId, props.logger);
     }
   } catch (err) {
     if (err instanceof Error) {
