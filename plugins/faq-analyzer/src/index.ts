@@ -13,6 +13,8 @@ async function setBotTableState(tableClient: any, botId: string, logger: any): P
   } catch (stateErr) {
     if (stateErr instanceof Error) {
       logger.warn(`Failed to set table state: ${stateErr.message}`);
+    } else {
+      logger.warn(`Failed to set state: ${String(stateErr)}`);
     }
   }
 }
@@ -86,6 +88,9 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
   } catch (err) {
     if (err instanceof Error) {
       props.logger.error(`Failed to initialize table: ${err.message}`);
+    }
+    else {
+      props.logger.error(`Failed to initialize table: ${String(err)}`);
     }
   }
 
@@ -311,6 +316,9 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     } catch (err) {
       if (err instanceof Error) {
         props.logger.warn(`Failed to set analyzed state: ${err.message}`);
+      }
+      else {
+        props.logger.warn(`Failed to set analyzed state: ${String(err)}`);
       }
     }
   } catch (err) {
