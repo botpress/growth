@@ -23,6 +23,27 @@ async function setBotTableState(
   }
 }
 
+async function safeCreateTableAndSetState(
+  tableClient: any,
+  tableName: string,
+  botId: string,
+  logger: any,
+): Promise<void> {
+  try {
+    await createTableAndSetState(
+      tableClient,
+      tableName,
+      botId,
+      logger,
+    );
+  } catch (err) {
+    if (err instanceof Error) {
+      logger.warn(`Table creation attempt: ${err.message}`);
+    }
+    await setBotTableState(tableClient, botId, logger);
+  }
+}
+
 const schema = {
   question: { type: "string", searchable: true, nullable: true },
   count: { type: "number", nullable: true },
@@ -96,20 +117,13 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
     );
 
     const tableClient = getTableClient(props.client);
-
-    try {
-      await createTableAndSetState(
-        tableClient,
-        tableName,
-        props.ctx.botId,
-        props.logger,
-      );
-    } catch (err) {
-      if (err instanceof Error) {
-        props.logger.warn(`Table creation attempt: ${err.message}`);
-      }
-      await setBotTableState(tableClient, props.ctx.botId, props.logger);
-    }
+    
+    await safeCreateTableAndSetState(
+      tableClient,
+      tableName,
+      props.ctx.botId,
+      props.logger
+    );
   } catch (err) {
     if (err instanceof Error) {
       props.logger.error(`Failed to initialize table: ${err.message}`);
