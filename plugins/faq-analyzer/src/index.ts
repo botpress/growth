@@ -2,7 +2,11 @@ import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
 import { z } from "@bpinternal/zui";
 
-async function setBotTableState(tableClient: any, botId: string, logger: any): Promise<void> {
+async function setBotTableState(
+  tableClient: any,
+  botId: string,
+  logger: any,
+): Promise<void> {
   try {
     await tableClient.setState({
       type: "bot",
@@ -56,6 +60,27 @@ const plugin = new bp.Plugin({
   actions: {},
 });
 
+async function createTableAndSetState(
+  tableClient: any,
+  tableName: string,
+  botId: string,
+  logger: any,
+): Promise<void> {
+  try {
+    await tableClient.getOrCreateTable({
+      table: tableName,
+      schema,
+    });
+
+    await setBotTableState(tableClient, botId, logger);
+  } catch (err) {
+    if (err instanceof Error) {
+      logger.warn(`Table creation attempt: ${err.message}`);
+    }
+    await setBotTableState(tableClient, botId, logger);
+  }
+}
+
 plugin.on.beforeIncomingMessage("*", async (props) => {
   try {
     const tableName = getTableName(props);
@@ -73,12 +98,12 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
     const tableClient = getTableClient(props.client);
 
     try {
-      await tableClient.getOrCreateTable({
-        table: tableName,
-        schema,
-      });
-
-      await setBotTableState(tableClient, props.ctx.botId, props.logger);
+      await createTableAndSetState(
+        tableClient,
+        tableName,
+        props.ctx.botId,
+        props.logger,
+      );
     } catch (err) {
       if (err instanceof Error) {
         props.logger.warn(`Table creation attempt: ${err.message}`);
@@ -88,8 +113,7 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
   } catch (err) {
     if (err instanceof Error) {
       props.logger.error(`Failed to initialize table: ${err.message}`);
-    }
-    else {
+    } else {
       props.logger.error(`Failed to initialize table: ${String(err)}`);
     }
   }
@@ -316,8 +340,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     } catch (err) {
       if (err instanceof Error) {
         props.logger.warn(`Failed to set analyzed state: ${err.message}`);
-      }
-      else {
+      } else {
         props.logger.warn(`Failed to set analyzed state: ${String(err)}`);
       }
     }
