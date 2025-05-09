@@ -2,6 +2,11 @@ import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
 import { z } from "@bpinternal/zui";
 
+const schema = {
+  question: { type: "string", searchable: true, nullable: true },
+  count: { type: "number", nullable: true },
+};
+
 // plugin client (it's just the botpress client) --> no need for vanilla
 const getTableClient = (botClient: bp.Client): any => {
   return botClient as any;
@@ -35,11 +40,6 @@ const plugin = new bp.Plugin({
 });
 
 plugin.on.beforeIncomingMessage("*", async (props) => {
-  const schema = {
-    question: { type: "string", searchable: true, nullable: true },
-    count: { type: "number", nullable: true },
-  };
-
   try {
     const tableName = getTableName(props);
     if (!tableName) {
