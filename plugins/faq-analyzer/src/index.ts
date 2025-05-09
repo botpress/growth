@@ -1,6 +1,6 @@
 import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
-import { z } from '@bpinternal/zui';
+import { z } from "@bpinternal/zui";
 
 // plugin client (it's just the botpress client) --> no need for vanilla
 const getTableClient = (botClient: bp.Client): any => {
@@ -140,8 +140,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
   });
 
   messages.sort(
-    (a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 
   const userMessages = messages
@@ -150,44 +149,53 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     .filter((text): text is string => Boolean(text));
 
   if (userMessages.length === 0) {
-    props.logger.info(
-      "User never interacted with the bot. Skipping analysis.",
-    );
+    props.logger.info("User never interacted with the bot. Skipping analysis.");
     return;
   }
-  
+
   if (alreadyProcessed?.payload?.done) {
     try {
-      props.logger.debug(`Processing in incremental mode with ${userMessages.length} messages for context`);
+      props.logger.debug(
+        `Processing in incremental mode with ${userMessages.length} messages for context`,
+      );
       const recentMessages = userMessages.slice(-3);
-      
+
       if (recentMessages.length === 0) {
         props.logger.info("No valid messages to process. Skipping.");
         return;
       }
-      
-      const recentContext = recentMessages.length > 1 ? recentMessages.slice(0, -1).join("\n") : "";
+
+      const recentContext =
+        recentMessages.length > 1 ? recentMessages.slice(0, -1).join("\n") : "";
       const currentMessage = recentMessages[recentMessages.length - 1];
 
       if (!currentMessage) {
-        props.logger.warn("Current message unexpectedly undefined after validation. Skipping.");
+        props.logger.warn(
+          "Current message unexpectedly undefined after validation. Skipping.",
+        );
         return;
       }
 
       const isLikelyFollowUp = isMsgLikelyFollowUp(currentMessage);
-      
+
       if (isLikelyFollowUp && recentContext) {
-        props.logger.debug(`Detected likely follow-up question: "${currentMessage}" with context: "${recentContext}"`);
-        
+        props.logger.debug(
+          `Detected likely follow-up question: "${currentMessage}" with context: "${recentContext}"`,
+        );
+
         try {
           const zai = new Zai({ client: tableClient });
           const contextualQuestion = await zai.extract(
             JSON.stringify({
               previousMessages: recentContext,
-              followUpQuestion: currentMessage
+              followUpQuestion: currentMessage,
             }),
-            z.object({ 
-              standaloneQuestion: z.string().describe("The follow-up question rewritten as a standalone question") 
+            z.object({
+              standaloneQuestion: z
+                .string()
+                .describe(
+                  "The follow-up question rewritten as a standalone question",
+                ),
             }),
             {
               instructions: `Given a conversation context and a follow-up question, rewrite the follow-up as a complete standalone question.
@@ -196,26 +204,42 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                 - Follow-up: "what about joe?"
                 - Standalone: "how old is joe?"
                 
-                Preserve the intent of the original question but make it fully self-contained.`
-            }
+                Preserve the intent of the original question but make it fully self-contained.`,
+            },
           );
-          
+
           if (contextualQuestion?.standaloneQuestion) {
             const standaloneQuestion = contextualQuestion.standaloneQuestion;
-            props.logger.info(`Expanded follow-up question "${currentMessage}" to "${standaloneQuestion}"`);
-            await processQuestion(props, tableClient, tableName, standaloneQuestion);
+            props.logger.info(
+              `Expanded follow-up question "${currentMessage}" to "${standaloneQuestion}"`,
+            );
+            await processQuestion(
+              props,
+              tableClient,
+              tableName,
+              standaloneQuestion,
+            );
           } else {
-            await processQuestion(props, tableClient, tableName, currentMessage);
+            await processQuestion(
+              props,
+              tableClient,
+              tableName,
+              currentMessage,
+            );
           }
         } catch (err) {
-          props.logger.warn(`Failed to expand follow-up question: ${err instanceof Error ? err.message : String(err)}`);
+          props.logger.warn(
+            `Failed to expand follow-up question: ${err instanceof Error ? err.message : String(err)}`,
+          );
           await processQuestion(props, tableClient, tableName, currentMessage);
         }
       } else {
         await processQuestion(props, tableClient, tableName, currentMessage);
       }
     } catch (err) {
-      props.logger.error(`Error during incremental processing: ${err instanceof Error ? err.message : String(err)}`);
+      props.logger.error(
+        `Error during incremental processing: ${err instanceof Error ? err.message : String(err)}`,
+      );
       if (err instanceof Error) {
         props.logger.error(`Error stack: ${err.stack}`);
       }
@@ -225,8 +249,10 @@ plugin.on.afterIncomingMessage("*", async (props) => {
 
   try {
     const fullUserMessages = userMessages.join("\n");
-    props.logger.debug(`Filtering through ${userMessages.length} user messages: ${fullUserMessages}`);
-    
+    props.logger.debug(
+      `Filtering through ${userMessages.length} user messages: ${fullUserMessages}`,
+    );
+
     const questionSchema = z.array(
       z.object({
         text: z.string(),
@@ -249,26 +275,36 @@ plugin.on.afterIncomingMessage("*", async (props) => {
                   - Remove question numbers or prefixes like "1." or "a."
                   - Convert to lowercase and remove excess spacing or punctuation
                 
-                ONLY extract actual questions, not statements or commands.`
-        }
+                ONLY extract actual questions, not statements or commands.`,
+        },
       );
 
       if (extractedQuestions && extractedQuestions.length > 0) {
-        props.logger.info(`Found ${extractedQuestions.length} questions in conversation`);
-        
-        const latestQuestion = extractedQuestions[extractedQuestions.length - 1];
+        props.logger.info(
+          `Found ${extractedQuestions.length} questions in conversation`,
+        );
+
+        const latestQuestion =
+          extractedQuestions[extractedQuestions.length - 1];
         if (latestQuestion && latestQuestion.normalizedText) {
-          await processQuestion(props, tableClient, tableName, latestQuestion.normalizedText);
+          await processQuestion(
+            props,
+            tableClient,
+            tableName,
+            latestQuestion.normalizedText,
+          );
         }
       } else {
-        props.logger.info('No questions picked up by zai');
+        props.logger.info("No questions picked up by zai");
       }
     } catch (err) {
-      props.logger.warn(`Extraction failed with error: ${err instanceof Error ? err.message : String(err)}`);
+      props.logger.warn(
+        `Extraction failed with error: ${err instanceof Error ? err.message : String(err)}`,
+      );
       props.logger.info("Falling back to direct message processing");
-      
+
       const latestMsg = userMessages[userMessages.length - 1];
-      if (latestMsg && latestMsg.trim().endsWith('?')) {
+      if (latestMsg && latestMsg.trim().endsWith("?")) {
         await processQuestion(props, tableClient, tableName, latestMsg);
       }
     }
@@ -287,7 +323,9 @@ plugin.on.afterIncomingMessage("*", async (props) => {
       }
     }
   } catch (err) {
-    props.logger.error(`Error during extraction: ${err instanceof Error ? err.message : String(err)}`);
+    props.logger.error(
+      `Error during extraction: ${err instanceof Error ? err.message : String(err)}`,
+    );
     props.logger.error(`Error type: ${typeof err}`);
 
     if (err instanceof Error) {
@@ -310,36 +348,44 @@ function isMsgLikelyFollowUp(msg: string): boolean {
     /^can they\b/i,
     /^can it\b/i,
     /^will it\b/i,
-    /^will they\b/i
+    /^will they\b/i,
   ];
-  
+
   const isShort = msg.split(/\s+/).length <= 5;
-  
-  const matchesPattern = followUpPatterns.some(pattern => pattern.test(msg));
-  
-  const hasNoSubject = !(/\b(who|what|where|when|why|how)\b.*\b(is|are|was|were|do|does|did|has|have|had)\b/i.test(msg));
-  
+
+  const matchesPattern = followUpPatterns.some((pattern) => pattern.test(msg));
+
+  const hasNoSubject =
+    !/\b(who|what|where|when|why|how)\b.*\b(is|are|was|were|do|does|did|has|have|had)\b/i.test(
+      msg,
+    );
+
   return (isShort && (matchesPattern || hasNoSubject)) || matchesPattern;
 }
 
-async function processQuestion(props: any, tableClient: any, tableName: string, questionText: string) {
+async function processQuestion(
+  props: any,
+  tableClient: any,
+  tableName: string,
+  questionText: string,
+) {
   const normalizedQuestion = questionText.trim().toLowerCase();
-  
+
   props.logger.debug(`Processing question: "${normalizedQuestion}"`);
-  
+
   let similarQuestionFound = false;
-  
+
   try {
     const { rows: existingRecords } = await tableClient.findTableRows({
       table: tableName,
       filter: {},
     });
-    
+
     if (existingRecords && existingRecords.length > 0) {
       const exactMatch = existingRecords.find(
-        (r: any) => r.question.trim().toLowerCase() === normalizedQuestion
+        (r: any) => r.question.trim().toLowerCase() === normalizedQuestion,
       );
-      
+
       if (exactMatch) {
         const currentCount = exactMatch.count || 0;
         await tableClient.updateTableRows({
@@ -351,31 +397,41 @@ async function processQuestion(props: any, tableClient: any, tableName: string, 
             },
           ],
         });
-        props.logger.info(`Incremented count for exact question: "${exactMatch.question}" to ${currentCount + 1}`);
+        props.logger.info(
+          `Incremented count for exact question: "${exactMatch.question}" to ${currentCount + 1}`,
+        );
         return;
       }
-      
+
       const existingQuestions = existingRecords.map((r: any) => r.question);
-      
-      const isLikelyEntityChange = existingQuestions.some((existingQ: string) => {
-        const existingWords = existingQ.split(' ');
-        const newWords = normalizedQuestion.split(' ');
-        if (existingWords.length === newWords.length) {
-          let diffCount = 0;
-          for (let i = 0; i < existingWords.length; i++) {
-            if (existingWords[i] !== newWords[i]) diffCount++;
+
+      const isLikelyEntityChange = existingQuestions.some(
+        (existingQ: string) => {
+          const existingWords = existingQ.split(" ");
+          const newWords = normalizedQuestion.split(" ");
+          if (existingWords.length === newWords.length) {
+            let diffCount = 0;
+            for (let i = 0; i < existingWords.length; i++) {
+              if (existingWords[i] !== newWords[i]) diffCount++;
+            }
+            if (diffCount === 1) {
+              props.logger.info(
+                `Detected likely entity/subject change between: "${existingQ}" and "${normalizedQuestion}". Treating as new question.`,
+              );
+              return true;
+            }
           }
-          if (diffCount === 1) {
-            props.logger.info(`Detected likely entity/subject change between: "${existingQ}" and "${normalizedQuestion}". Treating as new question.`);
-            return true;
-          }
-        }
-        return false;
-      });
+          return false;
+        },
+      );
       if (isLikelyEntityChange) {
-        props.logger.info(`Skipping similarity check due to likely entity/subject change`);
+        props.logger.info(
+          `Skipping similarity check due to likely entity/subject change`,
+        );
       } else {
-        props.logger.debug(`Checking similarity with ${existingQuestions.length} existing questions`);
+        props.logger.debug(
+          `Checking similarity with ${existingQuestions.length} existing questions`,
+        );
         const zai = new Zai({ client: tableClient });
         const isSimilarToExisting = await zai.check(
           { newQuestion: normalizedQuestion, existingQuestions },
@@ -407,20 +463,17 @@ async function processQuestion(props: any, tableClient: any, tableName: string, 
             },
           );
 
-          if (
-            mostSimilarQuestion &&
-            mostSimilarQuestion.mostSimilarQuestion
-          ) {
+          if (mostSimilarQuestion && mostSimilarQuestion.mostSimilarQuestion) {
             const existingRecord = existingRecords.find(
               (r: any) =>
                 r.question === mostSimilarQuestion.mostSimilarQuestion,
             );
             if (existingRecord) {
               const confirmSimilarity = await zai.check(
-                { 
-                  q1: normalizedQuestion, 
+                {
+                  q1: normalizedQuestion,
                   q2: existingRecord.question,
-                  explanation: `Original: ${normalizedQuestion}\nCandidate: ${existingRecord.question}`
+                  explanation: `Original: ${normalizedQuestion}\nCandidate: ${existingRecord.question}`,
                 },
                 `Given two questions q1 and q2, determine if they are asking for the same information with the same intent.
                 Return true ONLY if they are VERY similar questions seeking the same information about the SAME subject or entity.
@@ -428,9 +481,9 @@ async function processQuestion(props: any, tableClient: any, tableName: string, 
                 Examples:
                 - "how old is matthew?" vs "how old is john?" -> FALSE (different people)
                 - "what discounts do you offer?" vs "what discounts are available?" -> TRUE (same subject)
-                Be strict - when in doubt, return false.`
+                Be strict - when in doubt, return false.`,
               );
-              
+
               if (confirmSimilarity) {
                 const currentCount = existingRecord.count || 0;
                 await tableClient.updateTableRows({
@@ -442,10 +495,14 @@ async function processQuestion(props: any, tableClient: any, tableName: string, 
                     },
                   ],
                 });
-                props.logger.info(`Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`);
+                props.logger.info(
+                  `Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`,
+                );
                 similarQuestionFound = true;
               } else {
-                props.logger.info(`Secondary check determined questions are not similar enough`);
+                props.logger.info(
+                  `Secondary check determined questions are not similar enough`,
+                );
               }
             }
           }
@@ -463,10 +520,14 @@ async function processQuestion(props: any, tableClient: any, tableName: string, 
           },
         ],
       });
-      props.logger.info(`Added new question to tracking: "${normalizedQuestion}"`);
+      props.logger.info(
+        `Added new question to tracking: "${normalizedQuestion}"`,
+      );
     }
   } catch (err) {
-    props.logger.error(`Error processing question "${normalizedQuestion}": ${err instanceof Error ? err.message : String(err)}`);
+    props.logger.error(
+      `Error processing question "${normalizedQuestion}": ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 }
 

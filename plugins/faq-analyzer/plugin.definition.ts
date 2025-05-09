@@ -22,15 +22,19 @@ export default new PluginDefinition({
     table: {
       type: "bot",
       schema: sdk.z.object({
-        tableCreated: sdk.z.boolean().describe("Whether the FAQ table has been created")
-      })
+        tableCreated: sdk.z
+          .boolean()
+          .describe("Whether the FAQ table has been created"),
+      }),
     },
     faqAnalyzed: {
       type: "conversation",
       schema: sdk.z.object({
-        done: sdk.z.boolean().describe("Whether the conversation has been analyzed for FAQs")
-      })
-    }
+        done: sdk.z
+          .boolean()
+          .describe("Whether the conversation has been analyzed for FAQs"),
+      }),
+    },
   },
   actions: {},
 });
