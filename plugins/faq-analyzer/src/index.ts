@@ -30,12 +30,7 @@ async function safeCreateTableAndSetState(
   logger: any,
 ): Promise<void> {
   try {
-    await createTableAndSetState(
-      tableClient,
-      tableName,
-      botId,
-      logger,
-    );
+    await createTableAndSetState(tableClient, tableName, botId, logger);
   } catch (err) {
     if (err instanceof Error) {
       logger.warn(`Table creation attempt: ${err.message}`);
@@ -117,12 +112,12 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
     );
 
     const tableClient = getTableClient(props.client);
-    
+
     await safeCreateTableAndSetState(
       tableClient,
       tableName,
       props.ctx.botId,
-      props.logger
+      props.logger,
     );
   } catch (err) {
     if (err instanceof Error) {
