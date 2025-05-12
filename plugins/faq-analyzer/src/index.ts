@@ -427,6 +427,246 @@ function isMsgLikelyFollowUp(msg: string): boolean {
   return (isShort && (matchesPattern || hasNoSubject)) || matchesPattern;
 }
 
+async function handleExactMatch(
+  tableClient: any,
+  tableName: string,
+  existingRecord: any,
+  props: any
+): Promise<boolean> {
+  const currentCount = existingRecord.count || 0;
+  await tableClient.updateTableRows({
+    table: tableName,
+    rows: [
+      {
+        id: existingRecord.id,
+        count: currentCount + 1,
+      },
+    ],
+  });
+  props.logger.info(
+    `Incremented count for exact question: "${existingRecord.question}" to ${currentCount + 1}`
+  );
+  return true;
+}
+
+function isLikelyEntityChange(
+  existingQuestions: string[],
+  normalizedQuestion: string,
+  props: any
+): boolean {
+  return existingQuestions.some((existingQ: string) => {
+    const existingWords = existingQ.split(" ");
+    const newWords = normalizedQuestion.split(" ");
+    if (existingWords.length === newWords.length) {
+      let diffCount = 0;
+      for (let i = 0; i < existingWords.length; i++) {
+        if (existingWords[i] !== newWords[i]) diffCount++;
+      }
+      if (diffCount === 1) {
+        props.logger.info(
+          `Detected likely entity/subject change between: "${existingQ}" and "${normalizedQuestion}". Treating as new question.`
+        );
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
+async function checkSimilarity(
+  zai: any,
+  normalizedQuestion: string,
+  existingQuestions: string[],
+  props: any
+): Promise<boolean> {
+  props.logger.debug(
+    `Checking similarity with ${existingQuestions.length} existing questions`
+  );
+  
+  return await zai.check(
+    { newQuestion: normalizedQuestion, existingQuestions },
+    `Determine if newQuestion is semantically equivalent to any question in existingQuestions.
+      Return true ONLY if they are asking for the same information with the same intent, even if phrased differently.
+      Examples of equivalent questions:
+      - "can i switch my medicare plan anytime" and "can i switch the medicare plan at any time?" (SAME)
+      - "how do I reset my password" and "how to reset password" (SAME)
+      - "what are your offers" and "are discounts and promotions different" (DIFFERENT)
+      - "what services do you provide" and "do you offer any discounts" (DIFFERENT)
+      - "how old is matthew" and "how old is john" (DIFFERENT) - different subjects matter
+      - "what about X" and "what about Y" (DIFFERENT) - different entities should be treated as different questions
+      Return false if they are substantively different questions, ask about different topics, have different intents, or refer to different entities/people.
+      Be strict about similarity - when in doubt, return false.
+      Questions with the same structure but different subjects/entities should be considered DIFFERENT.`
+  );
+}
+
+async function getMostSimilarQuestion(
+  zai: any,
+  normalizedQuestion: string,
+  existingQuestions: string[]
+): Promise<string | null> {
+  const mostSimilarQuestionResult = await zai.extract(
+    JSON.stringify({
+      newQuestion: normalizedQuestion,
+      existingQuestions,
+    }),
+    z.object({ mostSimilarQuestion: z.string() }),
+    {
+      instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion.
+        Return a JSON object with exactly one property named "mostSimilarQuestion" whose value is the most similar question as a string.
+        For example: {"mostSimilarQuestion": "what are your offers?"}
+        
+        Do NOT return an array or any other format.
+        Choose ONLY if they are asking about the same exact topic with the same intent.
+        If nothing is very similar, return {"mostSimilarQuestion": ""}.`,
+    }
+  );
+
+  let mostSimilarQuestion = null;
+
+  if (mostSimilarQuestionResult) {
+    if (Array.isArray(mostSimilarQuestionResult)) {
+      for (const item of mostSimilarQuestionResult) {
+        if (typeof item === 'object' && item && 'mostSimilarQuestion' in item) {
+          mostSimilarQuestion = item.mostSimilarQuestion;
+          break;
+        }
+      }
+    } else if (typeof mostSimilarQuestionResult === 'object' && 'mostSimilarQuestion' in mostSimilarQuestionResult) {
+      mostSimilarQuestion = mostSimilarQuestionResult.mostSimilarQuestion;
+    }
+  }
+
+  return mostSimilarQuestion;
+}
+
+async function confirmAndUpdateSimilarQuestion(
+  zai: any,
+  tableClient: any,
+  tableName: string,
+  normalizedQuestion: string,
+  existingRecord: any,
+  props: any
+): Promise<boolean> {
+  const confirmSimilarity = await zai.check(
+    {
+      q1: normalizedQuestion,
+      q2: existingRecord.question,
+      explanation: `Original: ${normalizedQuestion}\nCandidate: ${existingRecord.question}`,
+    },
+    `Given two questions q1 and q2, determine if they are asking for the same information with the same intent.
+      Return true ONLY if they are VERY similar questions seeking the same information about the SAME subject or entity.
+      If they refer to different people, products, or entities, return false even if the question structure is identical.
+      Examples:
+      - "how old is matthew?" vs "how old is john?" -> FALSE (different people)
+      - "what discounts do you offer?" vs "what discounts are available?" -> TRUE (same subject)
+      Be strict - when in doubt, return false.`
+  );
+
+  if (!confirmSimilarity) {
+    props.logger.info(`Secondary check determined questions are not similar enough`);
+    return false;
+  }
+
+  const currentCount = existingRecord.count || 0;
+  await tableClient.updateTableRows({
+    table: tableName,
+    rows: [
+      {
+        id: existingRecord.id,
+        count: currentCount + 1,
+      },
+    ],
+  });
+  props.logger.info(
+    `Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`
+  );
+  return true;
+}
+
+async function addNewQuestion(
+  tableClient: any,
+  tableName: string,
+  normalizedQuestion: string,
+  props: any
+): Promise<void> {
+  await tableClient.createTableRows({
+    table: tableName,
+    rows: [
+      {
+        question: normalizedQuestion,
+        count: 1,
+      },
+    ],
+  });
+  props.logger.info(`Added new question to tracking: "${normalizedQuestion}"`);
+}
+
+async function processExistingRecords(
+  tableClient: any,
+  tableName: string,
+  normalizedQuestion: string,
+  existingRecords: any[],
+  props: any
+): Promise<boolean> {
+  const exactMatch = existingRecords.find(
+    (r: any) => r.question.trim().toLowerCase() === normalizedQuestion
+  );
+
+  if (exactMatch) {
+    return await handleExactMatch(tableClient, tableName, exactMatch, props);
+  }
+
+  const existingQuestions = existingRecords.map((r: any) => r.question);
+
+  if (isLikelyEntityChange(existingQuestions, normalizedQuestion, props)) {
+    props.logger.info(`Skipping similarity check due to likely entity/subject change`);
+    return false;
+  }
+
+  const zai = new Zai({ client: tableClient });
+  const isSimilarToExisting = await checkSimilarity(
+    zai, 
+    normalizedQuestion, 
+    existingQuestions, 
+    props
+  );
+
+  if (!isSimilarToExisting) {
+    return false;
+  }
+
+  const mostSimilarQuestion = await getMostSimilarQuestion(
+    zai,
+    normalizedQuestion,
+    existingQuestions
+  );
+
+  if (!mostSimilarQuestion) {
+    props.logger.warn(
+      `Unexpected response format from Zai while looking for similar questions`
+    );
+    return false;
+  }
+
+  const existingRecord = existingRecords.find(
+    (r: any) => r.question === mostSimilarQuestion
+  );
+
+  if (!existingRecord) {
+    return false;
+  }
+
+  return await confirmAndUpdateSimilarQuestion(
+    zai,
+    tableClient,
+    tableName,
+    normalizedQuestion,
+    existingRecord,
+    props
+  );
+}
+
 async function processQuestion(
   props: any,
   tableClient: any,
@@ -434,9 +674,8 @@ async function processQuestion(
   questionText: string,
 ) {
   const normalizedQuestion = questionText.trim().toLowerCase();
-
   props.logger.debug(`Processing question: "${normalizedQuestion}"`);
-
+  
   let similarQuestionFound = false;
 
   try {
@@ -446,173 +685,21 @@ async function processQuestion(
     });
 
     if (existingRecords && existingRecords.length > 0) {
-      const exactMatch = existingRecords.find(
-        (r: any) => r.question.trim().toLowerCase() === normalizedQuestion,
+      similarQuestionFound = await processExistingRecords(
+        tableClient,
+        tableName,
+        normalizedQuestion,
+        existingRecords,
+        props
       );
-
-      if (exactMatch) {
-        const currentCount = exactMatch.count || 0;
-        await tableClient.updateTableRows({
-          table: tableName,
-          rows: [
-            {
-              id: exactMatch.id,
-              count: currentCount + 1,
-            },
-          ],
-        });
-        props.logger.info(
-          `Incremented count for exact question: "${exactMatch.question}" to ${currentCount + 1}`,
-        );
-        return;
-      }
-
-      const existingQuestions = existingRecords.map((r: any) => r.question);
-
-      const isLikelyEntityChange = existingQuestions.some(
-        (existingQ: string) => {
-          const existingWords = existingQ.split(" ");
-          const newWords = normalizedQuestion.split(" ");
-          if (existingWords.length === newWords.length) {
-            let diffCount = 0;
-            for (let i = 0; i < existingWords.length; i++) {
-              if (existingWords[i] !== newWords[i]) diffCount++;
-            }
-            if (diffCount === 1) {
-              props.logger.info(
-                `Detected likely entity/subject change between: "${existingQ}" and "${normalizedQuestion}". Treating as new question.`,
-              );
-              return true;
-            }
-          }
-          return false;
-        },
-      );
-      if (isLikelyEntityChange) {
-        props.logger.info(
-          `Skipping similarity check due to likely entity/subject change`,
-        );
-      } else {
-        props.logger.debug(
-          `Checking similarity with ${existingQuestions.length} existing questions`,
-        );
-        const zai = new Zai({ client: tableClient });
-        const isSimilarToExisting = await zai.check(
-          { newQuestion: normalizedQuestion, existingQuestions },
-          `Determine if newQuestion is semantically equivalent to any question in existingQuestions.
-            Return true ONLY if they are asking for the same information with the same intent, even if phrased differently.
-            Examples of equivalent questions:
-            - "can i switch my medicare plan anytime" and "can i switch the medicare plan at any time?" (SAME)
-            - "how do I reset my password" and "how to reset password" (SAME)
-            - "what are your offers" and "are discounts and promotions different" (DIFFERENT)
-            - "what services do you provide" and "do you offer any discounts" (DIFFERENT)
-            - "how old is matthew" and "how old is john" (DIFFERENT) - different subjects matter
-            - "what about X" and "what about Y" (DIFFERENT) - different entities should be treated as different questions
-            Return false if they are substantively different questions, ask about different topics, have different intents, or refer to different entities/people.
-            Be strict about similarity - when in doubt, return false.
-            Questions with the same structure but different subjects/entities should be considered DIFFERENT.`,
-        );
-
-        if (isSimilarToExisting) {
-          const mostSimilarQuestionResult = await zai.extract(
-            JSON.stringify({
-              newQuestion: normalizedQuestion,
-              existingQuestions,
-            }),
-            z.object({ mostSimilarQuestion: z.string() }),
-            {
-              instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion.
-                Return a JSON object with exactly one property named "mostSimilarQuestion" whose value is the most similar question as a string.
-                For example: {"mostSimilarQuestion": "what are your offers?"}
-                
-                Do NOT return an array or any other format.
-                Choose ONLY if they are asking about the same exact topic with the same intent.
-                If nothing is very similar, return {"mostSimilarQuestion": ""}.`,
-            },
-          );
-          
-          let mostSimilarQuestion = null;
-          
-          if (mostSimilarQuestionResult) {
-            if (Array.isArray(mostSimilarQuestionResult)) {
-              for (const item of mostSimilarQuestionResult) {
-                if (typeof item === 'object' && item && 'mostSimilarQuestion' in item) {
-                  mostSimilarQuestion = item.mostSimilarQuestion;
-                  break;
-                }
-              }
-            } else if (typeof mostSimilarQuestionResult === 'object' && 'mostSimilarQuestion' in mostSimilarQuestionResult) {
-              mostSimilarQuestion = mostSimilarQuestionResult.mostSimilarQuestion;
-            }
-          }
-
-          if (mostSimilarQuestion) {
-            const existingRecord = existingRecords.find(
-              (r: any) => r.question === mostSimilarQuestion,
-            );
-            if (existingRecord) {
-              const confirmSimilarity = await zai.check(
-                {
-                  q1: normalizedQuestion,
-                  q2: existingRecord.question,
-                  explanation: `Original: ${normalizedQuestion}\nCandidate: ${existingRecord.question}`,
-                },
-                `Given two questions q1 and q2, determine if they are asking for the same information with the same intent.
-                Return true ONLY if they are VERY similar questions seeking the same information about the SAME subject or entity.
-                If they refer to different people, products, or entities, return false even if the question structure is identical.
-                Examples:
-                - "how old is matthew?" vs "how old is john?" -> FALSE (different people)
-                - "what discounts do you offer?" vs "what discounts are available?" -> TRUE (same subject)
-                Be strict - when in doubt, return false.`,
-              );
-
-              if (confirmSimilarity) {
-                const currentCount = existingRecord.count || 0;
-                await tableClient.updateTableRows({
-                  table: tableName,
-                  rows: [
-                    {
-                      id: existingRecord.id,
-                      count: currentCount + 1,
-                    },
-                  ],
-                });
-                props.logger.info(
-                  `Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`,
-                );
-                similarQuestionFound = true;
-              } else {
-                props.logger.info(
-                  `Secondary check determined questions are not similar enough`,
-                );
-              }
-            }
-          } else {
-            props.logger.warn(
-              `Unexpected response format from Zai: ${JSON.stringify(mostSimilarQuestionResult)}`,
-            );
-          }
-        }
-      }
     }
 
     if (!similarQuestionFound) {
-      await tableClient.createTableRows({
-        table: tableName,
-        rows: [
-          {
-            question: normalizedQuestion,
-            count: 1,
-          },
-        ],
-      });
-      props.logger.info(
-        `Added new question to tracking: "${normalizedQuestion}"`,
-      );
+      await addNewQuestion(tableClient, tableName, normalizedQuestion, props);
     }
   } catch (err) {
     props.logger.error(
-      `Error processing question "${normalizedQuestion}": ${err instanceof Error ? err.message : String(err)}`,
+      `Error processing question "${normalizedQuestion}": ${err instanceof Error ? err.message : String(err)}`
     );
   }
 }
