@@ -514,7 +514,7 @@ async function processQuestion(
         );
 
         if (isSimilarToExisting) {
-          const mostSimilarQuestion = await zai.extract(
+          const mostSimilarQuestionResult = await zai.extract(
             JSON.stringify({
               newQuestion: normalizedQuestion,
               existingQuestions,
@@ -530,15 +530,25 @@ async function processQuestion(
                 If nothing is very similar, return {"mostSimilarQuestion": ""}.`,
             },
           );
+          
+          let mostSimilarQuestion = null;
+          
+          if (mostSimilarQuestionResult) {
+            if (Array.isArray(mostSimilarQuestionResult)) {
+              for (const item of mostSimilarQuestionResult) {
+                if (typeof item === 'object' && item && 'mostSimilarQuestion' in item) {
+                  mostSimilarQuestion = item.mostSimilarQuestion;
+                  break;
+                }
+              }
+            } else if (typeof mostSimilarQuestionResult === 'object' && 'mostSimilarQuestion' in mostSimilarQuestionResult) {
+              mostSimilarQuestion = mostSimilarQuestionResult.mostSimilarQuestion;
+            }
+          }
 
-          if (
-            mostSimilarQuestion &&
-            typeof mostSimilarQuestion === "object" &&
-            "mostSimilarQuestion" in mostSimilarQuestion
-          ) {
+          if (mostSimilarQuestion) {
             const existingRecord = existingRecords.find(
-              (r: any) =>
-                r.question === mostSimilarQuestion.mostSimilarQuestion,
+              (r: any) => r.question === mostSimilarQuestion,
             );
             if (existingRecord) {
               const confirmSimilarity = await zai.check(
@@ -579,7 +589,7 @@ async function processQuestion(
             }
           } else {
             props.logger.warn(
-              `Unexpected response format from Zai: ${JSON.stringify(mostSimilarQuestion)}`,
+              `Unexpected response format from Zai: ${JSON.stringify(mostSimilarQuestionResult)}`,
             );
           }
         }
