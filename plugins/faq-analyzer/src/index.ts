@@ -2,6 +2,26 @@ import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
 import { z } from "@bpinternal/zui";
 
+async function isTableCreated(
+  tableClient: any,
+  botId: string,
+  logger: any,
+): Promise<boolean> {
+  try {
+    const state = await tableClient.getState({
+      type: "bot",
+      id: botId,
+      name: "table",
+    });
+    return !!state?.payload?.tableCreated;
+  } catch (err) {
+    if (err instanceof Error) {
+      logger.debug(`Table state check: ${err.message}`);
+    }
+    return false;
+  }
+}
+
 async function setBotTableState(
   tableClient: any,
   botId: string,
@@ -107,11 +127,24 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
       return undefined;
     }
 
+    const tableClient = getTableClient(props.client);
+
+    const tableAlreadyCreated = await isTableCreated(
+      tableClient,
+      props.ctx.botId,
+      props.logger,
+    );
+
+    if (tableAlreadyCreated) {
+      props.logger.debug(
+        `Table "${tableName}" already created, skipping creation`,
+      );
+      return undefined;
+    }
+
     props.logger.info(
       `Creating table "${tableName}" with schema ${JSON.stringify(schema)}`,
     );
-
-    const tableClient = getTableClient(props.client);
 
     await safeCreateTableAndSetState(
       tableClient,
@@ -498,7 +531,11 @@ async function processQuestion(
             },
           );
 
-          if (mostSimilarQuestion && typeof mostSimilarQuestion === 'object' && 'mostSimilarQuestion' in mostSimilarQuestion) {
+          if (
+            mostSimilarQuestion &&
+            typeof mostSimilarQuestion === "object" &&
+            "mostSimilarQuestion" in mostSimilarQuestion
+          ) {
             const existingRecord = existingRecords.find(
               (r: any) =>
                 r.question === mostSimilarQuestion.mostSimilarQuestion,
@@ -541,7 +578,9 @@ async function processQuestion(
               }
             }
           } else {
-            props.logger.warn(`Unexpected response format from Zai: ${JSON.stringify(mostSimilarQuestion)}`);
+            props.logger.warn(
+              `Unexpected response format from Zai: ${JSON.stringify(mostSimilarQuestion)}`,
+            );
           }
         }
       }
