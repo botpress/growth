@@ -15,12 +15,12 @@ export default new PluginDefinition({
           message: "Table name must not start with a number",
         }),
 
-      tableColumns: sdk.z
-        .array(sdk.z.string())
-        .title("Table Columns")
-        .describe(
-          "The columns of the table to search from and return as results.",
-        ),
+      // tableColumns: sdk.z
+      //   .array(sdk.z.string())
+      //   .title("Table Columns")
+      //   .describe(
+      //     "The columns of the table to search from and return as results.",
+      //   ),
     }),
   },
   actions: {
