@@ -488,13 +488,17 @@ async function processQuestion(
             }),
             z.object({ mostSimilarQuestion: z.string() }),
             {
-              instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion and return it exactly as written.
+              instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion.
+                Return a JSON object with exactly one property named "mostSimilarQuestion" whose value is the most similar question as a string.
+                For example: {"mostSimilarQuestion": "what are your offers?"}
+                
+                Do NOT return an array or any other format.
                 Choose ONLY if they are asking about the same exact topic with the same intent.
-                If nothing is very similar, return the empty string.`,
+                If nothing is very similar, return {"mostSimilarQuestion": ""}.`,
             },
           );
 
-          if (mostSimilarQuestion && mostSimilarQuestion.mostSimilarQuestion) {
+          if (mostSimilarQuestion && typeof mostSimilarQuestion === 'object' && 'mostSimilarQuestion' in mostSimilarQuestion) {
             const existingRecord = existingRecords.find(
               (r: any) =>
                 r.question === mostSimilarQuestion.mostSimilarQuestion,
@@ -536,6 +540,8 @@ async function processQuestion(
                 );
               }
             }
+          } else {
+            props.logger.warn(`Unexpected response format from Zai: ${JSON.stringify(mostSimilarQuestion)}`);
           }
         }
       }
