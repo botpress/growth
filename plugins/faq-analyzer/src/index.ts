@@ -163,6 +163,127 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
   return undefined;
 });
 
+async function handleIncrementalProcessing(
+  props: any,
+  tableClient: any,
+  tableName: string,
+  userMessages: string[]
+): Promise<void> {
+  try {
+    props.logger.debug(
+      `Processing in incremental mode with ${userMessages.length} messages for context`,
+    );
+    const recentMessages = userMessages.slice(-3);
+
+    if (recentMessages.length === 0) {
+      props.logger.info("No valid messages to process. Skipping.");
+      return;
+    }
+
+    const recentContext =
+      recentMessages.length > 1 ? recentMessages.slice(0, -1).join("\n") : "";
+    const currentMessage = recentMessages[recentMessages.length - 1];
+
+    if (!currentMessage) {
+      props.logger.warn(
+        "Current message unexpectedly undefined after validation. Skipping.",
+      );
+      return;
+    }
+
+    await processRecentMessage(props, tableClient, tableName, currentMessage, recentContext);
+  } catch (err) {
+    logIncrementalProcessingError(props, err);
+  }
+}
+
+async function processRecentMessage(
+  props: any,
+  tableClient: any,
+  tableName: string,
+  currentMessage: string,
+  recentContext: string
+): Promise<void> {
+  const isLikelyFollowUp = isMsgLikelyFollowUp(currentMessage);
+
+  if (isLikelyFollowUp && recentContext) {
+    await handleFollowUpQuestion(props, tableClient, tableName, currentMessage, recentContext);
+  } else {
+    await processQuestion(props, tableClient, tableName, currentMessage);
+  }
+}
+
+async function handleFollowUpQuestion(
+  props: any,
+  tableClient: any,
+  tableName: string,
+  currentMessage: string,
+  recentContext: string
+): Promise<void> {
+  props.logger.debug(
+    `Detected likely follow-up question: "${currentMessage}" with context: "${recentContext}"`,
+  );
+
+  try {
+    const standaloneQuestion = await expandFollowUpQuestion(tableClient, currentMessage, recentContext);
+    
+    if (standaloneQuestion) {
+      props.logger.info(
+        `Expanded follow-up question "${currentMessage}" to "${standaloneQuestion}"`,
+      );
+      await processQuestion(props, tableClient, tableName, standaloneQuestion);
+    } else {
+      await processQuestion(props, tableClient, tableName, currentMessage);
+    }
+  } catch (err) {
+    props.logger.warn(
+      `Failed to expand follow-up question: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    await processQuestion(props, tableClient, tableName, currentMessage);
+  }
+}
+
+async function expandFollowUpQuestion(
+  tableClient: any,
+  followUpQuestion: string,
+  context: string
+): Promise<string | undefined> {
+  const zai = new Zai({ client: tableClient });
+  const contextualQuestion = await zai.extract(
+    JSON.stringify({
+      previousMessages: context,
+      followUpQuestion: followUpQuestion,
+    }),
+    z.object({
+      standaloneQuestion: z
+        .string()
+        .describe(
+          "The follow-up question rewritten as a standalone question",
+        ),
+    }),
+    {
+      instructions: `Given a conversation context and a follow-up question, rewrite the follow-up as a complete standalone question.
+        For example:
+        - Context: "how old is matthew?"
+        - Follow-up: "what about joe?"
+        - Standalone: "how old is joe?"
+        
+        Preserve the intent of the original question but make it fully self-contained.`,
+    },
+  );
+
+  return contextualQuestion?.standaloneQuestion;
+}
+
+function logIncrementalProcessingError(props: any, err: unknown): void {
+  props.logger.error(
+    `Error during incremental processing: ${err instanceof Error ? err.message : String(err)}`,
+  );
+  if (err instanceof Error) {
+    props.logger.error(`Error stack: ${err.stack}`);
+  }
+}
+
 plugin.on.afterIncomingMessage("*", async (props) => {
   const tableClient = getTableClient(props.client);
   const tableName = getTableName(props);
@@ -216,96 +337,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
   }
 
   if (alreadyProcessed?.payload?.done) {
-    try {
-      props.logger.debug(
-        `Processing in incremental mode with ${userMessages.length} messages for context`,
-      );
-      const recentMessages = userMessages.slice(-3);
-
-      if (recentMessages.length === 0) {
-        props.logger.info("No valid messages to process. Skipping.");
-        return;
-      }
-
-      const recentContext =
-        recentMessages.length > 1 ? recentMessages.slice(0, -1).join("\n") : "";
-      const currentMessage = recentMessages[recentMessages.length - 1];
-
-      if (!currentMessage) {
-        props.logger.warn(
-          "Current message unexpectedly undefined after validation. Skipping.",
-        );
-        return;
-      }
-
-      const isLikelyFollowUp = isMsgLikelyFollowUp(currentMessage);
-
-      if (isLikelyFollowUp && recentContext) {
-        props.logger.debug(
-          `Detected likely follow-up question: "${currentMessage}" with context: "${recentContext}"`,
-        );
-
-        try {
-          const zai = new Zai({ client: tableClient });
-          const contextualQuestion = await zai.extract(
-            JSON.stringify({
-              previousMessages: recentContext,
-              followUpQuestion: currentMessage,
-            }),
-            z.object({
-              standaloneQuestion: z
-                .string()
-                .describe(
-                  "The follow-up question rewritten as a standalone question",
-                ),
-            }),
-            {
-              instructions: `Given a conversation context and a follow-up question, rewrite the follow-up as a complete standalone question.
-                For example:
-                - Context: "how old is matthew?"
-                - Follow-up: "what about joe?"
-                - Standalone: "how old is joe?"
-                
-                Preserve the intent of the original question but make it fully self-contained.`,
-            },
-          );
-
-          if (contextualQuestion?.standaloneQuestion) {
-            const standaloneQuestion = contextualQuestion.standaloneQuestion;
-            props.logger.info(
-              `Expanded follow-up question "${currentMessage}" to "${standaloneQuestion}"`,
-            );
-            await processQuestion(
-              props,
-              tableClient,
-              tableName,
-              standaloneQuestion,
-            );
-          } else {
-            await processQuestion(
-              props,
-              tableClient,
-              tableName,
-              currentMessage,
-            );
-          }
-        } catch (err) {
-          props.logger.warn(
-            `Failed to expand follow-up question: ${err instanceof Error ? err.message : String(err)}`,
-          );
-          await processQuestion(props, tableClient, tableName, currentMessage);
-        }
-      } else {
-        await processQuestion(props, tableClient, tableName, currentMessage);
-      }
-    } catch (err) {
-      props.logger.error(
-        `Error during incremental processing: ${err instanceof Error ? err.message : String(err)}`,
-      );
-      if (err instanceof Error) {
-        props.logger.error(`Error stack: ${err.stack}`);
-      }
-    }
+    await handleIncrementalProcessing(props, tableClient, tableName, userMessages);
     return;
   }
 
