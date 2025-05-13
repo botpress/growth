@@ -4,6 +4,8 @@ import * as sdk from "@botpress/sdk";
 export default new PluginDefinition({
   name: "plus/faq-analyzer",
   version: "1.4.2",
+  icon: 'icon.svg',
+  readme: 'hub.md',
   configuration: {
     schema: sdk.z.object({
       tableName: sdk.z
