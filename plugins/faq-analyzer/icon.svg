@@ -1,0 +1,24 @@
+<svg width="300" height="299" viewBox="0 0 300 299" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Soft pink background circle -->
+  <circle cx="150" cy="149.5" r="120" fill="#FCEAE5"/>
+
+  <!-- FAQ table (stylised grid) -->
+  <rect x="85" y="80" width="130" height="140" rx="12" fill="#FFFFFF" stroke="#5B7A91" stroke-width="5"/>
+  <!-- Horizontal lines -->
+  <line x1="85"  y1="125" x2="215" y2="125" stroke="#5B7A91" stroke-width="5" stroke-linecap="round"/>
+  <line x1="85"  y1="170" x2="215" y2="170" stroke="#5B7A91" stroke-width="5" stroke-linecap="round"/>
+  <!-- Vertical lines -->
+  <line x1="130" y1="80"  x2="130" y2="220" stroke="#5B7A91" stroke-width="5" stroke-linecap="round"/>
+  <line x1="175" y1="80"  x2="175" y2="220" stroke="#5B7A91" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Question mark symbol -->
+  <path d="M150 105 Q175 105 175 80 Q175 55 150 55 Q125 55 125 70" 
+        stroke="#5B7A91" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="150" cy="125" r="7" fill="#5B7A91"/>
+
+  <!-- Confetti for playful vibe -->
+  <circle cx="62"  cy="93"  r="6" fill="#5B7A91"/>
+  <circle cx="240" cy="65"  r="6" fill="#5B7A91"/>
+  <circle cx="75"  cy="215" r="6" fill="#5B7A91"/>
+  <circle cx="245" cy="225" r="6" fill="#5B7A91"/>
+</svg>
