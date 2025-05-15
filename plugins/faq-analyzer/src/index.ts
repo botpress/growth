@@ -284,6 +284,28 @@ function logIncrementalProcessingError(props: any, err: unknown): void {
   }
 }
 
+async function markConversationAsAnalyzed(
+  tableClient: any,
+  conversationId: string,
+  logger: any
+): Promise<void> {
+  try {
+    await tableClient.setState({
+      type: "conversation",
+      id: conversationId,
+      name: "faqAnalyzed",
+      payload: { done: true },
+    });
+    logger.info("Successfully marked conversation as analyzed");
+  } catch (err) {
+    if (err instanceof Error) {
+      logger.warn(`Failed to set analyzed state: ${err.message}`);
+    } else {
+      logger.warn(`Failed to set analyzed state: ${String(err)}`);
+    }
+  }
+}
+
 plugin.on.afterIncomingMessage("*", async (props) => {
   const tableClient = getTableClient(props.client);
   const tableName = getTableName(props);
@@ -403,21 +425,11 @@ plugin.on.afterIncomingMessage("*", async (props) => {
       }
     }
 
-    try {
-      await tableClient.setState({
-        type: "conversation",
-        id: props.data.conversationId,
-        name: "faqAnalyzed",
-        payload: { done: true },
-      });
-      props.logger.info("Successfully marked conversation as analyzed");
-    } catch (err) {
-      if (err instanceof Error) {
-        props.logger.warn(`Failed to set analyzed state: ${err.message}`);
-      } else {
-        props.logger.warn(`Failed to set analyzed state: ${String(err)}`);
-      }
-    }
+    await markConversationAsAnalyzed(
+      tableClient,
+      props.data.conversationId,
+      props.logger
+    );
   } catch (err) {
     props.logger.error(
       `Error during extraction: ${err instanceof Error ? err.message : String(err)}`,
