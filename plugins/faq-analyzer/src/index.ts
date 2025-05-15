@@ -2,10 +2,17 @@ import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
 import { z } from "@bpinternal/zui";
 
+interface Logger {
+  debug(message: string): void;
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+}
+
 async function isTableCreated(
-  tableClient: any,
+  tableClient: bp.Client,
   botId: string,
-  logger: any,
+  logger: Logger,
 ): Promise<boolean> {
   try {
     const state = await tableClient.getState({
@@ -13,7 +20,7 @@ async function isTableCreated(
       id: botId,
       name: "table",
     });
-    return !!state?.payload?.tableCreated;
+    return !!(state as any)?.payload?.tableCreated;
   } catch (err) {
     if (err instanceof Error) {
       logger.debug(`Table state check: ${err.message}`);
@@ -23,9 +30,9 @@ async function isTableCreated(
 }
 
 async function setBotTableState(
-  tableClient: any,
+  tableClient: bp.Client,
   botId: string,
-  logger: any,
+  logger: Logger,
 ): Promise<void> {
   try {
     await tableClient.setState({
@@ -44,10 +51,10 @@ async function setBotTableState(
 }
 
 async function safeCreateTableAndSetState(
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   botId: string,
-  logger: any,
+  logger: Logger,
 ): Promise<void> {
   try {
     await createTableAndSetState(tableClient, tableName, botId, logger);
@@ -65,8 +72,8 @@ const schema = {
 };
 
 // plugin client (it's just the botpress client) --> no need for vanilla
-const getTableClient = (botClient: bp.Client): any => {
-  return botClient as any;
+const getTableClient = (botClient: bp.Client): bp.Client => {
+  return botClient;
 };
 
 function getTableName(props: any): string | undefined {
@@ -97,13 +104,13 @@ const plugin = new bp.Plugin({
 });
 
 async function createTableAndSetState(
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   botId: string,
-  logger: any,
+  logger: Logger,
 ): Promise<void> {
   try {
-    await tableClient.getOrCreateTable({
+    await (tableClient as any).getOrCreateTable({
       table: tableName,
       schema,
     });
@@ -165,7 +172,7 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
 
 async function handleIncrementalProcessing(
   props: any,
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   userMessages: string[]
 ): Promise<void> {
@@ -199,7 +206,7 @@ async function handleIncrementalProcessing(
 
 async function processRecentMessage(
   props: any,
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   currentMessage: string,
   recentContext: string
@@ -215,7 +222,7 @@ async function processRecentMessage(
 
 async function handleFollowUpQuestion(
   props: any,
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   currentMessage: string,
   recentContext: string
@@ -244,7 +251,7 @@ async function handleFollowUpQuestion(
 }
 
 async function expandFollowUpQuestion(
-  tableClient: any,
+  tableClient: bp.Client,
   followUpQuestion: string,
   context: string
 ): Promise<string | undefined> {
@@ -285,9 +292,9 @@ function logIncrementalProcessingError(props: any, err: unknown): void {
 }
 
 async function markConversationAsAnalyzed(
-  tableClient: any,
+  tableClient: bp.Client,
   conversationId: string,
-  logger: any
+  logger: Logger
 ): Promise<void> {
   try {
     await tableClient.setState({
@@ -308,7 +315,7 @@ async function markConversationAsAnalyzed(
 
 async function extractAndProcessQuestions(
   props: any,
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   fullUserMessages: string,
   userMessages: string[],
@@ -416,7 +423,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     return;
   }
 
-  if (alreadyProcessed?.payload?.done) {
+  if ((alreadyProcessed as any)?.payload?.done) {
     await handleIncrementalProcessing(props, tableClient, tableName, userMessages);
     return;
   }
@@ -490,13 +497,13 @@ function isMsgLikelyFollowUp(msg: string): boolean {
 }
 
 async function handleExactMatch(
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   existingRecord: any,
   props: any
 ): Promise<boolean> {
   const currentCount = existingRecord.count || 0;
-  await tableClient.updateTableRows({
+  await (tableClient as any).updateTableRows({
     table: tableName,
     rows: [
       {
@@ -604,7 +611,7 @@ async function getMostSimilarQuestion(
 
 async function confirmAndUpdateSimilarQuestion(
   zai: any,
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   normalizedQuestion: string,
   existingRecord: any,
@@ -631,7 +638,7 @@ async function confirmAndUpdateSimilarQuestion(
   }
 
   const currentCount = existingRecord.count || 0;
-  await tableClient.updateTableRows({
+  await (tableClient as any).updateTableRows({
     table: tableName,
     rows: [
       {
@@ -647,12 +654,12 @@ async function confirmAndUpdateSimilarQuestion(
 }
 
 async function addNewQuestion(
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   normalizedQuestion: string,
   props: any
 ): Promise<void> {
-  await tableClient.createTableRows({
+  await (tableClient as any).createTableRows({
     table: tableName,
     rows: [
       {
@@ -665,7 +672,7 @@ async function addNewQuestion(
 }
 
 async function processExistingRecords(
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   normalizedQuestion: string,
   existingRecords: any[],
@@ -731,7 +738,7 @@ async function processExistingRecords(
 
 async function processQuestion(
   props: any,
-  tableClient: any,
+  tableClient: bp.Client,
   tableName: string,
   questionText: string,
 ) {
@@ -741,7 +748,7 @@ async function processQuestion(
   let similarQuestionFound = false;
 
   try {
-    const { rows: existingRecords } = await tableClient.findTableRows({
+    const { rows: existingRecords } = await (tableClient as any).findTableRows({
       table: tableName,
       filter: {},
     });
