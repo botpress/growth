@@ -2,8 +2,8 @@ import { PluginDefinition } from "@botpress/sdk";
 import * as sdk from "@botpress/sdk";
 
 export default new PluginDefinition({
-  name: "plus/search-products",
-  version: "1.0.0",
+  name: "plus/product-search",
+  version: "1.0.2",
   configuration: {
     schema: sdk.z.object({
       tableName: sdk.z
