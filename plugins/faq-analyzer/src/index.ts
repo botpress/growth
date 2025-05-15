@@ -72,8 +72,8 @@ const schema = {
 };
 
 // plugin client (it's just the botpress client) --> no need for vanilla
-const getTableClient = (botClient: bp.Client): bp.Client => {
-  return botClient;
+const getTableClient = (botClient: bp.Client): any => {
+  return botClient as any;
 };
 
 function getTableName(props: any): string | undefined {
