@@ -306,6 +306,64 @@ async function markConversationAsAnalyzed(
   }
 }
 
+async function extractAndProcessQuestions(
+  props: any,
+  tableClient: any,
+  tableName: string,
+  fullUserMessages: string,
+  userMessages: string[],
+  questionSchema: any
+): Promise<void> {
+  try {
+    const zai = new Zai({ client: getTableClient(props.client) });
+    const extractedQuestions = await zai.extract(
+      fullUserMessages,
+      questionSchema,
+      {
+        instructions: `Extract all questions from this conversation. For each question:
+              1. In the "text" field, extract the original question exactly as it appears
+              2. In the "normalizedText" field, rewrite each as a complete standalone question:
+                - For follow-up questions (like "what about X?"), transform it using the same pattern as the previous question
+                - Always preserve the main subject of each question
+                - Use the context of the conversation to make the question standalone
+                - Remove question numbers or prefixes like "1." or "a."
+                - Convert to lowercase and remove excess spacing or punctuation
+              
+              ONLY extract actual questions, not statements or commands.`,
+      },
+    );
+
+    if (extractedQuestions && extractedQuestions.length > 0) {
+      props.logger.info(
+        `Found ${extractedQuestions.length} questions in conversation`,
+      );
+
+      const latestQuestion =
+        extractedQuestions[extractedQuestions.length - 1];
+      if (latestQuestion && latestQuestion.normalizedText) {
+        await processQuestion(
+          props,
+          tableClient,
+          tableName,
+          latestQuestion.normalizedText,
+        );
+      }
+    } else {
+      props.logger.info("No questions picked up by zai");
+    }
+  } catch (err) {
+    props.logger.warn(
+      `Extraction failed with error: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    props.logger.info("Falling back to direct message processing");
+
+    const latestMsg = userMessages[userMessages.length - 1];
+    if (latestMsg && latestMsg.trim().endsWith("?")) {
+      await processQuestion(props, tableClient, tableName, latestMsg);
+    }
+  }
+}
+
 plugin.on.afterIncomingMessage("*", async (props) => {
   const tableClient = getTableClient(props.client);
   const tableName = getTableName(props);
@@ -376,54 +434,14 @@ plugin.on.afterIncomingMessage("*", async (props) => {
       }),
     );
 
-    try {
-      const zai = new Zai({ client: getTableClient(props.client) });
-      const extractedQuestions = await zai.extract(
-        fullUserMessages,
-        questionSchema,
-        {
-          instructions: `Extract all questions from this conversation. For each question:
-                1. In the "text" field, extract the original question exactly as it appears
-                2. In the "normalizedText" field, rewrite each as a complete standalone question:
-                  - For follow-up questions (like "what about X?"), transform it using the same pattern as the previous question
-                  - Always preserve the main subject of each question
-                  - Use the context of the conversation to make the question standalone
-                  - Remove question numbers or prefixes like "1." or "a."
-                  - Convert to lowercase and remove excess spacing or punctuation
-                
-                ONLY extract actual questions, not statements or commands.`,
-        },
-      );
-
-      if (extractedQuestions && extractedQuestions.length > 0) {
-        props.logger.info(
-          `Found ${extractedQuestions.length} questions in conversation`,
-        );
-
-        const latestQuestion =
-          extractedQuestions[extractedQuestions.length - 1];
-        if (latestQuestion && latestQuestion.normalizedText) {
-          await processQuestion(
-            props,
-            tableClient,
-            tableName,
-            latestQuestion.normalizedText,
-          );
-        }
-      } else {
-        props.logger.info("No questions picked up by zai");
-      }
-    } catch (err) {
-      props.logger.warn(
-        `Extraction failed with error: ${err instanceof Error ? err.message : String(err)}`,
-      );
-      props.logger.info("Falling back to direct message processing");
-
-      const latestMsg = userMessages[userMessages.length - 1];
-      if (latestMsg && latestMsg.trim().endsWith("?")) {
-        await processQuestion(props, tableClient, tableName, latestMsg);
-      }
-    }
+    await extractAndProcessQuestions(
+      props,
+      tableClient,
+      tableName,
+      fullUserMessages,
+      userMessages,
+      questionSchema
+    );
 
     await markConversationAsAnalyzed(
       tableClient,
