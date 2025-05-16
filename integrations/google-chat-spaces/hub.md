@@ -2,6 +2,8 @@
 
 This integration allows you to connect your Botpress chatbot with Google Chat spaces, enabling seamless communication between your bot and Google Chat users.
 
+This is a test for version bumping actions yipeeeee
+
 ## Features
 
 - Send and receive messages in Google Chat spaces

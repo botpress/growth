@@ -14,7 +14,11 @@ export default new IntegrationDefinition({
         .describe('Google service-account key (JSON) — store as a Secret'),
       defaultSpace: z
         .string()
-        .describe('Default Google Chat space to post in')
+        .describe('Default Google Chat space to post in'),
+      test: z
+        .string()
+        .describe('Test')
+        .default('test'),
     })
   },
   channels: {
