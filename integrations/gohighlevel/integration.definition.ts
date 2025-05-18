@@ -45,7 +45,7 @@ import {
 } from './src/misc/custom-schemas';
 
 export default new IntegrationDefinition({
-  name: integrationName ?? 'go-high-level',
+  name: integrationName ?? 'plus/go-high-level',
   version: '1.0.0',
   title: 'GoHighLevel',
   readme: 'hub.md',
