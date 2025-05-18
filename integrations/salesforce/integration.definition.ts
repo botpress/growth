@@ -5,7 +5,7 @@ import { actionDefinitions } from "./src/definitions";
 export default new IntegrationDefinition({
   name: integrationName,
   title: "Salesforce",
-  version: "1.0.2",
+  version: "1.0.3",
   readme: "hub.md",
   icon: "icon.svg",
   description:
