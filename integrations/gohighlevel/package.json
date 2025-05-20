@@ -1,6 +1,6 @@
 {
   "name": "go_high_level",
-  "integrationName": "go-high-level",
+  "integrationName": "plus/go-high-level",
   "scripts": {
     "version": "bp --version",
     "login": "bp login",

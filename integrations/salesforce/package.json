@@ -1,6 +1,6 @@
 {
   "name": "salesforce",
-  "integrationName": "salesforce",
+  "integrationName": "plus/salesforce",
   "scripts": {
     "check:type": "tsc --noEmit",
     "build": "bp build",

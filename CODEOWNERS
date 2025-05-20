@@ -1,0 +1,22 @@
+# Global
+* @botpress/growth
+
+# Kitchen Sink
+/advanced-starter-bot-template @matthewbotpress @botpress/growth
+
+# Integration Runner
+/bp-integration-runner @aj-botpress @botpress/growth
+
+# Integrations
+/integrations/gohighlevel @matthewbotpress @botpress/growth
+/integrations/google-chat-spaces @matthewbotpress @botpress/growth
+/integrations/hitl-api @ptrckbp @botpress/growth
+/integrations/hitl-salesforce @davidvitora @botpress/growth
+/integrations/hubspot-hitl @ermek-botpress @botpress/growth
+/integrations/huggingface @ermek-botpress @botpress/growth
+/integrations/salesforce @ermek-botpress @botpress/growth
+/integrations/sharepoint @aj-botpress @botpress/growth
+/integrations/twiliovoice @ermek-botpress @botpress/growth
+/integrations/zoho-sales-iq-hitl @matthewbotpress @botpress/growth
+
+# Plugins (coming soon)

@@ -1,6 +1,6 @@
 {
   "name": "sharepoint",
-  "integrationName": "sharepoint",
+  "integrationName": "plus/sharepoint",
   "scripts": {
     "check:type": "tsc --noEmit",
     "start": "nodemon --watch \"./*\" --ext \"ts\" --exec \"bp deploy -y\"",
