@@ -108,7 +108,7 @@ const getIntegrationId = async (integrationName) => {
   const integrataions = response.data.integrations;
 
   const integration = integrataions.find((integration) => {
-    return integration.name.split("/")[1] === integrationName;
+    return integration.name === integrationName;
   });
 
   if (!integration) {
