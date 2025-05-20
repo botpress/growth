@@ -270,7 +270,7 @@ export class SharepointClient {
    * Unregister a webhook
    */
   async unregisterWebhook(webhookId: string): Promise<void> {
-    const listId = this.getDocumentLibraryListId();
+    const listId = await this.getDocumentLibraryListId();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists('${listId}')/subscriptions('${webhookId}')`;
     const token = await this.fetchToken();
     await axios
