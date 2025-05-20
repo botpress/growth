@@ -8,7 +8,7 @@ Botpress Growth is a collection of official integrations and tooling that help d
 - **`integrations/`** – Individual integration packages (e.g. GoHighLevel, Google Chat, Salesforce, HubSpot HITL, TwilioVoice, SharePoint, etc.).
 - **`advanced-starter-bot-template`** – Example bot project showcasing advanced techniques.
 
-## Architecture of the Repository
+## Architecture
 
 ```mermaid
 flowchart TD
