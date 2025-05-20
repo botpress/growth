@@ -4,7 +4,7 @@ import { integrationName } from './package.json'
 export default new IntegrationDefinition({
   name: integrationName,
   title: 'Google Chat Spaces',
-  version: '1.0.1',
+  version: '1.0.2',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {
