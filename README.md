@@ -68,10 +68,8 @@ Each integration can be deployed with the Botpress CLI (`bp deploy`) or via `pnp
 - Keep commit messages concise and in the imperative mood.
 - New integrations should place code under `integrations/<name>` and include a `package.json` with a unique `integrationName` field.
 
-## License
+## Licensing
 
-TODO
+All packages in this repository are open-source software and licensed under the [MIT License](LICENSE). By contributing in this repository, you agree to release your code under this license as well.
 
-## Acknowledgements
-
-TODO
+Let's build the future of chatbot development together! 🤖🚀
