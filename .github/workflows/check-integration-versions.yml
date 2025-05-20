@@ -1,0 +1,88 @@
+name: Check Integration Versions
+
+on: pull_request
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  check-integration-versions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Login to Botpress
+        run: pnpm bp login -y --token ${{ secrets.ERMEK_PROD_PAT }} --workspace-id ${{ secrets.BP_WORKSPACEID_PROD }}
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: 'integrations/**/*.{ts,md,svg,json}'
+          separator: '\n'
+      - name: Create version check script
+        run: |
+          cat > ./.github/scripts/check-integration-version-without-build.sh << 'EOF'
+          #!/bin/bash
+
+          if [ -z "$1" ]; then
+            echo "Error: integration name is not provided" >&2 
+            exit 1
+          fi
+
+          integration=$1
+          integration_path="integrations/$integration"
+
+          # Extract the version directly from integration.definition.ts using grep and sed
+          definition_file="$integration_path/integration.definition.ts"
+          if [ ! -f "$definition_file" ]; then
+            echo "Error: integration definition file not found at $definition_file" >&2
+            exit 1
+          fi
+
+          # Get the version from the definition file
+          version=$(grep -o "version: ['\"].*['\"]" "$definition_file" | head -1 | sed "s/version: ['\"]//g" | sed "s/['\"]//g")
+          name=$(grep -o "name: ['\"].*['\"]" "$definition_file" | head -1 | sed "s/name: ['\"]//g" | sed "s/['\"]//g" | sed "s/.*\\///g")
+
+          # If no name found or using package.json reference, try to get from package.json
+          if [[ "$name" == *integrationName* ]] || [ -z "$name" ]; then
+            name=$(grep -o "\"integrationName\": ['\"].*['\"]" "$integration_path/package.json" | head -1 | sed "s/\"integrationName\": ['\"]//g" | sed "s/['\"]//g")
+          fi
+
+          # Check if this version already exists in production
+          if [ -n "$version" ] && [ -n "$name" ]; then
+            exists=$(pnpm bp integrations ls --name "$name" --version-number "$version" --json | jq '[ .[] | select(.public) ] | length')
+            echo $exists
+          else
+            echo "Error: Could not extract version or name from integration" >&2
+            exit 2
+          fi
+          EOF
+          
+          chmod +x ./.github/scripts/check-integration-version-without-build.sh
+      - name: Check integration versions
+        run: |
+          modified_integrations=$(echo -e "${{ steps.changed-files.outputs.all_changed_files }}" | awk -F'/' '{print $2}' | sort -u)
+
+          should_fail=0
+
+          for integration in $modified_integrations; do
+            echo "Checking $integration"
+            if [ -d "integrations/$integration" ]; then
+              exists=$(./.github/scripts/check-integration-version-without-build.sh $integration)
+              
+              if [ "$exists" -ne 0 ]; then
+                echo "Integration $integration is already deployed publicly with the same version. Please update the version of your integration."
+                should_fail=1
+              fi
+            else
+              echo "Integration directory not found: integrations/$integration"
+            fi
+          done
+
+          if [ $should_fail -ne 0 ]; then
+            echo "Please update the version of your integration before pushing your changes."
+            exit 1
+          fi

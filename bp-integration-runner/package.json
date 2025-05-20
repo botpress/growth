@@ -12,12 +12,12 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@botpress/cli": "^1.7.2",
-    "axios": "^1.7.8",
+    "@botpress/cli": "^4.5.4",
+    "axios": "^1.9.0",
     "boxen": "^8.0.1",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.5.0",
     "ngrok": "^5.0.0-beta.2",
-    "portfinder": "^1.0.32"
+    "portfinder": "^1.0.37"
   },
   "publishConfig": {
     "access": "public"

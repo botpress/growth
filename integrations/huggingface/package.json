@@ -1,5 +1,6 @@
 {
   "name": "huggingface",
+  "integrationName": "plus/huggingface",
   "scripts": {
     "dev": "nodemon --watch \"./src/*\" --ext \"ts\" --exec \"bp deploy -y\"",
     "check:type": "tsc --noEmit"

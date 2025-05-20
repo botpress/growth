@@ -1,9 +1,10 @@
 import { z, IntegrationDefinition, interfaces } from "@botpress/sdk";
+import { integrationName } from "./package.json";
 
 export default new IntegrationDefinition({
-  name: "huggingface",
+  name: integrationName,
   title: "Hugging Face",
-  version: "0.0.1",
+  version: "0.0.2",
   readme: "hub.md",
   icon: "icon.svg",
   configuration: {
