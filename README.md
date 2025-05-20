@@ -50,6 +50,26 @@ Each folder under `integrations/` is a standalone package. The entry file is `sr
 ### Advanced Starter Bot Template
 A ready‑to‑use bot showcasing techniques such as event tracking, loading user data and live agent handoff. See the topics covered in its README【F:advanced-starter-bot-template/README.md†L1-L17】.
 
+## Integration Development
+
+To develop an integration, start by installing the [Botpress CLI](https://www.npmjs.com/package/@botpress/cli):
+
+```sh
+npm install -g @botpress/cli # for npm
+yarn global add @botpress/cli # for yarn
+pnpm install -g @botpress/cli # for pnpm
+```
+
+Then, in the directory of your choice, create a new integration:
+
+```sh
+bp init
+```
+
+This command will generate an integration from one of the proposed templates.
+
+For more information on how to develop an integration, please refer to the [Integration Documentation](https://botpress.com/docs/getting-started-1).
+
 ## Setup & Local Development
 
 1. **Prerequisites** – Node.js 18+, [pnpm](https://pnpm.io) 8.
@@ -62,11 +82,37 @@ A ready‑to‑use bot showcasing techniques such as event tracking, loading use
 
 Each integration can be deployed with the Botpress CLI (`bp deploy`) or via `pnpm run deploy` in the integration folder. A GitHub Action verifies that the integration version is bumped before merging new changes.
 
+To deploy your integration to your workspace:
+
+```sh
+bp deploy
+```
+
+This will deploy your integration's current version to your workspace and make it available to all your bots. If this version is already deployed, it will be updated. Otherwise, a new version will be created.
+
+By default, all integrations are private to the workspace they have been deployed in. When you are ready to share your version with the community, you can make it public by running:
+
+```sh
+bp deploy --public
+```
+
+This will make your integration available to all Botpress users on the [Botpress Hub](https://app.botpress.cloud/hub). Once a version of your integration is public, it cannot be updated again.
+
+## Resources
+
+- [Botpress Cloud](https://app.botpress.cloud)
+- [Botpress Documentation](https://botpress.com/docs)
+- [Botpress Hub](https://app.botpress.cloud/hub)
+- [Botpress SDK](https://www.npmjs.com/package/@botpress/sdk)
+- [Botpress CLI](https://www.npmjs.com/package/@botpress/cli)
+
 ## Contributing
 
 - Format and lint code using `pnpm fix` or run `pnpm check` before committing.
 - Keep commit messages concise and in the imperative mood.
 - New integrations should place code under `integrations/<name>` and include a `package.json` with a unique `integrationName` field.
+
+We love contributions from the community! For bugs or features related to the API, Botpress Dashboard or the Botpress Studio, please talk to us on [Discord](https://discord.gg/botpress) instead.
 
 ## Licensing
 
