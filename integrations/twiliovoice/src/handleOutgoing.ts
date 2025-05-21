@@ -13,7 +13,7 @@ const handleOutgoing = async (props: types.MessageHandlerProps) => {
   const language = (configuration.language || 'en-US') as twiml.VoiceResponse['SayLanguage'];
   const timeOut = configuration.timeOut || 1;
   const speechTimeout = configuration.speechTimeOut || 1;
-  logger.forBot().info(`The following text response is being sent to Twillio: ${textResponse}`);
+  logger.forBot().info(`The following text response is being sent to Twilio: ${textResponse}`);
 
   const voiceResponse = new twiml.VoiceResponse();
 
@@ -68,7 +68,7 @@ const handleOutgoing = async (props: types.MessageHandlerProps) => {
       twiml: voiceResponse.toString(),
     });
   } catch (error) {
-    throw new Error(`Error sending request to Twillio webhook ${JSON.stringify(error)}`);
+    throw new Error(`Error sending request to Twilio webhook ${JSON.stringify(error)}`);
   }
 };
 
