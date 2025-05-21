@@ -409,11 +409,21 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     conversationId: props.data.conversationId,
   });
 
+  const eventCreatedAt =
+    (props as any).event?.createdAt ?? (props as any).event?.createdOn;
+
   messages.sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 
-  const userMessages = messages
+  const limitedMessages = eventCreatedAt
+    ? messages.filter(
+        (m) =>
+          new Date(m.createdAt).getTime() <= new Date(eventCreatedAt).getTime(),
+      )
+    : messages;
+
+  const userMessages = limitedMessages
     .filter((m) => m.direction === "incoming")
     .map((m) => m.payload?.text)
     .filter((text): text is string => Boolean(text));
