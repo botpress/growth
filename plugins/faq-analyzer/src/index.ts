@@ -294,21 +294,41 @@ function logIncrementalProcessingError(props: any, err: unknown): void {
 async function markConversationAsAnalyzed(
   tableClient: bp.Client,
   conversationId: string,
-  logger: Logger
+  logger: Logger,
+  eventCreatedAt: string | undefined,
 ): Promise<void> {
   try {
-    await tableClient.setState({
-      type: "conversation",
-      id: conversationId,
-      name: "faqAnalyzed",
-      payload: { done: true },
-    });
-    logger.info("Successfully marked conversation as analyzed");
+    let currentState: any
+    try {
+      currentState = await tableClient.getState({
+        type: "conversation",
+        id: conversationId,
+        name: "faqAnalyzed",
+      })
+    } catch {
+      currentState = undefined
+    }
+
+    const currentTs = currentState?.payload?.lastProcessedAt
+
+    if (
+      !eventCreatedAt ||
+      !currentTs ||
+      new Date(eventCreatedAt).getTime() > new Date(currentTs).getTime()
+    ) {
+      await tableClient.setState({
+        type: "conversation",
+        id: conversationId,
+        name: "faqAnalyzed",
+        payload: { done: true, lastProcessedAt: eventCreatedAt },
+      })
+    }
+    logger.info("Successfully marked conversation as analyzed")
   } catch (err) {
     if (err instanceof Error) {
-      logger.warn(`Failed to set analyzed state: ${err.message}`);
+      logger.warn(`Failed to set analyzed state: ${err.message}`)
     } else {
-      logger.warn(`Failed to set analyzed state: ${String(err)}`);
+      logger.warn(`Failed to set analyzed state: ${String(err)}`)
     }
   }
 }
@@ -411,6 +431,18 @@ plugin.on.afterIncomingMessage("*", async (props) => {
 
   const eventCreatedAt =
     (props as any).event?.createdAt ?? (props as any).event?.createdOn;
+  const lastProcessedAt = (alreadyProcessed as any)?.payload?.lastProcessedAt;
+
+  if (lastProcessedAt && eventCreatedAt) {
+    const eventTs = new Date(eventCreatedAt).getTime();
+    const lastTs = new Date(lastProcessedAt).getTime();
+    if (eventTs <= lastTs) {
+      props.logger.debug(
+        `Skipping message already processed. eventTs=${eventTs} lastTs=${lastTs}`,
+      );
+      return;
+    }
+  }
 
   messages.sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
@@ -435,6 +467,12 @@ plugin.on.afterIncomingMessage("*", async (props) => {
 
   if ((alreadyProcessed as any)?.payload?.done) {
     await handleIncrementalProcessing(props, tableClient, tableName, userMessages);
+    await markConversationAsAnalyzed(
+      tableClient,
+      props.data.conversationId,
+      props.logger,
+      eventCreatedAt,
+    );
     return;
   }
 
@@ -463,7 +501,8 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     await markConversationAsAnalyzed(
       tableClient,
       props.data.conversationId,
-      props.logger
+      props.logger,
+      eventCreatedAt,
     );
   } catch (err) {
     props.logger.error(
