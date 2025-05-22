@@ -1,0 +1,27 @@
+{
+  "name": "@bp-templates/empty-integration",
+  "integrationName": "envyro/hubspot-help-desk-hitl",
+  "scripts": {
+    "check:type": "tsc --noEmit",
+    "version": "bp --version",
+    "login": "bp login",
+    "gen": "bp gen",
+    "deploy": "bp deploy"
+  },
+  "private": true,
+  "dependencies": {
+    "@botpress/client": "0.45.0",
+    "@botpress/sdk": "3.2.0",
+    "axios": "^1.8.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@botpress/cli": "^3.3.0",
+    "@types/node": "^18.19.76",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "bpDependencies": {
+    "hitl": "../../interfaces/hitl"
+  }
+}
