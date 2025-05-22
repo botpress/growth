@@ -1,6 +1,6 @@
 {
   "name": "@growth-botpress/bp-integration-runner",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "type": "module",
   "bin": {
     "bp-integration-runner": "run.js"
