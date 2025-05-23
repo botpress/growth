@@ -34,6 +34,15 @@ interface QuestionRecord {
   count: number;
 }
 
+interface FaqAnalyzedStatePayload {
+  done: boolean;
+  lastProcessedAt: string;
+}
+
+interface FaqAnalyzedState {
+  payload: FaqAnalyzedStatePayload;
+}
+
 async function isTableCreated(
   tableClient: bp.Client,
   botId: string,
@@ -329,13 +338,16 @@ async function markConversationAsAnalyzed(
   eventCreatedAt: string | undefined,
 ): Promise<void> {
   try {
-    let currentState: any
+    let currentState: FaqAnalyzedState | undefined;
     try {
-      currentState = await tableClient.getState({
+      const rawState = await tableClient.getState({
         type: "conversation",
         id: conversationId,
         name: "faqAnalyzed",
       })
+      currentState = (rawState && 'payload' in rawState)
+        ? (rawState as { payload: FaqAnalyzedState['payload'] })
+        : undefined;
     } catch {
       currentState = undefined
     }
