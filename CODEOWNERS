@@ -19,4 +19,5 @@
 /integrations/twiliovoice @ermek-botpress @botpress/growth
 /integrations/zoho-sales-iq-hitl @matthewbotpress @botpress/growth
 
-# Plugins (coming soon)
+# Plugins
+/plugins/faq-analyzer @matthewbotpress @botpress/growth
