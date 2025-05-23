@@ -1,12 +1,9 @@
-import * as bp from '.botpress'
+import { ConversationCompletedParams } from '../misc/types'
 
 export const handleConversationCompleted = async ({
   hubspotEvent,
   client,
-}: {
-  hubspotEvent: any
-  client: bp.Client
-}) => {
+}: ConversationCompletedParams) => {
   const { conversation } = await client.getOrCreateConversation({
     channel: 'hitl',
     tags: {

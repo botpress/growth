@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
 import * as bp from '.botpress';
+import { ApiResponse, ThreadInfo } from './misc/types';
 
 const hubspot_api_base_url = "https://api.hubapi.com"
 
@@ -116,13 +117,13 @@ export class HubSpotApi {
    * @param {*} [params={}] - Optional query parameters.
    * @returns {Promise<any>} Response data or error object.
    */
-  private async makeHitlRequest(
+  private async makeHitlRequest<T>(
     endpoint: string,
     method: string = "GET",
     data: any = null,
     params: any = {},
     retryCount: number = 0
-  ): Promise<any> {
+  ): Promise<ApiResponse<T>> {
     const MAX_RETRIES = 5; // Maximum number of retry attempts (1s, 2s, 4s, 8s, 16s = total 31s)
 
     try {
@@ -188,9 +189,9 @@ export class HubSpotApi {
    * @param {string} threadId - The thread ID.
    * @returns {Promise<any>} The thread information.
    */
-  public async getThreadInfo(threadId: string): Promise<any> {
+  public async getThreadInfo(threadId: string): Promise<ThreadInfo> {
     const endpoint = `${hubspot_api_base_url}/conversations/v3/conversations/threads/${threadId}`;
-    const response = await this.makeHitlRequest(endpoint, "GET");
+    const response = await this.makeHitlRequest<ThreadInfo>(endpoint, "GET");
 
     if (!response.success || !response.data) {
       throw new Error(`Failed to fetch thread info: ${response.message}`);
@@ -205,9 +206,9 @@ export class HubSpotApi {
  * @param {string} contactId - The ID of the contact.
  * @returns {Promise<string>} The contact object's phone number.
  */
-  public async getActorPhoneNumber(contactId: string): Promise<any> {
+  public async getActorPhoneNumber(contactId: string): Promise<string> {
     const endpoint = `${hubspot_api_base_url}/crm/v3/objects/contacts/${contactId}?properties=phone`;
-    const response = await this.makeHitlRequest(endpoint, "GET", null, { archived: false });
+    const response = await this.makeHitlRequest<{ properties: { phone: string } }>(endpoint, "GET", null, { archived: false });
 
     if (!response.success || !response.data) {
       throw new Error(`Failed to fetch contact by ID: ${response.message}`);
@@ -222,9 +223,9 @@ export class HubSpotApi {
    * @param {string} actorId - The actor ID.
    * @returns {Promise<string>} The actor's email.
    */
-  public async getActorEmail(actorId: string): Promise<any> {
+  public async getActorEmail(actorId: string): Promise<string> {
     const endpoint = `${hubspot_api_base_url}/conversations/v3/conversations/actors/${actorId}`;
-    const response = await this.makeHitlRequest(endpoint, "GET");
+    const response = await this.makeHitlRequest<{ email: string }>(endpoint, "GET");
 
     if (!response.success || !response.data) {
       throw new Error(`Failed to fetch actor info: ${response.message}`);
@@ -240,8 +241,8 @@ export class HubSpotApi {
    * @param {string} appId - App ID.
    * @returns {Promise<string>} ID of the created channel.
    */
-  async createCustomChannel(developerApiKey: string, appId: string): Promise<any> {
-    const response = await this.makeHitlRequest(
+  async createCustomChannel(developerApiKey: string, appId: string): Promise<string> {
+    const response = await this.makeHitlRequest<{ id: string }>(
       `${hubspot_api_base_url}/conversations/v3/custom-channels?hapikey=${developerApiKey}&appId=${appId}`,
       "POST",
       {

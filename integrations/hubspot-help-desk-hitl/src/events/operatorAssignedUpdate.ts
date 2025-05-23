@@ -1,18 +1,12 @@
-import * as bp from '.botpress'
-import { HubSpotApi } from 'src/client'
+import { OperatorAssignedUpdateParams, ThreadInfo } from '../misc/types'
 
 export const handleOperatorAssignedUpdate = async ({
   hubspotEvent,
   client,
   hubSpotClient,
   logger,
-}: {
-  hubspotEvent: any
-  client: bp.Client
-  hubSpotClient: HubSpotApi
-  logger: bp.Logger
-}) => {
-  let threadInfo = await hubSpotClient.getThreadInfo(hubspotEvent.objectId)
+}: OperatorAssignedUpdateParams) => {
+  let threadInfo: ThreadInfo = await hubSpotClient.getThreadInfo(hubspotEvent.objectId)
   
   // Get the contact ID and determine if we need email or phone
   const contactId = threadInfo.associatedContactId
