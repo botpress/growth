@@ -839,7 +839,11 @@ async function processQuestion(
   tableName: string,
   questionText: string,
 ) {
-  const normalizedQuestion = questionText.trim().toLowerCase();
+  const normalizedQuestion = questionText
+  .trim()
+  .toLowerCase()
+  .replace(/\?+$/, "")
+  .trim();
   props.logger.debug(`Processing question: "${normalizedQuestion}"`);
   
   let similarQuestionFound = false;
