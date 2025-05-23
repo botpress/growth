@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto'
 
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, logger, input }) => {
-  const hubspotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret);
+  const hubspotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, logger);
 
   logger.forBot().info("Starting HITL...");
 

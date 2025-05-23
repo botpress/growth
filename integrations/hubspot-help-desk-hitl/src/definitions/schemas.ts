@@ -1,10 +1,5 @@
 import { z } from '@botpress/sdk'
 
-export const CreateConversationResponseSchema = z.object({
-  conversation_id: z.string(),
-  channel_id: z.string(),
-})
-
 export type HubSpotConfiguration = z.infer<typeof HubSpotConfigurationSchema>
 
 export const HubSpotConfigurationSchema = z.object({

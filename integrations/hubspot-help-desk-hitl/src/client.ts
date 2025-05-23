@@ -120,8 +120,11 @@ export class HubSpotApi {
     endpoint: string,
     method: string = "GET",
     data: any = null,
-    params: any = {}
+    params: any = {},
+    retryCount: number = 0
   ): Promise<any> {
+    const MAX_RETRIES = 5; // Maximum number of retry attempts (1s, 2s, 4s, 8s, 16s = total 31s)
+
     try {
       const creds = await this.getStoredCredentials();
       if (!creds) throw new Error("Missing credentials");
@@ -153,13 +156,21 @@ export class HubSpotApi {
       };
 
     } catch (error: any) {
-      if (error.response?.status === 401) {
-        this.logger.forBot().warn('Access token may be expired. Attempting refresh...');
+      if (error.response?.status === 401 && retryCount < MAX_RETRIES) {
+        const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+        this.logger.forBot().warn(`Access token may be expired. Attempting refresh (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay/1000}s delay...`);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
         const creds = await this.getStoredCredentials();
         if (creds?.accessToken) {
           await this.refreshAccessToken();
-          return this.makeHitlRequest(endpoint, method, data, params);
+          return this.makeHitlRequest(endpoint, method, data, params, retryCount + 1);
         }
+      }
+
+      if (retryCount >= MAX_RETRIES) {
+        this.logger.forBot().error(`Maximum retry attempts (${MAX_RETRIES}) reached. Giving up.`);
       }
 
       this.logger.forBot().error('HubSpot API error:', error.response?.data || error.message);

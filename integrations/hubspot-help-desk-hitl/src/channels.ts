@@ -5,9 +5,9 @@ export const channels = {
   hitl: {
     messages: {
       text: async ({ client, ctx, conversation, logger, ...props }: bp.AnyMessageProps) => {
-        const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret);
+        const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, logger);
    
-        const { text: userMessage, userId } = props.payload
+        const { text: userMessage } = props.payload
 
         const hubspotConversationId = conversation.tags.id
 
