@@ -33,7 +33,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
   
   logger.forBot().info('HubSpot webhook signature verified successfully')
   
-  const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret);  
+  const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, logger);  
   let payload: any
   
   try {
@@ -51,7 +51,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
         event.propertyValue
       ) {
         logger.forBot().info(`Operator assigned: ${event.propertyValue}`)
-        await handleOperatorAssignedUpdate({ hubspotEvent: event, client, hubSpotClient })
+        await handleOperatorAssignedUpdate({ hubspotEvent: event, client, hubSpotClient, logger })
       }
 
       if (

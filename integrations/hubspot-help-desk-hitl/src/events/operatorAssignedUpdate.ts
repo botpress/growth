@@ -5,10 +5,12 @@ export const handleOperatorAssignedUpdate = async ({
   hubspotEvent,
   client,
   hubSpotClient,
+  logger,
 }: {
   hubspotEvent: any
   client: bp.Client
   hubSpotClient: HubSpotApi
+  logger: bp.Logger
 }) => {
   let threadInfo = await hubSpotClient.getThreadInfo(hubspotEvent.objectId)
   
@@ -22,7 +24,7 @@ export const handleOperatorAssignedUpdate = async ({
     : await hubSpotClient.getActorPhoneNumber(contactId)
 
   if (!contactIdentifier) {
-    console.error(`No ${isEmail ? 'email' : 'phone number'} found for contact:`, contactId)
+    logger.forBot().error(`No ${isEmail ? 'email' : 'phone number'} found for contact:`, contactId)
     return
   }
 

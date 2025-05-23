@@ -12,6 +12,7 @@ export class HubSpotApi {
   private refreshToken: string;
   private clientId: string;
   private clientSecret: string;
+  private logger: bp.Logger;
 
   /**
    * Creates an instance of HubSpotApi.
@@ -21,13 +22,22 @@ export class HubSpotApi {
    * @param {string} refreshToken - HubSpot refresh token.
    * @param {string} clientId - HubSpot client ID.
    * @param {string} clientSecret - HubSpot client secret.
+   * @param {bp.Logger} logger - Botpress logger.
    */
-  constructor(ctx: bp.Context, bpClient: bp.Client, refreshToken: string, clientId: string, clientSecret: string) {
+  constructor(
+    ctx: bp.Context, 
+    bpClient: bp.Client, 
+    refreshToken: string, 
+    clientId: string, 
+    clientSecret: string,
+    logger: bp.Logger
+  ) {
     this.ctx = ctx;
     this.bpClient = bpClient;
     this.refreshToken = refreshToken;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
+    this.logger = logger;
   }
 
   /**
@@ -44,7 +54,7 @@ export class HubSpotApi {
       });
 
       if (!state?.payload?.accessToken) {
-        console.log("No credentials found in state");
+        this.logger.forBot().warn('No credentials found in state');
         return null;
       }
 
@@ -53,7 +63,7 @@ export class HubSpotApi {
       };
 
     } catch (error) {
-      console.log("Error retrieving credentials from state:", error);
+      this.logger.forBot().error('Error retrieving credentials from state:', error);
       return null;
     }
   }
@@ -77,7 +87,7 @@ export class HubSpotApi {
         },
       });
 
-      console.log("Response from HubSpot API REFRESH TOKEN:", response.data);
+      this.logger.forBot().info('Successfully received new access token from HubSpot');
 
       await this.bpClient.setState({
         id: this.ctx.integrationId,
@@ -88,11 +98,11 @@ export class HubSpotApi {
         }
       });
 
-      console.log("Access token refreshed successfully.");
+      this.logger.forBot().info('Access token refreshed successfully.');
 
     } catch (error: unknown) {
       const err = error as AxiosError;
-      console.log("Error refreshing access token:", err.response?.data || err.message);
+      this.logger.forBot().error('Error refreshing access token:', err.response?.data || err.message);
     }
   }
 
@@ -125,8 +135,8 @@ export class HubSpotApi {
         headers["Content-Type"] = "application/json";
       }
 
-      console.log(`Making request to ${method} ${endpoint}`);
-      console.log("Params:", params);
+      this.logger.forBot().info(`Making request to ${method} ${endpoint}`);
+      this.logger.forBot().info('Params:', params);
 
       const response = await axios({
         method,
@@ -144,7 +154,7 @@ export class HubSpotApi {
 
     } catch (error: any) {
       if (error.response?.status === 401) {
-        console.warn("Access token may be expired. Attempting refresh...");
+        this.logger.forBot().warn('Access token may be expired. Attempting refresh...');
         const creds = await this.getStoredCredentials();
         if (creds?.accessToken) {
           await this.refreshAccessToken();
@@ -152,7 +162,7 @@ export class HubSpotApi {
         }
       }
 
-      console.error("HubSpot API error:", error.response?.data || error.message);
+      this.logger.forBot().error('HubSpot API error:', error.response?.data || error.message);
       return {
         success: false,
         message: error.response?.data?.message || error.message,
@@ -274,7 +284,7 @@ export class HubSpotApi {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Failed to fetch custom channels:', error.response?.data || error.message);
+      this.logger.forBot().error('Failed to fetch custom channels:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -309,7 +319,7 @@ export class HubSpotApi {
 
       return response;
     } catch (error) {
-      console.error("Error connecting custom channel:", error);
+      this.logger.forBot().error("Error connecting custom channel:", error);
       throw error;
     }
   }
@@ -353,7 +363,7 @@ export class HubSpotApi {
       const response = await this.makeHitlRequest(endpoint, "POST", payload);
       return response;
     } catch (error) {
-      console.error("Error sending message to HubSpot:", error);
+      this.logger.forBot().error("Error sending message to HubSpot:", error);
       throw error;
     }
   }
@@ -411,7 +421,7 @@ export class HubSpotApi {
       const response = await this.makeHitlRequest(endpoint, "POST", payload);
       return response;
     } catch (error) {
-      console.error("Error sending message to HubSpot:", error);
+      this.logger.forBot().error("Error sending message to HubSpot:", error);
       throw error;
     }
   }
@@ -425,6 +435,7 @@ export class HubSpotApi {
  * @param {string} refreshToken - HubSpot refresh token.
  * @param {string} clientId - HubSpot client ID.
  * @param {string} clientSecret - HubSpot client secret.
+ * @param {bp.Logger} logger - Botpress logger.
  * @returns {HubSpotApi} An instance of HubSpotApi.
  */
 export const getClient = (
@@ -432,7 +443,8 @@ export const getClient = (
   bpClient: bp.Client,
   refreshToken: string,
   clientId: string,
-  clientSecret: string
+  clientSecret: string,
+  logger: bp.Logger
 ) => {
-  return new HubSpotApi(ctx, bpClient, refreshToken, clientId, clientSecret);
+  return new HubSpotApi(ctx, bpClient, refreshToken, clientId, clientSecret, logger);
 };
