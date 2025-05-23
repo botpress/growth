@@ -43,6 +43,18 @@ interface FaqAnalyzedState {
   payload: FaqAnalyzedStatePayload;
 }
 
+interface ExtractedQuestionData {
+  text: string;
+  normalizedText: string;
+}
+
+type QuestionExtractionZodSchema = z.ZodArray<
+  z.ZodObject<{
+    text: z.ZodString;
+    normalizedText: z.ZodString;
+  }>
+>;
+
 async function isTableCreated(
   tableClient: bp.Client,
   botId: string,
@@ -427,11 +439,11 @@ async function extractAndProcessQuestions(
   tableName: string,
   fullUserMessages: string,
   userMessages: string[],
-  questionSchema: any
+  questionSchema: QuestionExtractionZodSchema
 ): Promise<void> {
   try {
     const zai = new Zai({ client: getTableClient(props.client) });
-    const extractedQuestions = await zai.extract(
+    const extractedQuestions: ExtractedQuestionData[] | undefined = await zai.extract(
       fullUserMessages,
       questionSchema,
       {
