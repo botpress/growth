@@ -73,7 +73,7 @@ For more information on how to develop an integration, please refer to the [Inte
 ## Setup & Local Development
 
 1. **Prerequisites** – Node.js 18+, [pnpm](https://pnpm.io) 8.
-2. Install dependencies: `pnpm install`.
+2. Install dependencies: `pnpm install`. This installs each integration's packages and automatically runs `bp build` for them.
 3. Optional: create `.env` at the project root with credentials for the runner or integrations.
 4. Run tests: `pnpm test` (uses Vitest)【F:package.json†L4-L9】.
 5. Lint & type-check: `pnpm check`【F:package.json†L21-L22】.
