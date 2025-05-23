@@ -3,7 +3,7 @@ import * as sdk from "@botpress/sdk";
 
 export default new PluginDefinition({
   name: "plus/faq-analyzer",
-  version: "1.5.3",
+  version: "1.6.0",
   icon: 'icon.svg',
   readme: 'hub.md',
   configuration: {
