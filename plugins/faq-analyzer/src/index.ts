@@ -349,7 +349,10 @@ async function getMostSimilarQuestion(
       newQuestion: normalizedQuestion,
       existingQuestions,
     }),
-    z.object({ mostSimilarQuestion: z.string() }),
+    z.union([
+      z.object({ mostSimilarQuestion: z.string() }),
+      z.array(z.object({ mostSimilarQuestion: z.string() }))
+    ]),
     {
       instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion.
         Return a JSON object with exactly one property named "mostSimilarQuestion" whose value is the most similar question as a string.
@@ -806,8 +809,8 @@ async function processExistingRecords(
   );
 
   if (!mostSimilarQuestion) {
-    props.logger.warn(
-      `Unexpected response format from Zai while looking for similar questions`
+    props.logger.info(
+      `Zai did not identify a clear similar question or returned an uninterpretable format for "${normalizedQuestion}". Proceeding to treat as new question.`
     );
     return false;
   }
