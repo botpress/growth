@@ -1,6 +1,7 @@
 import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
 import { z } from "@bpinternal/zui";
+import type { table as TableState } from "../.botpress/implementation/typings/states";
 
 interface Logger {
   debug(message: string): void;
@@ -9,18 +10,48 @@ interface Logger {
   error(message: string): void;
 }
 
+interface TableProps {
+  configuration: {
+    tableName?: string;
+  };
+  logger: Logger;
+  client: bp.Client;
+  ctx: {
+    botId: string;
+  };
+  data: {
+    conversationId: string;
+  };
+  event?: {
+    createdAt: string;
+    createdOn?: string;
+  }
+}
+
+interface QuestionRecord {
+  id: string;
+  question: string;
+  count: number;
+}
+
 async function isTableCreated(
   tableClient: bp.Client,
   botId: string,
   logger: Logger,
 ): Promise<boolean> {
   try {
-    const state = await tableClient.getState({
+
+    const rawState = await tableClient.getState({
       type: "bot",
       id: botId,
       name: "table",
     });
-    return !!(state as any)?.payload?.tableCreated;
+
+    const state = (rawState && 'payload' in rawState)
+      ? (rawState as { payload: TableState.Table['payload'] })
+      : undefined;
+
+    return !!state?.payload?.tableCreated;
   } catch (err) {
     if (err instanceof Error) {
       logger.debug(`Table state check: ${err.message}`);
@@ -76,7 +107,7 @@ const getTableClient = (botClient: bp.Client): any => {
   return botClient as any;
 };
 
-function getTableName(props: any): string | undefined {
+function getTableName(props: TableProps): string | undefined {
   let tableName =
     (props.configuration as { tableName?: string }).tableName ??
     "QuestionTable";
@@ -171,7 +202,7 @@ plugin.on.beforeIncomingMessage("*", async (props) => {
 });
 
 async function handleIncrementalProcessing(
-  props: any,
+  props: TableProps,
   tableClient: bp.Client,
   tableName: string,
   userMessages: string[]
@@ -205,7 +236,7 @@ async function handleIncrementalProcessing(
 }
 
 async function processRecentMessage(
-  props: any,
+  props: TableProps,
   tableClient: bp.Client,
   tableName: string,
   currentMessage: string,
@@ -221,7 +252,7 @@ async function processRecentMessage(
 }
 
 async function handleFollowUpQuestion(
-  props: any,
+  props: TableProps,
   tableClient: bp.Client,
   tableName: string,
   currentMessage: string,
@@ -282,7 +313,7 @@ async function expandFollowUpQuestion(
   return contextualQuestion?.standaloneQuestion;
 }
 
-function logIncrementalProcessingError(props: any, err: unknown): void {
+function logIncrementalProcessingError(props: TableProps, err: unknown): void {
   props.logger.error(
     `Error during incremental processing: ${err instanceof Error ? err.message : String(err)}`,
   );
@@ -334,7 +365,7 @@ async function markConversationAsAnalyzed(
 }
 
 async function extractAndProcessQuestions(
-  props: any,
+  props: TableProps,
   tableClient: bp.Client,
   tableName: string,
   fullUserMessages: string,
@@ -548,8 +579,8 @@ function isMsgLikelyFollowUp(msg: string): boolean {
 async function handleExactMatch(
   tableClient: bp.Client,
   tableName: string,
-  existingRecord: any,
-  props: any
+  existingRecord: QuestionRecord,
+  props: TableProps
 ): Promise<boolean> {
   const currentCount = existingRecord.count || 0;
   await (tableClient as any).updateTableRows({
@@ -570,7 +601,7 @@ async function handleExactMatch(
 function isLikelyEntityChange(
   existingQuestions: string[],
   normalizedQuestion: string,
-  props: any
+  props: TableProps
 ): boolean {
   return existingQuestions.some((existingQ: string) => {
     const existingWords = existingQ.split(" ");
@@ -595,7 +626,7 @@ async function checkSimilarity(
   zai: any,
   normalizedQuestion: string,
   existingQuestions: string[],
-  props: any
+  props: TableProps
 ): Promise<boolean> {
   props.logger.debug(
     `Checking similarity with ${existingQuestions.length} existing questions`
@@ -663,8 +694,8 @@ async function confirmAndUpdateSimilarQuestion(
   tableClient: bp.Client,
   tableName: string,
   normalizedQuestion: string,
-  existingRecord: any,
-  props: any
+  existingRecord: QuestionRecord,
+  props: TableProps
 ): Promise<boolean> {
   const confirmSimilarity = await zai.check(
     {
@@ -706,7 +737,7 @@ async function addNewQuestion(
   tableClient: bp.Client,
   tableName: string,
   normalizedQuestion: string,
-  props: any
+  props: TableProps
 ): Promise<void> {
   await (tableClient as any).createTableRows({
     table: tableName,
@@ -724,18 +755,18 @@ async function processExistingRecords(
   tableClient: bp.Client,
   tableName: string,
   normalizedQuestion: string,
-  existingRecords: any[],
-  props: any
+  existingRecords: QuestionRecord[],
+  props: TableProps
 ): Promise<boolean> {
   const exactMatch = existingRecords.find(
-    (r: any) => r.question.trim().toLowerCase() === normalizedQuestion
+    (r: QuestionRecord) => r.question.trim().toLowerCase() === normalizedQuestion
   );
 
   if (exactMatch) {
     return await handleExactMatch(tableClient, tableName, exactMatch, props);
   }
 
-  const existingQuestions = existingRecords.map((r: any) => r.question);
+  const existingQuestions = existingRecords.map((r: QuestionRecord) => r.question);
 
   if (isLikelyEntityChange(existingQuestions, normalizedQuestion, props)) {
     props.logger.info(`Skipping similarity check due to likely entity/subject change`);
@@ -768,7 +799,7 @@ async function processExistingRecords(
   }
 
   const existingRecord = existingRecords.find(
-    (r: any) => r.question === mostSimilarQuestion
+    (r: QuestionRecord) => r.question === mostSimilarQuestion
   );
 
   if (!existingRecord) {
@@ -786,7 +817,7 @@ async function processExistingRecords(
 }
 
 async function processQuestion(
-  props: any,
+  props: TableProps,
   tableClient: bp.Client,
   tableName: string,
   questionText: string,
@@ -807,7 +838,7 @@ async function processQuestion(
         tableClient,
         tableName,
         normalizedQuestion,
-        existingRecords,
+        existingRecords as QuestionRecord[],
         props
       );
     }
