@@ -17,7 +17,7 @@ for (const dir of dirs) {
   const cwd = path.join(integrationsDir, dir);
   console.log(`\n==> Installing dependencies for ${dir}`);
   try {
-    execSync('pnpm install', { cwd, stdio: 'inherit' });
+    execSync('pnpm install --no-frozen-lockfile', { cwd, stdio: 'inherit' });
   } catch (err) {
     console.error(`Failed to install dependencies for ${dir}`);
     console.error(err);
