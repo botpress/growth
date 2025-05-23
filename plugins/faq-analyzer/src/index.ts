@@ -322,6 +322,48 @@ async function expandFollowUpQuestion(
   return contextualQuestion?.standaloneQuestion;
 }
 
+function _extractMostSimilarQuestionFromResult(mostSimilarQuestionResult: any): string | null {
+  if (!mostSimilarQuestionResult) {
+    return null;
+  }
+
+  if (Array.isArray(mostSimilarQuestionResult)) {
+    const foundItem = mostSimilarQuestionResult.find(
+      (item: any) => typeof item === 'object' && item && 'mostSimilarQuestion' in item
+    );
+    return foundItem ? foundItem.mostSimilarQuestion : null;
+  } else if (typeof mostSimilarQuestionResult === 'object' && 'mostSimilarQuestion' in mostSimilarQuestionResult) {
+    return (mostSimilarQuestionResult as { mostSimilarQuestion: string }).mostSimilarQuestion;
+  }
+
+  return null;
+}
+
+async function getMostSimilarQuestion(
+  zai: any,
+  normalizedQuestion: string,
+  existingQuestions: string[]
+): Promise<string | null> {
+  const mostSimilarQuestionResult = await zai.extract(
+    JSON.stringify({
+      newQuestion: normalizedQuestion,
+      existingQuestions,
+    }),
+    z.object({ mostSimilarQuestion: z.string() }),
+    {
+      instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion.
+        Return a JSON object with exactly one property named "mostSimilarQuestion" whose value is the most similar question as a string.
+        For example: {"mostSimilarQuestion": "what are your offers?"}
+        
+        Do NOT return an array or any other format.
+        Choose ONLY if they are asking about the same exact topic with the same intent.
+        If nothing is very similar, return {"mostSimilarQuestion": ""}.`,
+    }
+  );
+
+  return _extractMostSimilarQuestionFromResult(mostSimilarQuestionResult);
+}
+
 function logIncrementalProcessingError(props: TableProps, err: unknown): void {
   props.logger.error(
     `Error during incremental processing: ${err instanceof Error ? err.message : String(err)}`,
@@ -659,46 +701,6 @@ async function checkSimilarity(
       Be strict about similarity - when in doubt, return false.
       Questions with the same structure but different subjects/entities should be considered DIFFERENT.`
   );
-}
-
-async function getMostSimilarQuestion(
-  zai: any,
-  normalizedQuestion: string,
-  existingQuestions: string[]
-): Promise<string | null> {
-  const mostSimilarQuestionResult = await zai.extract(
-    JSON.stringify({
-      newQuestion: normalizedQuestion,
-      existingQuestions,
-    }),
-    z.object({ mostSimilarQuestion: z.string() }),
-    {
-      instructions: `Find the question in existingQuestions that is most semantically similar to newQuestion.
-        Return a JSON object with exactly one property named "mostSimilarQuestion" whose value is the most similar question as a string.
-        For example: {"mostSimilarQuestion": "what are your offers?"}
-        
-        Do NOT return an array or any other format.
-        Choose ONLY if they are asking about the same exact topic with the same intent.
-        If nothing is very similar, return {"mostSimilarQuestion": ""}.`,
-    }
-  );
-
-  let mostSimilarQuestion = null;
-
-  if (mostSimilarQuestionResult) {
-    if (Array.isArray(mostSimilarQuestionResult)) {
-      for (const item of mostSimilarQuestionResult) {
-        if (typeof item === 'object' && item && 'mostSimilarQuestion' in item) {
-          mostSimilarQuestion = item.mostSimilarQuestion;
-          break;
-        }
-      }
-    } else if (typeof mostSimilarQuestionResult === 'object' && 'mostSimilarQuestion' in mostSimilarQuestionResult) {
-      mostSimilarQuestion = mostSimilarQuestionResult.mostSimilarQuestion;
-    }
-  }
-
-  return mostSimilarQuestion;
 }
 
 async function confirmAndUpdateSimilarQuestion(
