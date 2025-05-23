@@ -11,7 +11,8 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       client,
       ctx.configuration.refreshToken,
       ctx.configuration.clientId,
-      ctx.configuration.clientSecret
+      ctx.configuration.clientSecret,
+      logger
     );
 
     await hubspotClient.refreshAccessToken();
