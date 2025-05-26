@@ -5,7 +5,7 @@ Botpress Growth is a collection of official integrations and tooling that help d
 ## Repository Structure
 
 - **`bp-integration-runner`** – Utility to run and expose a Botpress integration locally using ngrok.
-- **`integrations/`** – Individual integration packages (e.g. GoHighLevel, Google Chat, Salesforce, HubSpot HITL, TwilioVoice, SharePoint, etc.).
+- **`integrations/`** – Individual integration packages (e.g. GoHighLevel, Google Chat Spaces, Salesforce, HubSpot HITL, TwilioVoice, SharePoint, etc.).
 - **`advanced-starter-bot-template`** – Example bot project showcasing advanced techniques.
 
 ## Architecture
@@ -24,11 +24,11 @@ flowchart TD
   end
 ```
 
-### Runtime Interaction (example: Google Chat)
+### Runtime Interaction (example: Google Chat Spaces)
 ```mermaid
 sequenceDiagram
   participant User
-  participant GoogleChat as "Google Chat"
+  participant GoogleChat as "Google Chat Spaces"
   participant Integration
   participant Botpress
   User ->> GoogleChat: send message
@@ -45,7 +45,7 @@ Runs a local integration with live reload and updates its URL in Botpress. Envir
 Entry point: [`bp-integration-runner/run.js`](bp-integration-runner/run.js).
 
 ### Integrations
-Each folder under `integrations/` is a standalone package. The entry file is `src/index.ts` and configuration schema is defined in `integration.definition.ts`. For example, the Google Chat integration expects a service account JSON and a default space ID in its configuration【F:integrations/google-chat-spaces/integration.definition.ts†L1-L18】.
+Each folder under `integrations/` is a standalone package. The entry file is `src/index.ts` and configuration schema is defined in `integration.definition.ts`. For example, the Google Chat Spaces integration expects a service account JSON and a default space ID in its configuration【F:integrations/google-chat-spaces/integration.definition.ts†L1-L18】.
 
 ### Advanced Starter Bot Template
 A ready‑to‑use bot showcasing techniques such as event tracking, loading user data and live agent handoff. See the topics covered in its README【F:advanced-starter-bot-template/README.md†L1-L17】.
