@@ -1,0 +1,27 @@
+{
+  "name": "sharepoint-excel",
+  "integrationName": "ajs_workspace/sharepoint-excel",
+  "scripts": {
+    "check:type": "tsc --noEmit",
+    "start": "nodemon --watch \"./*\" --ext \"ts\" --exec \"bp deploy -y\"",
+    "version": "bp --version",
+    "login": "bp login",
+    "gen": "bp gen",
+    "deploy": "bp deploy"
+  },
+  "private": true,
+  "dependencies": {
+    "@azure/msal-node": "^2.15.0",
+    "@botpress/client": "^1.13.0",
+    "axios": "^1.8.1",
+    "@botpress/sdk": "0.11.8",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@botpress/cli": "^0.11.5",
+    "@types/node": "^18.11.17",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
+  }
+}
