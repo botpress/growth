@@ -73,7 +73,7 @@ const handleIncoming = async ({ req, client, logger }: types.HandlerProps) => {
     });
 
     const twimlResponse = new twiml.VoiceResponse();
-    //Giving Botpress 10 seconds to cal Twillio API with response
+    //Giving Botpress 10 seconds to cal Twilio API with response
     twimlResponse.pause({ length: 10 });
 
     return {

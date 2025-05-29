@@ -12,6 +12,7 @@
 /integrations/google-chat-spaces @matthewbotpress @botpress/growth
 /integrations/hitl-api @ptrckbp @botpress/growth
 /integrations/hitl-salesforce @davidvitora @botpress/growth
+/integrations/hubspot-help-desk-hitl @matthewbotpress @botpress/growth
 /integrations/hubspot-hitl @ermek-botpress @botpress/growth
 /integrations/huggingface @ermek-botpress @botpress/growth
 /integrations/salesforce @ermek-botpress @botpress/growth
@@ -21,3 +22,6 @@
 
 # Plugins
 /plugins/faq-analyzer @matthewbotpress @botpress/growth
+
+# Scripts
+/scripts/setup-integrations.js @matthewbotpress @botpress/growth

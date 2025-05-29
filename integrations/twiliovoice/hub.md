@@ -8,12 +8,12 @@ The Twilio Voice integration allows you to talk to your bot on a phone call.
 - A Twilio phone number. Refer to [this article](https://support.twilio.com/hc/en-us/articles/223135247-How-to-Search-for-and-Buy-a-Twilio-Phone-Number-from-Console) to learn how to get one.
 - A [Botpress Cloud account](https://app.botpress.cloud) and a [Botpress Bot](https://botpress.com/docs/cloud/getting-started/create-and-publish-your-chatbot/).
 
-## 1. Add Twillio authentication to Botpress
+## 1. Add Twilio authentication to Botpress
 
 1. Go to the Twilio [console dashboard](https://console.twilio.com/?frameUrl=/console).
 2. Scroll down and copy your **Account SID** and **Auth Token** from the **Account Info** section. Then, paste them into the **Account SID** and **Auth Token** fields in the integration configuration on Botpress.
 
-## 2. Add Botpress Webhook URL to Twillio
+## 2. Add Botpress Webhook URL to Twilio
 
 1. In the Develop tab on the left, navigate to Phone Numbers -> Manage -> Active Numbers. Click on the phone number you would like to integrate.
 2. Copy the webhook URL from the integration configuration page and paste it into the **A Call Comes In** field.
