@@ -2,6 +2,7 @@ import * as bp from ".botpress";
 import { Zai } from "@botpress/zai";
 import { z } from "@bpinternal/zui";
 import type { table as TableState } from "../.botpress/implementation/typings/states";
+import type { MostSimilarQuestionResult } from "./constants";
 import {
   FOLLOW_UP_PATTERNS,
   TABLE_SCHEMA,
@@ -334,18 +335,18 @@ async function expandFollowUpQuestion(
   return contextualQuestion?.standaloneQuestion;
 }
 
-function _extractMostSimilarQuestionFromResult(mostSimilarQuestionResult: any): string | null {
+function _extractMostSimilarQuestionFromResult(mostSimilarQuestionResult: MostSimilarQuestionResult): string | null {
   if (!mostSimilarQuestionResult) {
     return null;
   }
 
   if (Array.isArray(mostSimilarQuestionResult)) {
     const foundItem = mostSimilarQuestionResult.find(
-      (item: any) => typeof item === 'object' && item && 'mostSimilarQuestion' in item
+      (item) => typeof item === 'object' && item && 'mostSimilarQuestion' in item
     );
     return foundItem ? foundItem.mostSimilarQuestion : null;
   } else if (typeof mostSimilarQuestionResult === 'object' && 'mostSimilarQuestion' in mostSimilarQuestionResult) {
-    return (mostSimilarQuestionResult as { mostSimilarQuestion: string }).mostSimilarQuestion;
+    return mostSimilarQuestionResult.mostSimilarQuestion;
   }
 
   return null;
@@ -484,13 +485,13 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     return undefined;
   }
 
-  let alreadyProcessed = undefined;
+  let alreadyProcessed: FaqAnalyzedState | undefined = undefined;
   try {
     alreadyProcessed = await tableClient.getState({
       type: "conversation",
       id: props.data.conversationId,
       name: "faqAnalyzed",
-    });
+    }) as FaqAnalyzedState | undefined;
   } catch (err) {
     const apiError = err as BotpressApiError;
     if (
@@ -516,7 +517,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
 
   const eventCreatedAt =
     (props as any).event?.createdAt ?? (props as any).event?.createdOn;
-  const lastProcessedAt = (alreadyProcessed as any)?.payload?.lastProcessedAt;
+  const lastProcessedAt = alreadyProcessed?.payload?.lastProcessedAt;
 
   if (lastProcessedAt && eventCreatedAt) {
     const eventTs = new Date(eventCreatedAt).getTime();
@@ -550,7 +551,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
     return;
   }
 
-  if ((alreadyProcessed as any)?.payload?.done) {
+  if (alreadyProcessed?.payload?.done) {
     await handleIncrementalProcessing(props, tableClient, tableName, userMessages);
     await markConversationAsAnalyzed(
       tableClient,

@@ -13,6 +13,12 @@ export const FOLLOW_UP_PATTERNS = [
   /^will they\b/i,
 ];
 
+export interface MostSimilarQuestionObject {
+  mostSimilarQuestion: string;
+}
+
+export type MostSimilarQuestionResult = MostSimilarQuestionObject | MostSimilarQuestionObject[];
+
 export const TABLE_SCHEMA = {
   question: { type: "string", searchable: true, nullable: true },
   count: { type: "number", nullable: true },
