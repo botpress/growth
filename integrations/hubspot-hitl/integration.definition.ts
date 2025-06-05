@@ -7,7 +7,7 @@ import { events, configuration, states, channels, user } from './src/definitions
 export default new IntegrationDefinition({
   name: integrationName,
   title: 'HubSpot Inbox HITL',
-  version: '8.0.1',
+  version: '2.0.3',
   icon: 'icon.svg',
   description: 'This integration allows your bot to use HubSpot as a HITL provider. Messages will appear in HubSpot Inbox.',
   readme: 'hub.md',
