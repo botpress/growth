@@ -10,26 +10,22 @@ export const channels = {
    
         const { text: userMessage } = props.payload
 
-        const integrationThreadId = conversation.tags.id
+        const hubspotConversationId = conversation.tags.id
 
-        if (!integrationThreadId?.length) {
+        if (!hubspotConversationId?.length) {
           logger.forBot().error('No HubSpot Conversation Id')
           return
         }
-        const { user: systemUser } = await client.getOrCreateUser({
-          name: 'System',
+       
+        
+        const { user: botpressUser } = await client.getOrCreateUser({
           tags: {
-            conversationId: conversation.id,
+            hubspotConversationId: hubspotConversationId,
           },
         })
-        // const { user: botpressUser } = await client.getOrCreateUser({
-        //   tags: {
-        //     conversationId: integrationThreadId,
-        //   },
-        // })
 
         const userInfoState = await client.getState({
-          id: systemUser.id,
+          id: botpressUser.id,
           name: "userInfo",
           type: "user",
         });
@@ -45,10 +41,9 @@ export const channels = {
         }
 
         const { name, phoneNumber } = userInfoState.state.payload;
-        
+        const integrationThreadId = botpressUser.tags.integrationThreadId as string
         return await hubSpotClient.sendMessage(
-          userMessage, name, phoneNumber, integrationThreadId
-        )
+          userMessage, name, phoneNumber, integrationThreadId)
       },
     },
   },

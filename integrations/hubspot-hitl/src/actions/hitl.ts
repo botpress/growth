@@ -52,12 +52,6 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     const integrationThreadId = randomUUID();
     logger.forBot().debug(`Integration Thread ID: ${integrationThreadId}`);
 
-    await client.updateUser({
-      ...user,
-      tags: {
-        conversationId: integrationThreadId,
-      },
-    })
 
     const result = await hubspotClient.createConversation(channelId, channelAccountId, integrationThreadId, name, phoneNumber, title, description);
     const hubspotConversationId = result.data.conversationsThreadId
@@ -69,6 +63,14 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
         id: hubspotConversationId,
       },
     });
+
+    await client.updateUser({
+      ...user,
+      tags: {
+        integrationThreadId: integrationThreadId,
+        hubspotConversationId: hubspotConversationId,
+      },
+    })
 
     logger.forBot().debug(`HubSpot Channel ID: ${channelId}`);
     logger.forBot().debug(`Botpress Conversation ID: ${conversation.id}`);
