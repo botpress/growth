@@ -41,9 +41,8 @@ export const channels = {
         }
 
         const { name, phoneNumber } = userInfoState.state.payload;
-        const integrationThreadId = botpressUser.tags.integrationThreadId as string
         return await hubSpotClient.sendMessage(
-          userMessage, name, phoneNumber, integrationThreadId)
+          userMessage, name, phoneNumber, botpressUser.tags.integrationThreadId as string)
       },
     },
   },
