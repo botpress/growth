@@ -23,12 +23,6 @@ export const states = {
       name: z.string(),
     }),
   },
-  conversationInfo: {
-    type: "conversation",
-    schema: z.object({
-      integrationThreadId: z.string(),
-    })
-  },
   channelInfo: {
     type: "integration",
     schema: z.object({
