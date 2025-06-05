@@ -16,7 +16,7 @@ export const handleOperatorReplied = async ({
 
   const { user } = await client.getOrCreateUser({
     tags: {
-      id: hubspotEvent.message?.senders?.[0]?.actorId,
+      agentId: hubspotEvent.message?.senders?.[0]?.actorId,
     },
   })
 

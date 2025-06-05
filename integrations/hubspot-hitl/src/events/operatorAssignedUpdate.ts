@@ -23,7 +23,7 @@ export const handleOperatorAssignedUpdate = async ({
 
   const { user } = await client.getOrCreateUser({
     tags: {
-      id: recipientActorPhoneNumber,
+      phoneNumber: recipientActorPhoneNumber,
     },
   })
 

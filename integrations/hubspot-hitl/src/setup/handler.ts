@@ -10,7 +10,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
     return
   }
   
-  const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret);  
+  const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, logger);  
   let payload: any
   
   try {
