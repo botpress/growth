@@ -3,7 +3,7 @@ import * as bpclient from "@botpress/client";
 import type { RegisterFunction } from '../misc/types';
 
 export const register: RegisterFunction = async ({ ctx, client, logger }) => {
-  logger.info("Registering configuration...");
+  logger.forBot().info("Registering configuration...");
   
   try {
     const hubspotClient = getClient(
@@ -11,7 +11,8 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       client,
       ctx.configuration.refreshToken,
       ctx.configuration.clientId,
-      ctx.configuration.clientSecret
+      ctx.configuration.clientSecret,
+      logger
     );
 
     await hubspotClient.refreshAccessToken();
@@ -23,7 +24,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       ctx.configuration.appId
     );
 
-    logger.info(`Created custom channel with ID: ${newChannelId}`);
+    logger.forBot().info(`Created custom channel with ID: ${newChannelId}`);
 
     // Retry loop with exponential backoff (up to 1 minute)
     let alreadyConnected = false;
@@ -38,25 +39,25 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       );
 
       if (alreadyConnected) {
-        logger.info(`Channel ID ${newChannelId} found in channel list after ${attempt + 1} attempt(s).`);
+        logger.forBot().info(`Channel ID ${newChannelId} found in channel list after ${attempt + 1} attempt(s).`);
         break;
       }
 
       const delay = Math.pow(2, attempt) * 1000;
-      logger.warn(`Channel ID ${newChannelId} not found yet. Retrying in ${delay / 1000}s...`);
+      logger.forBot().warn(`Channel ID ${newChannelId} not found yet. Retrying in ${delay / 1000}s...`);
       await sleep(delay);
       attempt++;
     }
 
     if (alreadyConnected) {
-      logger.info(`Channel ID ${newChannelId} is already connected. Skipping connection.`);
+      logger.forBot().info(`Channel ID ${newChannelId} is already connected. Skipping connection.`);
     } else {
       let connectChannel = await hubspotClient.connectCustomChannel(
         newChannelId,
         ctx.configuration.inboxId,
         channelName
       );
-      logger.info("Connected new custom channel to inbox.");
+      logger.forBot().info("Connected new custom channel to inbox.");
       // Save channelId to integration state
       await client.setState({
         id: ctx.integrationId,
@@ -65,15 +66,14 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
         payload: { 
           channelId: newChannelId, 
           channelAccountId: connectChannel.data.id,
-          integrationThreadId: "tempValue"
 
         },
       });
     }
 
-    logger.info("Hubspot configuration validated successfully.");
+    logger.forBot().info("Hubspot configuration validated successfully.");
   } catch (error) {
-    logger.error("Error during integration registration:", error);
+    logger.forBot().error("Error during integration registration:", error);
     throw new bpclient.RuntimeError(
       "Configuration Error! Unable to retrieve app details."
     );

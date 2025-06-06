@@ -5,12 +5,14 @@ import { randomUUID } from 'crypto'
 
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, logger, input }) => {
-  const hubspotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret);
+  const hubspotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, logger);
 
   logger.forBot().info("Starting HITL...");
 
   try {
-    const { title, description = "No description available" } = input;
+    const { userId, title, description = "No description available" } = input;
+
+    const { user } = await client.getUser({ id: userId })
 
     const { state } = await client.getState({
       id: ctx.integrationId,
@@ -19,7 +21,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     });
 
     if (!state?.payload?.channelId) {
-      console.log("No channelId found in state");
+      logger.forBot().error("No channelId found in state");
 
       return {
         success: false,
@@ -30,13 +32,13 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     }
 
     const userInfoState = await client.getState({
-      id: ctx.integrationId,
+      id: input.userId,
       name: "userInfo",
-      type: "integration",
+      type: "user",
     });
 
     if (!userInfoState?.state.payload.phoneNumber) {
-      console.log("No userInfo found in state");
+      logger.forBot().error("No userInfo found in state");
       return {
         success: false,
         message: "errorMessage",
@@ -48,29 +50,27 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     const { channelId, channelAccountId } = state.payload;
 
     const integrationThreadId = randomUUID();
+    logger.forBot().debug(`Integration Thread ID: ${integrationThreadId}`);
 
-    await client.setState({
-      id: ctx.integrationId,
-      type: "integration",
-      name: 'channelInfo',
-      payload: { 
-        channelId: channelId, 
-        channelAccountId: channelAccountId,
-        integrationThreadId: integrationThreadId
-      },
-    });
 
     const result = await hubspotClient.createConversation(channelId, channelAccountId, integrationThreadId, name, phoneNumber, title, description);
-    const conversationId = result.data.conversationsThreadId
-
-    console.log("HubSpot Channel Response:", result);
+    const hubspotConversationId = result.data.conversationsThreadId
+    logger.forBot().debug("HubSpot Channel Response:", result);
 
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
       tags: {
-        id: conversationId,
+        id: hubspotConversationId,
       },
     });
+
+    await client.updateUser({
+      ...user,
+      tags: {
+        integrationThreadId: integrationThreadId,
+        hubspotConversationId: hubspotConversationId,
+      },
+    })
 
     logger.forBot().debug(`HubSpot Channel ID: ${channelId}`);
     logger.forBot().debug(`Botpress Conversation ID: ${conversation.id}`);
@@ -91,17 +91,8 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
   }
 }
 
-export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx, input, client, logger }) => {
-  const { conversation } = await client.getConversation({
-    id: input.conversationId,
-  });
-
-  const hubspotConversationId: string | undefined = conversation.tags.id;
-
-  if (!hubspotConversationId) {
-    return {};
-  }
-
+export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ }) => {
+  
   return {};
 };
 
@@ -116,21 +107,21 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
       throw new RuntimeError('Email necessary for HITL');
     }
 
-    await client.setState({
-      id: ctx.integrationId,
-      type: "integration",
-      name: 'userInfo',
-      payload: {
-        name: name,
-        phoneNumber: email,
-      },
-    });
-
     const { user: botpressUser } = await client.getOrCreateUser({
       name,
       pictureUrl,
       tags: {
-        id: email,
+        phoneNumber: email,
+      },
+    });
+
+    await client.setState({
+      id: botpressUser.id,
+      type: "user",
+      name: 'userInfo',
+      payload: {
+        name,
+        phoneNumber: email,
       },
     });
 

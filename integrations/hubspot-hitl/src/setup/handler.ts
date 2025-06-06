@@ -3,6 +3,7 @@ import { handleConversationCompleted } from 'src/events/operatorConversationComp
 import { handleOperatorReplied } from 'src/events/operatorSendMessage'
 import { handleOperatorAssignedUpdate } from 'src/events/operatorAssignedUpdate'
 import { getClient } from 'src/client'
+import { validateHubSpotSignature } from 'src/utils/signature'
 
 export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger, client }) => {
   if (!req.body) {
@@ -10,7 +11,29 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
     return
   }
   
-  const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret);  
+  // Get required headers for signature validation
+  const signature = req.headers['x-hubspot-signature-v3']
+  const timestamp = req.headers['x-hubspot-request-timestamp']
+  const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body)
+  
+  // Get the webhook URL from the configuration
+  const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`
+  
+  if (!validateHubSpotSignature(
+    rawBody,
+    signature as string,
+    timestamp as string,
+    req.method,
+    webhookUrl,
+    ctx.configuration.clientSecret,
+    logger
+  )) {
+    return
+  }
+  
+  logger.forBot().info('HubSpot webhook signature verified successfully')
+  
+  const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, logger);  
   let payload: any
   
   try {
