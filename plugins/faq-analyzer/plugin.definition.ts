@@ -1,5 +1,4 @@
-import { PluginDefinition } from "@botpress/sdk";
-import * as sdk from "@botpress/sdk";
+import { PluginDefinition, z } from "@botpress/sdk";
 
 export default new PluginDefinition({
   name: "plus/faq-analyzer",
@@ -7,8 +6,8 @@ export default new PluginDefinition({
   icon: 'icon.svg',
   readme: 'hub.md',
   configuration: {
-    schema: sdk.z.object({
-      tableName: sdk.z
+    schema: z.object({
+      tableName: z
         .string()
         .title("Table Name")
         .describe(
@@ -23,16 +22,16 @@ export default new PluginDefinition({
   states: {
     table: {
       type: "bot",
-      schema: sdk.z.object({
-        tableCreated: sdk.z
+      schema: z.object({
+        tableCreated: z
           .boolean()
           .describe("Whether the FAQ table has been created"),
       }),
     },
     faqAnalyzed: {
       type: "conversation",
-      schema: sdk.z.object({
-        done: sdk.z
+      schema: z.object({
+        done: z
           .boolean()
           .describe("Whether the conversation has been analyzed for FAQs"),
       }),
