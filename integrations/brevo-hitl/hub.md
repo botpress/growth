@@ -27,4 +27,24 @@ To configure the Botpress-Brevo HITL integration, you will need the following:
     *   Navigate to the Brevo agents settings page: [Brevo Agents Settings](https://conversations-app.brevo.com/settings/agents)
     *   Identify the agent you wish to use for the integration and copy their Agent ID.
 
+## Webhook Setup (Required)
+
+To receive events from Brevo in your Botpress integration, you must set up a webhook in Brevo:
+
+1. Go to **Integrations > Webhooks** in your Brevo dashboard ([direct link](https://conversations-app.brevo.com/settings/integrations/webhooks)).
+2. Click **Add new webhook** (or edit an existing one).
+3. In the **URL** field, enter your Botpress Brevo integration webhook endpoint. Example:
+   ```
+   https://webhook.botpress.cloud/ff43meb9-a102-4201-b045-fc498dc1f52b
+   ```
+4. Under **Event types**, select:
+   - `conversationStarted`
+   - `conversationTranscript`
+   - `conversationFragment`
+5. Click **Save** to activate the webhook.
+
+> **Note:** Make sure the URL matches your Botpress integration's endpoint and that all required event types are checked for full functionality.
+
+Once this is set up, your Botpress integration will receive real-time events from Brevo and can process them accordingly.
+
 Once you have these details, you can proceed with configuring the integration within your Botpress environment according to the integration's specific setup instructions. 
