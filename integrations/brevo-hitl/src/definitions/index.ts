@@ -18,7 +18,6 @@ export const states = {
 } satisfies IntegrationDefinitionProps['states']
 
 export { events } from './events'
-
 export { channels }
 
 /**
@@ -31,10 +30,5 @@ export const user = {
       title: 'Brevo Visitor ID (Email)',
       description: "The user's email address, used as the visitorId in Brevo.",
     },
-    // You could add other Brevo-specific user tags if needed
-    // brevoContactId: {
-    //   title: 'Brevo Contact ID',
-    //   description: 'The ID of the contact in Brevo CRM (if applicable)'
-    // }
   },
 } satisfies IntegrationDefinitionProps['user']

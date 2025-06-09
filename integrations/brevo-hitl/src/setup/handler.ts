@@ -1,6 +1,7 @@
 import * as bp from '.botpress'
 import { handleConversationCompleted } from 'src/events/handleConversationCompleted'
 import { handleOperatorReplied } from 'src/events/handleOperatorReplied'
+import { brevoEventSchema } from 'src/definitions/brevo-schemas'
 
 export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger, client }) => {
   if (!req.body) {
@@ -24,23 +25,25 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
     return
   }
 
-  const eventType = brevoEventPayload.eventName
-
-  if (!eventType) {
-    logger.forBot().warn('Handler received a parsed Brevo event, but it has no eventName property. Payload:', brevoEventPayload)
+  // Validate the payload using Zod schema
+  const validationResult = brevoEventSchema.safeParse(brevoEventPayload)
+  if (!validationResult.success) {
+    logger.forBot().error('Invalid Brevo event payload:', validationResult.error.format())
     return
   }
 
-  logger.forBot().info(`Handler: Processing Brevo event type: ${eventType} for conversation: ${brevoEventPayload.conversationId || 'N/A'}`)
+  const eventType = validationResult.data.eventName
+
+  logger.forBot().info(`Handler: Processing Brevo event type: ${eventType} for conversation: ${validationResult.data.conversationId || 'N/A'}`)
 
   switch (eventType) {
     case 'conversationFragment':
-      await handleOperatorReplied({ brevoEvent: brevoEventPayload, client })
+      await handleOperatorReplied({ brevoEvent: validationResult.data, client, logger })
       break
     case 'conversationTranscript':
-      await handleConversationCompleted({ brevoEvent: brevoEventPayload, client })
+      await handleConversationCompleted({ brevoEvent: validationResult.data, client })
       break
     default:
-      logger.forBot().warn(`Handler: Unhandled Brevo event type: ${eventType}. Payload:`, brevoEventPayload)
+      logger.forBot().warn(`Handler: Unhandled Brevo event type: ${eventType}. Payload:`, validationResult.data)
   }
 }

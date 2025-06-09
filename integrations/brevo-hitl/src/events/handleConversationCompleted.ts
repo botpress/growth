@@ -1,6 +1,9 @@
 import * as bp from '.botpress'
 import { BrevoApi } from 'src/client'
-import { BrevoConversationFragmentEvent, BrevoConversationTranscriptEvent } from 'src/definitions/brevo-events'
+import { brevoConversationTranscriptEventSchema } from 'src/definitions/brevo-schemas'
+import { z } from 'zod'
+
+type BrevoConversationTranscriptEvent = z.infer<typeof brevoConversationTranscriptEventSchema>
 
 export const handleConversationCompleted = async ({
   brevoEvent,
