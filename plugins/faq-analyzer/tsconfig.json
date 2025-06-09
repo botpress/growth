@@ -22,7 +22,7 @@
     "exactOptionalPropertyTypes": false,
     "resolveJsonModule": true,
     "noPropertyAccessFromIndexSignature": false,
-    "noUnusedLocals": false
+    "noUnusedLocals": true
   },
   "include": [".botpress/**/*", "src/**/*", "./*.ts", "./*.json"]
 }
