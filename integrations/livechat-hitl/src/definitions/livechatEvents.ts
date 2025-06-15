@@ -1,18 +1,5 @@
 import { z } from '@botpress/sdk'
 
-// User object schema
-export const liveChatUserSchema = z.object({
-  id: z.string(),
-  type: z.string()
-})
-
-// Queue information schema
-export const liveChatQueueSchema = z.object({
-  position: z.number(),
-  wait_time: z.number(),
-  queued_at_us: z.string()
-})
-
 // Transfer information schema
 export const liveChatTransferSchema = z.object({
   group_ids: z.array(z.number()).optional(),
@@ -84,12 +71,3 @@ export const liveChatWebhookPayloadSchema = z.discriminatedUnion('action', [
 export type LiveChatWebhookPayload = z.infer<typeof liveChatWebhookPayloadSchema>
 export type LiveChatTransfer = z.infer<typeof liveChatTransferSchema>
 export type LiveChatTransferred = z.infer<typeof liveChatTransferredPayloadSchema>
-export type LiveChatEventPayload = LiveChatWebhookPayload['payload']
-
-// Event handler parameters
-export interface EventHandlerParams {
-  payload: LiveChatEventPayload
-  logger: any
-  client: any
-  ctx: any
-}
