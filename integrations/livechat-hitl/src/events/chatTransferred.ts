@@ -1,12 +1,12 @@
 import * as bp from '.botpress'
-import { LiveChatTransferred } from 'src/definitions/livechatEvents'
+import { LiveChatWebhookPayload } from 'src/definitions/livechatEvents'
 
 export const handleChatTransferred = async (
-  payload: LiveChatTransferred,
+  webhookPayload: Extract<LiveChatWebhookPayload, { action: 'chat_transferred' }>,
   logger: bp.Logger,
   client: bp.Client,
 ): Promise<void> => {
-  const { chat_id, thread_id, requester_id, reason, transferred_to } = payload
+  const { chat_id, thread_id, requester_id, reason, transferred_to } = webhookPayload.payload
 
   logger.forBot().info(`Processing chat transferred event`, {
     chat_id,

@@ -23,13 +23,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     });
 
     if (!userInfoState?.state.payload.email) {
-      logger.forBot().error("No userInfo found in state");
-      return {
-        success: false,
-        message: "No userInfo found in state",
-        data: null,
-        conversationId: "error_conversation_id",
-      };
+      throw new RuntimeError("No userInfo found in state");
     }
     const { email } = userInfoState.state.payload;
 
@@ -46,7 +40,11 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       accessToken
     );
 
-    const liveChatConversationId = result.data?.chat_id
+    if (!result.success || !result.data?.chat_id) {
+      throw new RuntimeError(result.message || "Failed to create LiveChat conversation");
+    }
+
+    const liveChatConversationId = result.data.chat_id;
 
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
@@ -85,13 +83,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     logger.forBot().error(`'Create Conversation' exception: ${errorMessage}`);
-
-    return {
-      success: false,
-      message: errorMessage,
-      data: null,
-      conversationId: "error_conversation_id",
-    };
+    throw new RuntimeError(errorMessage);
   }
 }
 

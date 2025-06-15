@@ -79,7 +79,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
             event: eventPayload.event,
             additional_data,
           })
-          await handleIncomingMessage(eventPayload, logger, client)
+          await handleIncomingMessage(webhookPayload, logger, client)
           break
 
         default:
@@ -99,7 +99,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
         thread_id: eventPayload.thread_id,
         additional_data,
       })
-      await handleChatDeactivated(eventPayload, logger, client)
+      await handleChatDeactivated(webhookPayload, logger, client)
       break
     }
 
@@ -113,7 +113,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
         additional_data,
       })
       
-      await handleChatTransferred(transferredPayload, logger, client)
+      await handleChatTransferred(webhookPayload, logger, client)
       break
     }
 

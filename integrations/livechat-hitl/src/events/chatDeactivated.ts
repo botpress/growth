@@ -1,12 +1,12 @@
 import * as bp from '.botpress'
-import { LiveChatDeactivated } from 'src/definitions/livechatEvents'
+import { LiveChatWebhookPayload } from 'src/definitions/livechatEvents'
 
 export const handleChatDeactivated = async (
-  payload: LiveChatDeactivated,
+  webhookPayload: Extract<LiveChatWebhookPayload, { action: 'chat_deactivated' }>,
   logger: bp.Logger,
   client: bp.Client,
 ): Promise<void> => {
-  const { chat_id, thread_id, user_id } = payload
+  const { chat_id, thread_id, user_id } = webhookPayload.payload
 
   logger.forBot().info(`Processing chat deactivated event`, {
     chat_id,

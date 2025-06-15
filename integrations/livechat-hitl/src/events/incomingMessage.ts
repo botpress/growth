@@ -1,14 +1,25 @@
 import * as bp from '.botpress'
-import { getClient } from 'src/client'
-import { LiveChatIncomingEvent } from 'src/definitions/livechatEvents'
+import { LiveChatWebhookPayload } from 'src/definitions/livechatEvents'
 
 export const handleIncomingMessage = async (
-  payload: LiveChatIncomingEvent,
+  webhookPayload: Extract<LiveChatWebhookPayload, { action: 'incoming_event' }>,
   logger: bp.Logger,
   client: bp.Client,
 ): Promise<void> => {
-  const { chat_id, thread_id, event } = payload
+  const { chat_id, thread_id, event } = webhookPayload.payload
   const { author_id, text, type, custom_id, created_at, visibility } = event
+
+  // Skip if text is empty or undefined
+  if (!text?.trim()) {
+    logger.forBot().info('Skipping empty message from LiveChat', {
+      chat_id,
+      thread_id,
+      author_id,
+      type,
+      custom_id,
+    })
+    return
+  }
 
   logger.forBot().info(`Processing LiveChat message`, {
     chat_id,

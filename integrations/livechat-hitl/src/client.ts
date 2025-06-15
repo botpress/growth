@@ -2,10 +2,21 @@ import axios, { AxiosError } from "axios";
 import * as bp from ".botpress";
 import crypto from 'crypto';
 
-// The API for actions remains the same
 const LIVECHAT_API_ACTION_URL = "https://api.livechatinc.com/v3.5/customer/action";
-// The API for getting a new token
-const LIVECHAT_ACCOUNTS_URL = "https://accounts.livechat.com/v2/token";
+
+/**
+ * Validates required parameters for API methods
+ * @throws Error if validation fails
+ */
+function validateRequiredParams(params: Record<string, any>, methodName: string) {
+  const missingParams = Object.entries(params)
+    .filter(([_, value]) => value === undefined || value === null || value === '')
+    .map(([key]) => key);
+
+  if (missingParams.length > 0) {
+    throw new Error(`Missing required parameters for ${methodName}: ${missingParams.join(', ')}`);
+  }
+}
 
 /**
  * A class for interacting with the LiveChat Customer API using OAuth2.
@@ -20,6 +31,7 @@ export class LiveChatApi {
     organizationId: string,
     logger: bp.Logger
   ) {
+    validateRequiredParams({ clientId, organizationId, logger }, 'LiveChatApi constructor');
     this.clientId = clientId;
     this.organizationId = organizationId;
     this.logger = logger;
@@ -73,6 +85,12 @@ export class LiveChatApi {
   }
 
   public async startChat(title: string, description: string, accessToken: string): Promise<any> {
+    // Special validation for startChat where description can be empty string
+    validateRequiredParams({ title, accessToken }, 'startChat');
+    if (description === null || description === undefined) {
+      throw new Error('Missing required parameter for startChat: description');
+    }
+    
     const payload = {
       chat: { thread: { events: [{ type: "message", text: `${title}\n\n${description}`, visibility: "all" }] } },
       continuous: true,
@@ -81,6 +99,8 @@ export class LiveChatApi {
   }
 
   public async sendMessage(chatId: string, message: string, accessToken: string): Promise<any> {
+    validateRequiredParams({ chatId, message, accessToken }, 'sendMessage');
+    
     const payload = {
       chat_id: chatId,
       event: { type: "message", text: message, visibility: "all" },
@@ -89,14 +109,20 @@ export class LiveChatApi {
   } 
 
   public async getChat(chatId: string, accessToken: string): Promise<any> {
+    validateRequiredParams({ chatId, accessToken }, 'getChat');
+    
     return this.makeRequest("get_chat", { chat_id: chatId }, accessToken);
   }
 
   public async listChats(accessToken: string): Promise<any> {
+    validateRequiredParams({ accessToken }, 'listChats');
+    
     return this.makeRequest("list_chats", {}, accessToken);
   }
 
   public async deactivateChat(chatId: string, accessToken: string): Promise<any> {
+    validateRequiredParams({ chatId, accessToken }, 'deactivateChat');
+    
     const payload = {
       id: chatId,
     };
@@ -104,6 +130,8 @@ export class LiveChatApi {
   }
 
   public async getOrganizationId(licenseId: string, accessToken: string): Promise<any> {
+    validateRequiredParams({ licenseId, accessToken }, 'getOrganizationId');
+    
     const url = `https://api.livechatinc.com/v3.4/configuration/action/get_organization_id?license_id=${encodeURIComponent(licenseId)}`;
     const headers = {
       Authorization: `Bearer ${accessToken}`,
@@ -125,6 +153,8 @@ export class LiveChatApi {
       email?: string;
     }
   ): Promise<any> {
+    validateRequiredParams({ accessToken, customerData }, 'customerUpdate');
+    
     return this.makeRequest("update_customer", customerData, accessToken);
   }
 }
