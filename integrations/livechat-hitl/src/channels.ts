@@ -1,6 +1,6 @@
-import { conversation } from '@botpress/sdk';
 import * as bp from '../.botpress'
 import { getClient } from './client'
+import { RuntimeError } from '@botpress/sdk'
 
 export const channels = {
   hitl: {
@@ -20,14 +20,17 @@ export const channels = {
           logger.forBot().error('No LiveChat Conversation Id')
           return
         }
-       
-        const { user: botpressUser } = await client.getOrCreateUser({
-          tags: {
-            livechatConversationId: liveChatConversationId,
-          },
-        })
 
-        const customerAccessToken = botpressUser.tags.customerAccessToken as string
+        const accessTokenState = await client.getState({
+          id: conversation.id,
+          name: "livechatToken",
+          type: "conversation",
+        });
+    
+        if (!accessTokenState?.state.payload.customerAccessToken) {
+          throw new RuntimeError("No access token found in state");
+        }
+        const { customerAccessToken } = accessTokenState.state.payload;
 
         return await liveChatClient.sendMessage(
           liveChatConversationId,

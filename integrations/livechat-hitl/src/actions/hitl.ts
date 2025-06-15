@@ -58,10 +58,18 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       ...user,
       tags: {
         email: email,
-        livechatConversationId: liveChatConversationId,
-        customerAccessToken: accessToken,
+        livechatConversationId: liveChatConversationId
       },
     })
+
+    await client.setState({
+      id: conversation.id,
+      type: "conversation",
+      name: 'livechatToken',
+      payload: {
+        customerAccessToken: accessToken,
+      },
+    });
 
     logger.forBot().debug(`LiveChat Conversation ID: ${liveChatConversationId}`);
     logger.forBot().debug(`Botpress Conversation ID: ${conversation.id}`);
@@ -114,11 +122,16 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
       };
     }
 
-    const { user } = await client.getUser({
-      id: userId,
+    const accessTokenState = await client.getState({
+      id: conversationId,
+      name: "livechatToken",
+      type: "conversation",
     });
 
-    const customerAccessToken = user.tags.customerAccessToken as string;
+    if (!accessTokenState?.state.payload.customerAccessToken) {
+      throw new RuntimeError("No access token found in state");
+    }
+    const { customerAccessToken } = accessTokenState.state.payload;
 
     if (!customerAccessToken) {
       logger.forBot().error("No customer access token found in user tags");
