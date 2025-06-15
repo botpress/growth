@@ -82,8 +82,6 @@ export const liveChatWebhookPayloadSchema = z.discriminatedUnion('action', [
 
 // Type exports for TypeScript
 export type LiveChatWebhookPayload = z.infer<typeof liveChatWebhookPayloadSchema>
-export type LiveChatUser = z.infer<typeof liveChatUserSchema>
-export type LiveChatQueue = z.infer<typeof liveChatQueueSchema>
 export type LiveChatTransfer = z.infer<typeof liveChatTransferSchema>
 export type LiveChatTransferred = z.infer<typeof liveChatTransferredPayloadSchema>
 export type LiveChatEventPayload = LiveChatWebhookPayload['payload']
