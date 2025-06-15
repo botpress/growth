@@ -1,6 +1,5 @@
 import axios, { AxiosError } from "axios";
 import * as bp from ".botpress";
-import crypto from 'crypto';
 
 const LIVECHAT_API_ACTION_URL = "https://api.livechatinc.com/v3.5/customer/action";
 
