@@ -1,4 +1,5 @@
 import { MessageMessagingTrigger, MessageDataPayload } from '../triggers'
+import { updateAgentUser } from '../utils'
 import * as bp from '.botpress'
 
 export const executeOnConversationMessage = async ({
@@ -26,7 +27,6 @@ export const executeOnConversationMessage = async ({
   }
 
   const { user } = await client.getOrCreateUser({
-    name: senderDisplayName,
     tags: {
       id: senderSubject,
     },
@@ -37,15 +37,7 @@ export const executeOnConversationMessage = async ({
     return
   }
 
-  if (!user.name?.length) {
-    void client.updateUser({
-      ...user,
-      name: senderDisplayName,
-      tags: {
-        id: senderSubject,
-      },
-    })
-  }
+  await updateAgentUser(user, { name: senderDisplayName }, client, ctx)
 
   if (entryPayload.abstractMessage.messageType !== 'StaticContentMessage') {
     logger
@@ -68,7 +60,7 @@ export const executeOnConversationMessage = async ({
       await createMessage({
         type: 'text',
         payload: {
-          text: `${( ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
+          text: `${( ctx.configuration.showAgentName && senderRole === 'Agent' && `**${senderDisplayName}:** `) || ''}${
               entryPayload.abstractMessage.staticContent.text
           }`
         }

@@ -21,3 +21,32 @@ export const getFileExtensionFromUrl = (fileUrl: string): string => {
     const url = new URL(fileUrl.trim())
     return url.pathname.includes('.') ? (url.pathname.split('.').pop()?.toLowerCase() ?? '') : ''
 }
+
+
+type IntegrationUser = Awaited<ReturnType<bp.Client['getUser']>>['user']
+
+export const updateAgentUser = async (
+    user: IntegrationUser,
+    updatedFields: Record<string, any>,
+    client: bp.Client,
+    ctx: bp.Context,
+    forceUpdate?: boolean
+): Promise<{ updatedAgentUser: IntegrationUser }> => {
+    if (!forceUpdate && user?.name?.length) {
+        return { updatedAgentUser: user }
+    }
+
+    if (!updatedFields?.pictureUrl?.length && ctx.configuration?.agentAvatarUrl?.length) {
+        updatedFields.pictureUrl = ctx.configuration.agentAvatarUrl
+    }
+
+    if (updatedFields.name !== user.name || updatedFields.pictureUrl !== user.pictureUrl) {
+        const { user: updatedUser } = await client.updateUser({
+            ...user,
+            ...updatedFields,
+        })
+        return { updatedAgentUser: updatedUser }
+    }
+
+    return { updatedAgentUser: user }
+}

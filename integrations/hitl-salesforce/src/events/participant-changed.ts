@@ -1,4 +1,5 @@
 import { ParticipantChangedDataPayload, ParticipantChangedMessagingTrigger } from '../triggers'
+import { updateAgentUser } from '../utils'
 import { closeConversation } from './conversation-close'
 import * as bp from '.botpress'
 
@@ -40,21 +41,12 @@ export const executeOnParticipantChanged = async ({
         return
       case 'add':
         const { user } = await client.getOrCreateUser({
-          name: displayName,
           tags: {
             id: subject,
           },
         })
 
-        if (!user.name?.length) {
-          await client.updateUser({
-            ...user,
-            name: displayName,
-            tags: {
-              id: subject,
-            },
-          })
-        }
+        await updateAgentUser(user, { name: displayName }, client, ctx, true)
 
         await client.updateConversation({
           id: conversation.id,

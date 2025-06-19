@@ -11,10 +11,11 @@ export const user = {
   },
 } satisfies IntegrationDefinitionProps['user']
 
+// This is a temporary version (3.3) with some workaround for the custom arguments feature that is not available yet
 export default new IntegrationDefinition({
   name: integrationName,
   title: 'SalesForce Messaging (Alpha)',
-  version: '0.3.2',
+  version: '0.3.3',
   icon: 'icon.svg',
   description:
     'This integration allows your bot to interact with Salesforce Messaging, this version uses the HITL Interface',

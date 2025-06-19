@@ -54,10 +54,25 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     const splitName = user.name?.split(' ')
 
+    let customArgs: Record<string, any> = {}
+
+    try {
+      customArgs = JSON.parse(input.description || '{}')
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(String(thrown))
+      if(input.description?.startsWith('{')) {
+        logger.forBot().warn('Failed to parse custom arguments from description, using empty object: ' + err.message)
+      }
+    }
+
+    const name = (splitName?.length && splitName[0]) || 'Anon'
+
     await salesforceClient.createConversation(newSalesforceConversationId, {
-      firstName: (splitName?.length && splitName[0]) || 'Anon',
+      _firstName: name,
+      firstName: name, //backward compatibility
       _lastName: (splitName && splitName?.length > 1 && splitName[splitName.length]) || '',
-      _email: user.tags?.email || 'anon@email.com',
+      _email: user.tags?.email  || 'anon@email.com',
+      ...customArgs
     })
 
     await client.createEvent({

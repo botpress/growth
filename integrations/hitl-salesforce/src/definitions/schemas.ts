@@ -20,6 +20,13 @@ export const SFMessagingConfigSchema = z.object({
   organizationId: z.string(),
   DeveloperName: z.string(),
   showAgentName: z.boolean().optional().describe('Show agent name or not on Agent messages'),
+  agentAvatarUrl: z
+      .string()
+      .title('Default Agent Avatar URL')
+      .optional()
+      .describe(
+          'Default URL for the agent avatar, if not provided, the first letter of the agent name will be used (Webchat Only)'
+      ),
   conversationNotAssignedMessage: z.string().default('No agent assigned yet, please wait or type /end to cancel the escalation.').describe('Message that will be presented when the user types something but no agent is handling the conversation'),
 })
 
