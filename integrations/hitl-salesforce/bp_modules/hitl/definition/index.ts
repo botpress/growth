@@ -15,7 +15,8 @@ export * as entities from "./entities/index"
 
 export default {
   name: "hitl",
-  version: "1.1.2",
+  version: "2.0.0",
+  attributes: {},
   actions: actions.actions,
   channels: channels.channels,
   events: events.events,
