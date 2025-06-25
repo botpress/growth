@@ -10,15 +10,13 @@ export const handleOperatorAssignedUpdate = async ({
   
   // Get the contact ID and determine if we need email or phone
   const contactId = threadInfo.associatedContactId
-  const isEmail = threadInfo.senders?.[0]?.deliveryIdentifier?.type === "HS_EMAIL_ADDRESS"
   
-  // Get only the identifier we need based on what was used to create the conversation
-  const contactIdentifier = isEmail 
-    ? await hubSpotClient.getActorEmail(contactId)
-    : await hubSpotClient.getActorPhoneNumber(contactId)
+  // Get both email and phone number
+  const email = await hubSpotClient.getActorEmail("V-"+contactId)
+  const phoneNumber = await hubSpotClient.getActorPhoneNumber(contactId)
 
-  if (!contactIdentifier) {
-    logger.forBot().error(`No ${isEmail ? 'email' : 'phone number'} found for contact:`, contactId)
+  if (!email && !phoneNumber) {
+    logger.forBot().error(`No email or phone number found for contact:`, contactId)
     return
   }
 
@@ -29,12 +27,77 @@ export const handleOperatorAssignedUpdate = async ({
     },
   })
 
-  const { user } = await client.getOrCreateUser({
-    tags: {
-      id: contactIdentifier,
-      ...(isEmail ? { email: contactIdentifier } : { phone: contactIdentifier })
-    },
-  })
+  // Try to find existing user by email first, then by phone number
+  let user;
+  let emailUserToDelete = null;
+  let phoneUserToDelete = null;
+  
+  if (email) {
+    logger.forBot().info(`Trying to find/create user with email: ${email}`);
+    const { user: emailUser } = await client.getOrCreateUser({
+      tags: { email },
+    });
+    
+    // Check if this is an existing user (contactType already set) or newly created
+    if (emailUser.tags?.contactType) {
+      logger.forBot().info(`Found existing user with email (contactType: ${emailUser.tags.contactType})`);
+      user = emailUser;
+    } else {
+      logger.forBot().info(`Created new user with email, trying phone number next`);
+      // This is a newly created user, try phone number next
+      emailUserToDelete = emailUser;
+      
+      if (phoneNumber) {
+        logger.forBot().info(`Trying to find/create user with phone number: ${phoneNumber}`);
+        const { user: phoneUser } = await client.getOrCreateUser({
+          tags: { phoneNumber },
+        });
+        if (phoneUser.tags?.contactType) {
+          logger.forBot().info(`Found existing user with phone number (contactType: ${phoneUser.tags.contactType})`);
+          user = phoneUser;
+        } else {
+          logger.forBot().info(`Created new user with phone number - no existing users found`);
+          phoneUserToDelete = phoneUser;
+        }
+      }
+    }
+  } else if (phoneNumber) {
+    logger.forBot().info(`No email available, trying phone number: ${phoneNumber}`);
+    const { user: phoneUser } = await client.getOrCreateUser({
+      tags: { phoneNumber },
+    });
+    if (phoneUser.tags?.contactType) {
+      logger.forBot().info(`Found existing user with phone number (contactType: ${phoneUser.tags.contactType})`);
+      user = phoneUser;
+    } else {
+      logger.forBot().info(`Created new user with phone number - no existing users found`);
+      phoneUserToDelete = phoneUser;
+    }
+  }
+
+  // Delete unnecessary users
+  if (emailUserToDelete) {
+    try {
+      await client.deleteUser({ id: emailUserToDelete.id });
+      logger.forBot().info(`Deleted unnecessary email user: ${emailUserToDelete.id}`);
+    } catch (error) {
+      logger.forBot().warn(`Failed to delete unnecessary email user: ${emailUserToDelete.id}`, error);
+    }
+  }
+  
+  if (phoneUserToDelete) {
+    try {
+      await client.deleteUser({ id: phoneUserToDelete.id });
+      logger.forBot().info(`Deleted unnecessary phone user: ${phoneUserToDelete.id}`);
+    } catch (error) {
+      logger.forBot().warn(`Failed to delete unnecessary phone user: ${phoneUserToDelete.id}`, error);
+    }
+  }
+
+  if (!user) {
+    logger.forBot().error(`No existing user found for contact: ${contactId}. Both email and phone number users were newly created and deleted.`);
+    return
+  }
 
   await client.createEvent({
     type: 'hitlAssigned',

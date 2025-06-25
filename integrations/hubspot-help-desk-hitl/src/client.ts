@@ -356,7 +356,7 @@ export class HubSpotApi {
     const deliveryType = isEmail ? "HS_EMAIL_ADDRESS" : "HS_PHONE_NUMBER";
 
     const payload = {
-      text: `Name: ${name} \nTitle: ${title} \nDescription: ${description}`,
+      text: `Title: ${title} \nDescription: ${description}`,
       messageDirection: "INCOMING",
       integrationThreadId: integrationThreadId,
       channelAccountId: channelAccountId,
@@ -388,14 +388,14 @@ export class HubSpotApi {
    * @param {string} contactIdentifier - Sender's phone number or email address.
    * @returns {Promise<any>} The message response.
    */
-  public async sendMessage(message: string, senderName: string, contactIdentifier: string): Promise<any> {
+  public async sendMessage(message: string, senderName: string, contactIdentifier: string, integrationThreadId: string): Promise<any> {
     const { state } = await this.bpClient.getState({
       id: this.ctx.integrationId,
       name: "channelInfo",
       type: "integration",
     });
 
-    if (!state?.payload?.channelId || !state?.payload?.channelAccountId || !state?.payload?.integrationThreadId) {
+    if (!state?.payload?.channelId || !state?.payload?.channelAccountId) {
       return {
         success: false,
         message: "Missing channel info",
@@ -404,7 +404,7 @@ export class HubSpotApi {
       };
     }
 
-    const { channelId, channelAccountId, integrationThreadId } = state.payload;
+    const { channelId, channelAccountId } = state.payload;
 
     const endpoint = `${hubspot_api_base_url}/conversations/v3/custom-channels/${channelId}/messages`;
 

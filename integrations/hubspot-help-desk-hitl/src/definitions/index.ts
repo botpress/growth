@@ -17,7 +17,7 @@ export const states = {
     }),
   },
   userInfo: {
-    type: "integration",
+    type: "user",
     schema: z.object({
       phoneNumber: z.string().optional(),
       name: z.string(),
@@ -29,15 +29,17 @@ export const states = {
     schema: z.object({
       channelId: z.string(),
       channelAccountId: z.string(),
-      integrationThreadId: z.string(),
     })
   }
 } satisfies IntegrationDefinitionProps['states']
 
 export const user = {
   tags: {
-    id: { description: 'Hubspot User Id', title: 'Hubspot User Id' },
     email: { description: 'User Email', title: 'User Email' },
-    phone: { description: 'User Phone Number', title: 'User Phone Number' }
+    phoneNumber: { description: 'Hubspot Phone Number', title: 'Hubspot Phone Number' },
+    agentId: { description: 'Hubspot Agent Id', title: 'Hubspot Agent Id' },
+    integrationThreadId: { description: 'Hubspot Integration Thread Id', title: 'Hubspot Integration Thread Id' },
+    hubspotConversationId: { description: 'Hubspot Conversation Id', title: 'Hubspot Conversation Id' },
+    contactType: { description: 'Contact Type (email or phone)', title: 'Contact Type' },
   },
 } satisfies IntegrationDefinitionProps['user']
