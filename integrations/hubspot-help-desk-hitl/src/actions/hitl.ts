@@ -10,7 +10,9 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
   logger.forBot().info("Starting HITL...");
 
   try {
-    const { title, description = "No description available" } = input;
+    const { userId, title, description = "No description available" } = input;
+
+    const { user } = await client.getUser({ id: userId })
 
     const { state } = await client.getState({
       id: ctx.integrationId,
@@ -20,6 +22,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     if (!state?.payload?.channelId) {
       logger.forBot().error("No channelId found in state");
+
       return {
         success: false,
         message: "Channel ID not found in state. Cannot start HITL.",
@@ -29,9 +32,9 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     }
 
     const userInfoState = await client.getState({
-      id: ctx.integrationId,
+      id: input.userId,
       name: "userInfo",
-      type: "integration",
+      type: "user",
     });
 
     // Check if either phoneNumber or email is present in the userInfo state
@@ -60,29 +63,26 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     const { channelId, channelAccountId } = state.payload;
 
     const integrationThreadId = randomUUID();
-
-    await client.setState({
-      id: ctx.integrationId,
-      type: "integration",
-      name: 'channelInfo',
-      payload: { 
-        channelId: channelId, 
-        channelAccountId: channelAccountId,
-        integrationThreadId: integrationThreadId
-      },
-    });
+    logger.forBot().debug(`Integration Thread ID: ${integrationThreadId}`);
 
     const result = await hubspotClient.createConversation(channelId, channelAccountId, integrationThreadId, name, contactIdentifier, title, description);
-    const conversationId = result.data.conversationsThreadId;
-
+    const hubspotConversationId = result.data.conversationsThreadId
     logger.forBot().debug("HubSpot Channel Response:", result);
 
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
       tags: {
-        id: conversationId,
+        id: hubspotConversationId,
       },
     });
+
+    await client.updateUser({
+      ...user,
+      tags: {
+        integrationThreadId: integrationThreadId,
+        hubspotConversationId: hubspotConversationId,
+      },
+    })
 
     logger.forBot().debug(`HubSpot Channel ID: ${channelId}`);
     logger.forBot().debug(`Botpress Conversation ID: ${conversation.id}`);
@@ -91,29 +91,20 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       conversationId: conversation.id,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred while starting HITL';
-    logger.forBot().error(`'Start HITL' exception: ${errorMessage}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    logger.forBot().error(`'Create Conversation' exception: ${errorMessage}`);
 
     return {
       success: false,
       message: errorMessage,
       data: null,
-      conversationId: "error_start_hitl_exception",
+      conversationId: "error_conversation_id",
     };
   }
-};
+}
 
-export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx, input, client, logger }) => {
-  const { conversation } = await client.getConversation({
-    id: input.conversationId,
-  });
-
-  const hubspotConversationId: string | undefined = conversation.tags.id;
-
-  if (!hubspotConversationId) {
-    return {};
-  }
-
+export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ }) => {
+  
   return {};
 };
 
@@ -132,24 +123,19 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
     let userInfoPayload: { name: string; phoneNumber?: string; email?: string; [key: string]: any } = {
       name: name,
     };
-    let userTags: { id: string; email?: string; phone?: string; [key: string]: any } = { id: trimmedEmail };
+    let userTags: { email?: string; phoneNumber?: string; [key: string]: any } = {};
 
     if (trimmedEmail.includes('@')) {
       logger.forBot().info(`Input '${trimmedEmail}' identified as an email address.`);
       userInfoPayload.email = trimmedEmail;
       userTags.email = trimmedEmail;
+      userTags.contactType = 'email';
     } else {
       logger.forBot().info(`Input '${trimmedEmail}' identified as a phone number.`);
       userInfoPayload.phoneNumber = trimmedEmail;
-      userTags.phone = trimmedEmail;
+      userTags.phoneNumber = trimmedEmail;
+      userTags.contactType = 'phone';
     }
-
-    await client.setState({
-      id: ctx.integrationId,
-      type: "integration",
-      name: 'userInfo',
-      payload: userInfoPayload,
-    });
 
     const { user: botpressUser } = await client.getOrCreateUser({
       name,
@@ -157,14 +143,19 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
       tags: userTags,
     });
 
-    logger.forBot().debug(`Created/Found user: ${botpressUser.id} with tags: ${JSON.stringify(userTags)}`);
+    await client.setState({
+      id: botpressUser.id,
+      type: "user",
+      name: 'userInfo',
+      payload: userInfoPayload,
+    });
+
+    logger.forBot().debug(`Created/Found user: ${botpressUser.id}`);
 
     return {
       userId: botpressUser.id,
     };
   } catch (error: any) {
-    const message = error instanceof RuntimeError ? error.message : (error instanceof Error ? error.message : 'An unknown error occurred during user creation for HITL.');
-    logger.forBot().error(`CreateUser Error: ${message}`);
-    throw new RuntimeError(message);
+    throw new RuntimeError(error.message);
   }
 };

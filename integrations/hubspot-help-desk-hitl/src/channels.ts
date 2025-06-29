@@ -15,11 +15,17 @@ export const channels = {
           logger.forBot().error('No HubSpot Conversation Id')
           return
         }
+        
+        const { user: botpressUser } = await client.getOrCreateUser({
+          tags: {
+            hubspotConversationId: hubspotConversationId,
+          },
+        })
 
         const userInfoState = await client.getState({
-          id: ctx.integrationId,
+          id: botpressUser.id,
           name: "userInfo",
-          type: "integration",
+          type: "user",
         });
     
         // Check if either phoneNumber or email is present in the userInfo state
@@ -47,8 +53,7 @@ export const channels = {
         }
         
         return await hubSpotClient.sendMessage(
-          userMessage, name, contactIdentifier
-        )
+          userMessage, name, contactIdentifier, botpressUser.tags.integrationThreadId as string)
       },
     },
   },
