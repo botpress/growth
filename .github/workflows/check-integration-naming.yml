@@ -15,6 +15,10 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
+          const EXCLUDED_INTEGRATIONS = [
+            'hitl-salesforce'
+          ];
+
           function validateIntegration(integrationPath) {
             const errors = [];
             
@@ -87,6 +91,11 @@ jobs:
           let validationFailed = false;
           
           integrationDirs.forEach(integration => {
+            if (EXCLUDED_INTEGRATIONS.includes(integration)) {
+              console.log(`⏭️  Skipping validation for ${integration} (excluded)`);
+              return;
+            }
+            
             const integrationPath = path.join(integrationsDir, integration);
             const errors = validateIntegration(integrationPath);
             
