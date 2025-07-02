@@ -1,6 +1,9 @@
 {
   "name": "botpress",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "turbo run generate",
     "bump": "depsynky bump --ignore-dev && pnpm -w install",
@@ -13,6 +16,8 @@
     "check:oxlint": "oxlint -c .oxlintrc.json",
     "check:lint": "pnpm check:bplint && pnpm check:oxlint && pnpm check:eslint",
     "check:type": "turbo check:type",
+    "check:updates": "ncu",
+    "check:updates:json": "ncu --format json",
     "fix:dep": "depsynky sync --ignore-dev",
     "fix:sherif": "sherif -i zod -i axios -i query-string -i googleapis --fix",
     "fix:format": "prettier --write .",
@@ -20,7 +25,8 @@
     "fix:lint": "eslint --fix ./",
     "check": "pnpm check:sherif && pnpm check:dep && pnpm check:format && pnpm check:lint && pnpm check:type",
     "fix": "pnpm fix:sherif && pnpm fix:dep && pnpm fix:oxlint && pnpm fix:format && pnpm fix:lint",
-    "postinstall": "node ./scripts/setup-integrations.js"
+    "postinstall": "node ./scripts/setup-integrations.js",
+    "update:deps": "ncu -u && pnpm install"
   },
   "lint-staged": {
     "**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}": [
@@ -31,37 +37,38 @@
     "**/*.test.ts": "vitest --run"
   },
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.564.0",
-    "@botpress/api": "1.15.0",
-    "@botpress/cli": "4.5.4",
-    "@botpress/client": "1.12.0",
-    "@botpress/sdk": "4.6.1",
-    "@bpinternal/depsynky": "0.2.0",
+    "@aws-sdk/client-dynamodb": "^3.840.0",
+    "@botpress/api": "1.25.0",
+    "@botpress/cli": "4.10.2",
+    "@botpress/client": "1.16.1",
+    "@botpress/sdk": "4.13.0",
+    "@bpinternal/depsynky": "0.2.2",
     "@bpinternal/readiness": "^0.0.16",
-    "@stylistic/eslint-plugin": "^2.12.1",
-    "@types/node": "^18.19.67",
-    "@typescript-eslint/eslint-plugin": "^8.19.1",
-    "@typescript-eslint/parser": "^8.19.1",
-    "eslint": "^9.17.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-jsdoc": "^50.6.1",
-    "eslint-plugin-oxlint": "^0.15.5",
-    "eslint-plugin-prettier": "^5.2.1",
+    "@stylistic/eslint-plugin": "^5.1.0",
+    "@types/node": "^24.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1",
+    "eslint": "^9.30.1",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^51.3.3",
+    "eslint-plugin-oxlint": "^1.5.0",
+    "eslint-plugin-prettier": "^5.5.1",
     "eslint-plugin-unused-imports": "^4.1.4",
-    "globals": "^15.14.0",
+    "globals": "^16.3.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.4.3",
-    "oxlint": "^0.15.5",
-    "prettier": "^3.4.2",
+    "lint-staged": "^16.1.2",
+    "npm-check-updates": "^18.0.1",
+    "oxlint": "^1.5.0",
+    "prettier": "^3.6.2",
     "retry-cli": "^0.7.0",
-    "semver": "^7.3.8",
-    "sherif": "1.0.1",
+    "semver": "^7.7.2",
+    "sherif": "1.6.1",
     "ts-node": "^10.9.2",
-    "turbo": "^2.3.3",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.19.1",
-    "vitest": "^2.1.4"
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.1",
+    "vitest": "^3.2.4"
   },
-  "packageManager": "pnpm@8.6.2"
+  "packageManager": "pnpm@10.12.4"
 }

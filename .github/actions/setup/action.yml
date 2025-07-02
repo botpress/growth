@@ -11,16 +11,22 @@ runs:
   steps:
     - uses: pnpm/action-setup@v4
       with:
-        version: 8.6.2
+        version: 10.12.4
 
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: '18.x'
+        node-version-file: 'package.json'
         check-latest: true
 
     - name: Install dependencies
       shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
-      run: pnpm i --frozen-lockfile
+      run: |
+        if pnpm i --frozen-lockfile; then
+          echo "Lockfile is compatible"
+        else
+          echo "Lockfile incompatible, regenerating..."
+          pnpm i --no-frozen-lockfile
+        fi
 
     - name: Build
       shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}

@@ -9,8 +9,8 @@ dependencies:
     specifier: 1.9.0
     version: 1.9.0
   '@botpress/sdk':
-    specifier: 4.3.4
-    version: 4.3.4(@bpinternal/zui@0.13.6)
+    specifier: 4.13.0
+    version: 4.13.0(@bpinternal/zui@1.0.0)
   query-string:
     specifier: ^9.0.0
     version: 9.0.0
@@ -37,6 +37,18 @@ devDependencies:
 
 packages:
 
+  /@botpress/client@1.16.1:
+    resolution: {integrity: sha512-amkqZKYAZRe7ocQearb6dNJgfrUWrLqUeb06g2KWoJfBCp+a71T7dE/Asleie0TRVqkogZn1Nv0dZ5PAZqcGKg==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      axios: 1.9.0
+      axios-retry: 4.5.0(axios@1.9.0)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /@botpress/client@1.9.0:
     resolution: {integrity: sha512-nyJVWbt6bHVc3D+7dRuysVEM3o4M+jDLPWPyTKKrhX6QzYnV+tz8l4Lif4LuqoyIUYKx1v1mi2mQLfXVCf8yog==}
     engines: {node: '>=18.0.0'}
@@ -49,31 +61,26 @@ packages:
       - debug
     dev: false
 
-  /@botpress/sdk@4.3.4(@bpinternal/zui@0.13.6):
-    resolution: {integrity: sha512-jlR8lwwWxuqq3Rl+lHSTp7jeKQIRju/6CLs8j3aV/TQkFWSkNh0YQuxF5hi1hjouTJvc4uJUF+q8G2uW/CqN4w==}
+  /@botpress/sdk@4.13.0(@bpinternal/zui@1.0.0):
+    resolution: {integrity: sha512-qhw5r/0XvXVk99l461O6vFpKqX3spcp9zNLtiz2/yUiz2ECoMGiT74zv32nMDZH9EIYNIiz/458WRhKQ6AH6dA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      '@bpinternal/zui': ^0.13.5
+      '@bpinternal/zui': ^1.0.0
       esbuild: ^0.16.12
     peerDependenciesMeta:
       esbuild:
         optional: true
     dependencies:
-      '@botpress/client': 1.9.0
-      '@bpinternal/zui': 0.13.6
+      '@botpress/client': 1.16.1
+      '@bpinternal/zui': 1.0.0
       browser-or-node: 2.1.1
     transitivePeerDependencies:
       - debug
     dev: false
 
-  /@bpinternal/zui@0.13.6:
-    resolution: {integrity: sha512-LK09xntsesmlv3lJKR5ZP4c52vtRqE/5h+dTHQZiQveXQOO6w7cXJ2z97Q1mmuH71oEDTiaNw9qoWV34LPGSdQ==}
+  /@bpinternal/zui@1.0.0:
+    resolution: {integrity: sha512-X58KuXe66+oVY9ckODqBGRuQLbQdG0sMjZh+Vk2UdAsG91nZS2g3AND/0sDuqTvnfx343FuwJnvspiXv0Zkiug==}
     engines: {node: '>=16.0.0', pnpm: 8.6.2}
-    peerDependencies:
-      react: ^18.2.0
-    peerDependenciesMeta:
-      react:
-        optional: true
     dev: false
 
   /@cspotcode/source-map-support@0.8.1:
