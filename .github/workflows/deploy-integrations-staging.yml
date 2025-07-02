@@ -7,6 +7,10 @@ on:
     paths: 
       - 'integrations/**'
 
+  pull_request:
+    paths: 
+      - 'integrations/**'
+
   workflow_dispatch:
     inputs:
       force:
