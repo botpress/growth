@@ -18,6 +18,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Install retry-cli
+      shell: bash
+      run: pnpm add -g retry-cli
     - name: Deploy Integrations to Staging
       shell: bash
       run: |
