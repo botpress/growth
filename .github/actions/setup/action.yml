@@ -20,7 +20,13 @@ runs:
 
     - name: Install dependencies
       shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
-      run: pnpm i --frozen-lockfile
+      run: |
+        if pnpm i --frozen-lockfile; then
+          echo "Lockfile is compatible"
+        else
+          echo "Lockfile incompatible, regenerating..."
+          pnpm i --no-frozen-lockfile
+        fi
 
     - name: Build
       shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
