@@ -1,0 +1,44 @@
+name: Deploy Integrations to Staging
+
+on:
+  push:
+    branches:
+      - master
+    paths: 
+      - 'integrations/**'
+
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force re-deploying integrations'
+        type: boolean
+        required: false
+        default: false
+      extra_filter:
+        description: 'Filter integrations to deploy (partial name match)'
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup dependencies
+        uses: ./.github/actions/setup
+        
+      - name: Deploy Integrations to Staging
+        uses: ./.github/actions/deploy-integrations-staging
+        with:
+          force: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force == 'true' || false }}
+          extra_filter: ${{ github.event.inputs.extra_filter || '' }}
+        env:
+          ERMEK_STAGING_PAT: ${{ secrets.ERMEK_STAGING_PAT }}
+          BP_WORKSPACEID_STAGING: ${{ secrets.BP_WORKSPACEID_STAGING }}

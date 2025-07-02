@@ -6,6 +6,7 @@ import { events, configuration, channels as baseChannels, states, user } from '.
 export default new IntegrationDefinition({
   name: 'plus/brevo-hitl',
   title: 'Brevo HITL',
+  // Test deployment trigger
   version: '1.0.0',
   readme: 'hub.md',
   description: 'Brevo HITL Integration',

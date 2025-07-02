@@ -1,0 +1,74 @@
+name: Deploy Integrations to Staging
+description: Deploys integrations to Botpress staging environment
+
+inputs:
+  extra_filter:
+    description: 'Pnpm additional filters to select integrations to deploy'
+    required: false
+    default: ''
+  force:
+    description: 'Force re-deploying integrations'
+    default: 'false'
+    required: false
+  dry_run:
+    description: 'Ask the backend to perform validation without actually deploying'
+    default: 'false'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Deploy Integrations to Staging
+      shell: bash
+      run: |
+        api_url="https://api.botpress.dev"
+        
+        echo "### Logging in to $api_url ###"
+        bp login --api-url $api_url --workspaceId "${{ env.BP_WORKSPACEID_STAGING }}" --token "${{ env.ERMEK_STAGING_PAT }}"
+
+        redeploy=${{ inputs.force == 'true' && 1 || 0 }}
+        dryrun="${{ inputs.dry_run == 'true' && '--dryRun' || '' }}"
+        is_dry_run=${{ inputs.dry_run == 'true' && 1 || 0 }}
+        
+        # Get all integration directories
+        integration_dirs=$(find integrations -maxdepth 1 -type d -not -path integrations)
+        
+        for integration_path in $integration_dirs; do
+            integration=$(basename $integration_path)
+            
+            # Skip if not a valid integration directory
+            if [ ! -f "$integration_path/package.json" ] || [ ! -f "$integration_path/integration.definition.ts" ]; then
+                echo "Skipping $integration (not a valid integration)"
+                continue
+            fi
+            
+            # Apply extra filter if specified
+            if [ -n "${{ inputs.extra_filter }}" ]; then
+                if [[ ! "$integration" == *"${{ inputs.extra_filter }}"* ]]; then
+                    echo "Skipping $integration (filtered out)"
+                    continue
+                fi
+            fi
+            
+            # Check if integration exists using the existing script
+            exists=$(./.github/scripts/integration-exists.sh $integration)
+            
+            base_command="bp deploy -v -y --noBuild --public --allowDeprecated $dryrun"
+            
+            if [ $exists -eq 0 ]; then
+                echo -e "\nDeploying integration: ### $integration ###\n"
+                cd $integration_path
+                retry -n 2 -- $base_command
+                cd - > /dev/null
+            elif [ $redeploy -eq 1 ]; then
+                echo -e "\nRe-deploying integration: ### $integration ###\n"
+                cd $integration_path
+                retry -n 2 -- $base_command
+                cd - > /dev/null
+            else
+                echo -e "\nSkipping integration: ### $integration ###\n"
+            fi
+        done
+      env:
+        ERMEK_STAGING_PAT: ${{ env.ERMEK_STAGING_PAT }}
+        BP_WORKSPACEID_STAGING: ${{ env.BP_WORKSPACEID_STAGING }}
