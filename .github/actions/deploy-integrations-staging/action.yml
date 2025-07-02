@@ -58,12 +58,12 @@ runs:
             if [ $exists -eq 0 ]; then
                 echo -e "\nDeploying integration: ### $integration ###\n"
                 cd $integration_path
-                pnpm retry -n 2 -- $base_command
+                retry -n 2 -- $base_command
                 cd - > /dev/null
             elif [ $redeploy -eq 1 ]; then
                 echo -e "\nRe-deploying integration: ### $integration ###\n"
                 cd $integration_path
-                pnpm retry -n 2 -- $base_command
+                retry -n 2 -- $base_command
                 cd - > /dev/null
             else
                 echo -e "\nSkipping integration: ### $integration ###\n"
