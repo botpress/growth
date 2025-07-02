@@ -8,9 +8,9 @@ import definition from "./definition"
 
 export default {
   type: "interface",
-  id: "ifver_01JTK2KEBVHQYKAJVFGVC4SSJK",
+  id: "ifver_01JY472MTT0ZN6S4MDMRRC17G5",
   uri: undefined,
   name: "hitl",
-  version: "1.1.2",
+  version: "2.0.0",
   definition,
 } satisfies sdk.InterfacePackage
