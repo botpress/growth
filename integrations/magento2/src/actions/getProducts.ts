@@ -4,7 +4,7 @@ import OAuth from 'oauth-1.0a'
 import * as bp from '.botpress'
 import { ProductListSchema } from '../misc/zod-schemas'
 
-export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async ({ ctx, input, logger }: { ctx: any, input: any, logger: any }) => {
+export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async ({ ctx, input, logger }) => {
   logger.forBot().info(`Input received: ${JSON.stringify(input)}`)
 
   const { magento_domain, consumer_key, consumer_secret, access_token, access_token_secret, user_agent } =
@@ -31,14 +31,7 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
   }
 
   // Always expect input to be a filter array (or a JSON string representing an array)
-  let filtersInput = input;
-  
-  // Handle case where input is an object with searchCriteria property
-  if (typeof input === 'object' && input !== null && input.searchCriteria) {
-    logger.forBot().info('Input is an object with searchCriteria property')
-    filtersInput = input.searchCriteria;
-    logger.forBot().info(`Extracted searchCriteria: ${JSON.stringify(filtersInput)}`)
-  }
+  let filtersInput = (input as any).searchCriteria;
   
   if (typeof filtersInput === 'string') {
     logger.forBot().info('Input is a string, attempting to parse as JSON')
@@ -159,7 +152,7 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
       logger.forBot().error(`Response data: ${JSON.stringify(error.response?.data)}`)
       logger.forBot().error(`Request URL: ${error.config?.url}`)
     }
-    console.error(error)
+    logger.forBot().error(`API request failed: ${error}`)
     return { result: { items: [], search_criteria: {}, total_count: 0 }, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }

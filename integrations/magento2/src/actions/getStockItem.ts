@@ -57,7 +57,7 @@ export const getStockItem: bp.IntegrationProps['actions']['getStockItem'] = asyn
       return { error: 'Invalid stock item response', details: err instanceof Error ? err.message : err }
     }
   } catch (error) {
-    console.error(error)
+    logger.forBot().error('Error fetching stock item', { error })
     return {
       error: error instanceof Error ? error.message : 'Unknown error occurred',
     }
