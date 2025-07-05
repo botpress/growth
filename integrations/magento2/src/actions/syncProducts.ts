@@ -72,6 +72,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
     _customAttributeCodes,
     _attributeMappings,
     _filterCriteria,
+    _currentPageProductIndex,
   } = input as any
 
   const log = logger.forBot()
@@ -248,6 +249,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
     let currentPage = _currentPage || 1
     let totalCount = _totalCount || 0
     let hasMorePages = true
+    let currentPageProductIndex = _currentPageProductIndex || 0
 
     while (hasMorePages) {
       if (Date.now() - startTime >= MAX_EXECUTION_TIME_MS) {
@@ -256,7 +258,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         break;
       }
 
-      const pageSize = 100
+      const pageSize = 50
       const searchCriteria = `searchCriteria[pageSize]=${pageSize}&searchCriteria[currentPage]=${currentPage}${filterCriteria ? `&${filterCriteria}` : ''}`
       const productsUrl = `https://${magento_domain}/rest/default/V1/products?${searchCriteria}`
       
@@ -281,7 +283,8 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         continue
       }
       
-      log.info(`Processing ${products.length} products from page ${currentPage}`)
+      const remainingProductsInPage = products.length - currentPageProductIndex
+      log.info(`Processing ${remainingProductsInPage} remaining products from page ${currentPage} (starting from index ${currentPageProductIndex})`)
       
       if (!tableSchema) {
         const tableDetailsResponse = await apiCallWithRetry(() => axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders }), log)
@@ -289,7 +292,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
       }
       const availableColumns = Object.keys(tableSchema.properties)
 
-      const rowsToInsert = await processProducts(products, {
+      const rowsToInsert = await processProducts(products.slice(currentPageProductIndex), {
         logger: log,
         magento_domain,
         oauth,
@@ -298,7 +301,13 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         availableColumns,
         customAttributeCodes,
         attributeMappings,
-        tableSchema
+        tableSchema,
+        startTime,
+        MAX_EXECUTION_TIME_MS,
+        onTimeLimit: () => {
+          log.info(`Time limit reached while processing products. Will resume from current position.`)
+          return true
+        }
       })
 
       if (rowsToInsert.length > 0) {
@@ -309,9 +318,21 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         log.debug(`Elapsed time so far: ${elapsed}ms (remaining: ${MAX_EXECUTION_TIME_MS - elapsed}ms)`)
       }
 
-      const currentSyncedCount = ((currentPage -1) * pageSize) + products.length
+      currentPageProductIndex += rowsToInsert.length
+      
+      if (currentPageProductIndex >= products.length) {
+        currentPage++
+        currentPageProductIndex = 0
+      }
+      
+      const currentSyncedCount = ((currentPage - 1) * pageSize) + currentPageProductIndex
       hasMorePages = currentSyncedCount < totalCount
-      currentPage++
+      
+      if (Date.now() - startTime >= MAX_EXECUTION_TIME_MS) {
+        const elapsedNow = Date.now() - startTime
+        log.info(`Time limit reached after processing page ${currentPage} (product index: ${currentPageProductIndex}). Breaking to trigger webhook.`)
+        break;
+      }
     }
 
     if (hasMorePages) {
@@ -329,6 +350,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
           _customAttributeCodes: customAttributeCodes,
           _attributeMappings: attributeMappings,
           _filterCriteria: filterCriteria,
+          _currentPageProductIndex: currentPageProductIndex,
         },
       }
       
@@ -345,7 +367,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
 
       return {
         success: true,
-        synced_count: (currentPage - 1) * 100, // Approximate count
+        synced_count: ((currentPage - 1) * 50) + currentPageProductIndex,
         total_count: totalCount,
         table_name,
         status: 'In Progress'
@@ -390,12 +412,22 @@ async function processProducts(
         customAttributeCodes: string[]
         attributeMappings: Record<string, Record<string, string>>
         tableSchema: any
+        startTime: number
+        MAX_EXECUTION_TIME_MS: number
+        onTimeLimit: () => boolean
     }
 ) : Promise<any[]> {
-    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema } = config
+    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema, startTime, MAX_EXECUTION_TIME_MS, onTimeLimit } = config
     const rowsToInsert: any[] = []
 
     for (const product of products) {
+        if (Date.now() - startTime >= MAX_EXECUTION_TIME_MS) {
+            logger.warn(`Time limit reached while processing products. Stopping at product ${product.sku}.`)
+            if (onTimeLimit()) {
+                break;
+            }
+        }
+        
         try {
             let stockQty = 0
             let isInStock = false
