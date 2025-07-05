@@ -79,6 +79,18 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
   const runId = _runId || crypto.randomUUID()
   log.info(`-> Starting Magento2 product sync (run ID: ${runId})`)
 
+  // Parse _attributeMappings from JSON string if needed
+  let attributeMappings: Record<string, Record<string, string>> = {};
+  if (typeof _attributeMappings === 'string') {
+    try {
+      attributeMappings = JSON.parse(_attributeMappings);
+    } catch (e) {
+      log.warn('Failed to parse _attributeMappings JSON string', e);
+    }
+  } else if (typeof _attributeMappings === 'object' && _attributeMappings !== null) {
+    attributeMappings = _attributeMappings;
+  }
+
   const MAX_EXECUTION_TIME_MS = 28000 // 28s to leave a buffer
   const startTime = Date.now()
   log.debug(`Sync start timestamp: ${new Date(startTime).toISOString()}`)
@@ -116,7 +128,6 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
     let tableId = _tableId
     let tableSchema: any = null
     let customAttributeCodes: string[] = _customAttributeCodes
-    let attributeMappings: Record<string, Record<string, string>> = _attributeMappings || {}
     let filterCriteria = _filterCriteria
 
     const isInitialRun = !_tableId

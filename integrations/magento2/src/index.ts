@@ -72,28 +72,51 @@ export default new bp.Integration({
     syncProducts,
   },
   channels: {},
-  handler: async ({ req, client, logger }) => {
+  handler: async ({ req, logger, client }) => {
+    logger.forBot().info('Webhook handler invoked.');
+
     if (!req.body) {
-      return
+      return {
+        status: 400,
+        body: JSON.stringify({ error: 'No body' }),
+      }
     }
 
+    let payload;
     try {
-      const payload = JSON.parse(req.body)
-      
-      if (payload.action === 'syncProducts' && payload.input) {
-        logger.forBot().info('Received webhook to continue syncProducts.')
-        
-        try {
-          const { ctx: actionCtx, input } = payload as any
-          logger.forBot().info('Continuing syncProducts within webhook handler...')
-          await syncProducts({ ctx: actionCtx, input, logger } as any)
-          logger.forBot().info('syncProducts execution finished within webhook handler.')
-        } catch (err: any) {
-          logger.forBot().error('Error in continued syncProducts action', err)
+      payload = JSON.parse(req.body);
+    } catch {
+      return {
+        status: 400,
+        body: JSON.stringify({ error: 'Invalid JSON Body' }),
+      }
+    }
+
+    if (payload.action === 'syncProducts' && payload.input && payload.ctx) {
+      logger.forBot().info('Received webhook to continue syncProducts. Creating a follow-up event.');
+      const { ctx: actionCtx, input } = payload;
+      try {
+        await client.createEvent({
+          type: 'magentoSyncContinue',
+          payload: input,
+        } as any);
+        logger.forBot().info('Successfully created magentoSyncContinue event.');
+        return {
+          status: 200,
+          body: JSON.stringify({ message: 'OK, sync continuation triggered.' }),
+        }
+      } catch (error) {
+        logger.forBot().error('Failed to create continuation event for sync.', error);
+        return {
+          status: 500,
+          body: JSON.stringify({ error: 'Failed to trigger continuation event.' }),
         }
       }
-    } catch (e: any) {
-      logger.forBot().error('Error handling webhook', e)
+    }
+
+    return {
+      status: 400,
+      body: JSON.stringify({ error: 'Invalid action or input' }),
     }
   },
 })
