@@ -3,7 +3,7 @@ import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '1.0.5',
+  version: '1.0.7',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {
@@ -76,6 +76,7 @@ export default new IntegrationDefinition({
           synced_count: z.number().describe('Number of products synced'),
           total_count: z.number().describe('Total number of products found'),
           table_name: z.string().describe('Name of the table products were synced to'),
+          status: z.string().describe('Status of the sync'),
           error: z.string().optional().describe('Error message if sync failed'),
         }),
       },
@@ -94,7 +95,7 @@ export default new IntegrationDefinition({
         _tableId: z.string().optional().describe('ID of the Botpress table'),
         _runId: z.string().optional().describe('Sync run ID'),
         _customAttributeCodes: z.array(z.string()).optional().describe('Custom attribute codes'),
-        _attributeMappings: z.record(z.string(), z.record(z.string(), z.string())).optional().describe('Attribute mappings'),
+        _attributeMappings: z.string().optional().describe('Attribute mappings as a JSON string'),
         _filterCriteria: z.string().optional().describe('Filter criteria string'),
         _currentPageProductIndex: z.number().optional().describe('Current product index within the page'),
       }),

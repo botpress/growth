@@ -8,7 +8,6 @@ import {
   StockItemSchema,
   ReviewsArraySchema,
   ProductData,
-  ReviewData,
 } from '../misc/zod-schemas'
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -49,7 +48,7 @@ function toMagentoAttributeCode(label: string): string {
     .replace(/[^a-z0-9_]/g, '') // remove non-alphanumeric/underscore
 }
 
-export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async ({ ctx, input, logger }) => {
+export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async ({ ctx, input, logger, client }) => {
   const {
     magento_domain,
     consumer_key,
@@ -144,7 +143,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         try {
           let filters = JSON.parse(filters_json)
           if (!Array.isArray(filters)) {
-            return { success: false, synced_count: 0, total_count: 0, table_name, error: 'filters_json must be a JSON array' }
+            return { success: false, synced_count: 0, total_count: 0, table_name, error: 'filters_json must be a JSON array', status: 'Failed' }
           }
           const standardFields = ['sku', 'name', 'description', 'price', 'original_price', 'currency', 'image_url', 'thumbnail_url', 'stock_qty', 'is_in_stock', 'average_rating', 'review_count']
           const attributeFields = Array.from(new Set(filters.map((f: any) => f.field).filter((f: string) => f && !standardFields.includes(f))))
@@ -187,7 +186,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
             filterCriteria = filterGroups.join('&')
           }
         } catch (err) {
-          return { success: false, synced_count: 0, total_count: 0, table_name, error: `filters_json is not valid JSON: ${err instanceof Error ? err.message : 'Unknown parsing error'}` }
+          return { success: false, synced_count: 0, total_count: 0, table_name, error: `filters_json is not valid JSON: ${err instanceof Error ? err.message : 'Unknown parsing error'}`, status: 'Failed' }
         }
       }
 
@@ -218,7 +217,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         if (Object.keys(defaultProperties).length > 20) {
           const error = `Too many columns: ${Object.keys(defaultProperties).length}. Max is 20.`
           log.error(error)
-          return { success: false, synced_count: 0, total_count: 0, table_name, error }
+          return { success: false, synced_count: 0, total_count: 0, table_name, error, status: 'Failed' }
         }
         const createTablePayload = { name: table_name, schema: { type: 'object', properties: defaultProperties } }
         const createTableResponse = await apiCallWithRetry(() => axios.post(apiBaseUrl, createTablePayload, { headers: httpHeaders }), log)
@@ -251,7 +250,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
           } catch (error) {
             const errorMessage = `Failed to get attribute mapping for ${attrCode}: ${error instanceof Error ? error.message : 'Unknown error'}`
             log.error(errorMessage, error)
-            return { success: false, synced_count: 0, total_count: 0, table_name, error: errorMessage }
+            return { success: false, synced_count: 0, total_count: 0, table_name, error: errorMessage, status: 'Failed' }
           }
         }
       }
@@ -340,42 +339,32 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
       hasMorePages = currentSyncedCount < totalCount
       
       if (Date.now() - startTime >= MAX_EXECUTION_TIME_MS) {
-        const elapsedNow = Date.now() - startTime
         log.info(`Time limit reached after processing page ${currentPage} (product index: ${currentPageProductIndex}). Breaking to trigger webhook.`)
         break;
       }
     }
 
     if (hasMorePages) {
-      log.info(`Time limit reached or page processed. Triggering webhook to continue sync.`)
-      const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`
-      const payload = {
-        action: 'syncProducts',
-        ctx,
-        input: {
-          ...input,
-          _currentPage: currentPage,
-          _totalCount: totalCount,
-          _tableId: tableId,
-          _runId: runId,
-          _customAttributeCodes: customAttributeCodes,
-          _attributeMappings: attributeMappings,
-          _filterCriteria: filterCriteria,
-          _currentPageProductIndex: currentPageProductIndex,
-        },
-      }
-      
+      log.info('Time limit reached. Creating magentoSyncContinue event for next batch.')
       try {
-        log.info('Attempting to trigger webhook for next page...')
-        await axios.post(webhookUrl, payload, { headers: { Authorization: `Bearer ${ctx.configuration.botpress_pat}` } })
-        log.info('Successfully triggered webhook for continued sync.')
+        await client.createEvent({
+          type: 'magentoSyncContinue',
+          payload: {
+            ...input,
+            _currentPage: currentPage,
+            _totalCount: totalCount,
+            _tableId: tableId,
+            _runId: runId,
+            _customAttributeCodes: customAttributeCodes,
+            _attributeMappings: typeof _attributeMappings === 'string' ? _attributeMappings : JSON.stringify(attributeMappings),
+            _filterCriteria: filterCriteria,
+            _currentPageProductIndex: currentPageProductIndex,
+          },
+        } as any)
+        log.info('Successfully created magentoSyncContinue event for continued sync.')
       } catch (err: any) {
-          log.error('Failed to trigger webhook for continued sync.', err)
-          if (axios.isAxiosError(err)) {
-              log.error(`Webhook error details: status=${err.response?.status}, data=${JSON.stringify(err.response?.data)}`)
-          }
+        log.error('Failed to create magentoSyncContinue event for continued sync.', err)
       }
-
       return {
         success: true,
         synced_count: ((currentPage - 1) * 50) + currentPageProductIndex,
@@ -407,6 +396,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
       total_count: 0,
       table_name: table_name,
       error: errorMsg,
+      status: 'Failed',
     }
   }
 }

@@ -24,13 +24,11 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
     },
   })
 
-  // Token credentials
   const token = {
     key: access_token,
     secret: access_token_secret,
   }
 
-  // Always expect input to be a filter array (or a JSON string representing an array)
   let filtersInput = (input as any).searchCriteria;
   
   if (typeof filtersInput === 'string') {
@@ -98,17 +96,14 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
 
   logger.forBot().info(`Constructed API URL: ${url}`)
 
-  // Request details
   const requestData = {
     url,
     method: 'GET',
   }
 
-  // Generate OAuth Authorization header
   const authHeader = oauth.toHeader(oauth.authorize(requestData, token))
   logger.forBot().info('OAuth authorization header generated')
 
-  // Axios request configuration
   const config = {
     method: requestData.method,
     url: requestData.url,
@@ -120,7 +115,7 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
   }
 
   logger.forBot().info(`Making API request to: ${url}`)
-  // Send request
+  
   try {
     logger.forBot().info('Sending HTTP request...')
     const response = await axios(config)
