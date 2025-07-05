@@ -3,7 +3,7 @@ import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '1.0.0',
+  version: '1.0.5',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {

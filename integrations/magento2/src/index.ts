@@ -72,5 +72,28 @@ export default new bp.Integration({
     syncProducts,
   },
   channels: {},
-  handler: async () => {},
+  handler: async ({ req, client, logger }) => {
+    if (!req.body) {
+      return
+    }
+
+    try {
+      const payload = JSON.parse(req.body)
+      
+      if (payload.action === 'syncProducts' && payload.input) {
+        logger.forBot().info('Received webhook to continue syncProducts.')
+        
+        try {
+          const { ctx: actionCtx, input } = payload as any
+          logger.forBot().info('Continuing syncProducts within webhook handler...')
+          await syncProducts({ ctx: actionCtx, input, logger } as any)
+          logger.forBot().info('syncProducts execution finished within webhook handler.')
+        } catch (err: any) {
+          logger.forBot().error('Error in continued syncProducts action', err)
+        }
+      }
+    } catch (e: any) {
+      logger.forBot().error('Error handling webhook', e)
+    }
+  },
 })
