@@ -1,6 +1,6 @@
 {
   "name": "@bp-templates/hello-world",
-  "integrationName": "envyro/magento2",
+  "integrationName": "plus/magento2",
   "scripts": {
     "check:type": "tsc --noEmit",
     "version": "bp --version",
