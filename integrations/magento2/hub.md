@@ -135,7 +135,7 @@ Get real-time stock information for a specific product by SKU.
 
 ### **Sync Products to Botpress Table**
 
-Automatically sync products from Magento to a Botpress table with intelligent schema creation.
+Automatically sync products from Magento to a Botpress table with intelligent schema creation. Large syncs are automatically split across multiple webhook executions to handle timeouts.
 
 #### **Input Parameters**
 | Parameter | Type | Required | Description |
@@ -143,6 +143,32 @@ Automatically sync products from Magento to a Botpress table with intelligent sc
 | `table_name` | String | Yes | Name of the Botpress table to sync products to |
 | `custom_attributes` | String | No | Comma-separated list of custom product attributes |
 | `filters_json` | String | No | JSON array of filter objects for selective syncing |
+
+#### **Webhook Continuation Setup**
+
+For large product catalogs, the sync action automatically continues in batches using the `magentoSyncContinue` event. To ensure the sync completes, you must:
+
+1. **Create a Trigger** for the `magentoSyncContinue` event in your Botpress workflow.
+2. **Connect the Trigger** to a node that runs the "Sync Products To Botpress Table" action.
+3. **Map all input fields** in the action node to the corresponding values from `event.payload`.
+
+**Example field mappings:**
+
+| Action Input                | Value                                 |
+|----------------------------|---------------------------------------|
+| Table Name                  | `{{event.payload.table_name}}`         |
+| Custom Attributes           | `{{event.payload.custom_attributes}}`  |
+| Filters JSON                | `{{event.payload.filters_json}}`       |
+| Current Page                | `{{event.payload._currentPage}}`       |
+| Total Count                 | `{{event.payload._totalCount}}`        |
+| Table ID                    | `{{event.payload._tableId}}`           |
+| Run ID                      | `{{event.payload._runId}}`             |
+| Custom Attribute Codes      | `{{event.payload._customAttributeCodes}}` |
+| Attribute Mappings          | `{{event.payload._attributeMappings}}` |
+| Filter Criteria             | `{{event.payload._filterCriteria}}`    |
+| Current Page Product Index  | `{{event.payload._currentPageProductIndex}}` |
+
+**No manual intervention is required**—the sync will continue automatically until all products are processed.
 
 #### **Default Table Schema**
 The integration automatically creates a table with the following columns:
