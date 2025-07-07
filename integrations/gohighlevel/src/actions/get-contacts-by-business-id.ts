@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { getContactsByBusinessIdInputSchema, getContactsByBusinessIdOutputSchema } from '../misc/custom-schemas';
+import { getContactsByBusinessIdInputSchema } from '../misc/custom-schemas';
 import type { Implementation } from '../misc/types';
 
 export const getContactsByBusinessId: Implementation['actions']['getContactsByBusinessId'] = async ({ ctx, client, logger, input }) => {

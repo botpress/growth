@@ -1,11 +1,10 @@
 import { getClient } from 'src/client'
 import * as bpclient from "@botpress/client";
 import type { RegisterFunction } from '../misc/types'
-import { Credentials } from '.botpress/implementation/typings/states/credentials';
 
 export const register: RegisterFunction = async ({ ctx, client, logger }) => {
   try {
-    const goHighLevelClient = getClient(ctx.configuration.accessToken, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, ctx, client);
+    const _goHighLevelClient = getClient(ctx.configuration.accessToken, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, ctx, client);
 
     await client.setState({
       id: ctx.integrationId,

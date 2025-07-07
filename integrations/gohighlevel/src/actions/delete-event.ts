@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { deleteEventInputSchema, deleteEventOutputSchema } from '../misc/custom-schemas';
+import { deleteEventInputSchema } from '../misc/custom-schemas';
 import type { Implementation } from '../misc/types';
 
 export const deleteEvent: Implementation['actions']['deleteEvent'] = async ({ ctx, client, logger, input }) => {

@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { deleteOpportunityInputSchema, deleteOpportunityOutputSchema } from '../misc/custom-schemas';
+import { deleteOpportunityInputSchema } from '../misc/custom-schemas';
 import type { Implementation } from '../misc/types';
 
 export const deleteOpportunity: Implementation['actions']['deleteOpportunity'] = async ({ ctx, client, logger, input }) => {
