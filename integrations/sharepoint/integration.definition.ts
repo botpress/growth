@@ -3,7 +3,7 @@ import { integrationName } from "./package.json";
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: "3.0.2",
+  version: "3.0.3",
   title: "SharePoint",
   description:
     "Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.",
