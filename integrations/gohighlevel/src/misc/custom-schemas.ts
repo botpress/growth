@@ -259,3 +259,17 @@ export const makeApiCallOutputSchema = z.object({
   message: z.string(),
   data: z.any()
 })
+
+export const searchContactsInputSchema = z.object({
+  locationId: z.string().describe('Location ID where contacts should be searched'),
+  phone: z.string().describe('Phone number to search for (will handle various formats automatically)')
+})
+
+export const searchContactsOutputSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    contacts: z.array(z.any()),
+    total: z.number()
+  }).optional()
+})

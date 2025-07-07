@@ -41,7 +41,9 @@ import {
   getContactsByBusinessIdInputSchema,
   getContactsByBusinessIdOutputSchema,
   makeApiCallInputSchema,
-  makeApiCallOutputSchema
+  makeApiCallOutputSchema,
+  searchContactsInputSchema,
+  searchContactsOutputSchema
 } from './src/misc/custom-schemas';
 
 export default new IntegrationDefinition({
@@ -178,6 +180,11 @@ export default new IntegrationDefinition({
       title: 'Make API Call',
       input: { schema: makeApiCallInputSchema },
       output: { schema: makeApiCallOutputSchema },
+    },
+    searchContacts: {
+      title: 'Search Contacts',
+      input: { schema: searchContactsInputSchema },
+      output: { schema: searchContactsOutputSchema },
     },
   },
 });

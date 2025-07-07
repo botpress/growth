@@ -11,15 +11,15 @@
   },
   "private": true,
   "dependencies": {
-    "@botpress/client": "0.41.0",
-    "@botpress/sdk": "2.5.0",
-    "axios": "^1.7.9",
-    "zod": "^3.24.1"
+    "@botpress/client": "1.16.1",
+    "@botpress/sdk": "4.13.0",
+    "axios": "^1.10.0",
+    "zod": "^3.25.75"
   },
   "devDependencies": {
-    "@botpress/cli": "^2.2.5",
-    "@types/node": "^18.19.74",
+    "@botpress/cli": "^4.11.0",
+    "@types/node": "^24.0.10",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.3"
   }
 }
