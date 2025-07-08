@@ -22,7 +22,6 @@ export class GoHighLevelApi  {
     this.bpClient = bpClient;
   }
 
-  /** Retrieves stored credentials from Botpress state */
 private async getStoredCredentials(): Promise<{ accessToken: string; refreshToken: string } | null> {
   try {
     const { state } = await this.bpClient.getState({
@@ -90,9 +89,6 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
     }
   }
 
-  /**
-   * Refreshes the access token using the refresh token.
-   */
   private async refreshAccessToken() {
     try {
       const creds = await this.getStoredCredentials()

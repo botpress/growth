@@ -16,11 +16,14 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       }
     })
 
-    // Check access by trying to fetch a contact
-    // const result = await goHighLevelClient.getContact("test-contact-id");
+    /*
+    TODO: Add a proper check for access to GoHighLevel
+
+    i.e validate /locations endpoint or /me
+    */
     const result = "Placeholder until proper check"
 
-    // If the API call does not throw, it means we have successfully accessed GoHighLevel
+    // assuming check above is proper, this is called if successful login to ghl
     logger.forBot().info("Successfully accessed GoHighLevel: Integration can proceed");
     
     logger.forBot().info(`Successfully retrieved ${JSON.stringify(result)} contact`);
