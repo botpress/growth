@@ -23,7 +23,20 @@ export class SharepointSync {
   }
 
   private log(msg: string) {
-    console.log(`[${getFormatedCurrTime()} - SP Sync] ${msg}`);
+    this.logger.forBot().info(`[${getFormatedCurrTime()} - SP Sync] ${msg}`);
+  }
+
+  private logWarning(msg: string) {
+    this.logger.forBot().warn(`[${getFormatedCurrTime()} - SP Sync] ${msg}`);
+  }
+
+  private isFileSupported(spPath: string): boolean {
+    const fileType = path.extname(spPath);
+    if (!SUPPORTED_FILE_EXTENSIONS.includes(fileType)) {
+      this.logWarning(`File "${spPath}" with type "${fileType}" is not supported. Skipping file.`);
+      return false;
+    }
+    return true;
   }
 
   private getOrCreateKB(kbId: string): BotpressKB {
@@ -51,7 +64,7 @@ export class SharepointSync {
       const spPath = spPathOrNull
   
       // skip unsupported extensions early
-      if (!SUPPORTED_FILE_EXTENSIONS.includes(path.extname(spPath))) {
+      if (!this.isFileSupported(spPath)) {
         continue
       }
   
@@ -80,7 +93,7 @@ export class SharepointSync {
         }
         const spPath = spPathOrNull
   
-        if (!SUPPORTED_FILE_EXTENSIONS.includes(path.extname(spPath))) {
+        if (!this.isFileSupported(spPath)) {
           return
         }
   
@@ -125,7 +138,7 @@ export class SharepointSync {
         /* 1 = Add */
         case 1: {
           const spPath = await this.sharepointClient.getFilePath(ch.ItemId);
-          if (!spPath || !SUPPORTED_FILE_EXTENSIONS.includes(path.extname(spPath))) break;
+          if (!spPath || !this.isFileSupported(spPath)) break;
 
           const relPath = decodeURIComponent(spPath.replace(/^\/sites\/[^/]+\//, ""));
           const kbIds   = this.sharepointClient.getKbForPath(relPath);
@@ -141,7 +154,7 @@ export class SharepointSync {
         /* 2 = Update */
         case 2: {
           const spPath = await this.sharepointClient.getFilePath(ch.ItemId);
-          if (!spPath) break;
+          if (!spPath || !this.isFileSupported(spPath)) break;
 
           const relPath = decodeURIComponent(spPath.replace(/^\/sites\/[^/]+\//, ""));
           const kbIds   = this.sharepointClient.getKbForPath(relPath);
