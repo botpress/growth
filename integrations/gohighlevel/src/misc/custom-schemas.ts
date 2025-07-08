@@ -260,6 +260,45 @@ export const makeApiCallOutputSchema = z.object({
   data: z.any()
 })
 
+// Contact-related schemas
+const customFieldSchema = z.object({
+  id: z.string(),
+  value: z.union([z.string(), z.array(z.string())])
+})
+
+const contactSchema = z.object({
+  id: z.string(),
+  additionalEmails: z.array(z.string()).optional(),
+  additionalPhones: z.array(z.string()).optional(),
+  address: z.string().optional(),
+  assignedTo: z.string().optional(),
+  businessId: z.string().optional(),
+  businessName: z.string().optional(),
+  city: z.string().optional(),
+  companyName: z.string().optional(),
+  country: z.string().optional(),
+  customFields: z.array(customFieldSchema).optional(),
+  dateAdded: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  dateUpdated: z.string().optional(),
+  dnd: z.boolean().optional(),
+  dndSettings: z.record(z.any()).optional(),
+  email: z.string().optional(),
+  firstNameLowerCase: z.string().optional(),
+  lastNameLowerCase: z.string().optional(),
+  followers: z.array(z.string()).optional(),
+  locationId: z.string().optional(),
+  phone: z.string().optional(),
+  phoneLabel: z.string().optional(),
+  postalCode: z.string().optional(),
+  source: z.string().optional(),
+  state: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  type: z.string().optional(),
+  validEmail: z.boolean().optional(),
+  website: z.string().optional()
+})
+
 export const searchContactsInputSchema = z.object({
   locationId: z.string().describe('Location ID where contacts should be searched'),
   phone: z.string().describe('Phone number to search for (will handle various formats automatically)')
@@ -269,7 +308,7 @@ export const searchContactsOutputSchema = z.object({
   success: z.boolean(),
   message: z.string(),
   data: z.object({
-    contacts: z.array(z.any()),
+    contacts: z.array(contactSchema),
     total: z.number()
   }).optional()
 })
