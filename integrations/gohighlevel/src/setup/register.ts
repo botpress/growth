@@ -21,12 +21,9 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
 
     i.e validate /locations endpoint or /me
     */
-    const result = "Placeholder until proper check"
 
     // assuming check above is proper, this is called if successful login to ghl
     logger.forBot().info("Successfully accessed GoHighLevel: Integration can proceed");
-    
-    logger.forBot().info(`Successfully retrieved ${JSON.stringify(result)} contact`);
   } catch (error) {
     logger.forBot().error("Failed to access GoHighLevel: Check configuration", error);
     
