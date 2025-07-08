@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { updateContactInputSchema, updateContactOutputSchema } from '../misc/custom-schemas';
+import { updateContactInputSchema } from '../misc/custom-schemas';
 import type { Implementation } from '../misc/types';
 
 export const updateContact: Implementation['actions']['updateContact'] = async ({ ctx, client, logger, input }) => {
