@@ -2,12 +2,7 @@ import { getClient } from '../client';
 import { searchContactsInputSchema } from '../misc/custom-schemas';
 import type { Implementation } from '../misc/types';
 
-export const searchContacts: Implementation['actions']['searchContacts'] = async ({ ctx, client, logger, input }: {
-  ctx: any;
-  client: any;
-  logger: any;
-  input: any;
-}) => {
+export const searchContacts: Implementation['actions']['searchContacts'] = async ({ ctx, client, logger, input }) => {
   const validatedInput = searchContactsInputSchema.parse(input);
   const ghlClient = getClient(ctx.configuration.accessToken, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, ctx, client);
 
