@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import * as bp from '.botpress'
 import { IntegrationLogger } from '@botpress/sdk';
+import { CreateNoteRequestBody } from './misc/custom-schemas';
 
 const logger = new IntegrationLogger();
 export class GoHighLevelApi  {
@@ -225,6 +226,10 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
   async searchContacts(locationId: string, phone: string) {
     const searchPayload = this.buildPhoneSearchPayload(locationId, phone);
     return this.makeRequest('/contacts/search', 'POST', searchPayload);
+  }
+
+  async createNote(contactId: string, noteData: CreateNoteRequestBody) {
+    return this.makeRequest(`/contacts/${contactId}/notes`, "POST", noteData);
   }
 
   private buildPhoneSearchPayload(locationId: string, phone: string) {

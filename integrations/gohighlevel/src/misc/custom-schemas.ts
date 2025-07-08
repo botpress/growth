@@ -312,3 +312,44 @@ export const searchContactsOutputSchema = z.object({
     total: z.number()
   }).optional()
 })
+
+// Create Note
+interface CreateNoteRequestBody {
+  userId: string;
+  body: string;
+}
+
+interface NoteData {
+  id: string;
+  body: string;
+  userId: string;
+  dateAdded: string;
+  contactId: string;
+}
+
+interface CreateNoteResponseData {
+  note: NoteData;
+}
+
+export const createNoteInputSchema = z.object({
+  contactId: z.string().describe('ID of the contact to create note for'),
+  userId: z.string().describe('ID of the user creating the note'),
+  body: z.string().describe('Content/body of the note')
+})
+
+export const createNoteOutputSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    note: z.object({
+      id: z.string(),
+      body: z.string(),
+      userId: z.string(),
+      dateAdded: z.string(),
+      contactId: z.string()
+    })
+  }).optional()
+})
+
+// Export the interfaces for use in client
+export { CreateNoteRequestBody, NoteData, CreateNoteResponseData }

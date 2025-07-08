@@ -43,7 +43,9 @@ import {
   makeApiCallInputSchema,
   makeApiCallOutputSchema,
   searchContactsInputSchema,
-  searchContactsOutputSchema
+  searchContactsOutputSchema,
+  createNoteInputSchema,
+  createNoteOutputSchema
 } from './src/misc/custom-schemas';
 
 export default new IntegrationDefinition({
@@ -185,6 +187,11 @@ export default new IntegrationDefinition({
       title: 'Search Contacts',
       input: { schema: searchContactsInputSchema },
       output: { schema: searchContactsOutputSchema },
+    },
+    createNote: {
+      title: 'Create Note',
+      input: { schema: createNoteInputSchema },
+      output: { schema: createNoteOutputSchema },
     },
   },
 });
