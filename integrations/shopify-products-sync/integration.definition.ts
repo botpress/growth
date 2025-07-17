@@ -2,7 +2,7 @@ import { IntegrationDefinition } from '@botpress/sdk'
 import { configuration, states, actions, events } from './src/definitions/index'
 
 export default new IntegrationDefinition({
-  name: 'shopify-products-sync',
+  name: 'plus/shopify-products-sync',
   title: 'Shopify products sync',
   version: '1.1.0',
   readme: 'hub.md',
