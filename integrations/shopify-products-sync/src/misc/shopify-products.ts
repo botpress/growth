@@ -5,15 +5,19 @@ import { stripHtmlTags } from './utils'
 
 export async function fetchAllProducts(shopifyClient: ShopifyClient, logger: bp.Logger) {
   const allProducts: ShopifyProduct[] = []
-  let page = 1
   const limit = 250
   let hasMore = true
+  let sinceId: number | undefined = undefined
 
   while (hasMore) {
-    const products = await shopifyClient.getProducts(logger, { limit })
+    const params: Record<string, any> = { limit }
+    if (sinceId) params.since_id = sinceId
+    const products = await shopifyClient.getProducts(logger, params)
     allProducts.push(...products)
     hasMore = products.length === limit
-    page++
+    if (hasMore && products && products.length > 0) {
+      sinceId = products[products.length - 1]?.id
+    }
   }
 
   return allProducts

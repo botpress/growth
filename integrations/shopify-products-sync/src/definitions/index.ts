@@ -28,7 +28,9 @@ export const actions = {
     title: 'Sync KB',
     description: 'Sync products from Shopify to Botpress Knowledge Base',
     input: {
-      schema: z.object({}),
+      schema: z.object({
+        knowledgeBaseId: z.string().describe('ID of the Knowledge Base you wish to synchronize with your Shopify products'),
+      }),
     },
     output: {
       schema: z.object({

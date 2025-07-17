@@ -10,7 +10,9 @@ export const deleteKbArticles = async (kbId: string, client: bp.Client): Promise
   })
 
   for (const file of files) {
-    await client.deleteFile({ id: file.id })
+    if (file.tags.origin === 'shopify') {
+      await client.deleteFile({ id: file.id })
+    }
   }
 }
 
@@ -35,10 +37,10 @@ export const getUploadArticlePayload = ({ kbId, product, shopDomain }: { kbId: s
     vendor: product.vendor || 'N/A',
     tags: product.tags || 'N/A',
     productType: product.product_type || 'N/A',
-    price: product.variants[0].price || 'N/A',
-    weight: product.variants[0].weight || 0,
-    weightUnit: product.variants[0].weight_unit || 'N/A',
-    images: product.images.map(image => image.src) || [],
+    price: product.variants && product.variants[0].price || 'N/A',
+    weight: product.variants && product.variants[0].weight || 0,
+    weightUnit: product.variants && product.variants[0].weight_unit || 'N/A',
+    images: product.images && product.images.map(image => image.src) || [],
     options: product.options || [],
     url: `https://${shopDomain}/products/${product.handle}`
   }
@@ -52,6 +54,7 @@ export const getUploadArticlePayload = ({ kbId, product, shopDomain }: { kbId: s
       source: 'knowledge-base',
       kbId,
       productId: product.id.toString(),
+      origin: 'shopify',
     },
   }
 }

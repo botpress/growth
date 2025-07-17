@@ -3,13 +3,15 @@
 import axios, { AxiosInstance } from 'axios'
 import * as bp from '.botpress'
 import { ShopifyProduct } from './schemas/products'
+import { SHOPIFY_API_VERSION } from './constants'
+import { retry } from './misc/utils'
 
 export class ShopifyClient {
   private _client: AxiosInstance
   private _baseUrl: string
 
   public constructor(private _config: bp.configuration.Configuration) {
-    this._baseUrl = `https://${_config.shopDomain}/admin/api/2024-07`
+    this._baseUrl = `https://${_config.shopDomain}/admin/api/${SHOPIFY_API_VERSION}`
     this._client = axios.create({
       headers: {
         'X-Shopify-Access-Token': _config.apiKey,
@@ -21,8 +23,11 @@ export class ShopifyClient {
 
   public async getProducts(logger: bp.Logger, params?: Record<string, any>) {
     try {
-      const response = await this._client.get(`${this._baseUrl}/products.json`, { params })
-      return response.data.products as ShopifyProduct[]
+      const fetchProducts = async () => {
+        const response = await this._client.get(`${this._baseUrl}/products.json`, { params })
+        return response.data.products as ShopifyProduct[]
+      }
+      return await retry(fetchProducts, 3, 500)
     } catch (error) {
       logger.forBot().error(`Error fetching products: ${JSON.stringify(error)}`)
       throw this._handleError(error)
