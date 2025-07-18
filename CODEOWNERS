@@ -17,6 +17,7 @@
 /integrations/huggingface @ermek-botpress @botpress/growth
 /integrations/salesforce @ermek-botpress @botpress/growth
 /integrations/sharepoint @aj-botpress @botpress/growth
+/integrations/shopify-products-sync @AudricPnd @botpress/growth
 /integrations/twiliovoice @ermek-botpress @botpress/growth
 /integrations/zoho-sales-iq-hitl @matthewbotpress @botpress/growth
 
