@@ -1,3 +1,4 @@
+import { RuntimeError } from '@botpress/sdk'
 import { getShopifyClient } from '../client'
 import * as bp from '.botpress'
 import actions from '../actions'
@@ -52,7 +53,6 @@ export const register: RegisterFunction = async ({ ctx, logger, webhookUrl, clie
     await setupWebhooks(ctx, logger, webhookUrl)
     logger.forBot().info(`Shopify integration registered and products synced successfully for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}`)
   } catch (error) {
-    logger.forBot().error(`Error during registration for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}: ${JSON.stringify(error)}`)
-    throw error
+    throw new RuntimeError(`Error during registration for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}: ${JSON.stringify(error)}`)
   }
 }
