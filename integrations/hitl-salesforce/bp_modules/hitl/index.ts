@@ -8,7 +8,7 @@ import definition from "./definition"
 
 export default {
   type: "interface",
-  id: "ifver_01JY472MTT0ZN6S4MDMRRC17G5",
+  id: "ifver_01K0STHY79Y0GFGFGDXXGQKDVE",
   uri: undefined,
   name: "hitl",
   version: "2.0.0",
