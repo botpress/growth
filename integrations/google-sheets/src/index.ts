@@ -2,6 +2,7 @@ import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
 import { GoogleSheetsClient } from './client'
 import { syncKb } from './actions'
+import { deleteKbFiles } from './misc/kb'
 
 export default new bp.Integration({
   register: async ({ ctx, client, logger }) => {
@@ -29,8 +30,16 @@ export default new bp.Integration({
       metadata: { setCost: (_cost: number) => {} },
     })
   },
-  unregister: async ({ logger }) => {
-    logger.forBot().info('Google Sheets integration unregistered')
+  unregister: async ({ ctx, client, logger }) => {
+    logger.forBot().info('Unregistering Google Sheets integration')
+    
+    try {
+      await deleteKbFiles(ctx.configuration.knowledgeBaseId, client)
+      logger.forBot().info('Google Sheets integration unregistered and files deleted successfully')
+    } catch (error) {
+      logger.forBot().error('Error during unregistration', { error })
+      throw new sdk.RuntimeError(`Failed to clean up Google Sheets files: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   },
   actions: {
     syncKb,

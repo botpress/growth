@@ -2,6 +2,7 @@ import * as bp from '.botpress'
 import * as sdk from '@botpress/sdk'
 import { GoogleSheetsClient } from '../client'
 import { StoredSheetRow } from '../misc/types'
+import { deleteKbFiles } from '../misc/kb'
 
 const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
   ctx,
@@ -36,18 +37,8 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
     const gid = extractGid(sheetsUrl)
     const sourceSheet = `${spreadsheetId}_${gid}`
 
-    const existingFiles = await client.listFiles({
-      tags: {
-        kbId: knowledgeBaseId,
-        origin: 'google-sheets',
-      },
-    })
-
-    logger.forBot().info(`Found ${existingFiles.files.length} existing files to delete`)
-
-    for (const file of existingFiles.files) {
-      await client.deleteFile({ id: file.id })
-    }
+    logger.forBot().info('Deleting existing Google Sheets files from Knowledge Base')
+    await deleteKbFiles(knowledgeBaseId, client)
 
     logger.forBot().info('Fetching data from Google Sheets')
     const sheetData = await sheetsClient.getSheetData(sheetsUrl)
