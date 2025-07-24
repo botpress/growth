@@ -17,18 +17,18 @@ const getAllFiles = async (client: bp.Client, tags: any) => {
   return allFiles
 }
 
-const logDeleteFileResults = (results: PromiseSettledResult<unknown>[], batchIndex?: number): void => {
+const logDeleteFileResults = (results: PromiseSettledResult<unknown>[], logger: any, batchIndex?: number): void => {
   const failures = results.filter(r => r.status === 'rejected')
   
   const batchPrefix = batchIndex !== undefined ? `Batch ${batchIndex + 1}: ` : ''
   
   if (failures.length > 0) {
-    console.error(`${batchPrefix}Failed to delete ${failures.length} files:`, 
+    logger.forBot().error(`${batchPrefix}Failed to delete ${failures.length} files:`, 
       failures.map(f => (f as PromiseRejectedResult).reason))
   }
 }
 
-const tryDirectTagFiltering = async (kbId: string, client: bp.Client) => {
+const tryDirectTagFiltering = async (kbId: string, client: bp.Client, logger: any) => {
   try {
     const files = await getAllFiles(client, {
       kbId,
@@ -36,38 +36,21 @@ const tryDirectTagFiltering = async (kbId: string, client: bp.Client) => {
     })
     return files
   } catch (error) {
-    console.log('Direct tag filtering failed, falling back to two-step filtering:', error)
+    logger.forBot().error('Direct tag filtering failed:', error)
     return []
   }
 }
 
-const performTwoStepFiltering = async (kbId: string, client: bp.Client) => {
-  const files = await getAllFiles(client, {
-    kbId,
-  })
 
-  const filesToDelete = files.filter(file => file.tags.origin === 'google-sheets')
-  console.log(`Filtered to ${filesToDelete.length} Google Sheets files`)
-  
-  return filesToDelete
-}
-
-export const deleteKbFiles = async (kbId: string, client: bp.Client): Promise<void> => {
-
-  let filesToDelete = await tryDirectTagFiltering(kbId, client)
-  
-  const twoStepFiles = await performTwoStepFiltering(kbId, client)
-  
-  if (twoStepFiles.length > filesToDelete.length) {
-    filesToDelete = twoStepFiles
-  }
+export const deleteKbFiles = async (kbId: string, client: bp.Client, logger: any): Promise<void> => {
+  const filesToDelete = await tryDirectTagFiltering(kbId, client, logger)
   
   if (filesToDelete.length === 0) {
-    console.log('No Google Sheets files found to delete')
+    logger.forBot().info('No Google Sheets files found to delete')
     return
   }
 
-  console.log(`Preparing to delete ${filesToDelete.length} files`)
+  logger.forBot().info(`Preparing to delete ${filesToDelete.length} files`)
 
   const BATCH_SIZE = 50
   const shouldUseBatching = filesToDelete.length > BATCH_SIZE
@@ -81,20 +64,20 @@ export const deleteKbFiles = async (kbId: string, client: bp.Client): Promise<vo
         batch.map(file => client.deleteFile({ id: file.id }))
       )
       
-      logDeleteFileResults(batchResults, i / BATCH_SIZE)
+      logDeleteFileResults(batchResults, logger, i / BATCH_SIZE)
       allResults.push(...batchResults)
     }
   } else {
     allResults = await Promise.allSettled(
       filesToDelete.map(file => client.deleteFile({ id: file.id }))
     )
-    logDeleteFileResults(allResults)
+    logDeleteFileResults(allResults, logger)
   }
 
   const totalSuccesses = allResults.filter(r => r.status === 'fulfilled').length
   const totalFailures = allResults.filter(r => r.status === 'rejected').length
   
-  console.log(`File deletion completed: ${totalSuccesses} successes, ${totalFailures} failures`)
+  logger.forBot().info(`File deletion completed: ${totalSuccesses} successes, ${totalFailures} failures`)
   
   if (totalFailures > 0) {
     const errorMessages = allResults

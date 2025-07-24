@@ -39,7 +39,7 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
     const sourceSheet = `${spreadsheetId}_${gid}`
 
     logger.forBot().info('Deleting existing Google Sheets files from Knowledge Base')
-    await deleteKbFiles(knowledgeBaseId, client)
+    await deleteKbFiles(knowledgeBaseId, client, logger)
 
     logger.forBot().info('Fetching data from Google Sheets')
     const sheetData = await sheetsClient.getSheetData(sheetsUrl)

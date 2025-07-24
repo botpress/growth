@@ -34,7 +34,7 @@ export default new bp.Integration({
     logger.forBot().info('Unregistering Google Sheets integration')
     
     try {
-      await deleteKbFiles('kb-default', client)
+      await deleteKbFiles('kb-default', client, logger)
       logger.forBot().info('Google Sheets integration unregistered and KB files deleted successfully')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
