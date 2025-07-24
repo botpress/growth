@@ -4,7 +4,7 @@ import { configuration, actions, events, states } from './src/definitions'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '1.0.5',
+  version: '1.0.7',
   title: 'Google Sheets Public Sync',
   readme: 'hub.md',
   icon: 'icon.svg',

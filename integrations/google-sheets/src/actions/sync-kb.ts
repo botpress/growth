@@ -52,8 +52,11 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
       }
     }
 
-    const uploadPromises: Promise<void>[] = []
-    let recordsProcessed = 0
+    const uploadTasks: Array<{
+      storedRow: StoredSheetRow
+      fileKey: string
+      content: string
+    }> = []
 
     for (let i = 0; i < sheetData.rows.length; i++) {
       const row = sheetData.rows[i]
@@ -75,26 +78,77 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
       const fileKey = `${knowledgeBaseId}/sheet_row_${i + 1}.txt`
       const content = JSON.stringify(storedRow, null, 2)
 
-      const uploadPromise = client.uploadFile({
-        key: fileKey,
-        content,
-        index: true,
-        tags: {
-          source: 'knowledge-base',
-          kbId: knowledgeBaseId,
-          rowId: storedRow.id,
-          origin: 'google-sheets',
-          sourceSheet: sourceSheet,
-          spreadsheetId: spreadsheetId,
-          gid: gid,
-        },
-      })
-
-      uploadPromises.push(uploadPromise.then(() => {}))
-      recordsProcessed++
+      uploadTasks.push({ storedRow, fileKey, content })
     }
 
-    await Promise.all(uploadPromises)
+    const BATCH_SIZE = 245
+    const shouldUseBatching = uploadTasks.length > BATCH_SIZE
+    let allResults: PromiseSettledResult<unknown>[] = []
+    let recordsProcessed = 0
+
+    if (shouldUseBatching) {
+      for (let i = 0; i < uploadTasks.length; i += BATCH_SIZE) {
+        const batch = uploadTasks.slice(i, i + BATCH_SIZE)
+        const batchNumber = Math.floor(i / BATCH_SIZE) + 1
+        const batchResults = await Promise.allSettled(
+          batch.map(task => 
+            client.uploadFile({
+              key: task.fileKey,
+              content: task.content,
+              index: true,
+              tags: {
+                source: 'knowledge-base',
+                kbId: knowledgeBaseId,
+                rowId: task.storedRow.id,
+                origin: 'google-sheets',
+                sourceSheet: sourceSheet,
+                spreadsheetId: spreadsheetId,
+                gid: gid,
+              },
+            })
+          )
+        )
+        
+        const batchSuccesses = batchResults.filter(r => r.status === 'fulfilled').length
+        const batchFailures = batchResults.filter(r => r.status === 'rejected').length
+        
+        if (batchFailures > 0) {
+          logger.forBot().error(`Batch ${batchNumber}: ${batchFailures} upload failures`, 
+            batchResults.filter(r => r.status === 'rejected')
+              .map(r => (r as PromiseRejectedResult).reason)
+              .slice(0, 3)
+          )
+        }
+        recordsProcessed += batchSuccesses
+        allResults.push(...batchResults)
+      }
+    } else {
+      allResults = await Promise.allSettled(
+        uploadTasks.map(task => 
+          client.uploadFile({
+            key: task.fileKey,
+            content: task.content,
+            index: true,
+            tags: {
+              source: 'knowledge-base',
+              kbId: knowledgeBaseId,
+              rowId: task.storedRow.id,
+              origin: 'google-sheets',
+              sourceSheet: sourceSheet,
+              spreadsheetId: spreadsheetId,
+              gid: gid,
+            },
+          })
+        )
+      )
+      recordsProcessed = allResults.filter(r => r.status === 'fulfilled').length
+    }
+
+    const totalFailures = allResults.filter(r => r.status === 'rejected').length
+    
+    if (totalFailures > 0) {
+      logger.forBot().error(`Upload completed with ${totalFailures} failures out of ${uploadTasks.length} total rows`)
+    }
 
     logger.forBot().info(`Successfully synced ${recordsProcessed} rows to Knowledge Base`)
 
