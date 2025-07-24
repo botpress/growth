@@ -71,12 +71,13 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
         updatedAt: new Date().toISOString(),
       }
 
-      const fileKey = `${knowledgeBaseId}/sheet_row_${i + 1}.json`
+      const fileKey = `${knowledgeBaseId}/sheet_row_${i + 1}.txt`
       const content = JSON.stringify(storedRow, null, 2)
 
       const uploadPromise = client.uploadFile({
         key: fileKey,
         content,
+        index: true,
         tags: {
           source: 'knowledge-base',
           kbId: knowledgeBaseId,
