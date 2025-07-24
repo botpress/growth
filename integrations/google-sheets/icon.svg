@@ -1,8 +1,75 @@
-<svg width="241" height="241" viewBox="0 0 241 241" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="241" height="241" rx="34" fill="#AAAAAA"/>
-<path d="M102 112L130.5 95.5L127.5 86L98 103L102 112Z" fill="white"/>
-<path d="M133 157.5L98.5 137.5L101 128.5L136 148.5L133 157.5Z" fill="white"/>
-<path d="M172.014 179.812L155.014 189.672C152.532 191.112 149.468 191.112 146.986 189.672L129.986 179.812C127.519 178.381 126 175.744 126 172.892V152.608C126 149.756 127.519 147.119 129.986 145.688L146.986 135.828C149.468 134.388 152.532 134.388 155.014 135.828L172.014 145.688C174.481 147.119 176 149.756 176 152.608V172.892C176 175.744 174.481 178.381 172.014 179.812Z" fill="white"/>
-<path d="M103 110.108V130.392C103 133.244 101.481 135.881 99.0137 137.312L98.5698 137.57L83.5 129L92 141.38L82.0137 147.172C79.5316 148.612 76.4684 148.612 73.9863 147.172L56.9863 137.312C54.5188 135.881 53 133.244 53 130.392V110.108C53 107.256 54.5188 104.619 56.9863 103.188L73.9863 93.328C76.4684 91.8883 79.5316 91.8883 82.0137 93.328L99.0137 103.188C101.481 104.619 103 107.256 103 110.108Z" fill="white"/>
-<path d="M172.014 95.312L155.014 105.172C152.532 106.612 149.468 106.612 146.986 105.172L137.789 99.8376L147.5 85.5L130.425 95.5666L129.986 95.312C127.519 93.8809 126 91.2442 126 88.3918V68.1082C126 65.2558 127.519 62.6191 129.986 61.188L146.986 51.328C149.468 49.8883 152.532 49.8883 155.014 51.328L172.014 61.188C174.481 62.6191 176 65.2558 176 68.1082V88.3918C176 91.2442 174.481 93.8809 172.014 95.312Z" fill="white"/>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Green gradient for the sheets logo -->
+    <linearGradient id="sheetsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F9D58;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0D7544;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Light green for folded corner -->
+    <linearGradient id="cornerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C8E6C9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A5D6A7;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Darker green for shadow -->
+    <linearGradient id="shadowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#388E3C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2E7D32;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Sync arrows in background -->
+  <g transform="translate(50,50)">
+    <!-- Top-right curved arrow -->
+    <path d="M 12,-35 A 36,36 0 0,1 35,-12 L 40,-12 L 30,-2 L 20,-12 L 25,-12 A 26,26 0 0,0 12,-25 Z" 
+          fill="#7CB342" />
+    
+    <!-- Bottom-left curved arrow -->
+    <path d="M -12,35 A 36,36 0 0,1 -35,12 L -40,12 L -30,2 L -20,12 L -25,12 A 26,26 0 0,0 -12,25 Z" 
+          fill="#7CB342" />
+  </g>
+  
+  <!-- Google Sheets document -->
+  <g transform="translate(50,50)">
+    <!-- Main document body -->
+    <path d="M -18,-20 L -18,20 A 4,4 0 0,0 -14,24 L 14,24 A 4,4 0 0,0 18,20 L 18,-8 L 6,-20 Z" 
+          fill="url(#sheetsGradient)"/>
+    
+    <!-- Folded corner -->
+    <path d="M 6,-20 L 18,-8 L 6,-8 Z" 
+          fill="url(#cornerGradient)"/>
+    
+    <!-- Shadow under folded corner -->
+    <path d="M 6,-8 L 18,-8 L 15,-5 L 6,-5 Z" 
+          fill="url(#shadowGradient)" opacity="0.3"/>
+    
+    <!-- Spreadsheet grid container -->
+    <rect x="-12" y="-2" width="18" height="14" rx="1" ry="1" 
+          fill="white" opacity="0.9"/>
+    
+    <!-- Grid cells (3x3 grid) -->
+    <!-- Row 1 -->
+    <rect x="-10" y="0" width="4" height="3" fill="#0F9D58"/>
+    <rect x="-5" y="0" width="8" height="3" fill="#0F9D58"/>
+    
+    <!-- Row 2 -->
+    <rect x="-10" y="4" width="4" height="3" fill="#0F9D58"/>
+    <rect x="-5" y="4" width="8" height="3" fill="#0F9D58"/>
+    
+    <!-- Row 3 -->
+    <rect x="-10" y="8" width="4" height="3" fill="#0F9D58"/>
+    <rect x="-5" y="8" width="8" height="3" fill="#0F9D58"/>
+  </g>
+  
+  <!-- Additional sync arrows for full circular effect -->
+  <g transform="translate(50,50)">
+    <!-- Bottom-right curved arrow -->
+    <path d="M 35,12 A 36,36 0 0,1 12,35 L 12,40 L 2,30 L 12,20 L 12,25 A 26,26 0 0,0 25,12 Z" 
+          fill="#7CB342" opacity="0.7"/>
+    
+    <!-- Top-left curved arrow -->
+    <path d="M -35,-12 A 36,36 0 0,1 -12,-35 L -12,-40 L -2,-30 L -12,-20 L -12,-25 A 26,26 0 0,0 -25,-12 Z" 
+          fill="#7CB342" opacity="0.7"/>
+  </g>
 </svg>
