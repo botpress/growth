@@ -8,35 +8,61 @@ interface SheetData {
 export class GoogleSheetsClient {
   constructor() {}
 
+  private handleEscapedQuote(line: string, i: number, currentField: string): { newField: string; newIndex: number } {
+    if (line[i + 1] === '"') {
+      return { newField: currentField + '"', newIndex: i + 1 }
+    }
+    return { newField: currentField, newIndex: i }
+  }
+
+  private processCharacter(
+    char: string,
+    inQuotes: boolean,
+    currentField: string,
+    row: string[]
+  ): { newField: string; shouldAddToRow: boolean } {
+    if (char === ',' && !inQuotes) {
+      row.push(currentField.trim())
+      return { newField: '', shouldAddToRow: false }
+    }
+    return { newField: currentField + char, shouldAddToRow: false }
+  }
+
+  private parseCsvLine(line: string): string[] {
+    const row: string[] = []
+    let currentField = ''
+    let inQuotes = false
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i]
+      
+      if (char === '"') {
+        if (inQuotes) {
+          const { newField, newIndex } = this.handleEscapedQuote(line, i, currentField)
+          currentField = newField
+          i = newIndex
+          if (newIndex === i) {
+            inQuotes = !inQuotes
+          }
+        } else {
+          inQuotes = !inQuotes
+        }
+      } else if (char !== undefined) {
+        const { newField } = this.processCharacter(char, inQuotes, currentField, row)
+        currentField = newField
+      }
+    }
+    
+    row.push(currentField.trim())
+    return row
+  }
+
   private parseCsv(csvText: string): string[][] {
     const lines = csvText.split('\n').filter(line => line.trim() !== '')
     const result: string[][] = []
     
     for (const line of lines) {
-      const row: string[] = []
-      let currentField = ''
-      let inQuotes = false
-      
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i]
-        
-        if (char === '"') {
-          if (inQuotes && line[i + 1] === '"') {
-            currentField += '"'
-            i++
-          } else {
-            inQuotes = !inQuotes
-          }
-        } else if (char === ',' && !inQuotes) {
-          row.push(currentField.trim())
-          currentField = ''
-        } else {
-          currentField += char
-        }
-      }
-      
-      row.push(currentField.trim())
-      result.push(row)
+      result.push(this.parseCsvLine(line))
     }
     
     return result
