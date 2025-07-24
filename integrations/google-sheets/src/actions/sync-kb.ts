@@ -9,10 +9,11 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
   client,
   logger,
 }) => {
-  const { sheetsUrl, knowledgeBaseId } = ctx.configuration
+  const { sheetsUrl } = ctx.configuration
+  const knowledgeBaseId = 'kb-default'
 
-  if (!sheetsUrl || !knowledgeBaseId) {
-    throw new sdk.RuntimeError('Missing required configuration: sheetsUrl or knowledgeBaseId')
+  if (!sheetsUrl) {
+    throw new sdk.RuntimeError('Missing required configuration: sheetsUrl')
   }
 
   const sheetsClient = new GoogleSheetsClient()

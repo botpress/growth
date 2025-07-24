@@ -8,11 +8,6 @@ export const configuration = {
       })
       .url()
       .min(1),
-    knowledgeBaseId: z
-      .string({
-        description: 'Botpress Knowledge Base ID to sync data to',
-      })
-      .min(1),
   }),
 } satisfies IntegrationDefinitionProps['configuration']
 

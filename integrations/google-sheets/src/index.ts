@@ -6,10 +6,10 @@ import { deleteKbFiles } from './misc/kb'
 
 export default new bp.Integration({
   register: async ({ ctx, client, logger }) => {
-    const { sheetsUrl, knowledgeBaseId } = ctx.configuration
+    const { sheetsUrl } = ctx.configuration
 
-    if (!sheetsUrl || !knowledgeBaseId) {
-      throw new sdk.RuntimeError('Missing required configuration: sheetsUrl or knowledgeBaseId')
+    if (!sheetsUrl) {
+      throw new sdk.RuntimeError('Missing required configuration: sheetsUrl')
     }
 
     const sheetsClient = new GoogleSheetsClient()
@@ -30,11 +30,11 @@ export default new bp.Integration({
       metadata: { setCost: (_cost: number) => {} },
     })
   },
-  unregister: async ({ ctx, client, logger }) => {
+  unregister: async ({ client, logger }) => {
     logger.forBot().info('Unregistering Google Sheets integration')
     
     try {
-      await deleteKbFiles(ctx.configuration.knowledgeBaseId, client)
+      await deleteKbFiles('kb-default', client)
       logger.forBot().info('Google Sheets integration unregistered and files deleted successfully')
     } catch (error) {
       logger.forBot().error('Error during unregistration', { error })
