@@ -5,17 +5,17 @@ import { syncKb } from './actions'
 
 export default new bp.Integration({
   register: async ({ ctx, client, logger }) => {
-    const { sheetsUrl, sheetId, knowledgeBaseId } = ctx.configuration
+    const { sheetsUrl, knowledgeBaseId } = ctx.configuration
 
-    if (!sheetsUrl || !sheetId || !knowledgeBaseId) {
-      throw new sdk.RuntimeError('Missing required configuration: sheetsUrl, sheetId, or knowledgeBaseId')
+    if (!sheetsUrl || !knowledgeBaseId) {
+      throw new sdk.RuntimeError('Missing required configuration: sheetsUrl or knowledgeBaseId')
     }
 
     const sheetsClient = new GoogleSheetsClient()
     
-    const isValidAccess = await sheetsClient.validateAccess(sheetsUrl, sheetId)
+    const isValidAccess = await sheetsClient.validateAccess(sheetsUrl)
     if (!isValidAccess) {
-      throw new sdk.RuntimeError('Cannot access the specified Google Sheet. Please ensure the sheet is publicly accessible and the sheet ID is correct.')
+      throw new sdk.RuntimeError('Cannot access the specified Google Sheet. Please ensure the sheet is publicly accessible.')
     }
 
     logger.forBot().info('Google Sheets integration registered successfully, triggering initial sync')

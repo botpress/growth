@@ -22,16 +22,37 @@ export class GoogleSheetsClient {
     return match[1]
   }
 
-  private sanitizeSheetId(sheetId: string): string {
-    return sheetId.trim().replace(/'/g, "'")
+  private extractGidFromUrl(url: string): string {
+    const gidMatch = url.match(/[?&]gid=([0-9]+)/)
+    if (gidMatch && gidMatch[1]) {
+      return gidMatch[1]
+    }
+    const hashMatch = url.match(/#gid=([0-9]+)/)
+    if (hashMatch && hashMatch[1]) {
+      return hashMatch[1]
+    }
+    return '0'
   }
 
-  async getSheetData(sheetsUrl: string, sheetId: string): Promise<SheetData> {
+  async getSheetData(sheetsUrl: string): Promise<SheetData> {
     try {
       const spreadsheetId = this.extractSpreadsheetId(sheetsUrl)
-      const sanitizedSheetId = this.sanitizeSheetId(sheetId)
+      const gid = this.extractGidFromUrl(sheetsUrl)
       
-      const range = `${sanitizedSheetId}!A:ZZ`
+      const spreadsheetResponse = await this.sheets.spreadsheets.get({
+        spreadsheetId,
+      })
+
+      const targetSheet = spreadsheetResponse.data.sheets?.find(
+        sheet => sheet.properties?.sheetId?.toString() === gid
+      )
+
+      if (!targetSheet) {
+        throw new sdk.RuntimeError(`Sheet with gid ${gid} not found`)
+      }
+
+      const sheetName = targetSheet.properties?.title || 'Sheet1'
+      const range = `${sheetName}!A:ZZ`
       
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId,
@@ -58,9 +79,9 @@ export class GoogleSheetsClient {
     }
   }
 
-  async validateAccess(sheetsUrl: string, sheetId: string): Promise<boolean> {
+  async validateAccess(sheetsUrl: string): Promise<boolean> {
     try {
-      await this.getSheetData(sheetsUrl, sheetId)
+      await this.getSheetData(sheetsUrl)
       return true
     } catch {
       return false

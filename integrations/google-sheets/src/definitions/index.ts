@@ -4,14 +4,9 @@ export const configuration = {
   schema: z.object({
     sheetsUrl: z
       .string({
-        description: 'Public Google Sheets shareable link',
+        description: 'Google Sheets URL (e.g., https://docs.google.com/spreadsheets/d/.../edit?gid=...)',
       })
       .url()
-      .min(1),
-    sheetId: z
-      .string({
-        description: 'Sheet/tab ID or name within the spreadsheet',
-      })
       .min(1),
     knowledgeBaseId: z
       .string({

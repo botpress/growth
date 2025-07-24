@@ -8,16 +8,33 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
   client,
   logger,
 }) => {
-  const { sheetsUrl, sheetId, knowledgeBaseId } = ctx.configuration
+  const { sheetsUrl, knowledgeBaseId } = ctx.configuration
 
-  if (!sheetsUrl || !sheetId || !knowledgeBaseId) {
-    throw new sdk.RuntimeError('Missing required configuration: sheetsUrl, sheetId, or knowledgeBaseId')
+  if (!sheetsUrl || !knowledgeBaseId) {
+    throw new sdk.RuntimeError('Missing required configuration: sheetsUrl or knowledgeBaseId')
   }
 
   const sheetsClient = new GoogleSheetsClient()
   
   try {
     logger.forBot().info('Starting Google Sheets sync to Knowledge Base')
+    
+    const extractSpreadsheetId = (url: string): string => {
+      const regex = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/
+      const match = url.match(regex)
+      return match?.[1] || 'unknown'
+    }
+    
+    const extractGid = (url: string): string => {
+      const gidMatch = url.match(/[?&]gid=([0-9]+)/)
+      if (gidMatch?.[1]) return gidMatch[1]
+      const hashMatch = url.match(/#gid=([0-9]+)/)
+      return hashMatch?.[1] || '0'
+    }
+
+    const spreadsheetId = extractSpreadsheetId(sheetsUrl)
+    const gid = extractGid(sheetsUrl)
+    const sourceSheet = `${spreadsheetId}_${gid}`
 
     const existingFiles = await client.listFiles({
       tags: {
@@ -33,7 +50,7 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
     }
 
     logger.forBot().info('Fetching data from Google Sheets')
-    const sheetData = await sheetsClient.getSheetData(sheetsUrl, sheetId)
+    const sheetData = await sheetsClient.getSheetData(sheetsUrl)
 
     if (sheetData.headers.length === 0) {
       return {
@@ -59,7 +76,7 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
         id: `row_${i + 1}`,
         rowIndex: i + 1,
         data: rowData,
-        sourceSheet: sheetId,
+        sourceSheet: sourceSheet,
         updatedAt: new Date().toISOString(),
       }
 
@@ -74,7 +91,9 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
           kbId: knowledgeBaseId,
           rowId: storedRow.id,
           origin: 'google-sheets',
-          sheetId: sheetId,
+          sourceSheet: sourceSheet,
+          spreadsheetId: spreadsheetId,
+          gid: gid,
         },
       })
 
