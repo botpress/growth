@@ -1,4 +1,3 @@
-import { google, sheets_v4 } from 'googleapis'
 import * as sdk from '@botpress/sdk'
 
 interface SheetData {
@@ -7,10 +6,40 @@ interface SheetData {
 }
 
 export class GoogleSheetsClient {
-  private sheets: sheets_v4.Sheets
+  constructor() {}
 
-  constructor() {
-    this.sheets = google.sheets({ version: 'v4' })
+  private parseCsv(csvText: string): string[][] {
+    const lines = csvText.split('\n').filter(line => line.trim() !== '')
+    const result: string[][] = []
+    
+    for (const line of lines) {
+      const row: string[] = []
+      let currentField = ''
+      let inQuotes = false
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i]
+        
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            currentField += '"'
+            i++
+          } else {
+            inQuotes = !inQuotes
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(currentField.trim())
+          currentField = ''
+        } else {
+          currentField += char
+        }
+      }
+      
+      row.push(currentField.trim())
+      result.push(row)
+    }
+    
+    return result
   }
 
   private extractSpreadsheetId(url: string): string {
@@ -39,39 +68,34 @@ export class GoogleSheetsClient {
       const spreadsheetId = this.extractSpreadsheetId(sheetsUrl)
       const gid = this.extractGidFromUrl(sheetsUrl)
       
-      const spreadsheetResponse = await this.sheets.spreadsheets.get({
-        spreadsheetId,
-      })
-
-      const targetSheet = spreadsheetResponse.data.sheets?.find(
-        sheet => sheet.properties?.sheetId?.toString() === gid
-      )
-
-      if (!targetSheet) {
-        throw new sdk.RuntimeError(`Sheet with gid ${gid} not found`)
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`
+      
+      const response = await fetch(csvUrl)
+      
+      if (!response.ok) {
+        throw new sdk.RuntimeError(`Failed to fetch sheet data: ${response.status} ${response.statusText}`)
       }
-
-      const sheetName = targetSheet.properties?.title || 'Sheet1'
-      const range = `${sheetName}!A:ZZ`
       
-      const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range,
-        valueRenderOption: 'FORMATTED_VALUE',
-        dateTimeRenderOption: 'FORMATTED_STRING',
-      })
-
-      const values = response.data.values || []
+      const csvText = await response.text()
       
-      if (values.length === 0) {
+      if (!csvText.trim()) {
         return { headers: [], rows: [] }
       }
-
-      const headers = values[0] as string[]
-      const rows = values.slice(1) as string[][]
-
+      
+      const allRows = this.parseCsv(csvText)
+      
+      if (allRows.length === 0) {
+        return { headers: [], rows: [] }
+      }
+      
+      const headers = allRows[0] || []
+      const rows = allRows.slice(1)
+      
       return { headers, rows }
     } catch (error) {
+      if (error instanceof sdk.RuntimeError) {
+        throw error
+      }
       if (error instanceof Error) {
         throw new sdk.RuntimeError(`Failed to fetch Google Sheets data: ${error.message}`)
       }
