@@ -35,10 +35,14 @@ export default new bp.Integration({
     
     try {
       await deleteKbFiles('kb-default', client)
-      logger.forBot().info('Google Sheets integration unregistered and files deleted successfully')
+      logger.forBot().info('Google Sheets integration unregistered and KB files deleted successfully')
     } catch (error) {
-      logger.forBot().error('Error during unregistration', { error })
-      throw new sdk.RuntimeError(`Failed to clean up Google Sheets files: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      logger.forBot().error('Failed to delete Google Sheets KB files during unregistration', { 
+        error: errorMessage,
+        kbId: 'kb-default'
+      })
+      throw new sdk.RuntimeError(`Google Sheets integration cleanup failed: ${errorMessage}`)
     }
   },
   actions: {
