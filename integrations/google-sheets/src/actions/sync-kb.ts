@@ -81,68 +81,91 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({
       uploadTasks.push({ storedRow, fileKey, content })
     }
 
-    const BATCH_SIZE = 245
-    const shouldUseBatching = uploadTasks.length > BATCH_SIZE
-    let allResults: PromiseSettledResult<unknown>[] = []
-    let recordsProcessed = 0
+    const BATCH_SIZE = 150
+    const MAX_CONCURRENT_BATCHES = 10
+    
+    const createUploadPromise = (task: typeof uploadTasks[0]) => 
+      client.uploadFile({
+        key: task.fileKey,
+        content: task.content,
+        index: true,
+        tags: {
+          source: 'knowledge-base',
+          kbId: knowledgeBaseId,
+          rowId: task.storedRow.id,
+          origin: 'google-sheets',
+          sourceSheet: sourceSheet,
+          spreadsheetId: spreadsheetId,
+          gid: gid,
+        },
+      })
 
-    if (shouldUseBatching) {
-      for (let i = 0; i < uploadTasks.length; i += BATCH_SIZE) {
-        const batch = uploadTasks.slice(i, i + BATCH_SIZE)
-        const batchNumber = Math.floor(i / BATCH_SIZE) + 1
-        const batchResults = await Promise.allSettled(
-          batch.map(task => 
-            client.uploadFile({
-              key: task.fileKey,
-              content: task.content,
-              index: true,
-              tags: {
-                source: 'knowledge-base',
-                kbId: knowledgeBaseId,
-                rowId: task.storedRow.id,
-                origin: 'google-sheets',
-                sourceSheet: sourceSheet,
-                spreadsheetId: spreadsheetId,
-                gid: gid,
-              },
-            })
-          )
-        )
-        
-        const batchSuccesses = batchResults.filter(r => r.status === 'fulfilled').length
-        const batchFailures = batchResults.filter(r => r.status === 'rejected').length
-        
-        if (batchFailures > 0) {
-          logger.forBot().error(`Batch ${batchNumber}: ${batchFailures} upload failures`, 
-            batchResults.filter(r => r.status === 'rejected')
-              .map(r => (r as PromiseRejectedResult).reason)
-              .slice(0, 3)
-          )
+    const uploadWithRetry = async (task: typeof uploadTasks[0], retries = 3): Promise<void> => {
+      for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+          await createUploadPromise(task)
+          return
+        } catch (error) {
+          if (attempt === retries - 1) throw error
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
         }
-        recordsProcessed += batchSuccesses
-        allResults.push(...batchResults)
       }
-    } else {
-      allResults = await Promise.allSettled(
-        uploadTasks.map(task => 
-          client.uploadFile({
-            key: task.fileKey,
-            content: task.content,
-            index: true,
-            tags: {
-              source: 'knowledge-base',
-              kbId: knowledgeBaseId,
-              rowId: task.storedRow.id,
-              origin: 'google-sheets',
-              sourceSheet: sourceSheet,
-              spreadsheetId: spreadsheetId,
-              gid: gid,
-            },
-          })
-        )
-      )
-      recordsProcessed = allResults.filter(r => r.status === 'fulfilled').length
     }
+
+    const processBatch = async (batch: typeof uploadTasks): Promise<PromiseSettledResult<void>[]> => {
+      return Promise.allSettled(batch.map(task => uploadWithRetry(task)))
+    }
+
+    const semaphore = {
+      running: 0,
+      queue: [] as Array<() => void>,
+      async acquire() {
+        if (this.running >= MAX_CONCURRENT_BATCHES) {
+          await new Promise<void>(resolve => this.queue.push(resolve))
+        }
+        this.running++
+      },
+      release() {
+        this.running--
+        const next = this.queue.shift()
+        if (next) next()
+      }
+    }
+
+    const processBatchWithSemaphore = async (batch: typeof uploadTasks, batchNumber: number): Promise<PromiseSettledResult<void>[]> => {
+      await semaphore.acquire()
+      try {
+        logger.forBot().info(`Processing batch ${batchNumber} (${batch.length} rows)`)
+        const results = await processBatch(batch)
+        const successes = results.filter(r => r.status === 'fulfilled').length
+        const failures = results.filter(r => r.status === 'rejected').length
+        
+        if (failures > 0) {
+          logger.forBot().warn(`Batch ${batchNumber}: ${successes} successes, ${failures} failures`)
+        } else {
+          logger.forBot().info(`Batch ${batchNumber}: completed successfully (${successes} rows)`)
+        }
+        
+        return results
+      } finally {
+        semaphore.release()
+      }
+    }
+
+    const batches: Array<typeof uploadTasks> = []
+    for (let i = 0; i < uploadTasks.length; i += BATCH_SIZE) {
+      batches.push(uploadTasks.slice(i, i + BATCH_SIZE))
+    }
+
+    logger.forBot().info(`Starting async upload of ${uploadTasks.length} rows in ${batches.length} batches`)
+    
+    const batchPromises = batches.map((batch, index) => 
+      processBatchWithSemaphore(batch, index + 1)
+    )
+    
+    const batchResults = await Promise.all(batchPromises)
+    const allResults = batchResults.flat()
+    const recordsProcessed = allResults.filter(r => r.status === 'fulfilled').length
 
     const totalFailures = allResults.filter(r => r.status === 'rejected').length
     
