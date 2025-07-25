@@ -10,6 +10,7 @@
 # Integrations
 /integrations/gohighlevel @matthewbotpress @botpress/growth
 /integrations/google-chat-spaces @matthewbotpress @botpress/growth
+/integrations/google-sheets @matthewbotpress @botpress/growth
 /integrations/hitl-api @ptrckbp @botpress/growth
 /integrations/hitl-salesforce @davidvitora @botpress/growth
 /integrations/hubspot-help-desk-hitl @matthewbotpress @botpress/growth
