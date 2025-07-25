@@ -24,6 +24,20 @@ export const configuration = {
 export const states = {} satisfies IntegrationDefinitionProps['states']
 
 export const actions = {
+  syncProducts: {
+    title: 'Sync Products',
+    description: 'Get all products from Shopify and sync them to a Botpress table',
+    input: {
+      schema: z.object({}),
+    },
+    output: {
+      schema: z.object({
+        success: z.boolean().describe('Whether the sync was successful'),
+        message: z.string().describe('Status message'),
+        productsCount: z.number().describe('Number of products synced'),
+      }),
+    },
+  },
   syncKb: {
     title: 'Sync KB',
     description: 'Sync products from Shopify to Botpress Knowledge Base',

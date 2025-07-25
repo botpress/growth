@@ -1,14 +1,41 @@
+import { Client } from '@botpress/client'
 import { RuntimeError } from '@botpress/sdk'
 import { getShopifyClient } from '../client'
 import * as bp from '.botpress'
 import actions from '../actions'
 import { Integration, IntegrationProps } from '../../.botpress'
-import { SHOPIFY_WEBHOOK_TOPICS } from '../constants'
+import { PRODUCTS_TABLE_NAME, SHOPIFY_WEBHOOK_TOPICS } from '../constants'
+import { PRODUCT_TABLE_SCHEMA } from 'src/schemas/products'
 
 type IntegrationLogger = Parameters<IntegrationProps['handler']>[0]['logger']
 type Implementation = ConstructorParameters<typeof Integration>[0]
 type RegisterFunction = Implementation['register']
 type IntegrationContext = Parameters<RegisterFunction>[0]['ctx']
+
+const getVanillaClient = (client: bp.Client): Client => client._inner
+
+async function setupTable(client: bp.Client, logger: IntegrationLogger) {
+  const botpressVanillaClient = getVanillaClient(client)
+  logger.forBot().info('Creating or updating products table...')
+  await botpressVanillaClient.getOrCreateTable({
+    table: PRODUCTS_TABLE_NAME,
+    schema: PRODUCT_TABLE_SCHEMA,
+  })
+  logger.forBot().info('Products table ready.')
+}
+
+async function syncProducts(ctx: IntegrationContext, client: bp.Client, logger: IntegrationLogger) {
+  logger.forBot().info('Syncing Shopify products for shop:', ctx.configuration.shopDomain)
+  await actions.syncProducts({
+    ctx,
+    client,
+    logger,
+    input: {},
+    type: 'syncProducts',
+    metadata: { setCost: (_cost: number) => {} },
+  })
+  logger.forBot().info('Product sync complete for shop:', ctx.configuration.shopDomain)
+}
 
 async function syncKb(ctx: IntegrationContext, client: bp.Client, logger: IntegrationLogger) {
   logger.forBot().info('Syncing Shopify products to BP KB for shop:', ctx.configuration.shopDomain)
@@ -49,6 +76,8 @@ async function setupWebhooks(ctx: IntegrationContext, logger: IntegrationLogger,
 
 export const register: RegisterFunction = async ({ ctx, logger, webhookUrl, client }) => {
   try {
+    await setupTable(client, logger)
+    await syncProducts(ctx, client, logger)
     await syncKb(ctx, client, logger)
     await setupWebhooks(ctx, logger, webhookUrl)
     logger.forBot().info(`Shopify integration registered and products synced successfully for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}`)
