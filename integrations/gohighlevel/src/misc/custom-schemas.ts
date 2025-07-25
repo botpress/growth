@@ -1,10 +1,5 @@
 import { z } from '@botpress/sdk'
 
-/*
-Action Schemas
-*/
-
-// Create Contact
 export const createContactInputSchema = z.object({
   properties: z.string().describe('Properties of the contact to create, as a string JSON object.')
 })
@@ -15,7 +10,6 @@ export const createContactOutputSchema = z.object({
   data: z.any()
 })
 
-// Get Contact
 export const getContactInputSchema = z.object({
   contactId: z.string().describe('ID of the contact to retrieve'),
 })
@@ -26,7 +20,6 @@ export const getContactOutputSchema = z.object({
   data: z.any()
 })
 
-// Update Contact
 export const updateContactInputSchema = z.object({
   contactId: z.string().describe('ID of the contact to update'),
   properties: z.string().describe('Properties of the contact to update, as a string JSON object.')
@@ -38,7 +31,6 @@ export const updateContactOutputSchema = z.object({
   data: z.any()
 })
 
-// Delete Contact
 export const deleteContactInputSchema = z.object({
   contactId: z.string().describe('ID of the contact to delete')
 })
@@ -48,7 +40,6 @@ export const deleteContactOutputSchema = z.object({
   message: z.string()
 })
 
-// Upsert Contact
 export const upsertContactInputSchema = z.object({
   properties: z.string().describe('Properties of the contact to upsert, as a string JSON object.')
 })
@@ -59,7 +50,6 @@ export const upsertContactOutputSchema = z.object({
   data: z.any()
 })
 
-// Get Contacts By Business ID
 export const getContactsByBusinessIdInputSchema = z.object({
   businessId: z.string().describe('ID of the business whose contacts are to be retrieved'),
   params: z.string().optional().describe('Optional query parameters as a string JSON object.')
@@ -71,11 +61,6 @@ export const getContactsByBusinessIdOutputSchema = z.object({
   data: z.any()
 })
 
-/*
-Company Schemas
-*/
-
-// Get Company
 export const getCompanyInputSchema = z.object({
   companyId: z.string().describe('ID of the company to retrieve')
 })
@@ -86,11 +71,6 @@ export const getCompanyOutputSchema = z.object({
   data: z.any()
 })
 
-/*
-Opportunity Schemas
-*/
-
-// Get Opportunity
 export const getOpportunityInputSchema = z.object({
   opportunityId: z.string().describe('ID of the opportunity to retrieve')
 })
@@ -101,7 +81,6 @@ export const getOpportunityOutputSchema = z.object({
   data: z.any()
 })
 
-// Create Opportunity
 export const createOpportunityInputSchema = z.object({
   properties: z.string().describe('Properties of the opportunity to create, as a string JSON object.')
 })
@@ -112,7 +91,6 @@ export const createOpportunityOutputSchema = z.object({
   data: z.any()
 })
 
-// Update Opportunity
 export const updateOpportunityInputSchema = z.object({
   opportunityId: z.string().describe('ID of the opportunity to update'),
   properties: z.string().describe('Properties of the opportunity to update, as a string JSON object.')
@@ -124,7 +102,6 @@ export const updateOpportunityOutputSchema = z.object({
   data: z.any()
 })
 
-// Update Opportunity Status
 export const updateOpportunityStatusInputSchema = z.object({
   opportunityId: z.string().describe('ID of the opportunity to update'),
   status: z.string().describe('New status of the opportunity')
@@ -136,7 +113,6 @@ export const updateOpportunityStatusOutputSchema = z.object({
   data: z.any()
 })
 
-// Delete Opportunity
 export const deleteOpportunityInputSchema = z.object({
   opportunityId: z.string().describe('ID of the opportunity to delete')
 })
@@ -146,7 +122,6 @@ export const deleteOpportunityOutputSchema = z.object({
   message: z.string()
 })
 
-// Upsert Opportunity
 export const upsertOpportunityInputSchema = z.object({
   properties: z.string().describe('Properties of the opportunity to upsert, as a string JSON object.')
 })
@@ -157,11 +132,6 @@ export const upsertOpportunityOutputSchema = z.object({
   data: z.any()
 })
 
-/*
-Order Schemas
-*/
-
-// List Orders
 export const listOrdersInputSchema = z.object({
   properties: z.string().describe('The order list params (e.g., location ID)'),
 })
@@ -172,7 +142,6 @@ export const listOrdersOutputSchema = z.object({
   data: z.any()
 })
 
-// Get Order By ID
 export const getOrderByIdInputSchema = z.object({
   orderId: z.string().describe('The ID of the order to retrieve'),
   altId: z.string().describe('The ID related to the order (e.g., location ID)'),
@@ -185,11 +154,6 @@ export const getOrderByIdOutputSchema = z.object({
   data: z.any()
 })
 
-/*
-Calendar & Appointment Schemas
-*/
-
-// Get Calendar Events
 export const getCalendarEventsInputSchema = z.object({
   properties: z.string().describe('The order list params (e.g., location ID, start time, end time)'),
 })
@@ -200,7 +164,6 @@ export const getCalendarEventsOutputSchema = z.object({
   data: z.any()
 })
 
-// Get Appointment
 export const getAppointmentInputSchema = z.object({
   appointmentId: z.string().describe('The ID of the appointment to retrieve')
 })
@@ -211,7 +174,6 @@ export const getAppointmentOutputSchema = z.object({
   data: z.any()
 })
 
-// Create Appointment
 export const createAppointmentInputSchema = z.object({
   properties: z.string().describe('Properties of the appointment to create.'),
 })
@@ -222,7 +184,6 @@ export const createAppointmentOutputSchema = z.object({
   data: z.any()
 })
 
-// Update Appointment
 export const updateAppointmentInputSchema = z.object({
   appointmentId: z.string().describe('ID of the appointment to update'),
   properties: z.string().describe('Updated properties of the appointment, as a string JSON object.')
@@ -234,7 +195,6 @@ export const updateAppointmentOutputSchema = z.object({
   data: z.any()
 })
 
-// Delete Event
 export const deleteEventInputSchema = z.object({
   eventId: z.string().describe('ID of the event to delete')
 })
@@ -244,9 +204,6 @@ export const deleteEventOutputSchema = z.object({
   message: z.string()
 })
 
-/*
-General API Call Schema
-*/
 export const makeApiCallInputSchema = z.object({
   endpoint: z.string().describe('The API endpoint to call'),
   method: z.string().describe("The HTTP method to use ['GET', 'POST', 'PUT', 'DELETE']"),
@@ -259,3 +216,94 @@ export const makeApiCallOutputSchema = z.object({
   message: z.string(),
   data: z.any()
 })
+
+const customFieldSchema = z.object({
+  id: z.string(),
+  value: z.union([z.string(), z.array(z.string())])
+})
+
+const contactSchema = z.object({
+  id: z.string(),
+  additionalEmails: z.array(z.string()).optional(),
+  additionalPhones: z.array(z.string()).optional(),
+  address: z.string().optional(),
+  assignedTo: z.string().optional(),
+  businessId: z.string().optional(),
+  businessName: z.string().optional(),
+  city: z.string().optional(),
+  companyName: z.string().optional(),
+  country: z.string().optional(),
+  customFields: z.array(customFieldSchema).optional(),
+  dateAdded: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  dateUpdated: z.string().optional(),
+  dnd: z.boolean().optional(),
+  dndSettings: z.record(z.any()).optional(),
+  email: z.string().optional(),
+  firstNameLowerCase: z.string().optional(),
+  lastNameLowerCase: z.string().optional(),
+  followers: z.array(z.string()).optional(),
+  locationId: z.string().optional(),
+  phone: z.string().optional(),
+  phoneLabel: z.string().optional(),
+  postalCode: z.string().optional(),
+  source: z.string().optional(),
+  state: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  type: z.string().optional(),
+  validEmail: z.boolean().optional(),
+  website: z.string().optional()
+})
+
+export const searchContactsInputSchema = z.object({
+  locationId: z.string().describe('Location ID where contacts should be searched'),
+  phone: z.string().describe('Phone number to search for (will handle various formats automatically)')
+})
+
+export const searchContactsOutputSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    contacts: z.array(contactSchema),
+    total: z.number()
+  }).optional()
+})
+
+interface CreateNoteRequestBody {
+  userId: string;
+  body: string;
+}
+
+interface NoteData {
+  id: string;
+  body: string;
+  userId: string;
+  dateAdded: string;
+  contactId: string;
+}
+
+interface CreateNoteResponseData {
+  note: NoteData;
+}
+
+export const createNoteInputSchema = z.object({
+  contactId: z.string().describe('ID of the contact to create note for'),
+  userId: z.string().describe('ID of the user creating the note'),
+  body: z.string().describe('Content/body of the note')
+})
+
+export const createNoteOutputSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    note: z.object({
+      id: z.string(),
+      body: z.string(),
+      userId: z.string(),
+      dateAdded: z.string(),
+      contactId: z.string()
+    })
+  }).optional()
+})
+
+export { CreateNoteRequestBody, NoteData, CreateNoteResponseData }
