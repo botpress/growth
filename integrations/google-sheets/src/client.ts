@@ -1,5 +1,5 @@
 import * as sdk from "@botpress/sdk";
-import { extractSpreadsheetId } from "./utils";
+import { extractSpreadsheetId, extractGidFromUrl } from "./utils";
 
 interface SheetData {
   headers: string[];
@@ -82,22 +82,11 @@ export class GoogleSheetsClient {
     return result;
   }
 
-  private extractGidFromUrl(url: string): string {
-    const gidMatch = url.match(/[?&]gid=([0-9]+)/);
-    if (gidMatch && gidMatch[1]) {
-      return gidMatch[1];
-    }
-    const hashMatch = url.match(/#gid=([0-9]+)/);
-    if (hashMatch && hashMatch[1]) {
-      return hashMatch[1];
-    }
-    return "0";
-  }
 
   async getSheetData(sheetsUrl: string): Promise<SheetData> {
     try {
       const spreadsheetId = extractSpreadsheetId(sheetsUrl);
-      const gid = this.extractGidFromUrl(sheetsUrl);
+      const gid = extractGidFromUrl(sheetsUrl);
 
       const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
 

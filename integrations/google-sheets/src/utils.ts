@@ -10,3 +10,17 @@ export const extractSpreadsheetId = (url: string): string => {
 
   return match[1];
 };
+
+export const extractGidFromUrl = (url: string): string => {
+  const gidMatch = url.match(/[?&]gid=([0-9]+)/);
+  if (gidMatch?.[1]) {
+    return gidMatch[1];
+  }
+  
+  const hashMatch = url.match(/#gid=([0-9]+)/);
+  if (hashMatch?.[1]) {
+    return hashMatch[1];
+  }
+  
+  return "0";
+};

@@ -3,7 +3,7 @@ import * as sdk from "@botpress/sdk";
 import { GoogleSheetsClient } from "../client";
 import { StoredSheetRow } from "../misc/types";
 import { deleteKbFiles } from "../misc/kb";
-import { extractSpreadsheetId } from "../utils";
+import { extractSpreadsheetId, extractGidFromUrl } from "../utils";
 
 const syncKb: bp.IntegrationProps["actions"]["syncKb"] = async ({
   ctx,
@@ -22,15 +22,9 @@ const syncKb: bp.IntegrationProps["actions"]["syncKb"] = async ({
   try {
     logger.forBot().info("Starting Google Sheets sync to Knowledge Base");
 
-    const extractGid = (url: string): string => {
-      const gidMatch = url.match(/[?&]gid=([0-9]+)/);
-      if (gidMatch?.[1]) return gidMatch[1];
-      const hashMatch = url.match(/#gid=([0-9]+)/);
-      return hashMatch?.[1] || "0";
-    };
 
     const spreadsheetId = extractSpreadsheetId(sheetsUrl);
-    const gid = extractGid(sheetsUrl);
+    const gid = extractGidFromUrl(sheetsUrl);
     const sourceSheet = `${spreadsheetId}_${gid}`;
 
     logger
