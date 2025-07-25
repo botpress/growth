@@ -31,7 +31,8 @@ Automatically sync data from your public Google Sheets to Botpress Knowledge Bas
 ## Supported URLs
 
 Both URL formats work:
-- Full URL with sheet ID: `...edit?gid=123456#gid=123456` 
+
+- Full URL with sheet ID: `...edit?gid=123456#gid=123456`
 - Share URL: `...edit?usp=sharing` (uses first sheet)
 
 That's it! Your Google Sheets data will now be available in your Knowledge Base.
