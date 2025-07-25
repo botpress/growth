@@ -1,4 +1,5 @@
 import * as bp from ".botpress";
+import * as sdk from "@botpress/sdk";
 
 const getAllFiles = async (client: bp.Client, tags: any) => {
   const allFiles: any[] = [];
@@ -107,7 +108,7 @@ export const deleteKbFiles = async (
       .map((r) => (r as PromiseRejectedResult).reason)
       .slice(0, 5);
 
-    throw new Error(
+    throw new sdk.RuntimeError(
       `Failed to delete ${totalFailures} out of ${filesToDelete.length} Google Sheets files. Sample errors: ${JSON.stringify(errorMessages)}`,
     );
   }
