@@ -1,4 +1,5 @@
 // Helper methods for Zoom API and transcript processing
+import { RuntimeError } from '@botpress/sdk'
 
 type ZoomConfig = { clientId: string; clientSecret: string; accountId: string }
 
@@ -15,8 +16,12 @@ export async function getAccessToken(config: ZoomConfig): Promise<string> {
       "Content-Type": "application/x-www-form-urlencoded",
     },
   })
-  const json = await res.json() as { access_token?: string }
-  if (!json.access_token) throw new Error("Failed to fetch Zoom access token")
+  const json = await res.json() as { access_token?: string; error?: string; error_description?: string }
+  if (!res.ok || !json.access_token) {
+    const errorMsg = `Zoom access token fetch failed (HTTP ${res.status}): ${json.error_description || json.error || 'Unknown error'}`
+    console.error(errorMsg, json)
+    throw new RuntimeError(errorMsg)
+  }
   return json.access_token
 }
 

@@ -1,6 +1,6 @@
 {
-  "name": "zoom-transcript-integration",
-  "integrationName": "zoom-tools-botpress/zoom-integration",
+  "name": "@botpresshub/zoom-transcript-integration",
+  "integrationName": "plus/zoom-integration",
   "scripts": {
     "check:type": "tsc --noEmit"
   },

@@ -3,30 +3,37 @@ import { getAccessToken, findTranscriptFile, fetchVttFile, cleanVtt } from './zo
 import crypto from 'crypto'
 import * as bp from '.botpress'
 
+interface ZoomConfig {
+  zoomClientId: string
+  zoomClientSecret: string
+  zoomAccountId: string
+  secretToken: string
+  allowedZoomUserIds: string[]
+}
+
 const integration = new bp.Integration({
   handler: async (args) => {
-    const { req, ctx, client } = args
+    const { req, ctx, client, logger } = args
 
-    const config = ctx.configuration as unknown as {
-      zoomClientId: string
-      zoomClientSecret: string
-      zoomAccountId: string
-      verificationToken: string
-      allowedZoomUserIds: string[]
-    }
+    const config = ctx.configuration as unknown as ZoomConfig
 
-    let body: any = {}
+  let body: any
 
-    try {
-      body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-    } catch {
-      body = req.body
-    }
+  try {
+    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+  } catch {
+    return { status: 400, body: 'Invalid JSON in request body' }
+  }
+
+  if (!body || typeof body !== 'object') {
+    return { status: 400, body: 'Invalid request body format' }
+  }
+
 
     // Handle Zoom URL Validation handshake
     if (body?.event === 'endpoint.url_validation') {
       const plainToken = body.payload?.plainToken
-      const secret = config.verificationToken
+      const secret = config.secretToken
 
       if (!plainToken || !secret) {
         return { status: 400, body: 'Missing plainToken or verificationToken' }
@@ -56,7 +63,8 @@ const integration = new bp.Integration({
           allowedUserIds.length > 0 &&
           !allowedUserIds.includes(hostId)
         ) {
-          console.log(`Ignoring event: host_id (${hostId}) is not in allowed list (${allowedUserIds.join(', ')})`)
+         logger.forBot().info(`Ignoring event: host_id (${hostId}) is not in allowed list (${allowedUserIds.join(', ')})`)
+
           return { status: 200, body: 'Event ignored: userId not allowed' }
         }
 
