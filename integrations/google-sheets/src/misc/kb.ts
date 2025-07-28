@@ -1,9 +1,15 @@
 import * as bp from ".botpress";
 import * as sdk from "@botpress/sdk";
+import { createSemaphore } from "../utils/semaphore";
 
-const getAllFiles = async (client: bp.Client, tags: any) => {
-  const allFiles: any[] = [];
-  let nextToken: string | undefined;
+type FileInfo = bp.ClientResponses["listFiles"]["files"][0];
+
+const getAllFiles = async (
+  client: bp.Client,
+  tags: bp.ClientRequests["listFiles"]["tags"],
+) => {
+  const allFiles: FileInfo[] = [];
+  let nextToken: string | undefined = undefined;
 
   do {
     const response = await client.listFiles({
@@ -18,45 +24,75 @@ const getAllFiles = async (client: bp.Client, tags: any) => {
   return allFiles;
 };
 
-const logDeleteFileResults = (
-  results: PromiseSettledResult<unknown>[],
-  logger: any,
-  batchIndex?: number,
-): void => {
-  const failures = results.filter((r) => r.status === "rejected");
-
-  const batchPrefix =
-    batchIndex !== undefined ? `Batch ${batchIndex + 1}: ` : "";
-
-  if (failures.length > 0) {
-    logger.forBot().error(
-      `${batchPrefix}Failed to delete ${failures.length} files:`,
-      failures.map((f) => (f as PromiseRejectedResult).reason),
-    );
-  }
-};
-
 const tryDirectTagFiltering = async (
   kbId: string,
   client: bp.Client,
-  logger: any,
+  logger: bp.Logger,
 ) => {
   try {
-    const files = await getAllFiles(client, {
+    return await getAllFiles(client, {
       kbId,
       origin: "google-sheets",
     });
-    return files;
   } catch (error) {
     logger.forBot().error("Direct tag filtering failed:", error);
     return [];
   }
 };
 
+const createDeleteBatchProcessor = (
+  client: bp.Client,
+  timeoutMs: number = 110000,
+) => {
+  const BATCH_SIZE = 200;
+  const MAX_CONCURRENT_BATCHES = 20;
+  const startTime = Date.now();
+  const semaphore = createSemaphore(MAX_CONCURRENT_BATCHES);
+
+  const deleteWithRetry = async (
+    file: FileInfo,
+    retries = 2,
+  ): Promise<void> => {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        await client.deleteFile({ id: file.id });
+        return;
+      } catch (e) {
+        if (attempt === retries - 1)
+          throw new sdk.RuntimeError("Failed to delete file after retries");
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.pow(2, attempt) * 500),
+        );
+      }
+    }
+  };
+
+  const processBatchWithSemaphore = async (
+    batch: FileInfo[],
+  ): Promise<PromiseSettledResult<void>[]> => {
+    if (Date.now() - startTime > timeoutMs) {
+      throw new sdk.RuntimeError(
+        "Deletion timeout approaching, stopping batch processing",
+      );
+    }
+
+    await semaphore.acquire();
+    try {
+      return await Promise.allSettled(
+        batch.map((file) => deleteWithRetry(file)),
+      );
+    } finally {
+      semaphore.release();
+    }
+  };
+
+  return { processBatchWithSemaphore, BATCH_SIZE };
+};
+
 export const deleteKbFiles = async (
   kbId: string,
   client: bp.Client,
-  logger: any,
+  logger: bp.Logger,
 ): Promise<void> => {
   const filesToDelete = await tryDirectTagFiltering(kbId, client, logger);
 
@@ -66,28 +102,20 @@ export const deleteKbFiles = async (
   }
 
   logger.forBot().info(`Preparing to delete ${filesToDelete.length} files`);
+  const { processBatchWithSemaphore, BATCH_SIZE } =
+    createDeleteBatchProcessor(client);
 
-  const BATCH_SIZE = 50;
-  const shouldUseBatching = filesToDelete.length > BATCH_SIZE;
-  let allResults: PromiseSettledResult<unknown>[] = [];
-
-  if (shouldUseBatching) {
-    for (let i = 0; i < filesToDelete.length; i += BATCH_SIZE) {
-      const batch = filesToDelete.slice(i, i + BATCH_SIZE);
-
-      const batchResults = await Promise.allSettled(
-        batch.map((file) => client.deleteFile({ id: file.id })),
-      );
-
-      logDeleteFileResults(batchResults, logger, i / BATCH_SIZE);
-      allResults.push(...batchResults);
-    }
-  } else {
-    allResults = await Promise.allSettled(
-      filesToDelete.map((file) => client.deleteFile({ id: file.id })),
-    );
-    logDeleteFileResults(allResults, logger);
+  const batches: FileInfo[][] = [];
+  for (let i = 0; i < filesToDelete.length; i += BATCH_SIZE) {
+    batches.push(filesToDelete.slice(i, i + BATCH_SIZE));
   }
+
+  const batchPromises = batches.map((batch) =>
+    processBatchWithSemaphore(batch),
+  );
+
+  const batchResults = await Promise.all(batchPromises);
+  const allResults = batchResults.flat();
 
   const totalSuccesses = allResults.filter(
     (r) => r.status === "fulfilled",
