@@ -2,28 +2,28 @@
 * @botpress/growth
 
 # Kitchen Sink
-/advanced-starter-bot-template @matthewbotpress @botpress/growth
+/advanced-starter-bot-template @ptrckbp @botpress/growth
 
 # Integration Runner
 /bp-integration-runner @aj-botpress @botpress/growth
 
 # Integrations
-/integrations/gohighlevel @matthewbotpress @botpress/growth
-/integrations/google-chat-spaces @matthewbotpress @botpress/growth
-/integrations/google-sheets @matthewbotpress @botpress/growth
+/integrations/gohighlevel @ermek-botpress @botpress/growth
+/integrations/google-chat-spaces @nabilbotpress @botpress/growth
+/integrations/google-sheets @AudricPnd @botpress/growth
 /integrations/hitl-api @ptrckbp @botpress/growth
 /integrations/hitl-salesforce @davidvitora @botpress/growth
-/integrations/hubspot-help-desk-hitl @matthewbotpress @botpress/growth
+/integrations/hubspot-help-desk-hitl @ermek-botpress @botpress/growth
 /integrations/hubspot-hitl @ermek-botpress @botpress/growth
 /integrations/huggingface @ermek-botpress @botpress/growth
 /integrations/salesforce @ermek-botpress @botpress/growth
 /integrations/sharepoint @aj-botpress @botpress/growth
 /integrations/shopify-products-sync @AudricPnd @botpress/growth
 /integrations/twiliovoice @ermek-botpress @botpress/growth
-/integrations/zoho-sales-iq-hitl @matthewbotpress @botpress/growth
+/integrations/zoho-sales-iq-hitl @ermek-botpress @botpress/growth
 
 # Plugins
-/plugins/faq-analyzer @matthewbotpress @botpress/growth
+/plugins/faq-analyzer @ermek-botpress @botpress/growth
 
 # Scripts
-/scripts/setup-integrations.js @matthewbotpress @botpress/growth
+/scripts/setup-integrations.js @ermek-botpress @botpress/growth
