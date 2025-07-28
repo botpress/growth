@@ -82,7 +82,6 @@ export class GoogleSheetsClient {
     return result;
   }
 
-
   async getSheetData(sheetsUrl: string): Promise<SheetData> {
     try {
       const spreadsheetId = extractSpreadsheetId(sheetsUrl);

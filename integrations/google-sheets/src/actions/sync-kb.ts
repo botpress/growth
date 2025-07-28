@@ -4,6 +4,7 @@ import { GoogleSheetsClient } from "../client";
 import { StoredSheetRow } from "../misc/types";
 import { deleteKbFiles } from "../misc/kb";
 import { extractSpreadsheetId, extractGidFromUrl } from "../utils";
+import { createSemaphore } from "../utils/semaphore";
 
 interface UploadTask {
   storedRow: StoredSheetRow;
@@ -17,7 +18,6 @@ interface ParsedSheetInfo {
   sourceSheet: string;
 }
 
-
 const parseSheetInfo = (sheetsUrl: string): ParsedSheetInfo => {
   const spreadsheetId = extractSpreadsheetId(sheetsUrl);
   const gid = extractGidFromUrl(sheetsUrl);
@@ -29,7 +29,7 @@ const transformRowToStoredData = (
   row: string[],
   headers: string[],
   rowIndex: number,
-  sourceSheet: string
+  sourceSheet: string,
 ): StoredSheetRow => {
   const rowData: Record<string, string | undefined> = {};
   headers.forEach((header, index) => {
@@ -48,7 +48,7 @@ const transformRowToStoredData = (
 const createUploadTasks = (
   sheetData: { headers: string[]; rows: string[][] },
   sourceSheet: string,
-  knowledgeBaseId: string
+  knowledgeBaseId: string,
 ): UploadTask[] => {
   const uploadTasks: UploadTask[] = [];
 
@@ -60,7 +60,7 @@ const createUploadTasks = (
       row,
       sheetData.headers,
       i,
-      sourceSheet
+      sourceSheet,
     );
 
     const fileKey = `${knowledgeBaseId}/sheet_row_${i + 1}.txt`;
@@ -76,7 +76,7 @@ const createBatchProcessor = (
   client: bp.Client,
   knowledgeBaseId: string,
   { spreadsheetId, gid, sourceSheet }: ParsedSheetInfo,
-  logger: bp.Logger
+  logger: bp.Logger,
 ) => {
   const BATCH_SIZE = 150;
   const MAX_CONCURRENT_BATCHES = 10;
@@ -99,7 +99,7 @@ const createBatchProcessor = (
 
   const uploadWithRetry = async (
     task: UploadTask,
-    retries = 3
+    retries = 3,
   ): Promise<void> => {
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
@@ -108,37 +108,23 @@ const createBatchProcessor = (
       } catch (error) {
         if (attempt === retries - 1) throw error;
         await new Promise((resolve) =>
-          setTimeout(resolve, Math.pow(2, attempt) * 1000)
+          setTimeout(resolve, Math.pow(2, attempt) * 1000),
         );
       }
     }
   };
 
   const processBatch = async (
-    batch: UploadTask[]
+    batch: UploadTask[],
   ): Promise<PromiseSettledResult<void>[]> => {
     return Promise.allSettled(batch.map((task) => uploadWithRetry(task)));
   };
 
-  const semaphore = {
-    running: 0,
-    queue: [] as Array<() => void>,
-    async acquire() {
-      if (this.running >= MAX_CONCURRENT_BATCHES) {
-        await new Promise<void>((resolve) => this.queue.push(resolve));
-      }
-      this.running++;
-    },
-    release() {
-      this.running--;
-      const next = this.queue.shift();
-      if (next) next();
-    },
-  };
+  const semaphore = createSemaphore(MAX_CONCURRENT_BATCHES);
 
   const processBatchWithSemaphore = async (
     batch: UploadTask[],
-    batchNumber: number
+    batchNumber: number,
   ): Promise<PromiseSettledResult<void>[]> => {
     await semaphore.acquire();
     try {
@@ -146,22 +132,20 @@ const createBatchProcessor = (
         .forBot()
         .info(`Processing batch ${batchNumber} (${batch.length} rows)`);
       const results = await processBatch(batch);
-      const successes = results.filter(
-        (r) => r.status === "fulfilled"
-      ).length;
+      const successes = results.filter((r) => r.status === "fulfilled").length;
       const failures = results.filter((r) => r.status === "rejected").length;
 
       if (failures > 0) {
         logger
           .forBot()
           .warn(
-            `Batch ${batchNumber}: ${successes} successes, ${failures} failures`
+            `Batch ${batchNumber}: ${successes} successes, ${failures} failures`,
           );
       } else {
         logger
           .forBot()
           .info(
-            `Batch ${batchNumber}: completed successfully (${successes} rows)`
+            `Batch ${batchNumber}: completed successfully (${successes} rows)`,
           );
       }
 
@@ -177,22 +161,22 @@ const createBatchProcessor = (
 const processUploadResults = (
   batchResults: PromiseSettledResult<void>[][],
   totalTasks: number,
-  logger: bp.Logger
+  logger: bp.Logger,
 ): number => {
   const allResults = batchResults.flat();
   const recordsProcessed = allResults.filter(
-    (r) => r.status === "fulfilled"
+    (r) => r.status === "fulfilled",
   ).length;
 
   const totalFailures = allResults.filter(
-    (r) => r.status === "rejected"
+    (r) => r.status === "rejected",
   ).length;
 
   if (totalFailures > 0) {
     logger
       .forBot()
       .error(
-        `Upload completed with ${totalFailures} failures out of ${totalTasks} total rows`
+        `Upload completed with ${totalFailures} failures out of ${totalTasks} total rows`,
       );
   }
 
@@ -241,14 +225,14 @@ const syncKb: bp.IntegrationProps["actions"]["syncKb"] = async ({
     const uploadTasks = createUploadTasks(
       sheetData,
       sheetInfo.sourceSheet,
-      knowledgeBaseId
+      knowledgeBaseId,
     );
 
     const { processBatchWithSemaphore, BATCH_SIZE } = createBatchProcessor(
       client,
       knowledgeBaseId,
       sheetInfo,
-      logger
+      logger,
     );
 
     const batches: UploadTask[][] = [];
@@ -259,18 +243,18 @@ const syncKb: bp.IntegrationProps["actions"]["syncKb"] = async ({
     logger
       .forBot()
       .info(
-        `Starting async upload of ${uploadTasks.length} rows in ${batches.length} batches`
+        `Starting async upload of ${uploadTasks.length} rows in ${batches.length} batches`,
       );
 
     const batchPromises = batches.map((batch, index) =>
-      processBatchWithSemaphore(batch, index + 1)
+      processBatchWithSemaphore(batch, index + 1),
     );
 
     const batchResults = await Promise.all(batchPromises);
     const recordsProcessed = processUploadResults(
       batchResults,
       uploadTasks.length,
-      logger
+      logger,
     );
 
     return {
@@ -288,7 +272,7 @@ const syncKb: bp.IntegrationProps["actions"]["syncKb"] = async ({
     }
 
     throw new sdk.RuntimeError(
-      `Failed to sync Google Sheets: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to sync Google Sheets: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 };
