@@ -1,0 +1,17 @@
+{
+  "name": "zoom-transcript-integration",
+  "integrationName": "zoom-tools-botpress/zoom-integration",
+  "scripts": {
+    "check:type": "tsc --noEmit"
+  },
+  "private": true,
+  "dependencies": {
+    "@botpress/client": "1.18.0",
+   "@botpress/sdk": "4.15.1",
+    "zod": "^4.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.67",
+    "typescript": "^5.8.3"
+  }
+}
