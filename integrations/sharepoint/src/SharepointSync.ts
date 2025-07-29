@@ -10,16 +10,19 @@ export class SharepointSync {
   private sharepointClient: SharepointClient;
   private bpClient: sdk.IntegrationSpecificClient<any>;
   private logger: sdk.IntegrationLogger;
+  private enableVision: boolean;
   private kbInstances = new Map<string, BotpressKB>();
 
   constructor(
     sharepointClient: SharepointClient,
     bpClient: sdk.IntegrationSpecificClient<any>,
-    logger: sdk.IntegrationLogger
+    logger: sdk.IntegrationLogger,
+    enableVision: boolean = false
   ) {
     this.sharepointClient = sharepointClient;
     this.bpClient = bpClient;
-    this.logger = logger;  
+    this.logger = logger;
+    this.enableVision = enableVision;
   }
 
   private log(msg: string) {
@@ -41,9 +44,9 @@ export class SharepointSync {
 
   private getOrCreateKB(kbId: string): BotpressKB {
     if (!this.kbInstances.has(kbId)) {
-      const kb = new BotpressKB(this.bpClient, kbId, this.logger);
+      const kb = new BotpressKB(this.bpClient, kbId, this.logger, this.enableVision);
       this.kbInstances.set(kbId, kb);
-      this.log(`Created BotpressKB instance for KB ${kbId}`);
+      this.log(`Created BotpressKB instance for KB ${kbId}${this.enableVision ? ' with vision enabled' : ''}`);
     }
     return this.kbInstances.get(kbId)!;
   }
