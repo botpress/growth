@@ -5,15 +5,18 @@ export class BotpressKB {
   private bpClient: sdk.IntegrationSpecificClient<any>;
   private logger:   sdk.IntegrationLogger;
   private kbId:     string;
+  private enableVision: boolean;
 
   constructor(
     bpClient: sdk.IntegrationSpecificClient<any>,
     kbId: string,
-    logger: sdk.IntegrationLogger
+    logger: sdk.IntegrationLogger,
+    enableVision: boolean = false
   ) {
     this.bpClient = bpClient;
     this.kbId = kbId;
     this.logger   = logger;
+    this.enableVision = enableVision;
   }
 
   public setKbId(kbId: string) {
@@ -37,7 +40,7 @@ export class BotpressKB {
   async addFile(spId: string, filename: string, content: ArrayBuffer): Promise<void> {
     this.log(`Add → ${filename}`);
 
-    await this.bpClient.uploadFile({
+    const uploadParams: any = {
       key: this.buildKey(filename),
       content,
       index: true,
@@ -47,7 +50,20 @@ export class BotpressKB {
         kbId:   this.kbId,
         spId:   spId,
       },
-    });
+    };
+
+    if (this.enableVision) {
+      uploadParams.indexing = {
+        configuration: {
+          vision: {
+            transcribePages: true as any,
+            indexPages: true as any
+          }
+        }
+      };
+    }
+
+    await this.bpClient.uploadFile(uploadParams);
   }
 
   async updateFile(spId: string, filename: string, content: ArrayBuffer): Promise<void> {
