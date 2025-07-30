@@ -22,7 +22,7 @@ Easily receive and automate Zoom meeting transcripts in Botpress for meetings ho
 ## Prerequisites
 
 You must be:
-- A Zoom **account owner**, **admin**, or have the **“Zoom for Developers” role**
+- A Zoom **account owner**, **admin**, or have the **“Zoom for Developers” role** to be able to create the Zoom OAuth App
 - On a **Zoom premium plan** (free tier doesn't support cloud recordings)
 
 ---
@@ -51,25 +51,17 @@ cloud_recording:read:recording:admin
 
 ### 2. Get Zoom `host_id`
 
-In Postman:
+You can find your Zoom `host_id` directly from the Zoom web portal.
 
-**Step 1: Get Access Token**
-- To make request, you can use service like postman
-- Make a **POST** request to `https://zoom.us/oauth/token`
-- **Headers** (Key: Value):
-- `Authorization`: `Basic <BASE64(CLIENT_ID:CLIENT_SECRET)>`
-- for <BASE64(CLIENT_ID:CLIENT_SECRET)> you can use paste it on this site https://www.base64encode.org/ your CLIENT_ID:CLIENT_SECRET you got earlier from the zoom app, and then select encode
-- `Content-Type`: `application/x-www-form-urlencoded`
-- **Body (x-www-form-urlencoded)** (Key: Value):
-- `grant_type`: `account_credentials`
-- `account_id`: `<your Zoom Account ID>`
-- Click Send then Copy the `access_token` from the response
+#### Steps:
+1. Log in to your Zoom account and navigate to:  
+   **Zoom Admin Panel > User Management > Users**  
 
-**Step 2: Get Host ID**
-- Make a **GET** request to: `https://api.zoom.us/v2/users/<your_zoom_email>/recordings`
-- **Header**:
-- `Authorization`: `Bearer <access_token>`
-- Click Send then Copy the `host_id` in the response
+2. Click on the name of the user you want to get the `host_id` for.
+
+3. Look at the URL in your browser's address bar. It will be in this format:
+https://yourdomain.zoom.us/user/xxxxxxxxxxxxx/profile you want to copy the xxxxxxxxxxxxx as that is your host_id
+
 
 ---
 
@@ -92,7 +84,7 @@ Click **Save Configuration**.
 Back in your Zoom OAuth App:
 
 - Go to **Features** → Enable **Event Subscriptions**
-- Name: `recording.transcript_completed`
+- Name: `Transcript Received` (Can choose a different name as well)
 - Method: `Webhook`
 - Endpoint URL: use the **Botpress integration URL**
 - Add Events:
