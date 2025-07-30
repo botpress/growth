@@ -9,8 +9,6 @@ export * as output from "./output";
 export const stopHitl = {
   "input": input.input,
   "output": output.output,
-  "title": "Stop HITL session",
-  "description": "Stop an existing HITL session in the external service",
   "billable": false,
   "cacheable": false,
   "attributes": { "bpActionHiddenInStudio": "true" },

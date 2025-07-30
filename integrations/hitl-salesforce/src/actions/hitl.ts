@@ -54,6 +54,10 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     const splitName = user.name?.split(' ')
 
+    const { routingParameters } = input.hitlSession || {}
+
+    logger.forBot().debug(`Will use custom routing parameters: ${JSON.stringify({routingParameters})}`)
+
     await salesforceClient.createConversation(newSalesforceConversationId, {
       firstName: (splitName?.length && splitName[0]) || 'Anon',
       _lastName: (splitName && splitName?.length > 1 && splitName[splitName.length]) || '',

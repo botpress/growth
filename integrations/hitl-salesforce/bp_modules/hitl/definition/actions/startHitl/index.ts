@@ -9,8 +9,6 @@ export * as output from "./output";
 export const startHitl = {
   "input": input.input,
   "output": output.output,
-  "title": "Start new HITL session",
-  "description": "Create a new HITL session in the external service and in Botpress",
   "billable": false,
   "cacheable": false,
   "attributes": { "bpActionHiddenInStudio": "true" },

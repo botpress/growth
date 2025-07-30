@@ -14,7 +14,7 @@ export const user = {
 export default new IntegrationDefinition({
   name: integrationName,
   title: 'SalesForce Messaging (Alpha)',
-  version: '0.4.0',
+  version: '0.5.0',
   icon: 'icon.svg',
   description:
     'This integration allows your bot to interact with Salesforce Messaging, this version uses the HITL Interface',
@@ -37,7 +37,22 @@ export default new IntegrationDefinition({
   },
   entities: {
     hitlTicket: {
-      schema: z.object({}),
+      schema: z.object({
+        routingParameters: z
+            .string()
+            .title('Routing Parameters')
+            .displayAs<any>({
+              id: 'text',
+              params: {
+                allowDynamicVariable: true,
+                growVertically: true,
+              },
+            })
+            .placeholder('{ "myParameter": "myParameterValue" }')
+            .default('{}')
+            .optional()
+            .describe('Custom properties to be used as routing parameters, use JSON format'),
+      }),
     },
   },
 }).extend(hitl, (self) => ({
