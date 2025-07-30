@@ -34,7 +34,6 @@ export const createTableRow = async (client: bp.Client, product: ShopifyProduct,
     // Store only the required columns: product_id, url, and aggregate
     const tableRow = {
       product_id: product.id,
-      url: `https://${shopDomain}/products/${product.handle}`,
       aggregate: stripHtmlTags(JSON.stringify(productData)),
     }
 

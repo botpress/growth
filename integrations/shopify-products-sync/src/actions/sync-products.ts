@@ -63,7 +63,6 @@ const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async (prop
       // Store only the required columns: product_id, url, and aggregate
       return {
         product_id: product.id,
-        url: `https://${ctx.shopDomain}/products/${product.handle}`,
         aggregate: stripHtmlTags(JSON.stringify(productData)),
       }
     })
