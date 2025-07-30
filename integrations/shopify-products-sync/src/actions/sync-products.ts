@@ -8,8 +8,9 @@ import { PRODUCTS_TABLE_NAME } from 'src/constants'
 import { fetchAllProducts } from 'src/misc/shopify-products'
 
 const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async (props) => {
-  const { client, logger } = props
+  const { client, logger, input } = props
   const ctx = props.ctx.configuration
+  const rowStorageFactor = input.rowStorageFactor || 1
 
   // this client is necessary for table operations
   const getVanillaClient = (client: bp.Client): Client => client._inner
@@ -21,9 +22,9 @@ const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async (prop
     const tableName = PRODUCTS_TABLE_NAME
     const tableSchema = PRODUCT_TABLE_SCHEMA
 
-    logger.forBot().info(`Creating table with factor: ${ctx.rowStorageFactor}`)
+    logger.forBot().info(`Creating table with factor: ${input.rowStorageFactor}`)
     await botpressVanillaClient.getOrCreateTable({
-      factor: ctx.rowStorageFactor,
+      factor: rowStorageFactor,
       table: tableName,
       schema: tableSchema,
     })
@@ -42,6 +43,7 @@ const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async (prop
     logger.forBot().info(`Total products fetched: ${allProducts.length}`)
 
     const tableRows = allProducts.map((product: ShopifyProduct) => {
+      // Create comprehensive product data for the aggregate column
       const productData = {
         product_id: product.id,
         name: product.title,
@@ -53,13 +55,15 @@ const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async (prop
         categories: product.tags,
         availability: product.status,
         is_visible: product.status === 'active',
-        description: stripHtmlTags(product.body_html)?.substring(0, ctx.rowStorageFactor * 3000) || '',
+        description: stripHtmlTags(product.body_html)?.substring(0, rowStorageFactor * 3000) || '',
         image_url: product.image?.src || (product.images && product.images[0]?.src) || '',
         url: `https://${ctx.shopDomain}/products/${product.handle}`
       }
 
+      // Store only the required columns: product_id, url, and aggregate
       return {
-        ...productData,
+        product_id: product.id,
+        url: `https://${ctx.shopDomain}/products/${product.handle}`,
         aggregate: stripHtmlTags(JSON.stringify(productData)),
       }
     })
@@ -71,7 +75,7 @@ const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async (prop
       })
 
       await botpressVanillaClient.getOrCreateTable({
-        factor: ctx.rowStorageFactor,
+        factor: rowStorageFactor,
         table: tableName,
         schema: tableSchema,
       })
@@ -100,7 +104,7 @@ const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async (prop
       productsCount: allProducts.length,
     }
   } catch (error) {
-    logger.forBot().error('Error syncing Shopify products', error.message)
+    logger.forBot().error('Error syncing Shopify products', error instanceof Error ? error.message : String(error))
     return {
       success: false,
       message: `Error syncing Shopify products: ${error instanceof Error ? error.message : String(error)}`,

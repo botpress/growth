@@ -18,6 +18,13 @@ export const configuration = {
         description: 'ID of the Knowledge Base you wish to synchronize with your Shopify products',
       })
       .min(1),
+    rowStorageFactor: z
+      .number({
+        description: 'Every table has a row factor that determines the storage limit for each of its rows. The default row factor is 1 — this allows you store up to 4KB of data per row.',
+      })
+      .min(1)
+      .optional()
+      .default(1),
   }),
 } satisfies IntegrationDefinitionProps['configuration']
 
@@ -28,7 +35,11 @@ export const actions = {
     title: 'Sync Products',
     description: 'Get all products from Shopify and sync them to a Botpress table',
     input: {
-      schema: z.object({}),
+      schema: z.object({
+        rowStorageFactor: z.number({
+          description: 'Every table has a row factor that determines the storage limit for each of its rows. The default row factor is 1 — this allows you store up to 4KB of data per row.',
+        }).min(1).optional().default(1),
+      }),
     },
     output: {
       schema: z.object({
