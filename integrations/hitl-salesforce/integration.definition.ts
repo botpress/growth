@@ -38,20 +38,21 @@ export default new IntegrationDefinition({
   entities: {
     hitlTicket: {
       schema: z.object({
-        routingParameters: z
+        routingAttributes: z
             .string()
-            .title('Routing Parameters')
+            .title('Routing Attributes')
             .displayAs<any>({
               id: 'text',
               params: {
                 allowDynamicVariable: true,
                 growVertically: true,
+                multiLine: true,
               },
             })
-            .placeholder('{ "myParameter": "myParameterValue" }')
+            .placeholder('{ "myAttribute": "myAttributeValue" }')
             .default('{}')
             .optional()
-            .describe('Custom properties to be used as routing parameters, use JSON format'),
+            .describe('Custom properties to be used as routing attributes, use JSON format'),
       }),
     },
   },
