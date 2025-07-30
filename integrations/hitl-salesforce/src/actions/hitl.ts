@@ -54,14 +54,21 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     const splitName = user.name?.split(' ')
 
-    const { routingParameters } = input.hitlSession || {}
+    let routingParametersObj: Record<string, any> = {}
 
-    logger.forBot().debug(`Will use custom routing parameters: ${JSON.stringify({routingParameters})}`)
+    try {
+      routingParametersObj = JSON.parse(input.hitlSession?.routingParameters || '{}')
+      logger.forBot().debug(`Will use custom routing parameters: ${JSON.stringify({routingParametersObj})}`)
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(String(thrown))
+      logger.forBot().warn('Failed to parse routing parameters, using empty object: ' + err.message)
+    }
 
     await salesforceClient.createConversation(newSalesforceConversationId, {
       firstName: (splitName?.length && splitName[0]) || 'Anon',
       _lastName: (splitName && splitName?.length > 1 && splitName[splitName.length]) || '',
       _email: user.tags?.email || 'anon@email.com',
+      ...routingParametersObj
     })
 
     await client.createEvent({
