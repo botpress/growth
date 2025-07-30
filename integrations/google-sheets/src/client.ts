@@ -83,49 +83,35 @@ export class GoogleSheetsClient {
   }
 
   async getSheetData(sheetsUrl: string): Promise<SheetData> {
-    try {
-      const spreadsheetId = extractSpreadsheetId(sheetsUrl);
-      const gid = extractGidFromUrl(sheetsUrl);
+    const spreadsheetId = extractSpreadsheetId(sheetsUrl);
+    const gid = extractGidFromUrl(sheetsUrl);
 
-      const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
 
-      const response = await fetch(csvUrl);
+    const response = await fetch(csvUrl);
 
-      if (!response.ok) {
-        throw new sdk.RuntimeError(
-          `Failed to fetch sheet data: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      const csvText = await response.text();
-
-      if (!csvText.trim()) {
-        return { headers: [], rows: [] };
-      }
-
-      const allRows = this.parseCsv(csvText);
-
-      if (allRows.length === 0) {
-        return { headers: [], rows: [] };
-      }
-
-      const headers = allRows[0] || [];
-      const rows = allRows.slice(1);
-
-      return { headers, rows };
-    } catch (error) {
-      if (error instanceof sdk.RuntimeError) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw new sdk.RuntimeError(
-          `Failed to fetch Google Sheets data: ${error.message}`,
-        );
-      }
+    if (!response.ok) {
       throw new sdk.RuntimeError(
-        "Failed to fetch Google Sheets data: Unknown error",
+        `Failed to fetch sheet data: ${response.status} ${response.statusText}`,
       );
     }
+
+    const csvText = await response.text();
+
+    if (!csvText.trim()) {
+      return { headers: [], rows: [] };
+    }
+
+    const allRows = this.parseCsv(csvText);
+
+    if (allRows.length === 0) {
+      return { headers: [], rows: [] };
+    }
+
+    const headers = allRows[0] || [];
+    const rows = allRows.slice(1);
+
+    return { headers, rows };
   }
 
   async validateAccess(sheetsUrl: string): Promise<boolean> {
