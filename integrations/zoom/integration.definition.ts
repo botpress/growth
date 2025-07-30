@@ -1,9 +1,9 @@
 import { z, IntegrationDefinition } from '@botpress/sdk'
 
 export default new IntegrationDefinition({
-  name: 'plus/zoom-transcript',
-  version: '1.0.8',
-  title: 'Zoom Transcript',
+  name: 'plus/zoom',
+  version: '3.0.1',
+  title: 'Zoom',
   description: 'Receives Zoom webhook and processes transcript for meetings.',
   icon: 'icon.svg',
   readme: 'hub.md',
