@@ -7,7 +7,7 @@ export default new IntegrationDefinition({
   version: '2.0.5',
   readme: 'hub.md',
   icon: 'icon.svg',
-  description: 'Sync products from Shopify to Botpress Knowledge Base',
+  description: 'Sync products from Shopify to Botpress Knowledge Base and Table',
   configuration,
   actions,
   states,
