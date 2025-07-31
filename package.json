@@ -9,6 +9,7 @@
     "bump": "depsynky bump --ignore-dev && pnpm -w install",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint": "pnpm check:lint",
     "test": "vitest --run",
     "check:bplint": "turbo check:bplint",
     "check:dep": "depsynky check --ignore-dev",
