@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { listOrdersInputSchema, listOrdersOutputSchema } from '../misc/custom-schemas';
+import { listOrdersInputSchema } from '../misc/custom-schemas';
 import type { Implementation } from '../misc/types';
 
 export const listOrders: Implementation['actions']['listOrders'] = async ({ ctx, client, logger, input }) => {
