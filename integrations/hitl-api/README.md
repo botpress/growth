@@ -1,9 +1,9 @@
-
 # HITL Starter Integration
 
 This project provides a Human-In-The-Loop (HITL) integration for Botpress. It allows you to create a seamless handoff between automated bot interactions and human agents. This integration includes features like starting and stopping HITL sessions, creating remote users and conversations, sending messages, and more.
 
 ## Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -37,6 +37,7 @@ This project provides a Human-In-The-Loop (HITL) integration for Botpress. It al
 ## Usage
 
 ### Logging into Botpress
+
 Before deploying, make sure to log in to your Botpress account, run:
 \`\`\`bash
 npm run login
@@ -70,7 +71,8 @@ The integration requires you to implement several API endpoints to interact with
 
 Refer to the \`src/externalService.ts\` file for the implementation details of these endpoints.
 
-It also exposes the following endpoints for you to interact with Botpress conversations. 
+It also exposes the following endpoints for you to interact with Botpress conversations.
+
 - **\`/message-from-agent\`** - Sends a message from the agent to the user through Botpress.
 - **\`/agent-assigned\`** - Assigns an agent to a conversation
 - **\`/stop-hitl\`** - Closes a ticket, ending HITL in the conversation.

@@ -5,10 +5,10 @@ import { getConnection, getRequestPayload } from "src/misc/utils/sfUtils";
 import { RecordResultSchema } from "src/misc/custom-schemas/common-schemas";
 
 export const updateSalesforceRecord = async <
-  T extends { customFields?: string }
+  T extends { customFields?: string },
 >(
   objectType: SalesforceObject,
-  props: { input: T; logger: Logger; client: Client; ctx: Context }
+  props: { input: T; logger: Logger; client: Client; ctx: Context },
 ): Promise<z.infer<typeof RecordResultSchema>> => {
   const { client, ctx, input, logger } = props;
 
@@ -20,7 +20,7 @@ export const updateSalesforceRecord = async <
     logger
       .forBot()
       .info(
-        `Attempting to update a ${objectType} from ${JSON.stringify(payload)}`
+        `Attempting to update a ${objectType} from ${JSON.stringify(payload)}`,
       );
 
     const connection = await getConnection(client, ctx, logger);

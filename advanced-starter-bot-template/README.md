@@ -9,7 +9,7 @@ This is an advanced starter bot template. You can use is as a starting point to 
 - How to greet the user at the start of a conversation (note: that this only works on webchat → embedded or shareable link).
 - AI vs button based routers
 - Requiring information from users and sending it to an external tool
-- Querying your knowledge base and saving the question and search results 
+- Querying your knowledge base and saving the question and search results
 - Assigning the conversation as a ticket to a live agent
 - Adding CSAT at the end of the conversation
 - Searching and filtering from a Botpress Table

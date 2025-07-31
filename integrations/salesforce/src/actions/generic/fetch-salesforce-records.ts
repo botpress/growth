@@ -6,7 +6,7 @@ import { QueryOutput } from "src/misc/types";
 
 export const fetchSalesforceRecords = async <T extends object>(
   objectType: SalesforceObject,
-  props: { input: T; logger: Logger; client: Client; ctx: Context }
+  props: { input: T; logger: Logger; client: Client; ctx: Context },
 ): Promise<QueryOutput> => {
   const { client, ctx, input, logger } = props;
   logger
@@ -28,7 +28,7 @@ export const fetchSalesforceRecords = async <T extends object>(
     logger
       .forBot()
       .info(
-        `Successfully searched ${objectType} from data ${JSON.stringify(input)}`
+        `Successfully searched ${objectType} from data ${JSON.stringify(input)}`,
       );
     return { success: true, records: response.records };
   } catch (error) {

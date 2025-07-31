@@ -15,7 +15,6 @@ import {
   CreateRemoteConversationResponse,
   CreateRemoteUserResponse,
   AgentMessagePayload,
-  
 } from "../src/types";
 
 // Initialize the OpenAPI registry
@@ -25,7 +24,7 @@ const registry = new OpenAPIRegistry();
 registry.register("PingPayload", PingPayload);
 registry.register(
   "CreateRemoteConversationPayload",
-  CreateRemoteConversationPayload
+  CreateRemoteConversationPayload,
 );
 registry.register("CloseRemoteTicketPayload", CloseRemoteTicketPayload);
 registry.register("CreateRemoteUserPayload", CreateRemoteUserPayload);
@@ -37,14 +36,13 @@ registry.register("AgentMessagePayload", AgentMessagePayload);
 // Register response schemas using the registry
 registry.register(
   "CreateRemoteConversationResponse",
-  CreateRemoteConversationResponse
+  CreateRemoteConversationResponse,
 );
 registry.register("CreateRemoteUserResponse", CreateRemoteUserResponse);
 
 // Generate the OpenAPI components from Zod schemas
 const generator = new OpenApiGeneratorV3(registry.definitions);
 const openApiComponents = generator.generateComponents();
-
 
 // Swagger JSDoc options for Botpress Webhook API (handler.ts)
 const swaggerOptionsBotpressWebhook = {
@@ -61,7 +59,8 @@ const swaggerOptionsBotpressWebhook = {
         variables: {
           webhookId: {
             default: "YOUR_WEBHOOK_ID",
-            description: "The webhook id found in your bot's integration configuration page in the webhook url.",
+            description:
+              "The webhook id found in your bot's integration configuration page in the webhook url.",
           },
         },
       },
@@ -106,16 +105,16 @@ const swaggerSpecExternalService = swaggerJSDoc(swaggerOptionsExternalService);
 // Write the Swagger specs to separate files
 fs.writeFileSync(
   "./docs/output/openapi-botpress-webhook.json",
-  JSON.stringify(swaggerSpecBotpressWebhook, null, 2)
+  JSON.stringify(swaggerSpecBotpressWebhook, null, 2),
 );
 fs.writeFileSync(
   "./docs/output/openapi-external-service.json",
-  JSON.stringify(swaggerSpecExternalService, null, 2)
+  JSON.stringify(swaggerSpecExternalService, null, 2),
 );
 
 console.log(
-  "OpenAPI JSON generated for Botpress Webhook at ./docs/output/openapi-botpress-webhook.json"
+  "OpenAPI JSON generated for Botpress Webhook at ./docs/output/openapi-botpress-webhook.json",
 );
 console.log(
-  "OpenAPI JSON generated for External Service at ./docs/output/openapi-external-service.json"
+  "OpenAPI JSON generated for External Service at ./docs/output/openapi-external-service.json",
 );

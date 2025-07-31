@@ -1,35 +1,35 @@
-import { OperatorSendMessageParams } from '../misc/types'
+import { OperatorSendMessageParams } from "../misc/types";
 
 export const handleOperatorReplied = async ({
   hubspotEvent,
-  client
+  client,
 }: OperatorSendMessageParams) => {
   if (!hubspotEvent.message?.conversationsThreadId) {
-    throw new Error('Missing conversation thread ID in message')
+    throw new Error("Missing conversation thread ID in message");
   }
 
   const { conversation } = await client.getOrCreateConversation({
-    channel: 'hitl',
+    channel: "hitl",
     tags: {
       id: hubspotEvent.message.conversationsThreadId,
     },
-  })
+  });
 
   const { user } = await client.getOrCreateUser({
     tags: {
-      agentId: hubspotEvent.message?.senders?.[0]?.actorId,    
+      agentId: hubspotEvent.message?.senders?.[0]?.actorId,
     },
-  })
+  });
 
   if (!user?.id) {
-    throw new Error('Failed to get or create user')
+    throw new Error("Failed to get or create user");
   }
 
   await client.createMessage({
     tags: {},
-    type: 'text',
+    type: "text",
     userId: user.id,
     conversationId: conversation.id,
     payload: { text: hubspotEvent.message.text },
-  })
-}
+  });
+};

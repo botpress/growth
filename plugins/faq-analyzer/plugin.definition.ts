@@ -3,8 +3,8 @@ import { PluginDefinition, z } from "@botpress/sdk";
 export default new PluginDefinition({
   name: "plus/faq-analyzer",
   version: "1.6.0",
-  icon: 'icon.svg',
-  readme: 'hub.md',
+  icon: "icon.svg",
+  readme: "hub.md",
   configuration: {
     schema: z.object({
       tableName: z

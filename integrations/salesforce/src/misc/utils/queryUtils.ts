@@ -9,7 +9,7 @@ type SearchInput = SearchLeadsInput & SearchContactsInput & SearchCasesInput;
 export const getSearchQuery = (
   objectType: SalesforceObject,
   input: SearchInput,
-  objectFields: string
+  objectFields: string,
 ): string => {
   let query = `SELECT ${objectFields} FROM ${objectType}`;
   const conditions: string[] = [];

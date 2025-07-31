@@ -41,7 +41,7 @@ export default new IntegrationDefinition({
                 "function-calling",
                 "roleplay",
                 "storytelling",
-              ])
+              ]),
             ),
             input: z.object({
               maxTokens: z.number().int(),
@@ -55,7 +55,7 @@ export default new IntegrationDefinition({
                 .number()
                 .describe("Cost per 1 million tokens, in U.S. dollars"),
             }),
-          })
+          }),
         ),
       }),
     },

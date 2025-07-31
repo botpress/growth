@@ -1,4 +1,8 @@
-import { AgentAssignedPayload, AgentMessagePayload, StopHitlPayload } from "./types";
+import {
+  AgentAssignedPayload,
+  AgentMessagePayload,
+  StopHitlPayload,
+} from "./types";
 import { z } from "zod";
 
 /**
@@ -22,7 +26,7 @@ import { z } from "zod";
  */
 export const handleAgentMessage = async (
   client: any,
-  body: z.infer<typeof AgentMessagePayload>
+  body: z.infer<typeof AgentMessagePayload>,
 ) => {
   const { conversation } = await client.getOrCreateConversation({
     channel: "hitl",
@@ -67,7 +71,7 @@ export const handleAgentMessage = async (
  */
 export const handleAgentAssigned = async (
   client: any,
-  body: z.infer<typeof AgentAssignedPayload>
+  body: z.infer<typeof AgentAssignedPayload>,
 ) => {
   const { conversation } = await client.getOrCreateConversation({
     channel: "hitl",
@@ -81,7 +85,6 @@ export const handleAgentAssigned = async (
       externalId: body.remoteUserId,
     },
   });
-
 
   await client.createEvent({
     type: "hitlAssigned",
@@ -113,7 +116,7 @@ export const handleAgentAssigned = async (
  */
 export const handleStopHitl = async (
   client: any,
-  body: z.infer<typeof StopHitlPayload>
+  body: z.infer<typeof StopHitlPayload>,
 ) => {
   const { conversation } = await client.getOrCreateConversation({
     channel: "hitl",

@@ -22,13 +22,15 @@ const sendRawPayload = async ({
   ctx: any;
   user: any;
 }) => {
-  const externalUserId = payload.userId ? (await client.getUser({ id: payload.userId })).user.tags.externalId : "BOT"; 
+  const externalUserId = payload.userId
+    ? (await client.getUser({ id: payload.userId })).user.tags.externalId
+    : "BOT";
 
   await botSendsMessage(
     ctx.configuration.endpointBaseUrl,
     conversation.tags.externalId,
     externalUserId,
-    payload
+    payload,
   );
 };
 
@@ -41,7 +43,7 @@ export default new botpress.Integration({
     startHitl: async ({ ctx, input, client }) => {
       const remoteTicket = await createRemoteConversation(
         ctx.configuration.endpointBaseUrl,
-        input
+        input,
       );
 
       const {
@@ -60,14 +62,14 @@ export default new botpress.Integration({
     stopHitl: async ({ ctx, input }) => {
       await closeRemoteTicket(
         ctx.configuration.endpointBaseUrl,
-        input.conversationId
+        input.conversationId,
       );
       return {};
     },
     createUser: async ({ ctx, client: bpClient, input }) => {
       const remoteUser = await createRemoteUser(
         ctx.configuration.endpointBaseUrl,
-        input
+        input,
       );
 
       const { user } = await bpClient.createUser({

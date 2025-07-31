@@ -54,17 +54,17 @@ export const pingExternalService = async (endpointBaseUrl: string) => {
  */
 export const createRemoteConversation = async (
   endpointBaseUrl: string,
-  input: any
+  input: any,
 ) => {
   const createRemoteConversationPayload = CreateRemoteConversationPayload.parse(
     {
       type: "createRemoteConversation",
       payload: { ...input },
-    }
+    },
   );
   const response = await axios.post(
     `${endpointBaseUrl}/createRemoteConversation`,
-    createRemoteConversationPayload
+    createRemoteConversationPayload,
   );
   return CreateRemoteConversationResponse.parse(response.data);
 };
@@ -89,7 +89,7 @@ export const createRemoteConversation = async (
  */
 export const closeRemoteTicket = async (
   endpointBaseUrl: string,
-  botpressConversationId: string
+  botpressConversationId: string,
 ) => {
   const closeRemoteTicketPayload = CloseRemoteTicketPayload.parse({
     type: "closeRemoteTicket",
@@ -97,7 +97,7 @@ export const closeRemoteTicket = async (
   });
   const response = await axios.post(
     `${endpointBaseUrl}/closeRemoteTicket`,
-    closeRemoteTicketPayload
+    closeRemoteTicketPayload,
   );
   return response.data;
 };
@@ -132,7 +132,7 @@ export const createRemoteUser = async (endpointBaseUrl: string, input: any) => {
   const createRemoteUserPayload = CreateRemoteUserPayload.parse(payload);
   const response = await axios.post(
     `${endpointBaseUrl}/createRemoteUser`,
-    createRemoteUserPayload
+    createRemoteUserPayload,
   );
   return CreateRemoteUserResponse.parse(response.data);
 };
@@ -159,7 +159,7 @@ export const botSendsMessage = async (
   endpointBaseUrl: string,
   conversationId: string,
   userId: string,
-  payload: any
+  payload: any,
 ) => {
   const botSendsMessagePayload = BotSendsMessagePayload.parse({
     type: "botSendsMessage",
@@ -169,7 +169,7 @@ export const botSendsMessage = async (
   });
   const response = await axios.post(
     `${endpointBaseUrl}/botSendsMessage`,
-    botSendsMessagePayload
+    botSendsMessagePayload,
   );
 
   return response.data;

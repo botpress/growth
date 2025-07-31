@@ -17,7 +17,7 @@ export const getOAuth2 = (ctx: Context): OAuth2 => {
 export const getConnection = async (
   client: Client,
   ctx: Context,
-  logger: Logger
+  logger: Logger,
 ): Promise<Connection> => {
   let sfCredentials: bp.states.credentials.Credentials;
 
@@ -25,7 +25,7 @@ export const getConnection = async (
     sfCredentials = await getSfCredentials(client, ctx.integrationId);
   } catch (e) {
     const errorMsg = `Error fetching Salesforce credentials: ${JSON.stringify(
-      e
+      e,
     )}`;
     logger.forBot().info(errorMsg);
     throw new Error(errorMsg);
@@ -60,7 +60,7 @@ export const getConnection = async (
 
 export const refreshSfToken = async (
   client: Client,
-  ctx: Context
+  ctx: Context,
 ): Promise<void> => {
   const url = `${getEnvironmentUrl(ctx)}/services/oauth2/token`;
   const sfCredentials = await getSfCredentials(client, ctx.integrationId);
@@ -92,13 +92,13 @@ export const refreshSfToken = async (
   } catch (error) {
     console.error("Error refreshing token:", error);
     throw new Error(
-      `Error refreshing Salesforce token: ${JSON.stringify(error)}`
+      `Error refreshing Salesforce token: ${JSON.stringify(error)}`,
     );
   }
 };
 
 export const getRequestPayload = <T extends { customFields?: string }>(
-  input: T
+  input: T,
 ): T & Record<string, any> => {
   const customFields: Record<string, any> = input.customFields
     ? JSON.parse(input.customFields)
@@ -115,6 +115,6 @@ export const getRequestPayload = <T extends { customFields?: string }>(
 
 export const getEnvironmentUrl = (ctx: Context): string => {
   return ctx.configuration.sandboxEnvironment
-      ? "https://test.salesforce.com"
-      : "https://login.salesforce.com";
+    ? "https://test.salesforce.com"
+    : "https://login.salesforce.com";
 };

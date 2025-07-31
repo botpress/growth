@@ -4,7 +4,7 @@ import { Input } from ".botpress/implementation/actions/makeApiRequest/input";
 export const makeRequest = async (
   url: string,
   input: Input,
-  accessToken: string
+  accessToken: string,
 ): Promise<AxiosResponse> => {
   return axios({
     method: input.method,

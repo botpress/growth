@@ -10,7 +10,7 @@ import {
   ZAI_EXTRACT_ALL_QUESTIONS_INSTRUCTIONS,
   ZAI_EXTRACT_FOLLOW_UP_INSTRUCTIONS,
   ZAI_EXTRACT_SIMILAR_QUESTION_INSTRUCTIONS,
-  ZAI_CHECK_SIMILARITY_INSTRUCTIONS
+  ZAI_CHECK_SIMILARITY_INSTRUCTIONS,
 } from "./constants";
 
 interface Logger {
@@ -35,7 +35,7 @@ interface TableProps {
   event?: {
     createdAt: string;
     createdOn?: string;
-  }
+  };
 }
 
 interface QuestionRecord {
@@ -71,16 +71,16 @@ async function isTableCreated(
   logger: Logger,
 ): Promise<boolean> {
   try {
-
     const rawState = await tableClient.getState({
       type: "bot",
       id: botId,
       name: "table",
     });
 
-    const state = (rawState && 'payload' in rawState)
-      ? (rawState as { payload: TableState.Table['payload'] })
-      : undefined;
+    const state =
+      rawState && "payload" in rawState
+        ? (rawState as { payload: TableState.Table["payload"] })
+        : undefined;
 
     return !!state?.payload?.tableCreated;
   } catch (err) {
@@ -233,7 +233,7 @@ async function handleIncrementalProcessing(
   props: TableProps,
   tableClient: bp.Client,
   tableName: string,
-  userMessages: string[]
+  userMessages: string[],
 ): Promise<void> {
   try {
     props.logger.debug(
@@ -257,7 +257,13 @@ async function handleIncrementalProcessing(
       return;
     }
 
-    await processRecentMessage(props, tableClient, tableName, currentMessage, recentContext);
+    await processRecentMessage(
+      props,
+      tableClient,
+      tableName,
+      currentMessage,
+      recentContext,
+    );
   } catch (err) {
     logIncrementalProcessingError(props, err);
   }
@@ -268,12 +274,18 @@ async function processRecentMessage(
   tableClient: bp.Client,
   tableName: string,
   currentMessage: string,
-  recentContext: string
+  recentContext: string,
 ): Promise<void> {
   const isLikelyFollowUp = isMsgLikelyFollowUp(currentMessage);
 
   if (isLikelyFollowUp && recentContext) {
-    await handleFollowUpQuestion(props, tableClient, tableName, currentMessage, recentContext);
+    await handleFollowUpQuestion(
+      props,
+      tableClient,
+      tableName,
+      currentMessage,
+      recentContext,
+    );
   } else {
     await processQuestion(props, tableClient, tableName, currentMessage);
   }
@@ -284,15 +296,19 @@ async function handleFollowUpQuestion(
   tableClient: bp.Client,
   tableName: string,
   currentMessage: string,
-  recentContext: string
+  recentContext: string,
 ): Promise<void> {
   props.logger.debug(
     `Detected likely follow-up question: "${currentMessage}" with context: "${recentContext}"`,
   );
 
   try {
-    const standaloneQuestion = await expandFollowUpQuestion(tableClient, currentMessage, recentContext);
-    
+    const standaloneQuestion = await expandFollowUpQuestion(
+      tableClient,
+      currentMessage,
+      recentContext,
+    );
+
     if (standaloneQuestion) {
       props.logger.info(
         `Expanded follow-up question "${currentMessage}" to "${standaloneQuestion}"`,
@@ -312,7 +328,7 @@ async function handleFollowUpQuestion(
 async function expandFollowUpQuestion(
   tableClient: bp.Client,
   followUpQuestion: string,
-  context: string
+  context: string,
 ): Promise<string | undefined> {
   const zai = new Zai({ client: tableClient });
   const contextualQuestion = await zai.extract(
@@ -335,17 +351,23 @@ async function expandFollowUpQuestion(
   return contextualQuestion?.standaloneQuestion;
 }
 
-function _extractMostSimilarQuestionFromResult(mostSimilarQuestionResult: MostSimilarQuestionResult): string | null {
+function _extractMostSimilarQuestionFromResult(
+  mostSimilarQuestionResult: MostSimilarQuestionResult,
+): string | null {
   if (!mostSimilarQuestionResult) {
     return null;
   }
 
   if (Array.isArray(mostSimilarQuestionResult)) {
     const foundItem = mostSimilarQuestionResult.find(
-      (item) => typeof item === 'object' && item && 'mostSimilarQuestion' in item
+      (item) =>
+        typeof item === "object" && item && "mostSimilarQuestion" in item,
     );
     return foundItem ? foundItem.mostSimilarQuestion : null;
-  } else if (typeof mostSimilarQuestionResult === 'object' && 'mostSimilarQuestion' in mostSimilarQuestionResult) {
+  } else if (
+    typeof mostSimilarQuestionResult === "object" &&
+    "mostSimilarQuestion" in mostSimilarQuestionResult
+  ) {
     return mostSimilarQuestionResult.mostSimilarQuestion;
   }
 
@@ -355,7 +377,7 @@ function _extractMostSimilarQuestionFromResult(mostSimilarQuestionResult: MostSi
 async function getMostSimilarQuestion(
   zai: any,
   normalizedQuestion: string,
-  existingQuestions: string[]
+  existingQuestions: string[],
 ): Promise<string | null> {
   const mostSimilarQuestionResult = await zai.extract(
     JSON.stringify({
@@ -364,11 +386,11 @@ async function getMostSimilarQuestion(
     }),
     z.union([
       z.object({ mostSimilarQuestion: z.string() }),
-      z.array(z.object({ mostSimilarQuestion: z.string() }))
+      z.array(z.object({ mostSimilarQuestion: z.string() })),
     ]),
     {
       instructions: ZAI_EXTRACT_SIMILAR_QUESTION_INSTRUCTIONS,
-    }
+    },
   );
 
   return _extractMostSimilarQuestionFromResult(mostSimilarQuestionResult);
@@ -396,15 +418,16 @@ async function markConversationAsAnalyzed(
         type: "conversation",
         id: conversationId,
         name: "faqAnalyzed",
-      })
-      currentState = (rawState && 'payload' in rawState)
-        ? (rawState as { payload: FaqAnalyzedState['payload'] })
-        : undefined;
+      });
+      currentState =
+        rawState && "payload" in rawState
+          ? (rawState as { payload: FaqAnalyzedState["payload"] })
+          : undefined;
     } catch {
-      currentState = undefined
+      currentState = undefined;
     }
 
-    const currentTs = currentState?.payload?.lastProcessedAt
+    const currentTs = currentState?.payload?.lastProcessedAt;
 
     if (
       !eventCreatedAt ||
@@ -416,14 +439,14 @@ async function markConversationAsAnalyzed(
         id: conversationId,
         name: "faqAnalyzed",
         payload: { done: true, lastProcessedAt: eventCreatedAt },
-      })
+      });
     }
-    logger.info("Successfully marked conversation as analyzed")
+    logger.info("Successfully marked conversation as analyzed");
   } catch (err) {
     if (err instanceof Error) {
-      logger.warn(`Failed to set analyzed state: ${err.message}`)
+      logger.warn(`Failed to set analyzed state: ${err.message}`);
     } else {
-      logger.warn(`Failed to set analyzed state: ${String(err)}`)
+      logger.warn(`Failed to set analyzed state: ${String(err)}`);
     }
   }
 }
@@ -434,25 +457,21 @@ async function extractAndProcessQuestions(
   tableName: string,
   fullUserMessages: string,
   userMessages: string[],
-  questionSchema: QuestionExtractionZodSchema
+  questionSchema: QuestionExtractionZodSchema,
 ): Promise<void> {
   try {
     const zai = new Zai({ client: getTableClient(props.client) });
-    const extractedQuestions: ExtractedQuestionData[] | undefined = await zai.extract(
-      fullUserMessages,
-      questionSchema,
-      {
+    const extractedQuestions: ExtractedQuestionData[] | undefined =
+      await zai.extract(fullUserMessages, questionSchema, {
         instructions: ZAI_EXTRACT_ALL_QUESTIONS_INSTRUCTIONS,
-      },
-    );
+      });
 
     if (extractedQuestions && extractedQuestions.length > 0) {
       props.logger.info(
         `Found ${extractedQuestions.length} questions in conversation`,
       );
 
-      const latestQuestion =
-        extractedQuestions[extractedQuestions.length - 1];
+      const latestQuestion = extractedQuestions[extractedQuestions.length - 1];
       if (latestQuestion && latestQuestion.normalizedText) {
         await processQuestion(
           props,
@@ -487,11 +506,11 @@ plugin.on.afterIncomingMessage("*", async (props) => {
 
   let alreadyProcessed: FaqAnalyzedState | undefined = undefined;
   try {
-    alreadyProcessed = await tableClient.getState({
+    alreadyProcessed = (await tableClient.getState({
       type: "conversation",
       id: props.data.conversationId,
       name: "faqAnalyzed",
-    }) as FaqAnalyzedState | undefined;
+    })) as FaqAnalyzedState | undefined;
   } catch (err) {
     const apiError = err as BotpressApiError;
     if (
@@ -552,7 +571,12 @@ plugin.on.afterIncomingMessage("*", async (props) => {
   }
 
   if (alreadyProcessed?.payload?.done) {
-    await handleIncrementalProcessing(props, tableClient, tableName, userMessages);
+    await handleIncrementalProcessing(
+      props,
+      tableClient,
+      tableName,
+      userMessages,
+    );
     await markConversationAsAnalyzed(
       tableClient,
       props.data.conversationId,
@@ -581,7 +605,7 @@ plugin.on.afterIncomingMessage("*", async (props) => {
       tableName,
       fullUserMessages,
       userMessages,
-      questionSchema
+      questionSchema,
     );
 
     await markConversationAsAnalyzed(
@@ -622,7 +646,7 @@ async function handleExactMatch(
   tableClient: bp.Client,
   tableName: string,
   existingRecord: QuestionRecord,
-  props: TableProps
+  props: TableProps,
 ): Promise<boolean> {
   const currentCount = existingRecord.count || 0;
   await (tableClient as any).updateTableRows({
@@ -635,7 +659,7 @@ async function handleExactMatch(
     ],
   });
   props.logger.info(
-    `Incremented count for exact question: "${existingRecord.question}" to ${currentCount + 1}`
+    `Incremented count for exact question: "${existingRecord.question}" to ${currentCount + 1}`,
   );
   return true;
 }
@@ -643,7 +667,7 @@ async function handleExactMatch(
 function isLikelyEntityChange(
   existingQuestions: string[],
   normalizedQuestion: string,
-  props: TableProps
+  props: TableProps,
 ): boolean {
   return existingQuestions.some((existingQ: string) => {
     const existingWords = existingQ.split(" ");
@@ -655,7 +679,7 @@ function isLikelyEntityChange(
       }
       if (diffCount === 1) {
         props.logger.info(
-          `Detected likely entity/subject change between: "${existingQ}" and "${normalizedQuestion}". Treating as new question.`
+          `Detected likely entity/subject change between: "${existingQ}" and "${normalizedQuestion}". Treating as new question.`,
         );
         return true;
       }
@@ -668,15 +692,15 @@ async function checkSimilarity(
   zai: any,
   normalizedQuestion: string,
   existingQuestions: string[],
-  props: TableProps
+  props: TableProps,
 ): Promise<boolean> {
   props.logger.debug(
-    `Checking similarity with ${existingQuestions.length} existing questions`
+    `Checking similarity with ${existingQuestions.length} existing questions`,
   );
-  
+
   return await zai.check(
     { newQuestion: normalizedQuestion, existingQuestions },
-    ZAI_CHECK_SIMILARITY_INSTRUCTIONS
+    ZAI_CHECK_SIMILARITY_INSTRUCTIONS,
   );
 }
 
@@ -686,7 +710,7 @@ async function confirmAndUpdateSimilarQuestion(
   tableName: string,
   normalizedQuestion: string,
   existingRecord: QuestionRecord,
-  props: TableProps
+  props: TableProps,
 ): Promise<boolean> {
   const confirmSimilarity = await zai.check(
     {
@@ -694,11 +718,13 @@ async function confirmAndUpdateSimilarQuestion(
       q2: existingRecord.question,
       explanation: `Original: ${normalizedQuestion}\nCandidate: ${existingRecord.question}`,
     },
-    ZAI_CONFIRM_SIMILARITY_INSTRUCTIONS
+    ZAI_CONFIRM_SIMILARITY_INSTRUCTIONS,
   );
 
   if (!confirmSimilarity) {
-    props.logger.info(`Secondary check determined questions are not similar enough`);
+    props.logger.info(
+      `Secondary check determined questions are not similar enough`,
+    );
     return false;
   }
 
@@ -713,7 +739,7 @@ async function confirmAndUpdateSimilarQuestion(
     ],
   });
   props.logger.info(
-    `Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`
+    `Incremented count for similar question: "${existingRecord.question}" to ${currentCount + 1}`,
   );
   return true;
 }
@@ -722,7 +748,7 @@ async function addNewQuestion(
   tableClient: bp.Client,
   tableName: string,
   normalizedQuestion: string,
-  props: TableProps
+  props: TableProps,
 ): Promise<void> {
   await (tableClient as any).createTableRows({
     table: tableName,
@@ -741,29 +767,34 @@ async function processExistingRecords(
   tableName: string,
   normalizedQuestion: string,
   existingRecords: QuestionRecord[],
-  props: TableProps
+  props: TableProps,
 ): Promise<boolean> {
   const exactMatch = existingRecords.find(
-    (r: QuestionRecord) => r.question.trim().toLowerCase() === normalizedQuestion
+    (r: QuestionRecord) =>
+      r.question.trim().toLowerCase() === normalizedQuestion,
   );
 
   if (exactMatch) {
     return await handleExactMatch(tableClient, tableName, exactMatch, props);
   }
 
-  const existingQuestions = existingRecords.map((r: QuestionRecord) => r.question);
+  const existingQuestions = existingRecords.map(
+    (r: QuestionRecord) => r.question,
+  );
 
   if (isLikelyEntityChange(existingQuestions, normalizedQuestion, props)) {
-    props.logger.info(`Skipping similarity check due to likely entity/subject change`);
+    props.logger.info(
+      `Skipping similarity check due to likely entity/subject change`,
+    );
     return false;
   }
 
   const zai = new Zai({ client: tableClient });
   const isSimilarToExisting = await checkSimilarity(
-    zai, 
-    normalizedQuestion, 
-    existingQuestions, 
-    props
+    zai,
+    normalizedQuestion,
+    existingQuestions,
+    props,
   );
 
   if (!isSimilarToExisting) {
@@ -773,18 +804,18 @@ async function processExistingRecords(
   const mostSimilarQuestion = await getMostSimilarQuestion(
     zai,
     normalizedQuestion,
-    existingQuestions
+    existingQuestions,
   );
 
   if (!mostSimilarQuestion) {
     props.logger.info(
-      `Zai did not identify a clear similar question or returned an uninterpretable format for "${normalizedQuestion}". Proceeding to treat as new question.`
+      `Zai did not identify a clear similar question or returned an uninterpretable format for "${normalizedQuestion}". Proceeding to treat as new question.`,
     );
     return false;
   }
 
   const existingRecord = existingRecords.find(
-    (r: QuestionRecord) => r.question === mostSimilarQuestion
+    (r: QuestionRecord) => r.question === mostSimilarQuestion,
   );
 
   if (!existingRecord) {
@@ -797,7 +828,7 @@ async function processExistingRecords(
     tableName,
     normalizedQuestion,
     existingRecord,
-    props
+    props,
   );
 }
 
@@ -808,12 +839,12 @@ async function processQuestion(
   questionText: string,
 ) {
   const normalizedQuestion = questionText
-  .trim()
-  .toLowerCase()
-  .replace(/\?+$/, "")
-  .trim();
+    .trim()
+    .toLowerCase()
+    .replace(/\?+$/, "")
+    .trim();
   props.logger.debug(`Processing question: "${normalizedQuestion}"`);
-  
+
   let similarQuestionFound = false;
 
   try {
@@ -828,7 +859,7 @@ async function processQuestion(
         tableName,
         normalizedQuestion,
         existingRecords as QuestionRecord[],
-        props
+        props,
       );
     }
 
@@ -837,7 +868,7 @@ async function processQuestion(
     }
   } catch (err) {
     props.logger.error(
-      `Error processing question "${normalizedQuestion}": ${err instanceof Error ? err.message : String(err)}`
+      `Error processing question "${normalizedQuestion}": ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 }

@@ -8,7 +8,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Create integration validation script
         run: |
           cat > ./validate-integration-plus-prefix.js << 'EOF'
@@ -89,9 +89,9 @@ jobs:
           const integrationsDir = './integrations';
           const integrationDirs = fs.readdirSync(integrationsDir)
             .filter(file => fs.statSync(path.join(integrationsDir, file)).isDirectory());
-          
+
           let validationFailed = false;
-          
+
           integrationDirs.forEach(integration => {
             if (EXCLUDED_INTEGRATIONS.includes(integration)) {
               console.log(`⏭️  Skipping validation for ${integration} (excluded)`);
@@ -109,13 +109,13 @@ jobs:
               console.log(`✅ Integration ${integration} passed validation`);
             }
           });
-          
+
           if (validationFailed) {
             process.exit(1);
           }
           EOF
-          
+
           chmod +x ./validate-integration-plus-prefix.js
-      
+
       - name: Check all integrations
         run: node ./validate-integration-plus-prefix.js

@@ -20,7 +20,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
-          files: 'integrations/**/*.{ts,md,svg,json}'
+          files: "integrations/**/*.{ts,md,svg,json}"
           separator: '\n'
       - name: Create version check script
         run: |
@@ -60,7 +60,7 @@ jobs:
             exit 2
           fi
           EOF
-          
+
           chmod +x ./.github/scripts/check-integration-version-without-build.sh
       - name: Check integration versions
         run: |

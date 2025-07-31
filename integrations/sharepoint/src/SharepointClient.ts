@@ -3,7 +3,12 @@ import * as msal from "@azure/msal-node";
 import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
 import { formatPrivateKey, handleAxiosError } from "./utils";
-import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from "./SharepointTypes";
+import {
+  ChangeItem,
+  ChangeResponse,
+  SharePointItem,
+  SharePointItemsResponse,
+} from "./SharepointTypes";
 
 export class SharepointClient {
   private cca: msal.ConfidentialClientApplication;
@@ -13,7 +18,10 @@ export class SharepointClient {
 
   private folderKbMap: Record<string, string[]> = {};
 
-  constructor(integrationConfiguration: bp.configuration.Configuration, documentLibraryName: string) {
+  constructor(
+    integrationConfiguration: bp.configuration.Configuration,
+    documentLibraryName: string,
+  ) {
     this.cca = new msal.ConfidentialClientApplication({
       auth: {
         clientId: integrationConfiguration.clientId,
@@ -31,10 +39,10 @@ export class SharepointClient {
     if (!lib) {
       throw new Error(
         "[SharepointClient] documentLibraryName is required " +
-        "(the calling code should inject one per library)"
+          "(the calling code should inject one per library)",
       );
     }
-    this.documentLibraryName = lib;  
+    this.documentLibraryName = lib;
 
     // Attempt to parse folderKbMap from the JSON string
     try {
@@ -149,7 +157,7 @@ export class SharepointClient {
     const arrayBuffer = await response.arrayBuffer();
     return arrayBuffer;
   }
-  
+
   /**
    * Returns the *full server-relative path*, e.g. "/sites/envy/doclib1/folder1/doc4.docx",
    * for the given list item. If none found, returns null.
@@ -208,7 +216,7 @@ export class SharepointClient {
         Update: true,
         DeleteObject: true,
         Move: true,
-        Restore: true
+        Restore: true,
       },
     };
 
@@ -230,7 +238,7 @@ export class SharepointClient {
     if (!res) {
       throw new sdk.RuntimeError(`Error getting changes`);
     }
-    
+
     return res.data.d.results;
   }
 
@@ -248,14 +256,16 @@ export class SharepointClient {
           clientState: "A0A354EC-97D4-4D83-9DDB-144077ADB449",
           resource: `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists('${listId}')`,
           notificationUrl: webhookurl,
-          expirationDateTime: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
+          expirationDateTime: new Date(
+            Date.now() + 1000 * 60 * 60 * 24 * 30,
+          ).toISOString(),
         },
         {
           headers: {
             Authorization: `Bearer ${token.accessToken}`,
             Accept: "application/json;odata=verbose",
           },
-        }
+        },
       )
       .catch(handleAxiosError);
 

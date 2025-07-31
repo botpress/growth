@@ -3,7 +3,7 @@ import * as sdk from "@botpress/sdk";
 
 export const getSfCredentials = async (
   client: Client,
-  integrationId: string
+  integrationId: string,
 ) => {
   try {
     const {
@@ -17,7 +17,7 @@ export const getSfCredentials = async (
     return payload;
   } catch {
     throw new sdk.RuntimeError(
-      "Salesforce credentials not found. Please log in to your Salesforce account to continue."
+      "Salesforce credentials not found. Please log in to your Salesforce account to continue.",
     );
   }
 };

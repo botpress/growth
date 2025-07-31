@@ -51,7 +51,7 @@ export default new bp.Integration({
           .debug(
             `Error fetching model ${id}: ${
               e instanceof Error ? e.message : "Unknown Error"
-            }`
+            }`,
           );
       }
     }
@@ -73,7 +73,7 @@ export default new bp.Integration({
   },
   actions: {
     generateContent: async (
-      props
+      props,
     ): Promise<interfaces.llm.GenerateContentOutput> => {
       const { input, ctx, client } = props;
 
@@ -90,7 +90,7 @@ export default new bp.Integration({
       return await generateContent(
         <interfaces.llm.GenerateContentInput>input,
         hf,
-        models
+        models,
       );
     },
 

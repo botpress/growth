@@ -7,6 +7,6 @@ import * as hitlStopped from "./hitlStopped";
 export * as hitlStopped from "./hitlStopped";
 
 export const events = {
-  "hitlAssigned": hitlAssigned.hitlAssigned,
-  "hitlStopped": hitlStopped.hitlStopped,
-}
+  hitlAssigned: hitlAssigned.hitlAssigned,
+  hitlStopped: hitlStopped.hitlStopped,
+};

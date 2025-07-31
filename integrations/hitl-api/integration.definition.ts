@@ -4,8 +4,9 @@ import { name, integrationName } from "./package.json";
 export default new IntegrationDefinition({
   name: integrationName ?? name,
   version: "0.2.1",
-  title:"Human in the Loop API",
-  description: "This integration allows you to connect Botpress to a Human in the Loop / Live Agent API",
+  title: "Human in the Loop API",
+  description:
+    "This integration allows you to connect Botpress to a Human in the Loop / Live Agent API",
   icon: "icon.svg",
   readme: "hub.md",
   channels: {
@@ -15,9 +16,9 @@ export default new IntegrationDefinition({
         tags: {
           externalId: {
             title: "Remote Conversation ID",
-          }
-        }
-      }
+          },
+        },
+      },
     },
   },
   configuration: {

@@ -7,7 +7,7 @@ import { refreshSfToken } from "src/misc/utils/sfUtils";
 import { handleError } from "src/misc/utils/errorUtils";
 
 export const makeApiRequest: Action["makeApiRequest"] = async (
-  props
+  props,
 ): Promise<Output> => {
   const { input, client, ctx, logger } = props;
 
@@ -31,7 +31,7 @@ export const makeApiRequest: Action["makeApiRequest"] = async (
 
         const newSfCredentials = await getSfCredentials(
           client,
-          ctx.integrationId
+          ctx.integrationId,
         );
 
         logger.forBot().info("Refreshed token");

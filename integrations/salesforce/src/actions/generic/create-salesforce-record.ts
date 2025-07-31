@@ -5,10 +5,10 @@ import { getConnection, getRequestPayload } from "src/misc/utils/sfUtils";
 import { RecordResultSchema } from "src/misc/custom-schemas/common-schemas";
 
 export const createSalesforceRecord = async <
-  T extends { customFields?: string }
+  T extends { customFields?: string },
 >(
   objectType: SalesforceObject,
-  props: { input: T; logger: Logger; client: Client; ctx: Context }
+  props: { input: T; logger: Logger; client: Client; ctx: Context },
 ): Promise<z.infer<typeof RecordResultSchema>> => {
   const { client, ctx, input, logger } = props;
 
@@ -21,8 +21,8 @@ export const createSalesforceRecord = async <
       .forBot()
       .info(
         `Attempting to create a ${objectType} from from ${JSON.stringify(
-          payload
-        )}`
+          payload,
+        )}`,
       );
 
     const connection = await getConnection(client, ctx, logger);

@@ -3,19 +3,19 @@ import { getFormatedCurrTime, guessMimeType } from "./utils";
 
 export class BotpressKB {
   private bpClient: sdk.IntegrationSpecificClient<any>;
-  private logger:   sdk.IntegrationLogger;
-  private kbId:     string;
+  private logger: sdk.IntegrationLogger;
+  private kbId: string;
   private enableVision: boolean;
 
   constructor(
     bpClient: sdk.IntegrationSpecificClient<any>,
     kbId: string,
     logger: sdk.IntegrationLogger,
-    enableVision: boolean = false
+    enableVision: boolean = false,
   ) {
     this.bpClient = bpClient;
     this.kbId = kbId;
-    this.logger   = logger;
+    this.logger = logger;
     this.enableVision = enableVision;
   }
 
@@ -28,16 +28,22 @@ export class BotpressKB {
   }
 
   private async findFileBySpId(spId: string) {
-    const res = await this.bpClient.listFiles({ tags: { spId, kbId: this.kbId } });
+    const res = await this.bpClient.listFiles({
+      tags: { spId, kbId: this.kbId },
+    });
     return res.files[0];
   }
 
   /** Build a workspace‑wide unique key */
   private buildKey(filename: string): string {
-    return `${this.kbId}/${filename}`;   // e.g.  kb‑xxx/doclib1/…/file.docx
+    return `${this.kbId}/${filename}`; // e.g.  kb‑xxx/doclib1/…/file.docx
   }
 
-  async addFile(spId: string, filename: string, content: ArrayBuffer): Promise<void> {
+  async addFile(
+    spId: string,
+    filename: string,
+    content: ArrayBuffer,
+  ): Promise<void> {
     this.log(`Add → ${filename}`);
 
     const uploadParams: any = {
@@ -47,8 +53,8 @@ export class BotpressKB {
       contentType: guessMimeType(filename),
       tags: {
         source: "knowledge-base",
-        kbId:   this.kbId,
-        spId:   spId,
+        kbId: this.kbId,
+        spId: spId,
       },
     };
 
@@ -57,16 +63,20 @@ export class BotpressKB {
         configuration: {
           vision: {
             transcribePages: true as any,
-            indexPages: true as any
-          }
-        }
+            indexPages: true as any,
+          },
+        },
       };
     }
 
     await this.bpClient.uploadFile(uploadParams);
   }
 
-  async updateFile(spId: string, filename: string, content: ArrayBuffer): Promise<void> {
+  async updateFile(
+    spId: string,
+    filename: string,
+    content: ArrayBuffer,
+  ): Promise<void> {
     this.log(`Update → ${filename}`);
 
     const existing = await this.findFileBySpId(spId);
@@ -78,12 +88,12 @@ export class BotpressKB {
 
   async deleteFile(spId: string): Promise<void> {
     const existing = await this.findFileBySpId(spId);
-  
+
     if (!existing) {
       this.log(`Delete skipped - no file with spId=${spId} in KB ${this.kbId}`);
       return;
     }
-  
+
     this.log(`Delete → ${existing.key}  (spId=${spId})`);
     await this.bpClient.deleteFile({ id: existing.id });
   }
@@ -91,7 +101,11 @@ export class BotpressKB {
   async deleteAllFiles(): Promise<void> {
     this.log(`Delete ALL files in KB ${this.kbId}`);
     const res = await this.bpClient.listFiles({ tags: { kbId: this.kbId } });
-    this.log(res.files.map((f) => `spId=${f.tags.spId}  key=${f.key}`).join("\n"));
-    await Promise.all(res.files.map((f) => this.bpClient.deleteFile({ id: f.id })));
+    this.log(
+      res.files.map((f) => `spId=${f.tags.spId}  key=${f.key}`).join("\n"),
+    );
+    await Promise.all(
+      res.files.map((f) => this.bpClient.deleteFile({ id: f.id })),
+    );
   }
 }

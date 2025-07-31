@@ -8,20 +8,26 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import boxen from "boxen";
-import { fileURLToPath } from 'url';
-import os from 'os';
+import { fileURLToPath } from "url";
+import os from "os";
 
 const __filename = fileURLToPath(import.meta.url);
-const isWindows = os.platform() === 'win32';
-const __localbp = path.join(process.cwd(), "node_modules", ".bin", isWindows ? "bp.cmd" : "bp");
+const isWindows = os.platform() === "win32";
+const __localbp = path.join(
+  process.cwd(),
+  "node_modules",
+  ".bin",
+  isWindows ? "bp.cmd" : "bp",
+);
 
 // Verify that the user has a valid ngrok authentication code
-try { 
+try {
   const cmd = `ngrok config check`;
-  execSync(cmd, { stdio: 'inherit' });
+  execSync(cmd, { stdio: "inherit" });
 } catch (e) {
-  console.log(boxen(
-    `
+  console.log(
+    boxen(
+      `
     Could not verify ngrok authentication
     Please authenticate ngrok by following these steps:
 
@@ -29,29 +35,32 @@ try {
     2. Get your auth token from https://dashboard.ngrok.com/get-started/setup
     3. Run: npx ngrok config add-authtoken YOUR_TOKEN
     `,
-    {
-      title: "⚠️ Missing ngrok Authentication ⚠️",
-      titleAlignment: "center",
-      borderColor: "red",
-      padding: 1,
-    }
-  ));
+      {
+        title: "⚠️ Missing ngrok Authentication ⚠️",
+        titleAlignment: "center",
+        borderColor: "red",
+        padding: 1,
+      },
+    ),
+  );
   process.exit(1);
 }
 // Verify that bp executable exists
 if (!fs.existsSync(__localbp)) {
-  console.log(boxen(
-    `
+  console.log(
+    boxen(
+      `
     Could not find Botpress CLI at ${__localbp}
     Please ensure @botpress/cli is installed in your project
     `,
-    {
-      title: "⚠️ Missing Botpress CLI ⚠️",
-      titleAlignment: "center",
-      borderColor: "red",
-      padding: 1,
-    }
-  ));
+      {
+        title: "⚠️ Missing Botpress CLI ⚠️",
+        titleAlignment: "center",
+        borderColor: "red",
+        padding: 1,
+      },
+    ),
+  );
   process.exit(1);
 }
 // Load the parent project's .env file
@@ -64,34 +73,38 @@ try {
 
 // Check for required environment variables
 if (!process.env.BOTPRESS_PAT) {
-  console.log(boxen(
-    `
+  console.log(
+    boxen(
+      `
       "BOTPRESS_PAT" is missing in the .env file
       Find your Botpress PAT from https://app.botpress.cloud/profile/settings
       `,
-    {
-      title: "⚠️ Missing required environment variables ⚠️",
-      titleAlignment: "center",
-      borderColor: "red",
-      padding: 1,
-    }
-  ));
+      {
+        title: "⚠️ Missing required environment variables ⚠️",
+        titleAlignment: "center",
+        borderColor: "red",
+        padding: 1,
+      },
+    ),
+  );
   process.exit(1);
 }
 
 if (!process.env.BOTPRESS_WORKSPACE_ID) {
-  console.log(boxen(
-    `
+  console.log(
+    boxen(
+      `
       "BOTPRESS_WORKSPACE_ID" is missing in the .env file
       Find your Botpress Workspace ID from the URL of your workspace
       `,
-    {
-      title: "⚠️ Missing required environment variables ⚠️",
-      titleAlignment: "center",
-      borderColor: "red",
-      padding: 1,
-    }
-  ));
+      {
+        title: "⚠️ Missing required environment variables ⚠️",
+        titleAlignment: "center",
+        borderColor: "red",
+        padding: 1,
+      },
+    ),
+  );
   process.exit(1);
 }
 
@@ -130,13 +143,13 @@ const start = async () => {
   let id = await getIntegrationId(integrationName).catch(async () => {
     console.log(`🟡 Integration was not found in botpress cloud. 🟡 `);
     console.log(`🟠 Deploying integration... 🟠`);
-  
+
     const deployCommand = `${__localbp} deploy --workspaceId ${process.env.BOTPRESS_WORKSPACE_ID} --token ${process.env.BOTPRESS_PAT} -y`;
 
-    execSync(deployCommand, { stdio: 'inherit' });
+    execSync(deployCommand, { stdio: "inherit" });
 
     return await getIntegrationId(integrationName);
-  })
+  });
 
   const PORT = await portfinder.getPortPromise();
 
@@ -145,8 +158,8 @@ const start = async () => {
 
   // Run Botpress dev locally
   const devCommand = `${__localbp} dev --port ${PORT} --workspaceId ${process.env.BOTPRESS_WORKSPACE_ID} --token ${process.env.BOTPRESS_PAT}`;
-  const [command, ...args] = devCommand.split(' ');
-  spawn(command, args, { stdio: 'inherit' });
+  const [command, ...args] = devCommand.split(" ");
+  spawn(command, args, { stdio: "inherit" });
 
   // Update the integration URL
   await updateIntegrationUrl(id, url);
@@ -167,7 +180,7 @@ const start = async () => {
         titleAlignment: "center",
         borderColor: "cyan",
         padding: 1,
-      })
+      }),
     );
   }, 3500);
 };

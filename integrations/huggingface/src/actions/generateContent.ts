@@ -8,7 +8,7 @@ type HfToolCalls = Awaited<
 >["choices"][number]["message"]["tool_calls"];
 
 function mapToolCalls(
-  hfToolCalls: HfToolCalls
+  hfToolCalls: HfToolCalls,
 ): sdk.interfaces.llm.ToolCall[] | undefined {
   return hfToolCalls
     ?.filter((toolCall) => toolCall.type === "function")
@@ -40,7 +40,7 @@ function mapToStopReason(hfFinishReason: string) {
 export async function generateContent(
   input: interfaces.llm.GenerateContentInput,
   hf: HfInference,
-  models: interfaces.llm.Model[]
+  models: interfaces.llm.Model[],
 ): Promise<interfaces.llm.GenerateContentOutput> {
   if (!input.model?.id) {
     throw new InvalidPayloadError("Model ID not provided");
@@ -52,19 +52,19 @@ export async function generateContent(
 
   if (!model) {
     throw new InvalidPayloadError(
-      `Model ID "${modelId}" is not allowed by this integration`
+      `Model ID "${modelId}" is not allowed by this integration`,
     );
   }
 
   if (input.messages.length === 0 && !input.systemPrompt) {
     throw new InvalidPayloadError(
-      "At least one message or a system prompt is required"
+      "At least one message or a system prompt is required",
     );
   }
 
   if (input.maxTokens && input.maxTokens > model.output.maxTokens) {
     throw new InvalidPayloadError(
-      `maxTokens must be less than or equal to ${model.output.maxTokens} for model ID "${modelId}`
+      `maxTokens must be less than or equal to ${model.output.maxTokens} for model ID "${modelId}`,
     );
   }
 
@@ -114,7 +114,7 @@ export async function generateContent(
     throw new sdk.RuntimeError(
       `Error calling the model: ${
         e instanceof Error ? e.message : "Unknown error"
-      }`
+      }`,
     );
   }
 }

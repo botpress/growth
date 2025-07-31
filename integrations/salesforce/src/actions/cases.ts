@@ -7,19 +7,19 @@ import { Output as UpdateOutput } from ".botpress/implementation/actions/updateC
 import { Output as SearchOutput } from ".botpress/implementation/actions/searchCases/output";
 
 export const createCase: Action["createCase"] = async (
-  props
+  props,
 ): Promise<CreateOutput> => {
   return await createSalesforceRecord(SalesforceObject.Case, props);
 };
 
 export const updateCase: Action["updateCase"] = async (
-  props
+  props,
 ): Promise<UpdateOutput> => {
   return await updateSalesforceRecord(SalesforceObject.Case, props);
 };
 
 export const searchCases: Action["searchCases"] = async (
-  props
+  props,
 ): Promise<SearchOutput> => {
   return await fetchSalesforceRecords(SalesforceObject.Case, props);
 };

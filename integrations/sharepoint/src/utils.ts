@@ -38,19 +38,19 @@ export const formatPrivateKey = (privateKey: string) => {
 };
 
 export const guessMimeType = (filename: string): string => {
-  const ext = filename.toLowerCase().split('.').pop() ?? ''
+  const ext = filename.toLowerCase().split(".").pop() ?? "";
   switch (ext) {
-    case 'txt':
-      return 'text/plain'
-    case 'html':
-      return 'text/html'
-    case 'pdf':
-      return 'application/pdf'
-    case 'doc':
-      return 'application/msword'
-    case 'docx':
-      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    case "txt":
+      return "text/plain";
+    case "html":
+      return "text/html";
+    case "pdf":
+      return "application/pdf";
+    case "doc":
+      return "application/msword";
+    case "docx":
+      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
     default:
-      return 'application/octet-stream'
+      return "application/octet-stream";
   }
-}
+};

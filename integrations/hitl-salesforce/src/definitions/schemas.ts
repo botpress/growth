@@ -20,7 +20,10 @@ export const SFMessagingConfigSchema = z.object({
   organizationId: z.string(),
   DeveloperName: z.string(),
   showAgentName: z.boolean().optional().describe('Show agent name or not on Agent messages'),
-  conversationNotAssignedMessage: z.string().default('No agent assigned yet, please wait or type /end to cancel the escalation.').describe('Message that will be presented when the user types something but no agent is handling the conversation'),
+  conversationNotAssignedMessage: z
+    .string()
+    .default('No agent assigned yet, please wait or type /end to cancel the escalation.')
+    .describe('Message that will be presented when the user types something but no agent is handling the conversation'),
 })
 
 export type SFMessagingConfig = z.infer<typeof SFMessagingConfigSchema>

@@ -5,5 +5,5 @@ import * as text from "./text";
 export * as text from "./text";
 
 export const messages = {
-  "text": text.text,
-}
+  text: text.text,
+};

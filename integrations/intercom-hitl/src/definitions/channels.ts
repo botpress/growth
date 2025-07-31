@@ -1,11 +1,17 @@
-import { IntegrationDefinitionProps, z } from '@botpress/sdk'
+import { IntegrationDefinitionProps, z } from "@botpress/sdk";
 
 export const channels = {
   hitl: {
     conversation: {
       tags: {
-        id: { title: 'Intercom Conversation Id', description: 'Intercom Conversation Id' },
-        userId: { title: 'User ID', description: 'The ID of the user in Botpress' },
+        id: {
+          title: "Intercom Conversation Id",
+          description: "Intercom Conversation Id",
+        },
+        userId: {
+          title: "User ID",
+          description: "The ID of the user in Botpress",
+        },
       },
     },
     messages: {
@@ -16,4 +22,4 @@ export const channels = {
       },
     },
   },
-} satisfies IntegrationDefinitionProps['channels']
+} satisfies IntegrationDefinitionProps["channels"];

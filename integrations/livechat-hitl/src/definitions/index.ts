@@ -1,13 +1,13 @@
-import { z, IntegrationDefinitionProps } from '@botpress/sdk'
-import { LiveChatConfigurationSchema } from './schemas'
+import { z, IntegrationDefinitionProps } from "@botpress/sdk";
+import { LiveChatConfigurationSchema } from "./schemas";
 
-export { channels } from './channels'
+export { channels } from "./channels";
 
-export { events } from './events'
+export { events } from "./events";
 
 export const configuration = {
   schema: LiveChatConfigurationSchema,
-} as const satisfies IntegrationDefinitionProps['configuration']
+} as const satisfies IntegrationDefinitionProps["configuration"];
 
 export const states = {
   livechatToken: {
@@ -21,13 +21,16 @@ export const states = {
     schema: z.object({
       email: z.string(),
     }),
-  }
-} satisfies IntegrationDefinitionProps['states']
+  },
+} satisfies IntegrationDefinitionProps["states"];
 
 export const user = {
   tags: {
-    email: { description: 'LiveChat Email', title: 'LiveChat Email' },
-    agentId: { description: 'LiveChat Agent Id', title: 'LiveChat Agent Id' },
-    livechatConversationId: { description: 'LiveChat Conversation Id', title: 'LiveChat Conversation Id' }
+    email: { description: "LiveChat Email", title: "LiveChat Email" },
+    agentId: { description: "LiveChat Agent Id", title: "LiveChat Agent Id" },
+    livechatConversationId: {
+      description: "LiveChat Conversation Id",
+      title: "LiveChat Conversation Id",
+    },
   },
-} satisfies IntegrationDefinitionProps['user']
+} satisfies IntegrationDefinitionProps["user"];

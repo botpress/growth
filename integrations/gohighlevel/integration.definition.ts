@@ -1,5 +1,5 @@
-import { IntegrationDefinition, z } from '@botpress/sdk';
-import { integrationName } from './package.json';
+import { IntegrationDefinition, z } from "@botpress/sdk";
+import { integrationName } from "./package.json";
 
 import {
   createContactInputSchema,
@@ -41,30 +41,30 @@ import {
   getContactsByBusinessIdInputSchema,
   getContactsByBusinessIdOutputSchema,
   makeApiCallInputSchema,
-  makeApiCallOutputSchema
-} from './src/misc/custom-schemas';
+  makeApiCallOutputSchema,
+} from "./src/misc/custom-schemas";
 
 export default new IntegrationDefinition({
-  name: integrationName ?? 'go-high-level',
-  version: '1.0.3',
-  title: 'GoHighLevel',
-  readme: 'hub.md',
-  icon: 'icon.svg',
+  name: integrationName ?? "go-high-level",
+  version: "1.0.3",
+  title: "GoHighLevel",
+  readme: "hub.md",
+  icon: "icon.svg",
   description:
-    'Integrate your Botpress chatbot with GoHighLevel CRM to manage customer interactions. Add, update, and retrieve contacts, opportunities, orders, and appointments directly through your chatbot.',
+    "Integrate your Botpress chatbot with GoHighLevel CRM to manage customer interactions. Add, update, and retrieve contacts, opportunities, orders, and appointments directly through your chatbot.",
   configuration: {
     schema: z.object({
-      clientId: z.string().describe('Your GoHighLevel Client ID'),
-      clientSecret: z.string().describe('Your GoHighLevel Client Secret'),
-      accessToken: z.string().describe('Your GoHighLevel API key'),
-      refreshToken: z.string().describe('Your GoHighLevel API key'),
+      clientId: z.string().describe("Your GoHighLevel Client ID"),
+      clientSecret: z.string().describe("Your GoHighLevel Client Secret"),
+      accessToken: z.string().describe("Your GoHighLevel API key"),
+      refreshToken: z.string().describe("Your GoHighLevel API key"),
     }),
   },
   events: {},
   user: {
     tags: {
       id: {
-        title: 'GoHighLevel tokens',
+        title: "GoHighLevel tokens",
       },
     },
   },
@@ -80,102 +80,102 @@ export default new IntegrationDefinition({
   },
   actions: {
     createContact: {
-      title: 'Create Contact',
+      title: "Create Contact",
       input: { schema: createContactInputSchema },
       output: { schema: createContactOutputSchema },
     },
     updateContact: {
-      title: 'Update Contact',
+      title: "Update Contact",
       input: { schema: updateContactInputSchema },
       output: { schema: updateContactOutputSchema },
     },
     getContact: {
-      title: 'Get Contact',
+      title: "Get Contact",
       input: { schema: getContactInputSchema },
       output: { schema: getContactOutputSchema },
     },
     deleteContact: {
-      title: 'Delete Contact',
+      title: "Delete Contact",
       input: { schema: deleteContactInputSchema },
       output: { schema: deleteContactOutputSchema },
     },
     upsertContact: {
-      title: 'Upsert Contact',
+      title: "Upsert Contact",
       input: { schema: upsertContactInputSchema },
       output: { schema: upsertContactOutputSchema },
     },
     getContactsByBusinessId: {
-      title: 'Get Contacts By Business Id',
+      title: "Get Contacts By Business Id",
       input: { schema: getContactsByBusinessIdInputSchema },
       output: { schema: getContactsByBusinessIdOutputSchema },
     },
     createOpportunity: {
-      title: 'Create Opportunity',
+      title: "Create Opportunity",
       input: { schema: createOpportunityInputSchema },
       output: { schema: createOpportunityOutputSchema },
     },
     updateOpportunity: {
-      title: 'Update Opportunity',
+      title: "Update Opportunity",
       input: { schema: updateOpportunityInputSchema },
       output: { schema: updateOpportunityOutputSchema },
     },
     updateOpportunityStatus: {
-      title: 'Update Opportunity Status',
+      title: "Update Opportunity Status",
       input: { schema: updateOpportunityStatusInputSchema },
       output: { schema: updateOpportunityStatusOutputSchema },
     },
     upsertOpportunity: {
-      title: 'Upsert Opportunity',
+      title: "Upsert Opportunity",
       input: { schema: upsertOpportunityInputSchema },
       output: { schema: upsertOpportunityOutputSchema },
     },
     getOpportunity: {
-      title: 'Get Opportunity',
+      title: "Get Opportunity",
       input: { schema: getOpportunityInputSchema },
       output: { schema: getOpportunityOutputSchema },
     },
     deleteOpportunity: {
-      title: 'Delete Opportunity',
+      title: "Delete Opportunity",
       input: { schema: deleteOpportunityInputSchema },
       output: { schema: deleteOpportunityOutputSchema },
     },
     listOrders: {
-      title: 'List Orders',
+      title: "List Orders",
       input: { schema: listOrdersInputSchema },
       output: { schema: listOrdersOutputSchema },
     },
     getOrderById: {
-      title: 'Get Order By ID',
+      title: "Get Order By ID",
       input: { schema: getOrderByIdInputSchema },
       output: { schema: getOrderByIdOutputSchema },
     },
     getCalendarEvents: {
-      title: 'Get Calendar Events',
+      title: "Get Calendar Events",
       input: { schema: getCalendarEventsInputSchema },
       output: { schema: getCalendarEventsOutputSchema },
     },
     getAppointment: {
-      title: 'Get Appointment',
+      title: "Get Appointment",
       input: { schema: getAppointmentInputSchema },
       output: { schema: getAppointmentOutputSchema },
     },
     updateAppointment: {
-      title: 'Update Appointment',
+      title: "Update Appointment",
       input: { schema: updateAppointmentInputSchema },
       output: { schema: updateAppointmentOutputSchema },
     },
     createAppointment: {
-      title: 'Create Appointment',
+      title: "Create Appointment",
       input: { schema: createAppointmentInputSchema },
       output: { schema: createAppointmentOutputSchema },
     },
     deleteEvent: {
-      title: 'Delete Event',
+      title: "Delete Event",
       input: { schema: deleteEventInputSchema },
       output: { schema: deleteEventOutputSchema },
     },
     makeApiCall: {
-      title: 'Make API Call',
+      title: "Make API Call",
       input: { schema: makeApiCallInputSchema },
       output: { schema: makeApiCallOutputSchema },
     },

@@ -1,4 +1,5 @@
-import * as bp from '.botpress'
-import { IntegrationDefinitionProps } from '@botpress/sdk'
+import * as bp from ".botpress";
+import { IntegrationDefinitionProps } from "@botpress/sdk";
 
-export const channels = undefined satisfies IntegrationDefinitionProps['channels']
+export const channels =
+  undefined satisfies IntegrationDefinitionProps["channels"];

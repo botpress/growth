@@ -22,6 +22,7 @@ Easily receive and automate Zoom meeting transcripts in Botpress for meetings ho
 ## Prerequisites
 
 You must be:
+
 - A Zoom **account owner**, **admin**, or have the **“Zoom for Developers” role**
 - On a **Zoom premium plan** (free tier doesn't support cloud recordings)
 
@@ -43,9 +44,9 @@ You’ll use these in your Botpress integration configuration later.
 - In **Information**, fill out the necessary information about yourself and the app.
 - In **Features**, copy the **Secret Token**
 - In **Scopes**, add:
-cloud_recording:read:list_user_recordings:admin
-cloud_recording:read:list_recording_files:admin
-cloud_recording:read:recording:admin
+  cloud_recording:read:list_user_recordings:admin
+  cloud_recording:read:list_recording_files:admin
+  cloud_recording:read:recording:admin
 
 - Activate the app under the **Activation** tab
 
@@ -54,6 +55,7 @@ cloud_recording:read:recording:admin
 In Postman:
 
 **Step 1: Get Access Token**
+
 - To make request, you can use service like postman
 - Make a **POST** request to `https://zoom.us/oauth/token`
 - **Headers** (Key: Value):
@@ -66,6 +68,7 @@ In Postman:
 - Click Send then Copy the `access_token` from the response
 
 **Step 2: Get Host ID**
+
 - Make a **GET** request to: `https://api.zoom.us/v2/users/<your_zoom_email>/recordings`
 - **Header**:
 - `Authorization`: `Bearer <access_token>`
@@ -105,7 +108,7 @@ Back in your Zoom OAuth App:
 
 ---
 
-## Done! 
+## Done!
 
 Your Botpress bot will now receive transcripts for allowed Zoom users when cloud recordings complete. Make sure:
 

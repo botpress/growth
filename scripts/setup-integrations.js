@@ -1,10 +1,10 @@
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
-const integrationsDir = path.join(__dirname, '..', 'integrations');
+const integrationsDir = path.join(__dirname, "..", "integrations");
 if (!fs.existsSync(integrationsDir)) {
-  console.error('No integrations directory found');
+  console.error("No integrations directory found");
   process.exit(0);
 }
 
@@ -17,7 +17,7 @@ for (const dir of dirs) {
   const cwd = path.join(integrationsDir, dir);
   console.log(`\n==> Installing dependencies for ${dir}`);
   try {
-    execSync('pnpm install --no-frozen-lockfile', { cwd, stdio: 'inherit' });
+    execSync("pnpm install --no-frozen-lockfile", { cwd, stdio: "inherit" });
   } catch (err) {
     console.error(`Failed to install dependencies for ${dir}`);
     console.error(err);
@@ -26,11 +26,10 @@ for (const dir of dirs) {
 
   console.log(`\n==> Building ${dir}`);
   try {
-    execSync('pnpm exec bp build', { cwd, stdio: 'inherit' });
+    execSync("pnpm exec bp build", { cwd, stdio: "inherit" });
   } catch (err) {
     console.error(`Failed to build ${dir}`);
     console.error(err);
     process.exit(1);
   }
 }
-

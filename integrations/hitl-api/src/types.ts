@@ -22,7 +22,7 @@ export const CreateRemoteConversationPayload = z
             text: z.string(),
             author: z.string().optional(),
             timestamp: z.string().optional(),
-          })
+          }),
         )
         .optional(),
     }),
@@ -41,38 +41,58 @@ export const CloseRemoteTicketPayload = z
 export const CreateRemoteUserPayload = z
   .object({
     type: z.literal("createRemoteUser"),
-    payload: z.record(z.unknown()).describe("whatever user payload sent from Botpress"),
+    payload: z
+      .record(z.unknown())
+      .describe("whatever user payload sent from Botpress"),
   })
   .openapi("CreateRemoteUserPayload");
 
 export const BotSendsMessagePayload = z
   .object({
     type: z.literal("botSendsMessage"),
-    remoteConversationId: z.string().describe("The ID of the conversation on the live agent platform"),
-    remoteUserId: z.string().describe("The ID of the chat-user on the live agent platform"),
-    payload: z.record(z.unknown()).describe("The message payload in the botpress format"),
+    remoteConversationId: z
+      .string()
+      .describe("The ID of the conversation on the live agent platform"),
+    remoteUserId: z
+      .string()
+      .describe("The ID of the chat-user on the live agent platform"),
+    payload: z
+      .record(z.unknown())
+      .describe("The message payload in the botpress format"),
   })
   .openapi("BotSendsMessagePayload");
 
 export const AgentMessagePayload = z
   .object({
-    remoteConversationId: z.string().describe("The ID of the conversation on the live agent platform"),
-    remoteUserId: z.string().describe("The ID of the chat-user on the live agent platform"),
+    remoteConversationId: z
+      .string()
+      .describe("The ID of the conversation on the live agent platform"),
+    remoteUserId: z
+      .string()
+      .describe("The ID of the chat-user on the live agent platform"),
     messageType: z.string(),
-    payload: z.record(z.unknown()).describe("The message payload in the botpress format"),
+    payload: z
+      .record(z.unknown())
+      .describe("The message payload in the botpress format"),
   })
   .openapi("AgentMessagePayload");
 
 export const AgentAssignedPayload = z
   .object({
-    remoteConversationId: z.string().describe("The ID of the conversation on the live agent platform"),
-    remoteUserId: z.string().describe("The ID of the chat-user on the live agent platform"),
+    remoteConversationId: z
+      .string()
+      .describe("The ID of the conversation on the live agent platform"),
+    remoteUserId: z
+      .string()
+      .describe("The ID of the chat-user on the live agent platform"),
   })
   .openapi("AgentAssignedPayload");
 
 export const StopHitlPayload = z
   .object({
-    remoteConversationId: z.string().describe("The ID of the conversation on the live agent platform"),
+    remoteConversationId: z
+      .string()
+      .describe("The ID of the conversation on the live agent platform"),
   })
   .openapi("StopHitlPayload");
 
@@ -107,7 +127,7 @@ export const CreateRemoteConversationResponse = z
     id: z
       .string()
       .describe(
-        "The ID of the conversation / ticket on the live agent platform"
+        "The ID of the conversation / ticket on the live agent platform",
       ),
   })
   .openapi("CreateRemoteConversationResponse");

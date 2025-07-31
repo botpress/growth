@@ -2,9 +2,9 @@
 /* tslint:disable */
 // This file is generated. Do not edit it manually.
 
-import * as sdk from "@botpress/sdk"
+import * as sdk from "@botpress/sdk";
 
-import definition from "./definition"
+import definition from "./definition";
 
 export default {
   type: "interface",
@@ -13,4 +13,4 @@ export default {
   name: "hitl",
   version: "0.4.0",
   definition,
-} satisfies sdk.InterfacePackage
+} satisfies sdk.InterfacePackage;

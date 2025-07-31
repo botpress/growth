@@ -1,8 +1,8 @@
 import { RuntimeError } from '@botpress/client'
-import axios, {Axios, AxiosError, isAxiosError} from 'axios'
+import axios, { Axios, AxiosError, isAxiosError } from 'axios'
 import FormData from 'form-data'
 import fs from 'fs'
-import {v4 as uuidv4, v4} from 'uuid'
+import { v4 as uuidv4, v4 } from 'uuid'
 import {
   type SFMessagingConfig,
   type CreateTokenResponse,
@@ -10,7 +10,7 @@ import {
   SFMessagingConfigSchema,
   CreateTTSessionResponse,
 } from './definitions/schemas'
-import {getFileExtensionFromUrl} from './utils'
+import { getFileExtensionFromUrl } from './utils'
 import { secrets, Logger } from '.botpress'
 
 class MessagingApi {
@@ -18,7 +18,11 @@ class MessagingApi {
   private _client: Axios
   private _apiBaseUrl: string
 
-  public constructor(private _logger: Logger, private _config: SFMessagingConfig, _session?: LiveAgentSession) {
+  public constructor(
+    private _logger: Logger,
+    private _config: SFMessagingConfig,
+    _session?: LiveAgentSession,
+  ) {
     this._apiBaseUrl = _config.endpoint + '/iamessage/api/v2'
 
     this._client = axios.create({
@@ -140,7 +144,7 @@ class MessagingApi {
           headers: {
             secret: secrets.TT_SK,
           },
-        }
+        },
       )
 
       this._session.sseKey = data.data.key
@@ -186,7 +190,7 @@ class MessagingApi {
   }
 
   // https://developer.salesforce.com/docs/service/messaging-api/references/miaw-api-reference?meta=sendFile
-  public async sendFile({ fileUrl, title, message}: { fileUrl: string; title?: string; message?: string }) {
+  public async sendFile({ fileUrl, title, message }: { fileUrl: string; title?: string; message?: string }) {
     if (!this._session) {
       throw new RuntimeError('Tried to send file to a session that is not initialized yet')
     }
@@ -213,39 +217,38 @@ class MessagingApi {
           id: v4(),
           fileId: generatedFileId,
           text: (message?.length && message) || '',
-        }
+        },
       }
 
       formData.append('messageEntry', JSON.stringify(messageEntry), {
-        contentType: 'application/json'
+        contentType: 'application/json',
       })
 
       formData.append('fileData', fs.createReadStream(tempFilePath), {
-        filename: `${title?.length && title || `${generatedFileId}.${extension}`}`,
-        contentType: 'application/octet-stream'
+        filename: `${(title?.length && title) || `${generatedFileId}.${extension}`}`,
+        contentType: 'application/octet-stream',
       })
 
-      await this._client.post(
-          `/conversation/${this._session.conversationId}/file`,
-          formData,
-          { headers: formData.getHeaders() }
-      )
+      await this._client.post(`/conversation/${this._session.conversationId}/file`, formData, {
+        headers: formData.getHeaders(),
+      })
     } catch (thrown: unknown) {
-      let errorMessage = `Failed to send file '${title?.length && title || (`.${extension}`)}' to agent, will use file url message fallback`
-      if(isAxiosError(thrown)) {
-        const axiosError = (thrown as AxiosError)
-        const docsLink = 'https://developer.salesforce.com/docs/service/messaging-api/references/miaw-api-reference?meta=sendFile'
+      let errorMessage = `Failed to send file '${(title?.length && title) || `.${extension}`}' to agent, will use file url message fallback`
+      if (isAxiosError(thrown)) {
+        const axiosError = thrown as AxiosError
+        const docsLink =
+          'https://developer.salesforce.com/docs/service/messaging-api/references/miaw-api-reference?meta=sendFile'
 
-        if(axiosError.response?.status === 413) {
+        if (axiosError.response?.status === 413) {
           errorMessage += `\n-> File too large, maximum size of each file is 5 MB, please check the Salesforce documentation for more details \n-> "${docsLink}"`
         }
 
-        if(axiosError.response?.status === 415) {
+        if (axiosError.response?.status === 415) {
           errorMessage += `\n-> Unsupported content file type, please check the Salesforce documentation for more details \n-> "${docsLink}"`
         }
 
         const axiosMessage = ((thrown as AxiosError).response?.data as any)?.message
-        if(axiosMessage?.length) {
+        if (axiosMessage?.length) {
           errorMessage += `\n-> Salesforce message "${axiosMessage}"`
         }
       }
@@ -261,7 +264,7 @@ class MessagingApi {
     }
 
     await this._client.delete(
-      `/conversation/${this._session.conversationId}?esDeveloperName=${this._config.DeveloperName}`
+      `/conversation/${this._session.conversationId}?esDeveloperName=${this._config.DeveloperName}`,
     )
   }
 }

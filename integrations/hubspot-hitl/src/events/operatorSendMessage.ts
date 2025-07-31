@@ -1,30 +1,30 @@
-import * as bp from '.botpress'
+import * as bp from ".botpress";
 
 export const handleOperatorReplied = async ({
   hubspotEvent,
-  client
+  client,
 }: {
-  hubspotEvent: any
-  client: bp.Client
+  hubspotEvent: any;
+  client: bp.Client;
 }) => {
   const { conversation } = await client.getOrCreateConversation({
-    channel: 'hitl',
+    channel: "hitl",
     tags: {
       id: hubspotEvent.message?.conversationsThreadId,
     },
-  })
+  });
 
   const { user } = await client.getOrCreateUser({
     tags: {
       agentId: hubspotEvent.message?.senders?.[0]?.actorId,
     },
-  })
+  });
 
   await client.createMessage({
     tags: {},
-    type: 'text',
+    type: "text",
     userId: user?.id as string,
     conversationId: conversation.id,
     payload: { text: hubspotEvent.message?.text },
-  })
-}
+  });
+};

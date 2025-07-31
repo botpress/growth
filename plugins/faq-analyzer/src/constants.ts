@@ -17,7 +17,9 @@ export interface MostSimilarQuestionObject {
   mostSimilarQuestion: string;
 }
 
-export type MostSimilarQuestionResult = MostSimilarQuestionObject | MostSimilarQuestionObject[];
+export type MostSimilarQuestionResult =
+  | MostSimilarQuestionObject
+  | MostSimilarQuestionObject[];
 
 export const TABLE_SCHEMA = {
   question: { type: "string", searchable: true, nullable: true },
@@ -70,4 +72,4 @@ export const ZAI_CONFIRM_SIMILARITY_INSTRUCTIONS = `Given two questions q1 and q
       Examples:
       - "how old is matthew?" vs "how old is john?" -> FALSE (different people)
       - "what discounts do you offer?" vs "what discounts are available?" -> TRUE (same subject)
-      Be strict - when in doubt, return false.`; 
+      Be strict - when in doubt, return false.`;

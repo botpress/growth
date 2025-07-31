@@ -2,7 +2,7 @@
 /* tslint:disable */
 // This file is generated. Do not edit it manually.
 
-import { z } from "@botpress/sdk";
+import { z } from '@botpress/sdk'
 export const bloc = {
   schema: z
     .object({
@@ -10,7 +10,7 @@ export const bloc = {
         z.union([
           z
             .object({
-              type: z.literal("text"),
+              type: z.literal('text'),
               payload: z
                 .object({
                   text: z.string().min(1, undefined),
@@ -20,7 +20,7 @@ export const bloc = {
             .catchall(z.never()),
           z
             .object({
-              type: z.literal("markdown"),
+              type: z.literal('markdown'),
               payload: z
                 .object({
                   markdown: z.string().min(1, undefined),
@@ -30,7 +30,7 @@ export const bloc = {
             .catchall(z.never()),
           z
             .object({
-              type: z.literal("image"),
+              type: z.literal('image'),
               payload: z
                 .object({
                   imageUrl: z.string().min(1, undefined),
@@ -40,7 +40,7 @@ export const bloc = {
             .catchall(z.never()),
           z
             .object({
-              type: z.literal("audio"),
+              type: z.literal('audio'),
               payload: z
                 .object({
                   audioUrl: z.string().min(1, undefined),
@@ -50,7 +50,7 @@ export const bloc = {
             .catchall(z.never()),
           z
             .object({
-              type: z.literal("video"),
+              type: z.literal('video'),
               payload: z
                 .object({
                   videoUrl: z.string().min(1, undefined),
@@ -60,7 +60,7 @@ export const bloc = {
             .catchall(z.never()),
           z
             .object({
-              type: z.literal("file"),
+              type: z.literal('file'),
               payload: z
                 .object({
                   fileUrl: z.string().min(1, undefined),
@@ -71,7 +71,7 @@ export const bloc = {
             .catchall(z.never()),
           z
             .object({
-              type: z.literal("location"),
+              type: z.literal('location'),
               payload: z
                 .object({
                   latitude: z.number(),
@@ -85,14 +85,8 @@ export const bloc = {
         ]),
       ),
       userId: z
-        .optional(
-          z
-            .string()
-            .describe(
-              "Allows sending a message pretending to be a certain user",
-            ),
-        )
-        .describe("Allows sending a message pretending to be a certain user"),
+        .optional(z.string().describe('Allows sending a message pretending to be a certain user'))
+        .describe('Allows sending a message pretending to be a certain user'),
     })
     .catchall(z.never()),
-};
+}

@@ -25,7 +25,7 @@ This integration allows Botpress to **seamlessly escalate conversations** from a
 
 # Zoho SalesIQ Integration Setup Guide
 
-### **[Loom video walk through setting up the OAuth configuration.](https://www.loom.com/share/d3c758e372e54a32b4f29d7da44af1ce?sid=38c81c81-486e-4a48-bfb1-941b02d052d1)** ###
+### **[Loom video walk through setting up the OAuth configuration.](https://www.loom.com/share/d3c758e372e54a32b4f29d7da44af1ce?sid=38c81c81-486e-4a48-bfb1-941b02d052d1)**
 
 ## Step 1: Create a Zoho Developer Account
 
@@ -40,16 +40,17 @@ This integration allows Botpress to **seamlessly escalate conversations** from a
 Ensure you use the **correct region URL** for OAuth authentication.
 
 #### **Zoho Accounts Domains:**
-| Region         | Accounts URL                       |
-|---------------|----------------------------------|
-| US           | `https://accounts.zoho.com`     |
-| AU           | `https://accounts.zoho.com.au`  |
-| EU           | `https://accounts.zoho.eu`      |
-| IN           | `https://accounts.zoho.in`      |
-| CN           | `https://accounts.zoho.com.cn`  |
-| JP           | `https://accounts.zoho.jp`      |
-| SA (Saudi Arabia) | `https://accounts.zoho.sa` |
-| CA (Canada)  | `https://accounts.zohocloud.ca` |
+
+| Region            | Accounts URL                    |
+| ----------------- | ------------------------------- |
+| US                | `https://accounts.zoho.com`     |
+| AU                | `https://accounts.zoho.com.au`  |
+| EU                | `https://accounts.zoho.eu`      |
+| IN                | `https://accounts.zoho.in`      |
+| CN                | `https://accounts.zoho.com.cn`  |
+| JP                | `https://accounts.zoho.jp`      |
+| SA (Saudi Arabia) | `https://accounts.zoho.sa`      |
+| CA (Canada)       | `https://accounts.zohocloud.ca` |
 
 Construct the following authorization URL, replacing placeholders with your actual values:
 
@@ -75,7 +76,7 @@ https://accounts.zohocloud.ca/oauth/v2/org/auth?response_type=code
    ```text
    https://webhook.botpress.cloud/2fca97ae-3078-4287-87a2-957e7f68157a?state=123&code=1005.4e8ee2431c3713671170956c8f8ed585.8ac5720917a810e6d447df63d2b63aef&location=ca&accounts-server=https%3A%2F%2Faccounts.zohocloud.ca
    ```
-   
+
 4. The `code` parameter (`1005.4e8ee2431c...`) is your **authorization code**.
 
 ## Step 3: Exchange Authorization Code for Access Token
@@ -120,11 +121,11 @@ To fully integrate with **Zoho SalesIQ**, you need to gather the following detai
 1. Go to **Settings > Departments** in **Zoho SalesIQ**.
 2. Click on the correct department.
 3. The **Department ID** is in the URL:
-   
+
    ```text
    https://salesiq.zohocloud.ca/envyroinc/settings/departments/edit/6338000000002024
    ```
-   
+
    - Example **Department ID**: `6338000000002024`
 
 ### 3. Get Your App ID
@@ -132,11 +133,11 @@ To fully integrate with **Zoho SalesIQ**, you need to gather the following detai
 1. Go to **Settings > Brands** in **Zoho SalesIQ**.
 2. Click on the correct brand.
 3. The **App ID** is in the URL:
-   
+
    ```text
    https://salesiq.zohocloud.ca/envyroinc/settings/brands/6338000000002238
    ```
-   
+
    - Example **App ID**: `6338000000002238`
 
 ## Step 6: Final Integration Configuration Setup
@@ -152,18 +153,22 @@ Enter the following details into your integration configuration:
 Follow these steps to integrate your SalesIQ account with Botpress using webhooks.
 
 ## Step 1: Navigate to Webhooks in SalesIQ
+
 1. **Log in** to your SalesIQ account.
 2. Click on **Settings** in the sidebar.
 3. Scroll down and select **Webhooks**.
 
 ## Step 2: Add a New Webhook
+
 4. Click **Add a New Data Modifications Webhook**.
 5. Select the **correct brand/organization** for which you want to configure the webhook.
 
 ## Step 3: Configure the Webhook
+
 6. In the **URL to be invoked** field, **copy and paste** your Botpress webhook URL.
 
 ## Step 4: Select Webhook Events
+
 7. Check the following events to be associated with the webhook:
    - `conversation.attender.updated`
    - `conversation.missed`
@@ -171,8 +176,7 @@ Follow these steps to integrate your SalesIQ account with Botpress using webhook
    - `conversation.completed`
 
 ## Step 5: Save Your Webhook
+
 8. Click the **Create Webhook** button to finalize your webhook setup.
 
 **That's it!** Your webhook is now configured to send SalesIQ events to Botpress.
-
-

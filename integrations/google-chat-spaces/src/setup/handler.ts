@@ -1,73 +1,80 @@
-import * as bp from '.botpress'
-import { getClient } from '../client'
+import * as bp from ".botpress";
+import { getClient } from "../client";
 
 interface GoogleChatMessage {
-  text: string
+  text: string;
   sender: {
-    name: string
-    email?: string
-  }
+    name: string;
+    email?: string;
+  };
 }
 
 interface GoogleChatEvent {
-  type: string
+  type: string;
   space: {
-    name: string
-  }
-  message?: GoogleChatMessage
+    name: string;
+  };
+  message?: GoogleChatMessage;
 }
 
-export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger, client }) => {
+export const handler: bp.IntegrationProps["handler"] = async ({
+  ctx,
+  req,
+  logger,
+  client,
+}) => {
   if (!req.body) {
-    logger.forBot().warn('Handler received an empty body')
-    return
+    logger.forBot().warn("Handler received an empty body");
+    return;
   }
 
-  let event: GoogleChatEvent
+  let event: GoogleChatEvent;
   try {
-    event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    event = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   } catch (err) {
-    logger.forBot().error('Failed to parse request body:', err)
-    return
+    logger.forBot().error("Failed to parse request body:", err);
+    return;
   }
 
-  if (event.type !== 'MESSAGE' || !event.space || !event.message) {
-    logger.forBot().debug('Ignoring non-message event or missing data:', event.type)
-    return
+  if (event.type !== "MESSAGE" || !event.space || !event.message) {
+    logger
+      .forBot()
+      .debug("Ignoring non-message event or missing data:", event.type);
+    return;
   }
 
   try {
-    const googleClient = getClient(ctx)
-    const spaceId = event.space.name.replace('spaces/', '')
-    
+    const googleClient = getClient(ctx);
+    const spaceId = event.space.name.replace("spaces/", "");
+
     // Get or create conversation
     const { conversation } = await client.getOrCreateConversation({
-      channel: 'text',
+      channel: "text",
       tags: {
-        spaceId: event.space.name
-      }
-    })
+        spaceId: event.space.name,
+      },
+    });
 
     // Get or create user
     const { user } = await client.getOrCreateUser({
       tags: {
-        id: event.message.sender.name
-      }
-    })
+        id: event.message.sender.name,
+      },
+    });
 
     // Create message in Botpress
     await client.createMessage({
-      type: 'text',
+      type: "text",
       conversationId: conversation.id,
       userId: user.id,
       payload: {
-        text: event.message.text
+        text: event.message.text,
       },
-      tags: {}
-    })
+      tags: {},
+    });
 
-    logger.forBot().info(`Processed message in space ${spaceId}`)
+    logger.forBot().info(`Processed message in space ${spaceId}`);
   } catch (error: any) {
-    logger.forBot().error('Failed to process message:', error)
+    logger.forBot().error("Failed to process message:", error);
   }
-}
+};
