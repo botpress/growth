@@ -7,6 +7,8 @@
   "scripts": {
     "build": "turbo run generate",
     "bump": "depsynky bump --ignore-dev && pnpm -w install",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest --run",
     "check:bplint": "turbo check:bplint",
     "check:dep": "depsynky check --ignore-dev",
