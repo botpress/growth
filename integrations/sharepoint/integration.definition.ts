@@ -3,7 +3,7 @@ import { integrationName } from "./package.json";
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: "3.0.3",
+  version: "3.0.4",
   title: "SharePoint",
   description:
     "Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.",
@@ -33,6 +33,10 @@ export default new IntegrationDefinition({
           "Optional JSON map of kbId → array of folder prefixes used for routing.\n" +
             'Example: {"kb-marketing":["Campaigns"],"kb-policies":["HR","Legal"]}'
         ),
+      enableVision: z
+        .boolean()
+        .default(false)
+        .describe("Enable vision processing for uploaded files (transcribes and indexes visual content from files)"),
     }),
   },
   states: {
