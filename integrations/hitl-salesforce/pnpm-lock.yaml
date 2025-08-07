@@ -9,8 +9,8 @@ dependencies:
     specifier: 1.15.1
     version: 1.15.1
   '@botpress/sdk':
-    specifier: 4.11.0
-    version: 4.11.0(@bpinternal/zui@1.0.0)(esbuild@0.16.17)
+    specifier: 4.14.3
+    version: 4.14.3(@bpinternal/zui@1.1.0)(esbuild@0.16.17)
   '@typescript-eslint/eslint-plugin':
     specifier: ^5.47.0
     version: 5.47.0(@typescript-eslint/parser@5.47.0)(eslint@8.57.1)(typescript@4.9.5)
@@ -56,8 +56,8 @@ dependencies:
 
 devDependencies:
   '@botpress/cli':
-    specifier: 4.9.0
-    version: 4.9.0(@bpinternal/zui@1.0.0)
+    specifier: 4.11.3
+    version: 4.11.3(@bpinternal/zui@1.1.0)
   '@types/lodash':
     specifier: ^4.14.191
     version: 4.14.191
@@ -110,15 +110,15 @@ packages:
       - debug
     dev: true
 
-  /@botpress/cli@4.9.0(@bpinternal/zui@1.0.0):
-    resolution: {integrity: sha512-PArCSzbCyWA6MF6IXLk88dLyUI8BTVmFaUiLJKK7efOOAAN22iWJARDg0HonsQlCO1IH2SVcvmbvDjfTYFnrdg==}
+  /@botpress/cli@4.11.3(@bpinternal/zui@1.1.0):
+    resolution: {integrity: sha512-rVOuJYef0XWBhzDvSvCqwzKvBk0oKDehY9+DEOQb1t2pWtqXtghrzS/DLRyFvPfuXr23ykY/r2pFtVRBVuQeCg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.7.2
       '@botpress/chat': 0.5.1
-      '@botpress/client': 1.15.3
-      '@botpress/sdk': 4.11.0(@bpinternal/zui@1.0.0)(esbuild@0.16.17)
+      '@botpress/client': 1.18.0
+      '@botpress/sdk': 4.14.3(@bpinternal/zui@1.1.0)(esbuild@0.16.17)
       '@bpinternal/const': 0.1.0
       '@bpinternal/tunnel': 0.1.17
       '@bpinternal/yargs-extra': 0.0.3
@@ -163,8 +163,8 @@ packages:
       - debug
     dev: false
 
-  /@botpress/client@1.15.3:
-    resolution: {integrity: sha512-B9jVeE3htq/Pw6levCggkvCQNbYJyt9bBAofmiDOPMhEMpArrJa4ECQMshxn6qD1MV6Xxo6tZxPvqgn5HAkSnw==}
+  /@botpress/client@1.18.0:
+    resolution: {integrity: sha512-0rKRgzJNwhSs0VFhftyj5LszS7puhhOngUmQKks2tk7CtVGEE6p0il/rhT8jz6ObIWAnKUFkDJgRNV9YWqJogQ==}
     engines: {node: '>=18.0.0'}
     dependencies:
       axios: 1.7.3
@@ -174,18 +174,18 @@ packages:
     transitivePeerDependencies:
       - debug
 
-  /@botpress/sdk@4.11.0(@bpinternal/zui@1.0.0)(esbuild@0.16.17):
-    resolution: {integrity: sha512-jPxHASaBUeW2+NevRdra37Q1tvqmPfmzhAlnJflros2dV+rSe/gUs5VGDJWQrxyEcCll4Qeg5CpyloJ5tb0Uww==}
+  /@botpress/sdk@4.14.3(@bpinternal/zui@1.1.0)(esbuild@0.16.17):
+    resolution: {integrity: sha512-vXwbBCIOFb350Ws80QP8tK2SaoDjsAELepYvwZUue3eTTEzFyKTBXoaGaY8zCcRRCqsyCgq4S48jIvwrIk638Q==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      '@bpinternal/zui': ^1.0.0
+      '@bpinternal/zui': ^1.0.1
       esbuild: ^0.16.12
     peerDependenciesMeta:
       esbuild:
         optional: true
     dependencies:
-      '@botpress/client': 1.15.3
-      '@bpinternal/zui': 1.0.0
+      '@botpress/client': 1.18.0
+      '@bpinternal/zui': 1.1.0
       browser-or-node: 2.1.1
       esbuild: 0.16.17
     transitivePeerDependencies:
@@ -221,8 +221,8 @@ packages:
       yn: 4.0.0
     dev: true
 
-  /@bpinternal/zui@1.0.0:
-    resolution: {integrity: sha512-X58KuXe66+oVY9ckODqBGRuQLbQdG0sMjZh+Vk2UdAsG91nZS2g3AND/0sDuqTvnfx343FuwJnvspiXv0Zkiug==}
+  /@bpinternal/zui@1.1.0:
+    resolution: {integrity: sha512-uEI6AHrAasfTPMNaeWjVhb2ssspPt7qGjOsjXTDSQ400feZ2qkvzjstRPBMh8105Pb1Qd+o6YMmofnT+dweU/A==}
     engines: {node: '>=16.0.0', pnpm: 8.6.2}
 
   /@cspotcode/source-map-support@0.8.1:
