@@ -65,7 +65,7 @@ export class IntercomApi {
     return this.makeRequest('POST', '/contacts', contactData);
   }
 
-  public async createConversation(intercomContactId: string, email: string): Promise<any> {
+  public async createConversation(intercomContactId: string, email: string, description: string): Promise<any> {
     validateRequiredParams({ intercomContactId, email }, 'createConversation');
     
     this.logger.forBot().info(`Creating Intercom conversation with contact ID: ${intercomContactId} for email: ${email}`);
@@ -75,7 +75,7 @@ export class IntercomApi {
         type: "user",
         id: intercomContactId
       },
-      body: "Botpress HITL Started for " + email
+      body: "Botpress HITL Started for " + email + " with description: " + description
     };
     
     return this.makeRequest('POST', '/conversations', conversationData);
