@@ -10,8 +10,8 @@
   },
   "private": true,
   "dependencies": {
-    "@botpress/client": "0.45.0",
-    "@botpress/sdk": "3.2.0",
+    "@botpress/client": "1.21.0",
+    "@botpress/sdk": "4.15.2",
     "axios": "^1.8.1",
     "zod": "^3.24.2"
   },
