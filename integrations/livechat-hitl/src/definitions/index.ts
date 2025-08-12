@@ -13,6 +13,7 @@ export const states = {
   livechatToken: {
     type: "conversation",
     schema: z.object({
+      livechatConversationId: z.string(),
       customerAccessToken: z.string(),
     }),
   },
