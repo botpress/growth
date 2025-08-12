@@ -262,7 +262,7 @@ export class HubSpotApi {
           maxTotalFileAttachmentSizeBytes: 1000000,
           allowedFileAttachmentMimeTypes: ['image/png']
         },
-        channelAccountConnectionRedirectUrl: "https://yourdomain.com/redirect",
+        channelAccountConnectionRedirectUrl: "https://example.com",
         channelDescription: "Botpress custom channel integration.",
         channelLogoUrl: "https://i.imgur.com/CAu3kb7.png"
       }
