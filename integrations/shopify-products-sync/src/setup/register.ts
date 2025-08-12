@@ -37,21 +37,6 @@ async function syncProducts(ctx: IntegrationContext, client: bp.Client, logger: 
   logger.forBot().info('Product sync complete for shop:', ctx.configuration.shopDomain)
 }
 
-async function syncKb(ctx: IntegrationContext, client: bp.Client, logger: IntegrationLogger) {
-  logger.forBot().info('Syncing Shopify products to BP KB for shop:', ctx.configuration.shopDomain)
-  await actions.syncKb({
-    ctx,
-    client,
-    logger,
-    input: {
-      knowledgeBaseId: ctx.configuration.knowledgeBaseId,
-    },
-    type: 'syncKb',
-    metadata: { setCost: (_cost: number) => {} },
-  })
-  logger.forBot().info('KB sync complete for shop:', ctx.configuration.shopDomain)
-}
-
 async function setupWebhooks(ctx: IntegrationContext, logger: IntegrationLogger, webhookUrl: string) {
   const shopifyClient = getShopifyClient(ctx.configuration)
   logger.forBot().info(`Setting up webhooks for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}`)
@@ -78,7 +63,6 @@ export const register: RegisterFunction = async ({ ctx, logger, webhookUrl, clie
   try {
     await setupTable(client, logger)
     await syncProducts(ctx, client, logger)
-    await syncKb(ctx, client, logger)
     await setupWebhooks(ctx, logger, webhookUrl)
     logger.forBot().info(`Shopify integration registered and products synced successfully for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}`)
   } catch (error) {
