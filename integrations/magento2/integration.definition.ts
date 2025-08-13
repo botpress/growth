@@ -3,12 +3,13 @@ import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '1.0.5',
+  version: '1.0.6',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {
     schema: z.object({
       magento_domain: z.string().describe('The domain of the Magento instance (example www.test-domain.com)'),
+      store_code: z.string().optional().default('/all').describe('The store code to use for the request, default is /all'),
       consumer_key: z.string().describe('The OAuth Consumer Key'),
       consumer_secret: z.string().describe('The OAuth Consumer Secret'),
       access_token: z.string().describe('The OAuth Access Token'),

@@ -56,12 +56,52 @@ This Botpress integration allows seamless interaction with **Magento 2 (Adobe Co
 2. Find and enable the **Magento 2** integration
 3. Enter the following configuration:
    - **Magento Domain URL** (e.g., `www.yourstore.com`)
+   - **Store Code** (optional, defaults to `/all` - see Store Code section below)
    - **Consumer Key**
    - **Consumer Secret**
    - **Access Token**
    - **Access Token Secret**
    - **Botpress Personal Access Token (PAT)** for Tables API access
 4. Click **Save Configuration**
+
+> **Note:** The integration will automatically detect your store's base currency during the first sync operation. No additional currency configuration is required.
+
+---
+
+## Store Code Configuration
+
+The **Store Code** parameter allows you to specify which Magento store view to use for API requests. This is particularly useful for multi-store Magento installations.
+
+### Default Behavior
+
+- **Default Value:** `/all` (accesses all store views)
+- **When to use:** Single-store installations or when you want to access products across all store views
+
+### Multi-Store Configuration
+
+For multi-store Magento installations, you can specify a specific store code:
+
+- **Store Code Examples:**
+  - `/default` - Default store view
+  - `/en` - English store view
+  - `/fr` - French store view
+  - `/de` - German store view
+  - `/us` - US store view
+
+### How to Find Your Store Code
+
+1. In your **Magento Admin Panel**, navigate to **Stores > All Stores**
+2. Click on the **Store View** tab
+3. The **Code** column shows the store codes available for your installation
+4. Use the code with a leading slash (e.g., `/en` for the English store view)
+
+### Usage Examples
+
+- **Single Store:** Leave as default (`/all`) or use `/default`
+- **Multi-Store English:** Use `/en` to access only English store products
+- **Multi-Store French:** Use `/fr` to access only French store products
+
+> **Note:** The store code affects all API requests, including product retrieval, stock information, and sync operations. Make sure to use the appropriate store code for your use case.
 
 ---
 

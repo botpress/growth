@@ -10,7 +10,7 @@ export default new bp.Integration({
     logger.forBot().info('Registering Magento2 integration')
     
     try {
-      const { magento_domain, consumer_key, consumer_secret, access_token, access_token_secret, user_agent } =
+      const { magento_domain, consumer_key, consumer_secret, access_token, access_token_secret, user_agent, store_code } =
         ctx.configuration
 
       const oauth = new OAuth({
@@ -29,7 +29,7 @@ export default new bp.Integration({
         secret: access_token_secret,
       }
 
-      const testUrl = `https://${magento_domain}/rest/all/V1/directory/currency`
+      const testUrl = `https://${magento_domain}/rest${store_code}/V1/directory/currency`
 
       const requestData = {
         url: testUrl,

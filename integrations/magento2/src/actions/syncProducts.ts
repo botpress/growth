@@ -58,6 +58,7 @@ export async function syncProductsCore({ ctx, input, logger }: { ctx: any, input
     access_token_secret,
     user_agent,
     botpress_pat,
+    store_code,
   } = ctx.configuration
 
   const {
@@ -152,7 +153,7 @@ export async function syncProductsCore({ ctx, input, logger }: { ctx: any, input
 
           for (const attrCode of attributeFields) {
             try {
-              const attrUrl = `https://${magento_domain}/rest/all/V1/products/attributes/${attrCode}`
+              const attrUrl = `https://${magento_domain}/rest${store_code}/V1/products/attributes/${attrCode}`
               const attrResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: attrUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: attrUrl, method: 'GET' }, token)), ...headers } }), log)
               const attribute = ProductAttributeSchema.parse(attrResponse.data)
               if (attribute.options && attribute.options.length > 0) {
@@ -239,7 +240,7 @@ export async function syncProductsCore({ ctx, input, logger }: { ctx: any, input
         log.info('Fetching attribute mappings for custom attributes')
         for (const attrCode of customAttributeCodes) {
           try {
-            const attrUrl = `https://${magento_domain}/rest/all/V1/products/attributes/${attrCode}`
+            const attrUrl = `https://${magento_domain}/rest${store_code}/V1/products/attributes/${attrCode}`
             const attrResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: attrUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: attrUrl, method: 'GET' }, token)), ...headers } }), log)
             const attribute = ProductAttributeSchema.parse(attrResponse.data)
             if (attribute.options && attribute.options.length > 0) {
@@ -272,7 +273,7 @@ export async function syncProductsCore({ ctx, input, logger }: { ctx: any, input
 
       const pageSize = 50
       const searchCriteria = `searchCriteria[pageSize]=${pageSize}&searchCriteria[currentPage]=${currentPage}${filterCriteria ? `&${filterCriteria}` : ''}`
-      const productsUrl = `https://${magento_domain}/rest/all/V1/products?${searchCriteria}`
+      const productsUrl = `https://${magento_domain}/rest${store_code}/V1/products?${searchCriteria}`
       
       log.info(`Fetching page ${currentPage} from: ${productsUrl}`)
 
@@ -319,7 +320,8 @@ export async function syncProductsCore({ ctx, input, logger }: { ctx: any, input
         onTimeLimit: () => {
           log.info(`Time limit reached while processing products. Will resume from current position.`)
           return true
-        }
+        },
+        store_code,
       })
 
       if (rowsToInsert.length > 0) {
@@ -450,9 +452,10 @@ async function processProducts(
         startTime: number
         MAX_EXECUTION_TIME_MS: number
         onTimeLimit: () => boolean
+        store_code: string
     }
 ) : Promise<any[]> {
-    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema, startTime, MAX_EXECUTION_TIME_MS, onTimeLimit } = config
+    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema, startTime, MAX_EXECUTION_TIME_MS, onTimeLimit, store_code } = config
     const rowsToInsert: any[] = []
 
     for (const product of products) {
@@ -470,7 +473,7 @@ async function processProducts(
                 stockQty = product.extension_attributes.stock_item.qty || 0
                 isInStock = product.extension_attributes.stock_item.is_in_stock || false
             } else {
-                const stockUrl = `https://${magento_domain}/rest/all/V1/stockItems/${encodeURIComponent(product.sku)}`
+                const stockUrl = `https://${magento_domain}/rest${store_code}/V1/stockItems/${encodeURIComponent(product.sku)}`
                 const stockResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: stockUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: stockUrl, method: 'GET' }, token)), ...headers } }), logger)
                 const stockData = StockItemSchema.parse(stockResponse.data)
                 stockQty = stockData.qty
@@ -480,7 +483,7 @@ async function processProducts(
             let averageRating = 0
             let reviewCount = 0
             if (retreive_reviews) {
-              const reviewsUrl = `https://${magento_domain}/rest/all/V1/products/${encodeURIComponent(product.sku)}/reviews`
+              const reviewsUrl = `https://${magento_domain}/rest${store_code}/V1/products/${encodeURIComponent(product.sku)}/reviews`
               try {
                   const reviewsResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: reviewsUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: reviewsUrl, method: 'GET' }, token)), ...headers } }), logger)
                   const reviews = ReviewsArraySchema.parse(reviewsResponse.data)
