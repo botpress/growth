@@ -3,7 +3,7 @@ import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '1.0.0',
+  version: '1.0.5',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {
@@ -58,16 +58,18 @@ export default new IntegrationDefinition({
       input: {
         schema: z.object({
           table_name: z.string().describe('Name of the Botpress table to sync products to (will be created automatically if it doesn\'t exist)'),
-          custom_attributes: z.string().optional().describe('Comma-separated list of custom product attributes to sync (e.g., "color,tent_outer_material,tent_type")'),
+          custom_columns_to_add_to_table: z.string().optional().describe('Comma-separated list of custom product attributes to sync (e.g., "color,tent_outer_material,tent_type")'),
           filters_json: z.string().optional().describe('JSON array of filter objects, e.g. [{"field": "price", "condition": "gt", "value": "100"}]'),
-          _currentPage: z.number().optional().describe('Current page number'),
-          _totalCount: z.number().optional().describe('Total number of products'),
-          _tableId: z.string().optional().describe('ID of the Botpress table'),
-          _runId: z.string().optional().describe('Sync run ID'),
-          _customAttributeCodes: z.array(z.string()).optional().describe('Custom attribute codes'),
-          _attributeMappings: z.string().optional().describe('Attribute mappings as a JSON string'),
-          _filterCriteria: z.string().optional().describe('Filter criteria string'),
-          _currentPageProductIndex: z.number().optional().describe('Current product index within the page'),
+          retreive_reviews: z.boolean().optional().describe('Whether to retrieve reviews from Magento. To retrieve reviews, you must install the Reviews API module.'),
+          // Recursive inputs for webhook continuation
+          _currentPage: z.number().optional().describe('Current page number (used internally for webhook continuation)'),
+          _totalCount: z.number().optional().describe('Total number of products (used internally for webhook continuation)'),
+          _tableId: z.string().optional().describe('ID of the Botpress table (used internally for webhook continuation)'),
+          _runId: z.string().optional().describe('Sync run ID (used internally for webhook continuation)'),
+          _customAttributeCodes: z.array(z.string()).optional().describe('Custom attribute codes (used internally for webhook continuation)'),
+          _attributeMappings: z.string().optional().describe('Attribute mappings as a JSON string (used internally for webhook continuation)'),
+          _filterCriteria: z.string().optional().describe('Filter criteria string (used internally for webhook continuation)'),
+          _currentPageProductIndex: z.number().optional().describe('Current product index within the page (used internally for webhook continuation)'),
         }),
       },
       output: {
@@ -88,8 +90,9 @@ export default new IntegrationDefinition({
       description: 'Triggered to continue syncing products from Magento in batches',
       schema: z.object({
         table_name: z.string().describe('Name of the Botpress table to sync products to'),
-        custom_attributes: z.string().optional().describe('Comma-separated list of custom product attributes to sync'),
+        custom_columns_to_add_to_table: z.string().optional().describe('Comma-separated list of custom product attributes to sync'),
         filters_json: z.string().optional().describe('JSON array of filter objects'),
+        retreive_reviews: z.boolean().optional().describe('Whether to retrieve reviews from Magento'),
         _currentPage: z.number().optional().describe('Current page number'),
         _totalCount: z.number().optional().describe('Total number of products'),
         _tableId: z.string().optional().describe('ID of the Botpress table'),

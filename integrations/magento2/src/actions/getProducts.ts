@@ -92,7 +92,7 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
   }
 
   const searchCriteriaString = filterCriteria;
-  const url = `https://${magento_domain}/rest/default/V1/products?${searchCriteriaString}`;
+  const url = `https://${magento_domain}/rest/all/V1/products?${searchCriteriaString}`;
 
   logger.forBot().info(`Constructed API URL: ${url}`)
 

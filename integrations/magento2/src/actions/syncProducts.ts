@@ -48,7 +48,8 @@ function toMagentoAttributeCode(label: string): string {
     .replace(/[^a-z0-9_]/g, '') // remove non-alphanumeric/underscore
 }
 
-export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async ({ ctx, input, logger, client }) => {
+// Core sync logic that can be called directly
+export async function syncProductsCore({ ctx, input, logger }: { ctx: any, input: any, logger: any }) {
   const {
     magento_domain,
     consumer_key,
@@ -61,8 +62,9 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
 
   const {
     table_name,
-    custom_attributes,
+    custom_columns_to_add_to_table,
     filters_json,
+    retreive_reviews,
     // Recursive inputs
     _currentPage,
     _totalCount,
@@ -133,7 +135,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
 
     if (isInitialRun) {
       log.info('Initial run detected. Setting up table and attributes.')
-      customAttributeCodes = (custom_attributes || '')
+      customAttributeCodes = (custom_columns_to_add_to_table || '')
         .split(',')
         .map((attr: string) => toMagentoAttributeCode(attr))
         .filter((attr: string) => attr.length > 0)
@@ -150,7 +152,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
 
           for (const attrCode of attributeFields) {
             try {
-              const attrUrl = `https://${magento_domain}/rest/default/V1/products/attributes/${attrCode}`
+              const attrUrl = `https://${magento_domain}/rest/all/V1/products/attributes/${attrCode}`
               const attrResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: attrUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: attrUrl, method: 'GET' }, token)), ...headers } }), log)
               const attribute = ProductAttributeSchema.parse(attrResponse.data)
               if (attribute.options && attribute.options.length > 0) {
@@ -237,7 +239,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         log.info('Fetching attribute mappings for custom attributes')
         for (const attrCode of customAttributeCodes) {
           try {
-            const attrUrl = `https://${magento_domain}/rest/default/V1/products/attributes/${attrCode}`
+            const attrUrl = `https://${magento_domain}/rest/all/V1/products/attributes/${attrCode}`
             const attrResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: attrUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: attrUrl, method: 'GET' }, token)), ...headers } }), log)
             const attribute = ProductAttributeSchema.parse(attrResponse.data)
             if (attribute.options && attribute.options.length > 0) {
@@ -270,7 +272,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
 
       const pageSize = 50
       const searchCriteria = `searchCriteria[pageSize]=${pageSize}&searchCriteria[currentPage]=${currentPage}${filterCriteria ? `&${filterCriteria}` : ''}`
-      const productsUrl = `https://${magento_domain}/rest/default/V1/products?${searchCriteria}`
+      const productsUrl = `https://${magento_domain}/rest/all/V1/products?${searchCriteria}`
       
       log.info(`Fetching page ${currentPage} from: ${productsUrl}`)
 
@@ -302,7 +304,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
       }
       const availableColumns = Object.keys(tableSchema.properties)
 
-      const rowsToInsert = await processProducts(products.slice(currentPageProductIndex), {
+      const rowsToInsert = await processProducts(retreive_reviews, products.slice(currentPageProductIndex), {
         logger: log,
         magento_domain,
         oauth,
@@ -345,11 +347,28 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
     }
 
     if (hasMorePages) {
-      log.info('Time limit reached. Creating magentoSyncContinue event for next batch.')
+      log.info('Time limit reached. Creating magentoSyncContinue webhook for next batch.')
+      
+      // Check if webhookId is available
+      if (!ctx.webhookId) {
+        log.error('No webhook ID available. Cannot continue sync automatically.')
+        return {
+          success: false,
+          synced_count: ((currentPage - 1) * 50) + currentPageProductIndex,
+          total_count: totalCount,
+          table_name,
+          error: 'No webhook ID available for continuation',
+          status: 'Failed - No Webhook'
+        }
+      }
+      
       try {
-        await client.createEvent({
+        const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`
+        log.info(`Attempting to call webhook: ${webhookUrl}`)
+        
+        const payload = {
           type: 'magentoSyncContinue',
-          payload: {
+          data: {
             ...input,
             _currentPage: currentPage,
             _totalCount: totalCount,
@@ -359,11 +378,21 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
             _attributeMappings: typeof _attributeMappings === 'string' ? _attributeMappings : JSON.stringify(attributeMappings),
             _filterCriteria: filterCriteria,
             _currentPageProductIndex: currentPageProductIndex,
-          },
-        } as any)
-        log.info('Successfully created magentoSyncContinue event for continued sync.')
+          }
+        };
+
+        log.info(`Webhook payload: ${JSON.stringify(payload)}`)
+        const response = await axios.post(webhookUrl, payload)
+        log.info(`Webhook response status: ${response.status}`)
+
+        log.info('Successfully called webhook to continue sync.')
       } catch (err: any) {
-        log.error('Failed to create magentoSyncContinue event for continued sync.', err)
+        log.error('Failed to call webhook to continue sync.', err)
+        if (axios.isAxiosError(err)) {
+          log.error(`Webhook HTTP Status: ${err.response?.status}`)
+          log.error(`Webhook Response: ${JSON.stringify(err.response?.data)}`)
+          log.error(`Webhook URL: ${err.config?.url}`)
+        }
       }
       return {
         success: true,
@@ -401,7 +430,12 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
   }
 }
 
+export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async ({ ctx, input, logger, client: _client }) => {
+  return syncProductsCore({ ctx, input, logger })
+}
+
 async function processProducts(
+    retreive_reviews: boolean,
     products: ProductData[],
     config: {
         logger: bp.Logger
@@ -436,29 +470,31 @@ async function processProducts(
                 stockQty = product.extension_attributes.stock_item.qty || 0
                 isInStock = product.extension_attributes.stock_item.is_in_stock || false
             } else {
-                const stockUrl = `https://${magento_domain}/rest/default/V1/stockItems/${encodeURIComponent(product.sku)}`
+                const stockUrl = `https://${magento_domain}/rest/all/V1/stockItems/${encodeURIComponent(product.sku)}`
                 const stockResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: stockUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: stockUrl, method: 'GET' }, token)), ...headers } }), logger)
                 const stockData = StockItemSchema.parse(stockResponse.data)
                 stockQty = stockData.qty
                 isInStock = stockData.is_in_stock
             }
 
-            const reviewsUrl = `https://${magento_domain}/rest/default/V1/products/${encodeURIComponent(product.sku)}/reviews`
             let averageRating = 0
             let reviewCount = 0
-            try {
-                const reviewsResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: reviewsUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: reviewsUrl, method: 'GET' }, token)), ...headers } }), logger)
-                const reviews = ReviewsArraySchema.parse(reviewsResponse.data)
-                reviewCount = reviews.length
-                if (reviewCount > 0) {
-                    const totalRating = reviews.reduce((sum, review) => {
-                        const ratingObj = Array.isArray(review.ratings) && review.ratings.length > 0 ? review.ratings[0] : null
-                        return sum + (ratingObj ? Number(ratingObj.value) : 0)
-                    }, 0)
-                    averageRating = Math.round((totalRating / reviewCount) * 10) / 10
-                }
-            } catch (e) {
-                logger.warn(`Could not fetch reviews for product ${product.sku}`)
+            if (retreive_reviews) {
+              const reviewsUrl = `https://${magento_domain}/rest/all/V1/products/${encodeURIComponent(product.sku)}/reviews`
+              try {
+                  const reviewsResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: reviewsUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: reviewsUrl, method: 'GET' }, token)), ...headers } }), logger)
+                  const reviews = ReviewsArraySchema.parse(reviewsResponse.data)
+                  reviewCount = reviews.length
+                  if (reviewCount > 0) {
+                      const totalRating = reviews.reduce((sum, review) => {
+                          const ratingObj = Array.isArray(review.ratings) && review.ratings.length > 0 ? review.ratings[0] : null
+                          return sum + (ratingObj ? Number(ratingObj.value) : 0)
+                      }, 0)
+                      averageRating = Math.round((totalRating / reviewCount) * 10) / 10
+                  }
+              } catch (e) {
+                  logger.warn(`Could not fetch reviews for product ${product.sku}`)
+              }
             }
 
             let imageUrl = ''

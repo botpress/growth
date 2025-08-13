@@ -1,5 +1,5 @@
 import * as sdk from '@botpress/sdk'
-import { getProducts, getStockItem, syncProducts } from './actions'
+import { getProducts, getStockItem, syncProducts, syncProductsCore } from './actions'
 import * as bp from '.botpress'
 import axios from 'axios'
 import crypto from 'crypto'
@@ -72,5 +72,45 @@ export default new bp.Integration({
     syncProducts,
   },
   channels: {},
-  handler: async ({}) => {},
+  handler: async ({ req, logger, ctx }) => {
+    try {
+      if (!req.body) {
+        logger.forBot().error(`Request body is missing. Bot: ${ctx.botId}, Integration: ${ctx.integrationId}. The incoming request did not contain a body. Request details: ${JSON.stringify(req)}`);
+        return;
+      }
+
+      const body = JSON.parse(req.body);
+
+      if (body.type === 'magentoSyncContinue') {
+        logger.forBot().info(`Magento sync continue event received: ${JSON.stringify(body)}`)
+
+        try {
+          const { table_name, custom_attributes, filters_json, _currentPage, _totalCount, _tableId, _runId, _customAttributeCodes, _attributeMappings, _filterCriteria, _currentPageProductIndex } = body.data
+          const result = await syncProductsCore({
+            ctx,
+            input: {
+              table_name,
+              custom_attributes,
+              filters_json,
+              _currentPage,
+              _totalCount,
+              _tableId,
+              _runId,
+              _customAttributeCodes,
+              _attributeMappings,
+              _filterCriteria,
+              _currentPageProductIndex,
+            },
+            logger,
+          })
+          
+          logger.forBot().info(`Sync result: ${JSON.stringify(result)}`)
+        } catch (error) {
+          logger.forBot().error(`Error syncing products: ${error}`)
+        }
+      }
+    } catch (error) {
+      logger.forBot().error(`Unexpected error in handler: ${error}`)
+    }
+  },
 })
