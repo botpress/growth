@@ -1,0 +1,377 @@
+import { ApifyClient, ApifyApiError } from 'apify-client';
+import * as bp from '.botpress';
+
+export class ApifyApi {
+  private client: ApifyClient;
+  private bpClient: bp.Client;
+  private logger: any;
+
+  constructor(apiToken: string, bpClient: bp.Client, logger: any) {
+    this.client = new ApifyClient({
+      token: apiToken,
+      maxRetries: 8,
+      minDelayBetweenRetriesMillis: 500,
+      timeoutSecs: 360, // 6 minutes timeout
+    });
+    this.bpClient = bpClient;
+    this.logger = logger;
+  }
+
+  /**
+   * Starts a crawler run asynchronously and returns the run ID
+   * Use this with webhooks for production crawling
+   */
+  async startCrawlerRun(params: {
+    startUrls: string[];
+    excludeUrlGlobs?: string[];
+    includeUrlGlobs?: string[];
+    maxCrawlPages?: number;
+    saveMarkdown?: boolean;
+    htmlTransformer?: 'readableText' | 'readableTextIfPossible' | 'minimal' | 'none';
+    removeElementsCssSelector?: string;
+    crawlerType?: 'playwright:adaptive' | 'playwright:firefox' | 'cheerio' | 'jsdom' | 'playwright:chrome';
+    expandClickableElements?: boolean;
+    headers?: Record<string, string>;
+    rawInputJsonOverride?: string;
+  }) {
+    try {
+      // Prepare the input for the Website Content Crawler
+      let input: any;
+      
+      if (params.rawInputJsonOverride) {
+        // Use JSON override if provided - gives user full control
+        input = JSON.parse(params.rawInputJsonOverride);
+        // Ensure startUrls is properly formatted
+        if (input.startUrls && Array.isArray(input.startUrls)) {
+          input.startUrls = input.startUrls.map((url: any) => 
+            typeof url === 'string' ? { url } : url
+          );
+        }
+      } else {
+        // Use individual parameters for simple use cases
+        input = {
+          startUrls: params.startUrls.map(url => ({ url })),
+          excludeUrlGlobs: params.excludeUrlGlobs || [],
+          includeUrlGlobs: params.includeUrlGlobs || ['**/*'],
+          maxCrawlPages: params.maxCrawlPages || 10,
+          saveMarkdown: params.saveMarkdown ?? false, 
+          htmlTransformer: params.htmlTransformer || 'readableTextIfPossible',
+          removeElementsCssSelector: params.removeElementsCssSelector || '',
+          crawlerType: params.crawlerType || 'playwright:firefox',
+          expandClickableElements: params.expandClickableElements || false,
+        };
+      }
+
+      if (params.headers && Object.keys(params.headers).length > 0) {
+        input.headers = params.headers;
+      }
+
+      this.logger.forBot().info('Starting Apify Website Content Crawler with input:', JSON.stringify(input, null, 2));
+
+      const run = await this.client.actor('apify/website-content-crawler').call(input, { waitSecs: 0 });
+
+      if (!run || !run.id) {
+        throw new Error('Failed to start crawler run');
+      }
+
+      this.logger.forBot().info(`Crawler run started with ID: ${run.id}`);
+
+      return {
+        success: true,
+        message: 'Crawler run started successfully',
+        data: {
+          runId: run.id,
+          status: run.status,
+        },
+      };
+    } catch (error) {
+      this.logger.forBot().error('Error in startCrawlerRun:', error);
+      
+      if (error instanceof ApifyApiError) {
+        const { message, type, statusCode, clientMethod } = error;
+        this.logger.forBot().error('Apify API Error:', { message, type, statusCode, clientMethod });
+        
+        return {
+          success: false,
+          message: `Apify API Error: ${message}`,
+          data: {
+            error: message,
+            type,
+            statusCode,
+            clientMethod,
+          },
+        };
+      }
+
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        data: {
+          error: error instanceof Error ? error.message : 'Unknown error occurred',
+        },
+      };
+    }
+  }
+
+  async getRunStatus(runId: string) {
+    try {
+      const run = await this.client.run(runId).get();
+      
+      if (!run) {
+        return {
+          success: false,
+          message: 'Run not found',
+          data: {
+            runId,
+            error: 'Run not found',
+          },
+        };
+      }
+      
+      return {
+        success: true,
+        message: 'Run status retrieved successfully',
+        data: {
+          runId: run.id,
+          status: run.status,
+          startedAt: run.startedAt?.toISOString() || null,
+          finishedAt: run.finishedAt?.toISOString() || null,
+          defaultDatasetId: run.defaultDatasetId,
+        },
+      };
+    } catch (error) {
+      this.logger.forBot().error('Error in getRunStatus:', error);
+      
+      if (error instanceof ApifyApiError) {
+        const { message, type, statusCode, clientMethod } = error;
+        this.logger.forBot().error('Apify API Error:', { message, type, statusCode, clientMethod });
+        
+        return {
+          success: false,
+          message: `Apify API Error: ${message}`,
+          data: {
+            error: message,
+            type,
+            statusCode,
+            clientMethod,
+          },
+        };
+      }
+
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        data: {
+          error: error instanceof Error ? error.message : 'Unknown error occurred',
+        },
+      };
+    }
+  }
+
+  async getRunResults(runId: string, syncTargetPath?: string) {
+    try {
+      const run = await this.client.run(runId).get();
+      
+      if (!run) {
+        return {
+          success: false,
+          message: 'Run not found',
+          data: {
+            runId,
+            error: 'Run not found',
+          },
+        };
+      }
+      
+      if (run.status !== 'SUCCEEDED') {
+        return {
+          success: false,
+          message: `Run is not completed. Current status: ${run.status}`,
+          data: {
+            runId: run.id,
+            status: run.status,
+          },
+        };
+      }
+
+      if (!run.defaultDatasetId) {
+        throw new Error('No dataset ID found for completed run');
+      }
+
+      this.logger.forBot().info(`Getting results from dataset: ${run.defaultDatasetId}`);
+
+      const dataset = this.client.dataset(run.defaultDatasetId);
+      let allItems: any[] = [];
+      let offset = 0;
+      const limit = 1000; 
+
+      while (true) {
+        const { items, total } = await dataset.listItems({ limit, offset });
+        
+        this.logger.forBot().info(`Fetched ${items.length} items (offset: ${offset}, total: ${total})`);
+        
+        allItems.push(...items);
+        
+        // If there are no more items to fetch, exit the loading
+        if (offset + limit >= total) {
+          break;
+        }
+        
+        offset += limit;
+      }
+
+      this.logger.forBot().info(`Retrieved ${allItems.length} total items from dataset`);
+
+      let filesCreated = 0;
+      if (syncTargetPath) {
+        this.logger.forBot().info(`[GET RUN RESULTS] Starting file sync to path: ${syncTargetPath}`);
+        filesCreated = await this.syncContentToBotpress(allItems, syncTargetPath);
+        this.logger.forBot().info(`[GET RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
+      } else {
+        this.logger.forBot().info(`[GET RUN RESULTS] No syncTargetPath provided, skipping file creation`);
+      }
+
+      return {
+        success: true,
+        message: 'Run results retrieved successfully',
+        data: {
+          runId: run.id,
+          datasetId: run.defaultDatasetId,
+          itemsCount: allItems.length,
+          filesCreated,
+          syncTargetPath,
+        },
+      };
+    } catch (error) {
+      this.logger.forBot().error('Error in getRunResults:', error);
+      
+      if (error instanceof ApifyApiError) {
+        const { message, type, statusCode, clientMethod } = error;
+        this.logger.forBot().error('Apify API Error:', { message, type, statusCode, clientMethod });
+        
+        return {
+          success: false,
+          message: `Apify API Error: ${message}`,
+          data: {
+            error: message,
+            type,
+            statusCode,
+            clientMethod,
+          },
+        };
+      }
+
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        data: {
+          error: error instanceof Error ? error.message : 'Unknown error occurred',
+        },
+      };
+    }
+  }
+
+  private async syncContentToBotpress(items: any[], targetPath: string): Promise<number> {
+    this.logger.forBot().info(`[FILE SYNC] Starting file sync for ${items.length} items to path: ${targetPath}`);
+    let filesCreated = 0;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      this.logger.forBot().info(`[FILE SYNC] Processing item ${i + 1}/${items.length}:`, {
+        hasMarkdown: !!item?.markdown,
+        hasHtml: !!item?.html,
+        hasText: !!item?.text,
+        url: item?.url || item?.metadata?.url,
+        itemKeys: item ? Object.keys(item) : 'undefined'
+      });
+      
+      if (!item) {
+        this.logger.forBot().warn(`[FILE SYNC] Skipping item ${i}: Item is undefined`);
+        continue;
+      }
+      
+      try {
+        let content: string;
+        let extension: string;
+
+        if ((item as any).markdown) {
+          content = (item as any).markdown;
+          extension = 'md';
+          this.logger.forBot().info(`[FILE SYNC] Using markdown content (${content.length} chars)`);
+        } else if ((item as any).html) {
+          content = (item as any).html;
+          extension = 'html';
+          this.logger.forBot().info(`[FILE SYNC] Using HTML content (${content.length} chars)`);
+        } else if ((item as any).text) {
+          content = (item as any).text;
+          extension = 'txt';
+          this.logger.forBot().info(`[FILE SYNC] Using text content (${content.length} chars)`);
+        } else {
+          this.logger.forBot().warn(`[FILE SYNC] Skipping item ${i}: No content found. Item:`, item);
+          continue;
+        }
+
+        // Create filename based on URL or use index
+        const url = (item as any).url || (item as any).metadata?.url;
+        let filename: string;
+
+        if (url) {
+          try {
+            const urlObj = new URL(url);
+            let pathname = urlObj.pathname.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+            
+            // Remove leading underscore if present
+            pathname = pathname.replace(/^_+/, '');
+            
+            // Handle root URLs and empty pathnames
+            if (!pathname || pathname === '_' || pathname === '') {
+              filename = 'index';
+            } else {
+              filename = pathname;
+            }
+            
+            this.logger.forBot().info(`[FILE SYNC] Generated filename from URL: ${url} -> pathname: "${urlObj.pathname}" -> processed: "${pathname}" -> final: "${filename}"`);
+          } catch (urlError) {
+            this.logger.forBot().warn(`[FILE SYNC] Invalid URL, using index: ${url}`, urlError);
+            filename = `page-${i + 1}`;
+          }
+        } else {
+          this.logger.forBot().info(`[FILE SYNC] No URL found, using index-based filename`);
+          filename = `page-${i + 1}`;
+        }
+
+        // Ensure filename is not too long and has valid characters
+        filename = filename.substring(0, 100).replace(/[^a-zA-Z0-9_-]/g, '_');
+        const fullFilename = `${filename}.${extension}`;
+        const filePath = `${targetPath}/${fullFilename}`;
+
+        this.logger.forBot().info(`[FILE SYNC] Creating file: ${filePath}`);
+
+        const uploadResult = await this.bpClient.uploadFile({
+          key: filePath,
+          content: Buffer.from(content, 'utf8'),
+          contentType: extension === 'md' ? 'text/markdown' : 
+                      extension === 'html' ? 'text/html' : 'text/plain',
+        });
+
+        this.logger.forBot().info(`[FILE SYNC] File created successfully: ${filePath}`, uploadResult);
+        filesCreated++;
+      } catch (error) {
+        this.logger.forBot().error(`[FILE SYNC] Error creating file for item ${i}:`, error);
+        this.logger.forBot().error(`[FILE SYNC] Item details:`, item);
+      }
+    }
+
+    this.logger.forBot().info(`[FILE SYNC] File sync completed. Total files created: ${filesCreated}/${items.length}`);
+    return filesCreated;
+  }
+}
+
+export const getClient = (
+  apiToken: string,
+  bpClient: bp.Client,
+  logger: any
+) => {
+  return new ApifyApi(apiToken, bpClient, logger);
+};
