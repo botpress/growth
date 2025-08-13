@@ -12,7 +12,7 @@ import {
 export default new IntegrationDefinition({
   name: integrationName,
   title: "HubSpot Inbox HITL",
-  version: "4.0.1",
+  version: "4.0.2",
   icon: "icon.svg",
   description:
     "This integration allows your bot to use HubSpot as a HITL provider. Messages will appear in HubSpot Inbox.",
