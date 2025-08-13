@@ -33,7 +33,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       throw new RuntimeError("No Intercom contact ID found in user state");
     }
 
-    const createdConversation = await intercomClient.createConversation(intercomContactId, email);
+    const createdConversation = await intercomClient.createConversation(intercomContactId, email, description);
 
     if (!createdConversation.success || !createdConversation.data?.conversation_id) {
       logger.forBot().error(`Failed to create Intercom conversation. Response: ${JSON.stringify(createdConversation)}`);
