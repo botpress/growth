@@ -56,7 +56,7 @@ This Botpress integration allows seamless interaction with **Magento 2 (Adobe Co
 2. Find and enable the **Magento 2** integration
 3. Enter the following configuration:
    - **Magento Domain URL** (e.g., `www.yourstore.com`)
-   - **Store Code** (optional, defaults to `/all` - see Store Code section below)
+   - **Store Code** (optional, defaults to `all` - see Store Code section below)
    - **Consumer Key**
    - **Consumer Secret**
    - **Access Token**
@@ -74,7 +74,7 @@ The **Store Code** parameter allows you to specify which Magento store view to u
 
 ### Default Behavior
 
-- **Default Value:** `/all` (accesses all store views)
+- **Default Value:** `all` (accesses all store views)
 - **When to use:** Single-store installations or when you want to access products across all store views
 
 ### Multi-Store Configuration
@@ -97,9 +97,9 @@ For multi-store Magento installations, you can specify a specific store code:
 
 ### Usage Examples
 
-- **Single Store:** Leave as default (`/all`) or use `/default`
-- **Multi-Store English:** Use `/en` to access only English store products
-- **Multi-Store French:** Use `/fr` to access only French store products
+- **Single Store:** Leave as default (`all`) or use `default`
+- **Multi-Store English:** Use `en` to access only English store products
+- **Multi-Store French:** Use `fr` to access only French store products
 
 > **Note:** The store code affects all API requests, including product retrieval, stock information, and sync operations. Make sure to use the appropriate store code for your use case.
 
@@ -118,7 +118,7 @@ Retrieve products from your Magento catalog using flexible search criteria.
 **Filter by Price:**
 
 ```json
-[{ "field": "price", "condition": "gt", "value": "100" }]
+[{ "field": "price", "condition": "gt", "value": 100 }]
 ```
 
 **Filter by SKU:**
@@ -187,7 +187,7 @@ Automatically sync products from Magento to a Botpress table with intelligent sc
 | `table_name`                     | String  | Yes      | Name of the Botpress table to sync products to                |
 | `custom_columns_to_add_to_table` | String  | No       | Comma-separated list of custom product attributes             |
 | `filters_json`                   | String  | No       | JSON array of filter objects for selective syncing            |
-| `retreive_reviews`               | Boolean | No       | Whether to fetch and include product reviews (default: false) |
+| `retrieve_reviews`               | Boolean | No       | Whether to fetch and include product reviews (default: false) |
 
 #### **Webhook Continuation Setup**
 
@@ -210,8 +210,8 @@ The integration automatically creates a table with the following columns:
 | `thumbnail_url`  | text    | Thumbnail image URL                                                  |
 | `stock_qty`      | number  | Quantity in stock                                                    |
 | `is_in_stock`    | boolean | Whether the product is in stock                                      |
-| `average_rating` | number  | Average review rating (only populated if `retreive_reviews` is true) |
-| `review_count`   | number  | Number of reviews (only populated if `retreive_reviews` is true)     |
+| `average_rating` | number  | Average review rating (only populated if `retrieve_reviews` is true) |
+| `review_count`   | number  | Number of reviews (only populated if `retrieve_reviews` is true)     |
 
 #### **Usage Examples**
 
@@ -228,14 +228,14 @@ The integration automatically creates a table with the following columns:
 
 - **Table Name:** magento_products
 - **Custom Columns to Add to Table:** color,tent_type
-- **Filters JSON:** [{"field": "price", "condition": "gt", "value": "50"}]
+- **Filters JSON:** [{"field": "price", "condition": "gt", "value": 50}]
 
 **With Reviews Enabled:**
 
 - **Table Name:** magento_products
 - **Custom Columns to Add to Table:** color,brand
 - **Retrieve Reviews:** true
-- **Filters JSON:** [{"field": "price", "condition": "gt", "value": "100"}]
+- **Filters JSON:** [{"field": "price", "condition": "gt", "value": 100}]
 
 #### **Output**
 
@@ -259,20 +259,20 @@ When using `filters_json` in the sync action, you can use the following conditio
 | Condition | Description                                   | Example                                                          |
 | --------- | --------------------------------------------- | ---------------------------------------------------------------- |
 | `eq`      | Equals                                        | `{"field": "sku", "condition": "eq", "value": "24-MB01"}`        |
-| `neq`     | Not equal                                     | `{"field": "price", "condition": "neq", "value": "0"}`           |
-| `gt`      | Greater than                                  | `{"field": "price", "condition": "gt", "value": "100"}`          |
-| `gteq`    | Greater than or equal                         | `{"field": "price", "condition": "gteq", "value": "50"}`         |
-| `lt`      | Less than                                     | `{"field": "price", "condition": "lt", "value": "200"}`          |
-| `lteq`    | Less than or equal                            | `{"field": "price", "condition": "lteq", "value": "150"}`        |
-| `from`    | Beginning of a range (must be used with `to`) | `{"field": "price", "condition": "from", "value": "50"}`         |
-| `to`      | End of a range (must be used with `from`)     | `{"field": "price", "condition": "to", "value": "200"}`          |
+| `neq`     | Not equal                                     | `{"field": "price", "condition": "neq", "value": 0}`             |
+| `gt`      | Greater than                                  | `{"field": "price", "condition": "gt", "value": 100}`            |
+| `gteq`    | Greater than or equal                         | `{"field": "price", "condition": "gteq", "value": 50}`           |
+| `lt`      | Less than                                     | `{"field": "price", "condition": "lt", "value": 200}`            |
+| `lteq`    | Less than or equal                            | `{"field": "price", "condition": "lteq", "value": 150}`          |
+| `from`    | Beginning of a range (must be used with `to`) | `{"field": "price", "condition": "from", "value": 50}`           |
+| `to`      | End of a range (must be used with `from`)     | `{"field": "price", "condition": "to", "value": 200}`            |
 | `like`    | Like (supports SQL wildcard characters)       | `{"field": "name", "condition": "like", "value": "jacket"}`      |
 | `nlike`   | Not like                                      | `{"field": "name", "condition": "nlike", "value": "test"}`       |
 | `in`      | In (comma-separated list of values)           | `{"field": "sku", "condition": "in", "value": "SKU1,SKU2,SKU3"}` |
 | `nin`     | Not in (comma-separated list of values)       | `{"field": "sku", "condition": "nin", "value": "SKU1,SKU2"}`     |
 | `finset`  | A value within a set of values                | `{"field": "category_id", "condition": "finset", "value": "5"}`  |
 | `nfinset` | A value that is not within a set of values    | `{"field": "category_id", "condition": "nfinset", "value": "5"}` |
-| `moreq`   | More or equal                                 | `{"field": "price", "condition": "moreq", "value": "100"}`       |
+| `moreq`   | More or equal                                 | `{"field": "price", "condition": "moreq", "value": 100}`         |
 | `null`    | Is null                                       | `{"field": "description", "condition": "null"}`                  |
 | `notnull` | Not null                                      | `{"field": "color", "condition": "notnull"}`                     |
 
@@ -288,8 +288,8 @@ magentoProducts
 
 **Filters JSON:**
 [
-{ "field": "price", "condition": "gteq", "value": "50" },
-{ "field": "price", "condition": "lteq", "value": "200" }
+{ "field": "price", "condition": "gteq", "value": 50 },
+{ "field": "price", "condition": "lteq", "value": "200 }
 ]
 
 ---
@@ -331,8 +331,8 @@ magentoProducts
 
 ```json
 [
-  { "field": "price", "condition": "gteq", "value": "50" },
-  { "field": "price", "condition": "lteq", "value": "200" },
+  { "field": "price", "condition": "gteq", "value": 50 },
+  { "field": "price", "condition": "lteq", "value": 200 },
   { "field": "status", "condition": "eq", "value": "1" }
 ]
 ```
@@ -352,8 +352,8 @@ magentoProducts
 [
   { "field": "sku", "condition": "like", "value": "WSH%" },
   { "field": "sku", "condition": "like", "value": "WP%" },
-  { "field": "price", "condition": "from", "value": "40" },
-  { "field": "price", "condition": "to", "value": "49.99" }
+  { "field": "price", "condition": "from", "value": 40 },
+  { "field": "price", "condition": "to", "value": 49.99 }
 ]
 ```
 

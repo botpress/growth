@@ -24,7 +24,7 @@ export const getStockItem: bp.IntegrationProps['actions']['getStockItem'] = asyn
     secret: access_token_secret,
   }
 
-  const url = `https://${magento_domain}/rest${store_code}/V1/stockItems/${encodeURIComponent(input.sku)}`
+  const url = `https://${magento_domain}/rest/${store_code}/V1/stockItems/${encodeURIComponent(input.sku)}`
 
   const requestData = {
     url,

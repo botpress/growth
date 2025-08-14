@@ -1,5 +1,5 @@
 import * as sdk from '@botpress/sdk'
-import { getProducts, getStockItem, syncProducts, syncProductsCore } from './actions'
+import { getProducts, getStockItem, syncProducts, executeSyncProducts } from './actions'
 import * as bp from '.botpress'
 import axios from 'axios'
 import crypto from 'crypto'
@@ -29,7 +29,7 @@ export default new bp.Integration({
         secret: access_token_secret,
       }
 
-      const testUrl = `https://${magento_domain}/rest${store_code}/V1/directory/currency`
+      const testUrl = `https://${magento_domain}/rest/${store_code}/V1/directory/currency`
 
       const requestData = {
         url: testUrl,
@@ -86,7 +86,7 @@ export default new bp.Integration({
 
         try {
           const { table_name, custom_attributes, filters_json, _currentPage, _totalCount, _tableId, _runId, _customAttributeCodes, _attributeMappings, _filterCriteria, _currentPageProductIndex } = body.data
-          const result = await syncProductsCore({
+          const result = await executeSyncProducts({
             ctx,
             input: {
               table_name,
