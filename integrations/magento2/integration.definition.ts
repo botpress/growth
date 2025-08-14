@@ -3,12 +3,13 @@ import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '1.0.0',
+  version: '1.0.6',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {
     schema: z.object({
       magento_domain: z.string().describe('The domain of the Magento instance (example www.test-domain.com)'),
+      store_code: z.string().optional().default('all').describe('The store code to use for the request, default is all'),
       consumer_key: z.string().describe('The OAuth Consumer Key'),
       consumer_secret: z.string().describe('The OAuth Consumer Secret'),
       access_token: z.string().describe('The OAuth Access Token'),
@@ -58,16 +59,9 @@ export default new IntegrationDefinition({
       input: {
         schema: z.object({
           table_name: z.string().describe('Name of the Botpress table to sync products to (will be created automatically if it doesn\'t exist)'),
-          custom_attributes: z.string().optional().describe('Comma-separated list of custom product attributes to sync (e.g., "color,tent_outer_material,tent_type")'),
+          custom_columns_to_add_to_table: z.string().optional().describe('Comma-separated list of custom product attributes to sync (e.g., "color,tent_outer_material,tent_type")'),
           filters_json: z.string().optional().describe('JSON array of filter objects, e.g. [{"field": "price", "condition": "gt", "value": "100"}]'),
-          _currentPage: z.number().optional().describe('Current page number'),
-          _totalCount: z.number().optional().describe('Total number of products'),
-          _tableId: z.string().optional().describe('ID of the Botpress table'),
-          _runId: z.string().optional().describe('Sync run ID'),
-          _customAttributeCodes: z.array(z.string()).optional().describe('Custom attribute codes'),
-          _attributeMappings: z.string().optional().describe('Attribute mappings as a JSON string'),
-          _filterCriteria: z.string().optional().describe('Filter criteria string'),
-          _currentPageProductIndex: z.number().optional().describe('Current product index within the page'),
+          retrieve_reviews: z.boolean().optional().describe('Whether to retrieve reviews from Magento. To retrieve reviews, you must install the Reviews API module.'),
         }),
       },
       output: {
@@ -82,23 +76,5 @@ export default new IntegrationDefinition({
       },
     },
   },
-  events: {
-    magentoSyncContinue: {
-      title: 'Magento Sync Continue',
-      description: 'Triggered to continue syncing products from Magento in batches',
-      schema: z.object({
-        table_name: z.string().describe('Name of the Botpress table to sync products to'),
-        custom_attributes: z.string().optional().describe('Comma-separated list of custom product attributes to sync'),
-        filters_json: z.string().optional().describe('JSON array of filter objects'),
-        _currentPage: z.number().optional().describe('Current page number'),
-        _totalCount: z.number().optional().describe('Total number of products'),
-        _tableId: z.string().optional().describe('ID of the Botpress table'),
-        _runId: z.string().optional().describe('Sync run ID'),
-        _customAttributeCodes: z.array(z.string()).optional().describe('Custom attribute codes'),
-        _attributeMappings: z.string().optional().describe('Attribute mappings as a JSON string'),
-        _filterCriteria: z.string().optional().describe('Filter criteria string'),
-        _currentPageProductIndex: z.number().optional().describe('Current product index within the page'),
-      }),
-    },
-  },
+  events: {},
 })
