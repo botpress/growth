@@ -18,6 +18,8 @@ import { updateAppointment } from './update-appointment'
 import { createAppointment } from './create-appointment'
 import { deleteEvent } from './delete-event'
 import { makeApiCall } from './make-api-call'
+import { searchContacts } from './search-contacts'
+import { createNote } from './create-note'
 
 export default {
   createContact,
@@ -39,5 +41,7 @@ export default {
   updateAppointment,
   createAppointment,
   deleteEvent,
-  makeApiCall
+  makeApiCall,
+  searchContacts,
+  createNote
 }
