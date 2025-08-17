@@ -7,7 +7,7 @@ import { events, configuration, states, channels, user } from './src/definitions
 export default new IntegrationDefinition({
   name: integrationName,
   title: 'Intercom HITL',
-  version: '1.0.1',
+  version: '1.0.2',
   icon: 'icon.svg',
   description: 'This integration allows your bot to use Intercom as a HITL provider. Messages will appear in Intercom.',
   readme: 'hub.md',
@@ -16,8 +16,15 @@ export default new IntegrationDefinition({
   channels,
   events,
   user,
-}).extend(hitl, () => ({
-  entities: {},
+  entities: {
+    ticket: {
+      schema: z.object({}),
+    },
+  },
+}).extend(hitl, (self) => ({
+  entities: {
+    hitlSession: self.entities.ticket,
+  },
   channels: {
     hitl: {
       title: 'Intercom',

@@ -3,10 +3,10 @@
 // This file is generated. Do not edit it manually.
 
 import { z } from "@botpress/sdk";
-export const text = {
+export const audio = {
   schema: z
     .object({
-      text: z.string().min(1, undefined),
+      audioUrl: z.string().min(1, undefined),
       userId: z
         .optional(
           z
