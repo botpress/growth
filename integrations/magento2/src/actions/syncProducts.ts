@@ -174,16 +174,58 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
             return filter
           })
 
+          // Build Magento searchCriteria with grouping similar to getProducts
+          // - OR within the same field (multiple values for one attribute)
+          // - Separate price from/to into distinct groups for AND logic
           const filterGroups: string[] = []
-          filters.forEach((filter: any, idx: number) => {
+
+          const fieldGroups: Record<string, any[]> = {}
+          const separateGroups: any[] = []
+
+          filters.forEach((filter: any) => {
             if (!filter.field || !filter.condition) return
-            const filterGroup = `searchCriteria[filterGroups][${idx}][filters][0][field]=${encodeURIComponent(filter.field)}&searchCriteria[filterGroups][${idx}][filters][0][conditionType]=${filter.condition}`
-            if (filter.value && filter.condition !== 'notnull' && filter.condition !== 'null') {
-              filterGroups.push(`${filterGroup}&searchCriteria[filterGroups][${idx}][filters][0][value]=${encodeURIComponent(filter.value)}`)
-            } else {
-              filterGroups.push(filterGroup)
+            if (filter.field === 'price' && (filter.condition === 'from' || filter.condition === 'to')) {
+              separateGroups.push(filter)
+              return
             }
+            fieldGroups[filter.field] = fieldGroups[filter.field] || []
+            fieldGroups[filter.field]!.push(filter)
           })
+
+          let groupIndex = 0
+
+          Object.entries(fieldGroups).forEach(([_, fieldFilters]) => {
+            fieldFilters.forEach((filter: any, filterIndex: number) => {
+              const base = `searchCriteria[filterGroups][${groupIndex}][filters][${filterIndex}][field]=${encodeURIComponent(
+                filter.field
+              )}&searchCriteria[filterGroups][${groupIndex}][filters][${filterIndex}][condition_type]=${filter.condition}`
+              if (filter.value && filter.condition !== 'notnull' && filter.condition !== 'null') {
+                filterGroups.push(
+                  `${base}&searchCriteria[filterGroups][${groupIndex}][filters][${filterIndex}][value]=${encodeURIComponent(
+                    filter.value
+                  )}`
+                )
+              } else {
+                filterGroups.push(base)
+              }
+            })
+            groupIndex++
+          })
+
+          separateGroups.forEach((filter: any) => {
+            const base = `searchCriteria[filterGroups][${groupIndex}][filters][0][field]=${encodeURIComponent(
+              filter.field
+            )}&searchCriteria[filterGroups][${groupIndex}][filters][0][condition_type]=${filter.condition}`
+            if (filter.value && filter.condition !== 'notnull' && filter.condition !== 'null') {
+              filterGroups.push(
+                `${base}&searchCriteria[filterGroups][${groupIndex}][filters][0][value]=${encodeURIComponent(filter.value)}`
+              )
+            } else {
+              filterGroups.push(base)
+            }
+            groupIndex++
+          })
+
           if (filterGroups.length > 0) {
             filterCriteria = filterGroups.join('&')
           }
@@ -381,17 +423,26 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
         };
 
         log.info(`Webhook payload: ${JSON.stringify(payload)}`)
-        const response = await axios.post(webhookUrl, payload)
+        
+        // Use retry system for webhook call to handle transient failures
+        const response = await apiCallWithRetry(
+          () => axios.post(webhookUrl, payload),
+          log,
+          3, // maxRetries for webhook
+          1000 // initialDelay for webhook
+        )
+        
         log.info(`Webhook response status: ${response.status}`)
-
         log.info('Successfully called webhook to continue sync.')
       } catch (err: any) {
-        log.error('Failed to call webhook to continue sync.', err)
+        log.error('Failed to call webhook to continue sync after all retries.', err)
         if (axios.isAxiosError(err)) {
           log.error(`Webhook HTTP Status: ${err.response?.status}`)
           log.error(`Webhook Response: ${JSON.stringify(err.response?.data)}`)
           log.error(`Webhook URL: ${err.config?.url}`)
         }
+        // Don't throw here - we want to continue with the sync even if webhook fails
+        log.warn('Continuing sync despite webhook failure')
       }
       return {
         success: true,
