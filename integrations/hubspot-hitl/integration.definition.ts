@@ -33,13 +33,13 @@ export default new IntegrationDefinition({
   },
   channels: {
     hitl: {
-      title: "HubSpot",
-      description: "HubSpot HITL",
+      title: "HubSpot Inbox",
+      description: "HubSpot Inbox HITL",
       conversation: {
         tags: {
           id: {
-            title: "HubSpot Conversation Id",
-            description: "HubSpot Conversation Id",
+            title: "HubSpot Inbox Conversation Id",
+            description: "HubSpot Inbox Conversation Id",
           },
           userId: {
             title: "User ID",
