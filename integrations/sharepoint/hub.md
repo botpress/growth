@@ -2,7 +2,7 @@
 
 ## Overview
 
-The sharepoint library connector integration allows you to setup a connector between a document library in a sharepoint site and a KB in botpress.
+The sharepoint library connector integration allows you to set up a connector between a document library in a sharepoint site and a KB in botpress.
 
 ## Configuration
 
