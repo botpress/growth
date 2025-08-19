@@ -12,7 +12,7 @@ export const channels = {
         const hubspotConversationId = conversation.tags.id
 
         if (!hubspotConversationId?.length) {
-          logger.forBot().error('No HubSpot Conversation Id')
+          logger.forBot().error('No HubSpot Conversation ID')
           return
         }
         

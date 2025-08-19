@@ -17,7 +17,7 @@ export const channels = {
         const liveChatConversationId = conversation.tags.id
 
         if (!liveChatConversationId?.length) {
-          logger.forBot().error('No LiveChat Conversation Id')
+          logger.forBot().error('No LiveChat Conversation ID')
           return
         }
 

@@ -28,7 +28,7 @@ export const states = {
 export const user = {
   tags: {
     email: { description: 'Intercom Email', title: 'Intercom Email' },
-    intercomAdminId: { description: 'Intercom Admin Id', title: 'Intercom Admin Id' },
-    intercomConversationId: { description: 'Intercom Conversation Id', title: 'Intercom Conversation Id' }
+    intercomAdminId: { description: 'Intercom Admin ID', title: 'Intercom Admin ID' },
+    intercomConversationId: { description: 'Intercom Conversation ID', title: 'Intercom Conversation ID' }
   },
 } satisfies IntegrationDefinitionProps['user']

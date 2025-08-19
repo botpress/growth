@@ -27,7 +27,7 @@ export const states = {
 export const user = {
   tags: {
     email: { description: 'LiveChat Email', title: 'LiveChat Email' },
-    agentId: { description: 'LiveChat Agent Id', title: 'LiveChat Agent Id' },
-    livechatConversationId: { description: 'LiveChat Conversation Id', title: 'LiveChat Conversation Id' }
+    agentId: { description: 'LiveChat Agent ID', title: 'LiveChat Agent ID' },
+    livechatConversationId: { description: 'LiveChat Conversation ID', title: 'LiveChat Conversation ID' }
   },
 } satisfies IntegrationDefinitionProps['user']

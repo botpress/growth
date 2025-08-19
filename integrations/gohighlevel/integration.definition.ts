@@ -105,7 +105,7 @@ export default new IntegrationDefinition({
       output: { schema: upsertContactOutputSchema },
     },
     getContactsByBusinessId: {
-      title: 'Get Contacts By Business Id',
+      title: 'Get Contacts By Business ID',
       input: { schema: getContactsByBusinessIdInputSchema },
       output: { schema: getContactsByBusinessIdOutputSchema },
     },

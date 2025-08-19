@@ -24,7 +24,7 @@ export default new IntegrationDefinition({
       description: 'HubSpot Help Desk HITL',
       conversation: {
         tags: {
-          id: { title: 'HubSpot Conversation Id', description: 'HubSpot Conversation Id' },
+          id: { title: 'HubSpot Conversation ID', description: 'HubSpot Conversation ID' },
         },
       },
     },

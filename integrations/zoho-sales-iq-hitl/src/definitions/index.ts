@@ -27,6 +27,6 @@ export const states = {
 
 export const user = {
   tags: {
-    id: { description: 'Zoho Sales IQ User Id', title: 'Zoho Sales IQ User Id' },
+    id: { description: 'Zoho Sales IQ User ID', title: 'Zoho Sales IQ User ID' },
   },
 } satisfies IntegrationDefinitionProps['user']

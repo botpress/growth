@@ -16,8 +16,8 @@ export const channels = {
         const intercomConversationId = conversation.tags.id
 
         if (!intercomConversationId?.length) {
-          logger.forBot().error('No Intercom Conversation Id')
-          throw new RuntimeError('No Intercom Conversation Id')
+          logger.forBot().error('No Intercom Conversation ID')
+          throw new RuntimeError('No Intercom Conversation ID')
         }
 
         const intercomContact = await client.getState({

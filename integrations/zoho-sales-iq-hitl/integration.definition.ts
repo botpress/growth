@@ -22,7 +22,7 @@ export default new IntegrationDefinition({
       description: 'Zoho Sales IQ HITL',
       conversation: {
         tags: {
-          id: { title: 'Zoho Sales IQ Conversation Id', description: 'Zoho Sales IQ Conversation Id' },
+          id: { title: 'Zoho Sales IQ Conversation ID', description: 'Zoho Sales IQ Conversation ID' },
         },
       },
     },

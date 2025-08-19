@@ -19,7 +19,7 @@ export const channels = {
         const zohoConversationId = conversation.tags.id
 
         if (!zohoConversationId?.length) {
-          logger.forBot().error('No Freshchat Conversation Id')
+          logger.forBot().error('No Freshchat Conversation ID')
           return
         }
 

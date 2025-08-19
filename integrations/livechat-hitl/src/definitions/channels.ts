@@ -4,7 +4,7 @@ export const channels = {
   hitl: {
     conversation: {
       tags: {
-        id: { title: 'LiveChat Conversation Id', description: 'LiveChat Conversation Id' },
+        id: { title: 'LiveChat Conversation ID', description: 'LiveChat Conversation ID' },
         userId: { title: 'User ID', description: 'The ID of the user in Botpress' },
       },
     },

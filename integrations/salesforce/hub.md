@@ -28,14 +28,14 @@ The Salesforce Leads integration allows you search, create, update, and delete S
 1. In Studio, add the **Create Contact** card to your flow.
 2. Pass the contact information in the card input. `First Name`, `Last Name`, `Email` fields are required.
 3. You can pass custom fields in JSON format
-4. You can store the `Id` of the created contact in a variable.
+4. You can store the `ID` of the created contact in a variable.
 
 ## Update Contact
 
 1. In Studio, add the **Update Contact** card to your flow.
-2. Pass the `Id` of the contact to be updated and the field that need to be updated
+2. Pass the `ID` of the contact to be updated and the field that need to be updated
 3. You can pass custom fields in JSON format
-4. You can store the `Id` of the updated contact in a variable.
+4. You can store the `ID` of the updated contact in a variable.
 
 ## Search Leads
 
@@ -48,11 +48,11 @@ The Salesforce Leads integration allows you search, create, update, and delete S
 1. In Studio, add the **Create Leads** card to your flow.
 2. Pass the contact information in the card input. `First Name`, `Last Name`, `Email`, `Company` fields are required.
 3. You can pass custom fields in JSON format
-4. You can store the `Id` of the created contact in a variable.
+4. You can store the `ID` of the created contact in a variable.
 
 ## Update Leads
 
 1. In Studio, add the **Update Leads** card to your flow.
-2. Pass the `Id` of the contact to be updated and the field that need to be updated
+2. Pass the `ID` of the contact to be updated and the field that need to be updated
 3. You can pass custom fields in JSON format
-4. You can store the `Id` of the updated contact in a variable.
+4. You can store the `ID` of the updated contact in a variable.

@@ -35,8 +35,8 @@ export const states = {
 export const user = {
   tags: {
     phoneNumber: { description: 'HubSpot Phone Number', title: 'HubSpot Phone Number' },
-    agentId: { description: 'HubSpot Agent Id', title: 'HubSpot Agent Id' },
-    integrationThreadId: { description: 'HubSpot Integration Thread Id', title: 'HubSpot Integration Thread Id' },
-    hubspotConversationId: { description: 'HubSpot Conversation Id', title: 'HubSpot Conversation Id' },
+    agentId: { description: 'HubSpot Agent ID', title: 'HubSpot Agent ID' },
+    integrationThreadId: { description: 'HubSpot Integration Thread ID', title: 'HubSpot Integration Thread ID' },
+    hubspotConversationId: { description: 'HubSpot Conversation ID', title: 'HubSpot Conversation ID' },
   },
 } satisfies IntegrationDefinitionProps['user']

@@ -24,7 +24,7 @@ export default new IntegrationDefinition({
       description: 'Intercom HITL',
       conversation: {
         tags: {
-          id: { title: 'Intercom Conversation Id', description: 'Intercom Conversation Id' },
+          id: { title: 'Intercom Conversation ID', description: 'Intercom Conversation ID' },
           userId: { title: 'User ID', description: 'The ID of the user in Botpress' },
         },
       },
