@@ -18,7 +18,7 @@ export const executeOnConversationClose = async ({
   logger: bp.Logger
 }) => {
   if (conversation.tags.id !== messagingTrigger.data.conversationId) {
-    logger.forBot().warn('Received conversation close for an conversation not created by the integration')
+    logger.forBot().warn('Received conversation close for a conversation not created by the integration')
     return
   }
 
