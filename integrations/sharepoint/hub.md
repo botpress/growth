@@ -43,7 +43,7 @@ Add the following keys to the integration’s `configuration` block:
 
 ### How to create a certificate for your app registration
 
-- We will be using a self signed certificate to authenticate, to create a self signed certificate run the following commands in order
+- We will be using a self-signed certificate to authenticate, to create a self-signed certificate run the following commands in order
 - `openssl genrsa -out myPrivateKey.key 2048` → This will generate a 2048-bit private key and save it as myPrivateKey.key.
 - `openssl req -new -key myPrivateKey.key -out myCertificate.csr` → This will create a CSR cert. You will be prompted to enter some information, fill as needed.
 - `openssl x509 -req -days 365 -in myCertificate.csr -signkey myPrivateKey.key -out myCertificate.crt` → This will create a certificate file named myCertificate.crt that is valid for 365 days.
