@@ -70,7 +70,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       });
     }
 
-    logger.forBot().info("Hubspot configuration validated successfully.");
+    logger.forBot().info("HubSpot configuration validated successfully.");
   } catch (error) {
     logger.forBot().error("Error during integration registration:", error);
     throw new bpclient.RuntimeError(
