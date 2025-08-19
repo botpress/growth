@@ -105,9 +105,9 @@ const axiosClient = axios.create({
 
 const getIntegrationId = async (integrationName) => {
   const response = await axiosClient.get("/integrations");
-  const integrataions = response.data.integrations;
+  const integrations = response.data.integrations;
 
-  const integration = integrataions.find((integration) => {
+  const integration = integrations.find((integration) => {
     return integration.name === integrationName;
   });
 
