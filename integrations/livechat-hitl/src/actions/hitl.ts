@@ -27,6 +27,24 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     }
     const { email } = userInfoState.state.payload;
 
+    if (!ctx.configuration.agentToken || !ctx.configuration.groupId) {
+      throw new RuntimeError("Agent token and group ID are required for HITL conversations");
+    }
+    
+    const initialMessage = `${title}\n\n${description}`;
+    const agentResult = await liveChatClient.startAgentChat(
+      ctx.configuration.agentToken,
+      ctx.configuration.groupId,
+      initialMessage
+    );
+
+    if (!agentResult.success || !agentResult.chatId) {
+      throw new RuntimeError(agentResult.message || "Failed to create LiveChat conversation via Agent API");
+    }
+
+    const liveChatConversationId = agentResult.chatId;
+    logger.forBot().info(`Agent chat started with ID: ${liveChatConversationId}`);
+
     const customerTokenResponse = await liveChatClient.createCustomerToken(`https://webhook.botpress.cloud/${ctx.webhookId}`);
     const accessToken = customerTokenResponse.access_token;
 
@@ -34,17 +52,33 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       email: email,
     });
 
-    const result = await liveChatClient.startChat(
-      title,
-      description,
-      accessToken
+
+    const addCustomerResult = await liveChatClient.addCustomerToChat(
+      ctx.configuration.agentToken,
+      liveChatConversationId,
+      accessToken, // Pass the customer access token
+      { email, name: user.name }
     );
 
-    if (!result.success || !result.data?.chat_id) {
-      throw new RuntimeError(result.message || "Failed to create LiveChat conversation");
+    if (!addCustomerResult.success) {
+      const errorMessage = `Failed to add customer to chat: ${addCustomerResult.message}`;
+      logger.forBot().error(errorMessage);
+      throw new RuntimeError(errorMessage);
     }
 
-    const liveChatConversationId = result.data.chat_id;
+    logger.forBot().info(`Transferring chat to group ${ctx.configuration.groupId} to ensure proper placement...`);
+    const transferResult = await liveChatClient.transferChat(
+      ctx.configuration.agentToken,
+      liveChatConversationId,
+      ctx.configuration.groupId
+    );
+
+    if (transferResult.success) {
+      logger.forBot().info(`Chat transferred successfully to group ${ctx.configuration.groupId}`);
+    } else {
+      logger.forBot().warn(`Failed to transfer chat: ${transferResult.message}`);
+      // Continue anyway as the chat was created and customer was added successfully
+    }
 
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
@@ -67,6 +101,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       type: "conversation",
       name: 'livechatToken',
       payload: {
+        livechatConversationId: liveChatConversationId,
         customerAccessToken: accessToken,
       },
     });
@@ -84,6 +119,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
         description,
       },
     })
+
 
     return {
       conversationId: conversation.id,
@@ -128,20 +164,25 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
       type: "conversation",
     });
 
-    if (!accessTokenState?.state.payload.customerAccessToken) {
-      throw new RuntimeError("No access token found in state");
+    if (!accessTokenState?.state.payload.livechatConversationId) {
+      throw new RuntimeError("No LiveChat conversation ID found in state");
     }
-    const { customerAccessToken } = accessTokenState.state.payload;
+    const { livechatConversationId: stateConversationId } = accessTokenState.state.payload;
 
-    if (!customerAccessToken) {
-      logger.forBot().error("No customer access token found in user tags");
+    if (!stateConversationId) {
+      logger.forBot().error("No LiveChat conversation ID found in state");
       return {
         success: false,
-        message: "No customer access token found in user tags",
+        message: "No LiveChat conversation ID found in state",
       };
     }
 
-    await liveChatClient.deactivateChat(liveChatConversationId, customerAccessToken);
+    // Use agent token to deactivate the chat
+    if (!ctx.configuration.agentToken) {
+      throw new RuntimeError("Agent token is required to stop HITL conversation");
+    }
+
+    await liveChatClient.deactivateChatWithAgent(ctx.configuration.agentToken, liveChatConversationId);
 
     await client.createEvent({
       type: 'hitlStopped',
