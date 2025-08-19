@@ -99,7 +99,7 @@ Sometimes one SharePoint document library contains several distinct collections 
 ### Rules & limitations
 1. **No KB sharing across libraries.** A single KB **cannot** receive content from two different libraries—even via folder mapping.  
 2. **Create KBs first.** All KB IDs used in `folderKbMap` must already exist in Botpress before you save the configuration.
-3. **Recursive files** Every file within a document library, regardles whether it is in a nested folder - will be recursively copied.
+3. **Recursive files** Every file within a document library, regardless whether it is in a nested folder - will be recursively copied.
 
 ### Quick checklist
 | ✔ | Step |
