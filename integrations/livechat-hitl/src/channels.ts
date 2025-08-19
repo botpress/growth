@@ -1,24 +1,30 @@
-import * as bp from '../.botpress'
-import { getClient } from './client'
-import { RuntimeError } from '@botpress/sdk'
+import * as bp from "../.botpress";
+import { getClient } from "./client";
+import { RuntimeError } from "@botpress/sdk";
 
 export const channels = {
   hitl: {
     messages: {
-      text: async ({ client, ctx, conversation, logger, ...props }: bp.AnyMessageProps) => {
+      text: async ({
+        client,
+        ctx,
+        conversation,
+        logger,
+        ...props
+      }: bp.AnyMessageProps) => {
         const liveChatClient = getClient(
           ctx.configuration.clientId,
           ctx.configuration.organizationId,
-          logger
+          logger,
         );
 
-        const { text: userMessage } = props.payload
+        const { text: userMessage } = props.payload;
 
-        const liveChatConversationId = conversation.tags.id
+        const liveChatConversationId = conversation.tags.id;
 
         if (!liveChatConversationId?.length) {
-          logger.forBot().error('No LiveChat Conversation Id')
-          return
+          logger.forBot().error("No LiveChat Conversation Id");
+          return;
         }
 
         const accessTokenState = await client.getState({
@@ -26,7 +32,7 @@ export const channels = {
           name: "livechatToken",
           type: "conversation",
         });
-    
+
         if (!accessTokenState?.state.payload.customerAccessToken) {
           throw new RuntimeError("No access token found in state");
         }
@@ -35,9 +41,9 @@ export const channels = {
         return await liveChatClient.sendMessage(
           liveChatConversationId,
           userMessage,
-          customerAccessToken
+          customerAccessToken,
         );
       },
     },
   },
-} satisfies bp.IntegrationProps['channels']
+} satisfies bp.IntegrationProps["channels"];

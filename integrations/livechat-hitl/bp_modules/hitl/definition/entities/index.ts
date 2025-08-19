@@ -2,5 +2,4 @@
 /* tslint:disable */
 // This file is generated. Do not edit it manually.
 
-export const entities = {
-}
+export const entities = {};
