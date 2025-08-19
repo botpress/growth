@@ -32,7 +32,7 @@ Add the following keys to the integration’s `configuration` block:
 
 ## How to's
 
-### How to register a app on Microsoft Entra admin center
+### How to register an app on Microsoft Entra admin center
 
 - From the Home page of Microsoft Entra admin center, Open App registrations ( This is under Applications in the Left Nav )
 - Add a new registration by clicking on “+ New registration”
