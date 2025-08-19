@@ -1,7 +1,7 @@
 import * as bp from "../.botpress";
 import { getClient } from "./client";
 import { RuntimeError } from "@botpress/sdk";
-import type { LivechatToken } from "../.botpress/implementation/typings/states/livechatToken";
+import type { Payload as LivechatTokenPayload } from "../.botpress/implementation/typings/states/livechatToken/payload";
 
 export const channels = {
   hitl: {
@@ -38,7 +38,7 @@ export const channels = {
         }
 
         const livechatTokenPayload = accessTokenState.state
-          .payload as unknown as LivechatToken;
+          .payload as unknown as LivechatTokenPayload;
 
         if (!livechatTokenPayload.customerAccessToken) {
           throw new RuntimeError("No access token found in state");

@@ -1,6 +1,7 @@
 import { getClient } from "../client";
 import { RuntimeError } from "@botpress/client";
 import * as bp from ".botpress";
+import type { Payload as LivechatTokenPayload } from ".botpress/implementation/typings/states/livechatToken/payload";
 
 export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
   ctx,
@@ -132,7 +133,7 @@ export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
       payload: {
         livechatConversationId: liveChatConversationId,
         customerAccessToken: accessToken,
-      },
+      } as any,
     });
 
     logger
@@ -205,11 +206,11 @@ export const stopHitl: bp.IntegrationProps["actions"]["stopHitl"] = async ({
       type: "conversation",
     });
 
-    if (!accessTokenState?.state.payload.livechatConversationId) {
+    if (!(accessTokenState?.state.payload as any)?.livechatConversationId) {
       throw new RuntimeError("No LiveChat conversation ID found in state");
     }
-    const { livechatConversationId: stateConversationId } =
-      accessTokenState.state.payload;
+    const { livechatConversationId: stateConversationId } = accessTokenState
+      .state.payload as unknown as LivechatTokenPayload;
 
     if (!stateConversationId) {
       logger.forBot().error("No LiveChat conversation ID found in state");
