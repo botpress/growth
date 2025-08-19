@@ -11,4 +11,5 @@ export const createUser = {
   "output": output.output,
   "billable": false,
   "cacheable": false,
+  "attributes": { "bpActionHiddenInStudio": "true" },
 }
