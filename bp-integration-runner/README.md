@@ -21,7 +21,7 @@ Once set up, a single command will:
 - add a `.env` to the root of your botpress integration project with the following keys.
 
   ```md
-  BOTPRESS_PAT: |YOUR PERSONAL ACESS TOKEN|
+  BOTPRESS_PAT: |YOUR PERSONAL ACCESS TOKEN|
   BOTPRESS_WORKSPACE_ID: |YOUR WORKSPACE ID|
   ```
 
