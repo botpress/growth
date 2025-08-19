@@ -62,7 +62,7 @@ export interface ChangeResponse {
     - Copies would come in as create events for example, and would disrupt the uniqueness of the files.
     - Moves often don't receive webhook events.
 
-  As a work around the user must Upload or Create the file instead.
+  As a workaround, the user must Upload or Create the file instead.
 */
 export interface ChangeItem {
   __metadata: Metadata;
