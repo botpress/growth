@@ -59,7 +59,7 @@ export const closeConversation = async ({
   let delay = 0
 
   if(!isConversationAssigned(conversation) || forceDelay) {
-    // TODO: Weird race condition stuff, remove when the HITL Agent is migrated to plugins and uses it's own state
+    // TODO: Weird race condition stuff, remove when the HITL Agent is migrated to plugins and uses its own state
     delay = 3000
   }
 
