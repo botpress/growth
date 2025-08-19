@@ -31,6 +31,6 @@ The Twilio Voice integration allows you to talk to your bot on a phone call.
 - Auth Token: Your Twilio Auth Token.
 - Reprompt Phrase: Phrase played if the caller doesn't respond
 - Voice: Voice used to pronounce bot's responses. See the [full list of voices](https://www.twilio.com/docs/voice/twiml/say/text-speech#available-voices-and-languages).
-- Language: Language in which bot communicates. Full list of languages can be found [here](https://www.twilio.com/docs/voice/twiml/say/text-speech#available-voices-and-languages).
+- Language: Language in which bot communicates. See the [full list of languages](https://www.twilio.com/docs/voice/twiml/say/text-speech#available-voices-and-languages).
 - Timeout: Sets the limit (in seconds) that Twilio will wait for the caller to say another word before it sends data to the integration.
 - Speech Timeout: Sets the limit (in seconds) that Twilio will wait after a pause in speech before it stops its recognition. After this timeout is reached, Twilio will send the data to the integration.
