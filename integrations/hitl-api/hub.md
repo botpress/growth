@@ -3,7 +3,7 @@
 
 This project provides a Human-In-The-Loop (HITL) AKA human agent handoff integration for Botpress. It allows you to create a seamless handoff between automated bot interactions and human agents. This integration includes features like starting and stopping HITL sessions, creating remote users and conversations, sending messages, and more.
 
-To use it, you must run your own service that implements 5 endpoints, and exposes 3 endpoints for interacting with chat.
+To use it, you must run your own service that implements five endpoints, and exposes three endpoints for interacting with chat.
 
 While we generally recommend writing an integration on Botpress infrastructure to connect with your service. This allows you to write a service in any programming language and use any tools you'd like. 
 
