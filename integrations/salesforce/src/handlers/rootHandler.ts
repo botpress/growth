@@ -36,7 +36,7 @@ export const rootHandler = async (props: HandlerProps) => {
   const salesforceConnection = new Connection({ oauth2: getOAuth2(ctx) });
 
   if (typeof code !== "string") {
-    throw new bp.RuntimeError("Incorreact code provided");
+    throw new bp.RuntimeError("Incorrect code provided");
   }
 
   await salesforceConnection.authorize(code);
