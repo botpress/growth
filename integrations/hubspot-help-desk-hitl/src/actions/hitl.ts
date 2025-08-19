@@ -51,7 +51,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       };
     }
 
-    // Prefer phone number if available, otherwise use email for creating the conversation.
+    // Prefer phone number if available; otherwise, use email for creating the conversation.
     const contactIdentifier = userPhoneNumber || userEmail!; // userEmail is guaranteed to be present if userPhoneNumber is not
     if (userPhoneNumber) {
       logger.forBot().info(`Using phone number for HITL: ${userPhoneNumber}`);

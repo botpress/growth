@@ -13,7 +13,7 @@ export const forceCloseConversation = async (ctx: bp.AnyMessageProps['ctx'], con
         }
     })
 
-    // We need to keep the process running for a little bit more, otherwise the lambda will not do the call above
+    // We need to keep the process running for a little bit more; otherwise, the lambda will not do the call above
     await new Promise(resolve => setTimeout(resolve, 1000))
 }
 

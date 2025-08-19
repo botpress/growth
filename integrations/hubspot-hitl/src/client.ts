@@ -43,7 +43,7 @@ export class HubSpotApi {
   /**
    * Retrieves the stored access token from Botpress integration state.
    * 
-   * @returns {Promise<{ accessToken: string } | null>} Access token if found, otherwise null.
+   * @returns {Promise<{ accessToken: string } | null>} Access token if found; otherwise, null.
    */
   async getStoredCredentials(): Promise<{ accessToken: string } | null> {
     try {
