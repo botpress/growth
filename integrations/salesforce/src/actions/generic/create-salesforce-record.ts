@@ -20,7 +20,7 @@ export const createSalesforceRecord = async <
     logger
       .forBot()
       .info(
-        `Attempting to create a ${objectType} from from ${JSON.stringify(
+        `Attempting to create a ${objectType} from ${JSON.stringify(
           payload
         )}`
       );
