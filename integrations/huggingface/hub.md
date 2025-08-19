@@ -1,6 +1,6 @@
 # Hugging Face Integration
 
-This integration allows your bot to use pre-warmed chat completion models hosted on Hugging Face as the LLM for any node, workflow, or skill. Explore available models [here](https://huggingface.co/models?inference=warm&pipeline_tag=text-generation).
+This integration allows your bot to use pre-warmed chat completion models hosted on Hugging Face as the LLM for any node, workflow, or skill. Explore [available models](https://huggingface.co/models?inference=warm&pipeline_tag=text-generation).
 
 > **Note:** Usage is billed directly by Hugging Face.
 
