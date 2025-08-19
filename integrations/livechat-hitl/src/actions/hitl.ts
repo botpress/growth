@@ -27,10 +27,17 @@ export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
       type: "user",
     });
 
-    if (!userInfoState?.state.payload.email) {
+    if (!userInfoState?.state?.payload) {
       throw new RuntimeError("No userInfo found in state");
     }
-    const { email } = userInfoState.state.payload;
+
+    const payload = userInfoState.state.payload as unknown as { email: string };
+
+    if (!payload.email) {
+      throw new RuntimeError("No email found in userInfo state");
+    }
+
+    const { email } = payload;
 
     if (!ctx.configuration.agentToken || !ctx.configuration.groupId) {
       throw new RuntimeError(
@@ -272,7 +279,7 @@ export const createUser: bp.IntegrationProps["actions"]["createUser"] = async ({
       name: "userInfo",
       payload: {
         email: email,
-      },
+      } as any,
     });
 
     logger.forBot().debug(`Created/Found user: ${botpressUser.id}`);
