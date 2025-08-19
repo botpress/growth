@@ -21,7 +21,11 @@ export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
   logger.forBot().info("Starting HITL...");
 
   try {
-    const { userId, title, description = "No description available" } = input;
+    const {
+      userId,
+      title = "New HITL conversation",
+      description = "No description available",
+    } = input;
 
     const { user } = await client.getUser({ id: userId });
 
