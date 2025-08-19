@@ -29,6 +29,15 @@ interface StartAgentChatPayload {
   };
 }
 
+interface LiveChatGroup {
+  id: number;
+  name?: string;
+  agents: Array<{
+    id: string;
+    name?: string;
+  }>;
+}
+
 function validateRequiredParams(params: Params, methodName: string) {
   const missingParams = Object.entries(params)
     .filter(
@@ -443,13 +452,13 @@ export class LiveChatApi {
         },
       });
 
-      const groups = response.data?.groups || [];
-      const targetGroup = groups.find((group: any) => group.id === groupId);
+      const groups: LiveChatGroup[] = response.data?.groups || [];
+      const targetGroup = groups.find((group) => group.id === groupId);
 
       if (!targetGroup) {
         return {
           success: false,
-          message: `Group ${groupId} not found. Available groups: ${groups.map((g: any) => g.id).join(", ")}`,
+          message: `Group ${groupId} not found. Available groups: ${groups.map((g) => g.id).join(", ")}`,
         };
       }
 
