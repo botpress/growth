@@ -22,6 +22,6 @@
     "typescript": "^5.8.2"
   },
   "bpDependencies": {
-    "hitl": "../../interfaces/hitl"
+    "hitl": "interface:hitl@2.0.0"
   }
 }
