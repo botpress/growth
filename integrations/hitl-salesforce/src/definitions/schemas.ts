@@ -15,7 +15,7 @@ export const AxiosProxyConfigSchema = z.object({
 export const SFMessagingConfigSchema = z.object({
   endpoint: z.string({
     invalid_type_error: 'Endpoint must be a string',
-    required_error: 'Saleforce endpoint is required, example: https://something.salesforceliveagent.com/chat',
+    required_error: 'Salesforce endpoint is required, example: https://something.salesforceliveagent.com/chat',
   }),
   organizationId: z.string(),
   DeveloperName: z.string(),
