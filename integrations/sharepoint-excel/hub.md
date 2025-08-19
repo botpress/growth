@@ -30,7 +30,7 @@ To set up the connector, you need an App registration with the correct API permi
   - Comma-separated: `Sheet1:table1,Sheet2:table2`
   - JSON: `{ "Sheet1": "table1", "Sheet2": "table2" }`
 
-  Each sheet listed will be synced to the specified table. If a table does not exist, it will be created with a schema matching the sheet's columns. If it exists, all rows will be cleared before new data is inserted. **Note:** If providing a pre-existing table, ensure its column names match the Excel sheet headers exactly, as the integration will not alter an existing table's schema.
+  Each sheet listed will be synced to the specified table. If a table does not exist, it will be created with a schema matching the sheet's columns. If it exists, all rows will be cleared before new data is inserted. **Note:** If providing a preexisting table, ensure its column names match the Excel sheet headers exactly, as the integration will not alter an existing table's schema.
 
 ### Example
 ```json
