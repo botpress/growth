@@ -1,6 +1,7 @@
 import { getClient } from "../client";
 import { RuntimeError } from "@botpress/client";
 import * as bp from ".botpress";
+import type { Payload as LivechatTokenPayload } from ".botpress/implementation/typings/states/livechatToken/payload";
 
 export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
   ctx,
@@ -27,10 +28,17 @@ export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
       type: "user",
     });
 
-    if (!userInfoState?.state.payload.email) {
+    if (!userInfoState?.state?.payload) {
       throw new RuntimeError("No userInfo found in state");
     }
-    const { email } = userInfoState.state.payload;
+
+    const payload = userInfoState.state.payload as unknown as { email: string };
+
+    if (!payload.email) {
+      throw new RuntimeError("No email found in userInfo state");
+    }
+
+    const { email } = payload;
 
     if (!ctx.configuration.agentToken || !ctx.configuration.groupId) {
       throw new RuntimeError(
@@ -125,7 +133,7 @@ export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
       payload: {
         livechatConversationId: liveChatConversationId,
         customerAccessToken: accessToken,
-      },
+      } as any,
     });
 
     logger
@@ -198,11 +206,11 @@ export const stopHitl: bp.IntegrationProps["actions"]["stopHitl"] = async ({
       type: "conversation",
     });
 
-    if (!accessTokenState?.state.payload.livechatConversationId) {
+    if (!(accessTokenState?.state.payload as any)?.livechatConversationId) {
       throw new RuntimeError("No LiveChat conversation ID found in state");
     }
-    const { livechatConversationId: stateConversationId } =
-      accessTokenState.state.payload;
+    const { livechatConversationId: stateConversationId } = accessTokenState
+      .state.payload as unknown as LivechatTokenPayload;
 
     if (!stateConversationId) {
       logger.forBot().error("No LiveChat conversation ID found in state");
@@ -272,7 +280,7 @@ export const createUser: bp.IntegrationProps["actions"]["createUser"] = async ({
       name: "userInfo",
       payload: {
         email: email,
-      },
+      } as any,
     });
 
     logger.forBot().debug(`Created/Found user: ${botpressUser.id}`);
