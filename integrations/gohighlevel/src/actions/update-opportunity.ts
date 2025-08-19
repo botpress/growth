@@ -23,7 +23,7 @@ export const updateOpportunity: Implementation['actions']['updateOpportunity'] =
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().error(`'Update Oppoprtunity' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Update Opportunity' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 
