@@ -14,11 +14,13 @@ This integration now includes automatic chat transfer functionality that trigger
 ## API Endpoint Used
 
 The implementation uses the LiveChat Agent API endpoint:
+
 ```
 POST https://api.livechatinc.com/v3.5/agent/action/transfer_chat
 ```
 
 With the payload:
+
 ```json
 {
   "id": "CHAT_ID",
