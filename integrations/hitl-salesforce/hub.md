@@ -35,4 +35,4 @@ After setting both the Configuration Fields on Botpress, you can click on **Save
 
 This Integration uses the **HITL Interface**, so you can use the [HITL Agent](https://botpress.com/docs/hitl-agent) to set your bot for **HITL**
 
-[Youtube tutorial](https://www.youtube.com/watch?v=AAkARl8_cTo)
+[YouTube tutorial](https://www.youtube.com/watch?v=AAkARl8_cTo)
