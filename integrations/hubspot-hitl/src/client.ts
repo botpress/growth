@@ -30,7 +30,7 @@ export class HubSpotApi {
     refreshToken: string,
     clientId: string,
     clientSecret: string,
-    logger: bp.Logger
+    logger: bp.Logger,
   ) {
     this.ctx = ctx;
     this.bpClient = bpClient;
@@ -89,7 +89,7 @@ export class HubSpotApi {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-        }
+        },
       );
 
       this.logger
@@ -112,7 +112,7 @@ export class HubSpotApi {
         .forBot()
         .error(
           "Error refreshing access token:",
-          err.response?.data || err.message
+          err.response?.data || err.message,
         );
     }
   }
@@ -131,7 +131,7 @@ export class HubSpotApi {
     endpoint: string,
     method: string = "GET",
     data: any = null,
-    params: any = {}
+    params: any = {},
   ): Promise<any> {
     try {
       const creds = await this.getStoredCredentials();
@@ -247,7 +247,7 @@ export class HubSpotApi {
    */
   async createCustomChannel(
     developerApiKey: string,
-    appId: string
+    appId: string,
   ): Promise<any> {
     const response = await this.makeHitlRequest(
       `${hubspot_api_base_url}/conversations/v3/custom-channels?hapikey=${developerApiKey}&appId=${appId}`,
@@ -272,7 +272,7 @@ export class HubSpotApi {
         channelAccountConnectionRedirectUrl: "https://example.com",
         channelDescription: "Botpress custom channel integration.",
         channelLogoUrl: "https://i.imgur.com/CAu3kb7.png",
-      }
+      },
     );
 
     if (!response.success || !response.data) {
@@ -299,7 +299,7 @@ export class HubSpotApi {
           headers: {
             Accept: "application/json",
           },
-        }
+        },
       );
       return response.data;
     } catch (error: any) {
@@ -307,7 +307,7 @@ export class HubSpotApi {
         .forBot()
         .error(
           "Failed to fetch custom channels:",
-          error.response?.data || error.message
+          error.response?.data || error.message,
         );
       throw error;
     }
@@ -324,7 +324,7 @@ export class HubSpotApi {
   public async connectCustomChannel(
     channelId: string,
     inboxId: string,
-    channelName: string
+    channelName: string,
   ): Promise<any> {
     const endpoint = `https://api.hubapi.com/conversations/v3/custom-channels/${channelId}/channel-accounts`;
 
@@ -364,10 +364,9 @@ export class HubSpotApi {
     channelId: string,
     channelAccountId: string,
     integrationThreadId: string,
-    name: string,
     phoneNumber: string,
     title: string,
-    description: string
+    description: string,
   ): Promise<any> {
     const endpoint = `${hubspot_api_base_url}/conversations/v3/custom-channels/${channelId}/messages`;
     const payload = {
@@ -406,8 +405,8 @@ export class HubSpotApi {
   public async sendMessage(
     message: string,
     senderName: string,
-    senderPhoneNumber: string,
-    integrationThreadId: string
+    contactIdentifier: string,
+    integrationThreadId: string,
   ): Promise<any> {
     const { state } = await this.bpClient.getState({
       id: this.ctx.integrationId,
@@ -428,6 +427,9 @@ export class HubSpotApi {
 
     const endpoint = `${hubspot_api_base_url}/conversations/v3/custom-channels/${channelId}/messages`;
 
+    const isEmail = contactIdentifier.includes("@");
+    const deliveryType = isEmail ? "HS_EMAIL_ADDRESS" : "HS_PHONE_NUMBER";
+
     const payload = {
       type: "MESSAGE",
       text: message,
@@ -438,8 +440,8 @@ export class HubSpotApi {
         {
           name: senderName,
           deliveryIdentifier: {
-            type: "HS_PHONE_NUMBER",
-            value: senderPhoneNumber,
+            type: deliveryType,
+            value: contactIdentifier,
           },
         },
       ],
@@ -472,7 +474,7 @@ export const getClient = (
   refreshToken: string,
   clientId: string,
   clientSecret: string,
-  logger: bp.Logger
+  logger: bp.Logger,
 ) => {
   return new HubSpotApi(
     ctx,
@@ -480,6 +482,6 @@ export const getClient = (
     refreshToken,
     clientId,
     clientSecret,
-    logger
+    logger,
   );
 };
