@@ -5,5 +5,5 @@ import * as hitlSession from "./hitlSession";
 export * as hitlSession from "./hitlSession";
 
 export const entities = {
-  "hitlSession": hitlSession.hitlSession,
-}
+  hitlSession: hitlSession.hitlSession,
+};
