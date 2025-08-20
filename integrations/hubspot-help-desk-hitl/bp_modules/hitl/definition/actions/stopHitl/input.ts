@@ -4,8 +4,14 @@
 
 import { z } from "@botpress/sdk";
 export const input = {
-  schema: z.object({
-    conversationId: z.string(),
-    reason: z.optional(z.enum(["timeout", "cancel"])),
-  }),
+  schema: z
+    .object({
+      conversationId: z
+        .string()
+        .title("HITL session ID")
+        .describe(
+          "ID of the Botpress conversation representing the HITL session",
+        ),
+    })
+    .catchall(z.never()),
 };
