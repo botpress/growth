@@ -28,8 +28,8 @@ const getHubspotContextFromMessage = async (props: bp.AnyMessageProps) => {
     name: "userInfo",
     type: "user",
   });
-
-  const name = userInfoState?.state.payload.name;
+  const rawName = userInfoState?.state.payload.name;
+  const name = typeof rawName === "string" ? rawName : "Unknown";
   const phoneNumber = userInfoState?.state.payload.phoneNumber;
   const contactIdentifier = phoneNumber;
   if (!contactIdentifier) {
