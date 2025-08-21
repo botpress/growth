@@ -1,6 +1,6 @@
-# Shopify Sync Integration
+# Shopify Products Sync Integration
 
-Connect your Shopify store to Botpress to sync products into your Botpress Knowledge Base (KB) and receive real-time updates via Shopify webhooks.
+Connect your Shopify store to Botpress to sync products into Botpress tables with real-time updates via Shopify webhooks.
 
 ## Installation and Configuration
 
@@ -25,43 +25,82 @@ Connect your Shopify store to Botpress to sync products into your Botpress Knowl
 
 1. Enter your Shopify Shop Domain (e.g., `yourstoreId.myshopify.com`). **Do not use a custom domain.**
 2. Enter your Admin API Access Token.
-3. Enter the **Knowledge Base ID** where products should be synced.
+3. Set the **Row Storage Factor** (optional, default: 1):
+   - Every table has a row factor that determines the storage limit for each of its rows
+   - The default row factor is 1, allowing up to 4KB of data per row
+   - Increase this value if you need more storage per product
 4. Click **Save**.
 
 ## What Happens on Registration?
 
-- All products from your Shopify store are synced to your selected Botpress Knowledge Base (KB) as articles.
 - Webhooks are set up in Shopify for product creation, update, and deletion events.
-- When a product is created, updated, or deleted in Shopify, the corresponding article in your KB is created, updated, or deleted, and a Botpress event is emitted.
+- When a product is created, updated, or deleted in Shopify, the corresponding data is updated in the table, and Botpress events are emitted.
+
+## Table Sync
+
+Products are synced to a Botpress table called `shopify_products_Table`:
+
+- Provides structured data access for advanced use cases
+- Enables complex queries and data manipulation
+- Stores comprehensive product information in a searchable format
 
 ## Data Synced to Botpress
 
-For each Shopify product, the following fields are stored in the KB article:
+### Table Structure
+
+The `shopify_products_Table` contains the following columns:
+
+- `product_id` (Shopify product ID)
+- `aggregate` (searchable JSON string containing all product data including name, sku, price, weight, type, brand_name, categories, availability, is_visible, description, and image_url)
+
+The `aggregate` column contains a JSON string with all the product information:
 
 - `id` (Shopify product ID)
-- `title`
-- `description` (plain text, from Shopify's `body_html`)
-- `vendor`
-- `tags`
-- `productType` (Shopify's `product_type`)
-- `price` (from the first variant)
-- `weight` (from the first variant)
-- `weightUnit` (from the first variant)
-- `images` (array of image URLs)
-- `options` (e.g., sizes, colors)
+- `name` (product title)
+- `sku` (from first variant)
+- `price` (from first variant)
+- `weight` (from first variant)
+- `type` (Shopify's product_type)
+- `brand_name` (Shopify's vendor)
+- `categories` (Shopify's tags)
+- `availability` (Shopify's status)
+- `is_visible` (boolean based on status)
+- `description` (plain text from body_html)
+- `image_url` (primary product image)
 - `url` (link to the product in your store)
 
-The full product data is also available in the event payloads.
+## Available Actions
+
+### Sync Products to Table
+
+- **Action**: `syncProducts`
+- **Description**: Get all products from Shopify and sync them to a Botpress table
+- **Input**: Optional `rowStorageFactor` (default: 1)
+- **Output**: Success status, message, and products count
 
 ## Webhooks and Real-Time Updates
 
-- The integration automatically sets up webhooks for product create, update, and delete events.
-- When a product is created, updated, or deleted in Shopify, the corresponding article in your KB is created, updated, or deleted.
-- Botpress events are emitted: `productCreated`, `productUpdated`, `productDeleted`.
+- The integration automatically sets up webhooks for product create, update, and delete events
+- When a product is created, updated, or deleted in Shopify:
+  - The corresponding row in the table is created, updated, or deleted
+  - Botpress events are emitted: `productCreated`, `productUpdated`, `productDeleted`
 
-## Manual Product Sync
+## Manual Sync
 
-You can manually trigger the `syncKb` action to re-sync all products from Shopify to your Botpress Knowledge Base. This can be done from Botpress Studio or via automation.
+You can manually trigger sync operations:
+
+- Use the `syncProducts` action to re-sync all products to the table
+- This action can be triggered from Botpress Studio or via automation
+
+## Events
+
+The integration emits the following events:
+
+- `productCreated`: When a new product is created in Shopify
+- `productUpdated`: When an existing product is updated in Shopify
+- `productDeleted`: When a product is deleted from Shopify
+
+Each event contains the full product data payload.
 
 ## Uninstalling / Cleanup
 
@@ -73,6 +112,7 @@ When you uninstall or unregister the integration, all webhooks created for your 
 - Ensure your Admin API Access Token has the correct permissions (Products: Read access).
 - The Shop Domain should be in the format `yourstoreId.myshopify.com` (no protocol, no trailing slash).
 - If you encounter errors during sync, check your API credentials and permissions.
+- For table sync issues, verify that the `rowStorageFactor` is appropriate for your product data size.
 
 ## Support
 
