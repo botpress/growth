@@ -1,4 +1,4 @@
-import { IntegrationDefinition } from "@botpress/sdk";
+import { IntegrationDefinition, z } from "@botpress/sdk";
 import { integrationName } from "./package.json";
 import hitl from "./bp_modules/hitl";
 import {
@@ -12,7 +12,7 @@ import {
 export default new IntegrationDefinition({
   name: integrationName,
   title: "HubSpot Help Desk HITL",
-  version: "2.0.2",
+  version: "3.0.0",
   icon: "icon.svg",
   description:
     "This integration allows your bot to use HubSpot as a HITL provider. Messages will appear in HubSpot Help Desk.",
@@ -22,17 +22,28 @@ export default new IntegrationDefinition({
   channels,
   events,
   user,
-}).extend(hitl, () => ({
-  entities: {},
+  entities: {
+    ticket: {
+      schema: z.object({}),
+    },
+  },
+}).extend(hitl, (self) => ({
+  entities: {
+    hitlSession: self.entities.ticket,
+  },
   channels: {
     hitl: {
-      title: "HubSpot",
+      title: "HubSpot Help Desk",
       description: "HubSpot Help Desk HITL",
       conversation: {
         tags: {
           id: {
-            title: "HubSpot Conversation Id",
-            description: "HubSpot Conversation Id",
+            title: "HubSpot Help Desk Conversation Id",
+            description: "HubSpot Help Desk Conversation Id",
+          },
+          userId: {
+            title: "User ID",
+            description: "The ID of the user in Botpress",
           },
         },
       },
