@@ -20,17 +20,28 @@ export default new IntegrationDefinition({
   channels: baseChannels,
   events,
   user,
-}).extend(hitl, () => ({
-  entities: {},
+  entities: {
+    ticket: {
+      schema: z.object({}),
+    },
+  },
+}).extend(hitl, (self) => ({
+  entities: {
+    hitlSession: self.entities.ticket,
+  },
   channels: {
     hitl: {
-      title: "Brevo HITL",
-      description: "Brevo HITL Channel",
+      title: "Brevo",
+      description: "Brevo HITL",
       conversation: {
         tags: {
           id: {
-            title: "Brevo Conversation ID (Visitor ID)",
-            description: "The visitor ID used consistently in Brevo webhooks.",
+            title: "Brevo Conversation Id",
+            description: "Brevo Conversation Id",
+          },
+          userId: {
+            title: "User ID",
+            description: "The ID of the user in Botpress",
           },
         },
       },
