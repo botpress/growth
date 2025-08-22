@@ -1,12 +1,12 @@
-import { z, IntegrationDefinitionProps } from '@botpress/sdk'
+import { z, IntegrationDefinitionProps } from "@botpress/sdk";
 // Import the new Brevo configuration schema
-import { BrevoConfigurationSchema } from './schemas'
+import { BrevoConfigurationSchema } from "./schemas";
 // Channels are typically defined in their own file and imported
-import { channels } from './channels'
+import { channels } from "./channels";
 
 export const configuration = {
   schema: BrevoConfigurationSchema, // Use the Brevo-specific schema
-} satisfies IntegrationDefinitionProps['configuration']
+} satisfies IntegrationDefinitionProps["configuration"];
 
 export const states = {
   userInfo: {
@@ -15,10 +15,10 @@ export const states = {
       email: z.string(),
     }),
   },
-} satisfies IntegrationDefinitionProps['states']
+} satisfies IntegrationDefinitionProps["states"];
 
-export { events } from './events'
-export { channels }
+export { events } from "./events";
+export { channels };
 
 /**
  * Defines the tags that can be associated with a Botpress user.
@@ -27,8 +27,8 @@ export { channels }
 export const user = {
   tags: {
     id: {
-      title: 'Brevo Visitor ID (Email)',
+      title: "Brevo Visitor ID (Email)",
       description: "The user's email address, used as the visitorId in Brevo.",
     },
   },
-} satisfies IntegrationDefinitionProps['user']
+} satisfies IntegrationDefinitionProps["user"];
