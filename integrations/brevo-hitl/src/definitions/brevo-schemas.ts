@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const brevoMessageImageInfoSchema = z.object({
   width: z.number(),
@@ -17,7 +17,7 @@ export const brevoMessageFileSchema = z.object({
 });
 
 export const brevoMessageSchema = z.object({
-  type: z.enum(['agent', 'visitor']),
+  type: z.enum(["agent", "visitor"]),
   id: z.string(),
   text: z.string(),
   html: z.string(),
@@ -87,7 +87,7 @@ export const brevoConversationStartPageSchema = z.object({
 });
 
 export const brevoConversationFragmentEventSchema = z.object({
-  eventName: z.literal('conversationFragment'),
+  eventName: z.literal("conversationFragment"),
   conversationId: z.string(),
   messages: z.array(brevoMessageSchema),
   agents: z.array(brevoAgentSchema),
@@ -96,7 +96,7 @@ export const brevoConversationFragmentEventSchema = z.object({
 });
 
 export const brevoConversationTranscriptEventSchema = z.object({
-  eventName: z.literal('conversationTranscript'),
+  eventName: z.literal("conversationTranscript"),
   conversationId: z.string(),
   conversationStartPage: brevoConversationStartPageSchema.optional(),
   messages: z.array(brevoMessageSchema),
@@ -106,7 +106,7 @@ export const brevoConversationTranscriptEventSchema = z.object({
 });
 
 // Union type for all possible event types
-export const brevoEventSchema = z.discriminatedUnion('eventName', [
+export const brevoEventSchema = z.discriminatedUnion("eventName", [
   brevoConversationFragmentEventSchema,
   brevoConversationTranscriptEventSchema,
-]); 
+]);

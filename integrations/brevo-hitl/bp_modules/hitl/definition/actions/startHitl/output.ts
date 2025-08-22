@@ -4,8 +4,14 @@
 
 import { z } from "@botpress/sdk";
 export const output = {
-  schema: z.object({
-    conversationId:
-      /** ID of the Botpress conversation representing the HITL session */ z.string(),
-  }),
+  schema: z
+    .object({
+      conversationId: z
+        .string()
+        .title("HITL session ID")
+        .describe(
+          "ID of the Botpress conversation representing the HITL session",
+        ),
+    })
+    .catchall(z.never()),
 };

@@ -1,35 +1,50 @@
-import { IntegrationDefinition, z } from '@botpress/sdk'
-import hitl from './bp_modules/hitl';
-import { events, configuration, channels as baseChannels, states, user } from './src/definitions'
-
+import { IntegrationDefinition, z } from "@botpress/sdk";
+import hitl from "./bp_modules/hitl";
+import {
+  events,
+  configuration,
+  channels as baseChannels,
+  states,
+  user,
+} from "./src/definitions";
 
 export default new IntegrationDefinition({
-  name: 'plus/brevo-hitl',
-  title: 'Brevo HITL',
-  version: '1.0.0',
-  readme: 'hub.md',
-  description: 'Brevo HITL Integration',
-  icon: 'icon.svg',
+  name: "plus/brevo-hitl",
+  title: "Brevo HITL",
+  version: "2.0.0",
+  readme: "hub.md",
+  description: "Brevo HITL Integration",
+  icon: "icon.svg",
   configuration,
-  states, 
+  states,
   channels: baseChannels,
   events,
   user,
-}).extend(hitl, () => ({
-  entities: {},
+  entities: {
+    ticket: {
+      schema: z.object({}),
+    },
+  },
+}).extend(hitl, (self) => ({
+  entities: {
+    hitlSession: self.entities.ticket,
+  },
   channels: {
     hitl: {
-      title: 'Brevo HITL',
-      description: 'Brevo HITL Channel',
+      title: "Brevo",
+      description: "Brevo HITL",
       conversation: {
         tags: {
           id: {
-            title: 'Brevo Conversation ID (Visitor ID)',
-            description: 'The visitor ID used consistently in Brevo webhooks.'
-          }
+            title: "Brevo Conversation Id",
+            description: "Brevo Conversation Id",
+          },
+          userId: {
+            title: "User ID",
+            description: "The ID of the user in Botpress",
+          },
         },
       },
     },
   },
-}))
-
+}));
