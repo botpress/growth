@@ -3,10 +3,11 @@
 // This file is generated. Do not edit it manually.
 
 import { z } from "@botpress/sdk";
-export const text = {
+export const file = {
   schema: z
     .object({
-      text: z.string().min(1, undefined),
+      fileUrl: z.string().min(1, undefined),
+      title: z.optional(z.string().min(1, undefined)),
       userId: z
         .optional(
           z
