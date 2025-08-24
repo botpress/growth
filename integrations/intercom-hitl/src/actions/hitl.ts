@@ -43,6 +43,14 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     const intercomConversationId = createdConversation.data.conversation_id;
     logger.forBot().info(`Successfully created Intercom conversation. Conversation ID: ${intercomConversationId}`);
 
+    // Update conversation with title
+    const updateResult = await intercomClient.updateConversation(intercomConversationId, title || 'Untitled ticket');
+    if (!updateResult.success) {
+      logger.forBot().warn(`Failed to update conversation title: ${updateResult.message}`);
+    } else {
+      logger.forBot().info(`Successfully updated conversation title to: ${title || 'Untitled ticket'}`);
+    }
+
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
       tags: {

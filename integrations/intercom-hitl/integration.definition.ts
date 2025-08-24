@@ -12,7 +12,7 @@ import {
 export default new IntegrationDefinition({
   name: integrationName,
   title: "Intercom HITL",
-  version: "2.0.0",
+  version: "2.0.1",
   icon: "icon.svg",
   description:
     "This integration allows your bot to use Intercom as a HITL provider. Messages will appear in Intercom.",

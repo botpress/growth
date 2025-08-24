@@ -81,6 +81,24 @@ export class IntercomApi {
     return this.makeRequest('POST', '/conversations', conversationData);
   }
 
+  public async updateConversation(conversationId: string, title?: string, customAttributes?: Record<string, any>): Promise<any> {
+    validateRequiredParams({ conversationId }, 'updateConversation');
+    
+    this.logger.forBot().info(`Updating Intercom conversation: ${conversationId} with title: ${title}`);
+    
+    const updateData: Record<string, any> = {};
+    
+    if (title !== undefined) {
+      updateData.title = title;
+    }
+    
+    if (customAttributes !== undefined) {
+      updateData.custom_attributes = customAttributes;
+    }
+    
+    return this.makeRequest('PUT', `/conversations/${conversationId}?display_as=plaintext`, updateData);
+  }
+
   public async closeConversation(conversationId: string, body: string = "Goodbye :)"): Promise<any> {
     validateRequiredParams({ conversationId }, 'closeConversation');
     
