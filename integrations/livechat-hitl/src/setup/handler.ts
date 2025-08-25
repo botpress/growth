@@ -63,7 +63,7 @@ const retrieveHitlConversation = async ({
 
     return conversation;
   } catch (thrown: unknown) {
-    if (sdk.isApiError(thrown) && (thrown as any).code === 404) {
+    if (sdk.isApiError(thrown) && thrown.code === 404) {
       logger
         .forBot()
         .debug(
