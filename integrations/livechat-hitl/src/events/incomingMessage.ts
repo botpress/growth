@@ -5,6 +5,7 @@ export const handleIncomingMessage = async (
   webhookPayload: Extract<LiveChatWebhookPayload, { action: "incoming_event" }>,
   logger: bp.Logger,
   client: bp.Client,
+  conversation: any,
 ): Promise<void> => {
   const { chat_id, thread_id, event } = webhookPayload.payload;
   const { author_id, text, type, custom_id, created_at, visibility } = event;
@@ -34,13 +35,6 @@ export const handleIncomingMessage = async (
   const { user: agentUser } = await client.getOrCreateUser({
     tags: {
       agentId: author_id,
-    },
-  });
-
-  const { conversation } = await client.getOrCreateConversation({
-    channel: "hitl",
-    tags: {
-      id: chat_id,
     },
   });
 

@@ -12,7 +12,7 @@ import {
 export default new IntegrationDefinition({
   name: integrationName,
   title: "LiveChat HITL",
-  version: "2.0.1",
+  version: "2.0.2",
   icon: "icon.svg",
   description:
     "This integration allows your bot to use LiveChat as a HITL provider. Messages will appear in LiveChat.",

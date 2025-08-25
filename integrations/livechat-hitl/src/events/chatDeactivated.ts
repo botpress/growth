@@ -8,6 +8,7 @@ export const handleChatDeactivated = async (
   >,
   logger: bp.Logger,
   client: bp.Client,
+  conversation: any,
 ): Promise<void> => {
   const { chat_id, thread_id, user_id } = webhookPayload.payload;
 
@@ -15,13 +16,6 @@ export const handleChatDeactivated = async (
     chat_id,
     thread_id,
     user_id,
-  });
-
-  const { conversation } = await client.getOrCreateConversation({
-    channel: "hitl",
-    tags: {
-      id: chat_id,
-    },
   });
 
   await client.createEvent({

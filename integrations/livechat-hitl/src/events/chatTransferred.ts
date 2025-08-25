@@ -8,6 +8,7 @@ export const handleChatTransferred = async (
   >,
   logger: bp.Logger,
   client: bp.Client,
+  conversation: any,
 ): Promise<void> => {
   const { chat_id, thread_id, requester_id, reason, transferred_to } =
     webhookPayload.payload;
@@ -20,13 +21,6 @@ export const handleChatTransferred = async (
     transferred_to: {
       group_ids: transferred_to.group_ids || [],
       agent_ids: transferred_to.agent_ids,
-    },
-  });
-
-  const { conversation } = await client.getOrCreateConversation({
-    channel: "hitl",
-    tags: {
-      id: chat_id,
     },
   });
 
