@@ -1,3 +1,4 @@
+import * as sdk from '@botpress/sdk'
 import * as bp from ".botpress";
 import { handleIncomingMessage } from "src/events/incomingMessage";
 import { handleChatDeactivated } from "src/events/chatDeactivated";
@@ -6,6 +7,62 @@ import {
   liveChatWebhookPayloadSchema,
   LiveChatTransferred,
 } from "src/definitions/livechatEvents";
+
+const retrieveHitlConversation = async ({
+  liveChatId,
+  client,
+  ctx,
+  logger,
+}: {
+  liveChatId: string
+  client: bp.Client
+  ctx: bp.Context
+  logger: bp.Logger
+}) => {
+  if (!ctx.configuration.ignoreNonHitlConversations) {
+    const { conversation } = await client.getOrCreateConversation({
+      channel: 'hitl',
+      tags: { id: liveChatId },
+    })
+
+    return conversation
+  }
+
+  try {
+    // Try to find an existing conversation with the LiveChat ID
+    const { conversations } = await client.listConversations({
+      tags: { id: liveChatId },
+    })
+
+    if (conversations.length === 0) {
+      logger.forBot().debug('No Botpress conversation found for LiveChat ID. Ignoring the conversation...', {
+        liveChatId,
+      })
+      return
+    }
+
+    const conversation = conversations[0]!
+
+    if (conversation.channel !== 'hitl') {
+      logger.forBot().debug('Ignoring the conversation since it was not created by the startHitl action', {
+        conversation,
+        liveChatId,
+      })
+      return
+    }
+
+    return conversation
+  } catch (thrown: unknown) {
+    if (sdk.isApiError(thrown) && (thrown as any).code === 404) {
+      logger.forBot().debug('Ignoring the conversation since it does not refer to a Botpress conversation', {
+        liveChatId,
+      })
+      return
+    }
+
+    throw thrown
+  }
+}
 
 export const handler: bp.IntegrationProps["handler"] = async ({
   ctx,
@@ -70,6 +127,22 @@ export const handler: bp.IntegrationProps["handler"] = async ({
     },
   });
 
+  // Check if we should process this conversation
+  const conversation = await retrieveHitlConversation({
+    liveChatId: eventPayload.chat_id,
+    client,
+    ctx,
+    logger,
+  });
+
+  if (!conversation) {
+    logger.forBot().debug("Ignoring event for non-HITL conversation", {
+      action,
+      chat_id: eventPayload.chat_id,
+    });
+    return;
+  }
+
   switch (action) {
     case "incoming_event": {
       if (!("event" in eventPayload)) {
@@ -89,7 +162,7 @@ export const handler: bp.IntegrationProps["handler"] = async ({
             event: eventPayload.event,
             additional_data,
           });
-          await handleIncomingMessage(webhookPayload, logger, client);
+          await handleIncomingMessage(webhookPayload, logger, client, conversation);
           break;
 
         default:
@@ -111,7 +184,7 @@ export const handler: bp.IntegrationProps["handler"] = async ({
         thread_id: eventPayload.thread_id,
         additional_data,
       });
-      await handleChatDeactivated(webhookPayload, logger, client);
+      await handleChatDeactivated(webhookPayload, logger, client, conversation);
       break;
     }
 
@@ -125,7 +198,7 @@ export const handler: bp.IntegrationProps["handler"] = async ({
         additional_data,
       });
 
-      await handleChatTransferred(webhookPayload, logger, client);
+      await handleChatTransferred(webhookPayload, logger, client, conversation);
       break;
     }
 
