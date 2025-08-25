@@ -56,7 +56,7 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
     if (Array.isArray(filters)) {
       logger.forBot().info(`Building filter criteria for ${filters.length} filters`)
       const filterGroups: string[] = []
-      filters.forEach((filter: any, idx: number) => {
+      filters.forEach((filter: { field?: string; condition?: string; value?: string | number }, idx: number) => {
         logger.forBot().info(`Processing filter ${idx + 1}: ${JSON.stringify(filter)}`)
         if (!filter.field || !filter.condition) {
           logger.forBot().warn(`Skipping filter ${idx + 1} - missing field or condition`)
