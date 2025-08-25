@@ -181,7 +181,7 @@ export const handler: bp.IntegrationProps["handler"] = async ({
             webhookPayload,
             logger,
             client,
-            conversation,
+            conversation as bp.AnyMessageProps["conversation"],
           );
           break;
 
@@ -204,7 +204,12 @@ export const handler: bp.IntegrationProps["handler"] = async ({
         thread_id: eventPayload.thread_id,
         additional_data,
       });
-      await handleChatDeactivated(webhookPayload, logger, client, conversation);
+      await handleChatDeactivated(
+        webhookPayload,
+        logger,
+        client,
+        conversation as bp.AnyMessageProps["conversation"],
+      );
       break;
     }
 
@@ -218,7 +223,12 @@ export const handler: bp.IntegrationProps["handler"] = async ({
         additional_data,
       });
 
-      await handleChatTransferred(webhookPayload, logger, client, conversation);
+      await handleChatTransferred(
+        webhookPayload,
+        logger,
+        client,
+        conversation as bp.AnyMessageProps["conversation"],
+      );
       break;
     }
 
