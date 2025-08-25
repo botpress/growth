@@ -92,9 +92,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
     attributeMappings = _attributeMappings;
   }
 
-  const MAX_EXECUTION_TIME_MS = 28000 // 28s to leave a buffer
-  const startTime = Date.now()
-  log.debug(`Sync start timestamp: ${new Date(startTime).toISOString()}`)
+      log.debug(`Sync start timestamp: ${new Date().toISOString()}`)
 
   const oauth = new OAuth({
     consumer: {
@@ -302,21 +300,15 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
 
     let currentPage = _currentPage || 1
     let totalCount = _totalCount || 0
-    let hasMorePages = true
     let currentPageProductIndex = _currentPageProductIndex || 0
 
-    while (hasMorePages) {
-      if (Date.now() - startTime >= MAX_EXECUTION_TIME_MS) {
-        const elapsedNow = Date.now() - startTime
-        log.info(`Execution time limit approaching after ${elapsedNow}ms. Triggering webhook to continue sync on next run.`)
-        break;
-      }
-
+    // Only process the first page synchronously
+    if (isInitialRun) {
       const pageSize = 50
       const searchCriteria = `searchCriteria[pageSize]=${pageSize}&searchCriteria[currentPage]=${currentPage}${filterCriteria ? `&${filterCriteria}` : ''}`
       const productsUrl = `https://${magento_domain}/rest/${store_code}/V1/products?${searchCriteria}`
       
-      log.info(`Fetching page ${currentPage} from: ${productsUrl}`)
+      log.info(`Fetching first page from: ${productsUrl}`)
 
       const productsResponse = await apiCallWithRetry(() => axios({
         method: 'GET',
@@ -326,19 +318,21 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
 
       const parsed = ProductListSchema.parse(productsResponse.data)
       const products = parsed.items
-      if (currentPage === 1 && isInitialRun) {
-        totalCount = parsed.total_count
-        log.info(`Total products to sync: ${totalCount}`)
-      }
+      totalCount = parsed.total_count
+      log.info(`Total products to sync: ${totalCount}`)
       
       if (products.length === 0) {
-        log.warn('No more products found to sync.')
-        hasMorePages = false
-        continue
+        log.warn('No products found to sync.')
+        return {
+          success: true,
+          synced_count: 0,
+          total_count: 0,
+          table_name,
+          status: 'Completed - No Products'
+        }
       }
       
-      const remainingProductsInPage = products.length - currentPageProductIndex
-      log.info(`Processing ${remainingProductsInPage} remaining products from page ${currentPage} (starting from index ${currentPageProductIndex})`)
+      log.info(`Processing ${products.length} products from first page`)
       
       if (!tableSchema) {
         const tableDetailsResponse = await apiCallWithRetry(() => axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders }), log)
@@ -346,7 +340,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
       }
       const availableColumns = Object.keys(tableSchema.properties)
 
-      const rowsToInsert = await processProducts(retrieve_reviews, products.slice(currentPageProductIndex), {
+      const rowsToInsert = await processProducts(retrieve_reviews, products, {
         logger: log,
         magento_domain,
         oauth,
@@ -356,111 +350,174 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
         customAttributeCodes,
         attributeMappings,
         tableSchema,
-        startTime,
-        MAX_EXECUTION_TIME_MS,
-        onTimeLimit: () => {
-          log.info(`Time limit reached while processing products. Will resume from current position.`)
-          return true
-        },
         store_code,
       })
 
       if (rowsToInsert.length > 0) {
         log.info(`Inserting ${rowsToInsert.length} rows into table ${table_name}`)
         await apiCallWithRetry(() => axios.post(`${apiBaseUrl}/${tableId}/rows`, { rows: rowsToInsert }, { headers: httpHeaders }), log)
-        log.info(`Successfully inserted rows for page ${currentPage}`)
-        const elapsed = Date.now() - startTime
-        log.debug(`Elapsed time so far: ${elapsed}ms (remaining: ${MAX_EXECUTION_TIME_MS - elapsed}ms)`)
+        log.info(`Successfully inserted rows for first page`)
       }
 
-      currentPageProductIndex += rowsToInsert.length
+      // Check if there are more pages to sync
+      const hasMorePages = totalCount > pageSize
       
-      if (currentPageProductIndex >= products.length) {
-        currentPage++
-        currentPageProductIndex = 0
-      }
-      
-      const currentSyncedCount = ((currentPage - 1) * pageSize) + currentPageProductIndex
-      hasMorePages = currentSyncedCount < totalCount
-      
-      if (Date.now() - startTime >= MAX_EXECUTION_TIME_MS) {
-        log.info(`Time limit reached after processing page ${currentPage} (product index: ${currentPageProductIndex}). Breaking to trigger webhook.`)
-        break;
-      }
-    }
-
-    if (hasMorePages) {      
-      // Check if webhookId is available
-      if (!ctx.webhookId) {
-        log.error('No webhook ID available. Cannot continue sync automatically.')
-        return {
-          success: false,
-          synced_count: ((currentPage - 1) * 50) + currentPageProductIndex,
-          total_count: totalCount,
-          table_name,
-          error: 'No webhook ID available for continuation',
-          status: 'Failed - No Webhook'
+      if (hasMorePages) {
+        // Send webhook to continue with remaining pages
+        if (!ctx.webhookId) {
+          log.error('No webhook ID available. Cannot continue sync automatically.')
+          return {
+            success: false,
+            synced_count: rowsToInsert.length,
+            total_count: totalCount,
+            table_name,
+            error: 'No webhook ID available for continuation',
+            status: 'Failed - No Webhook'
+          }
         }
-      }
-      
-      try {
+        
         const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`
-        log.info(`Attempting to call webhook: ${webhookUrl}`)
         
         const payload = {
           type: 'magentoSyncContinue',
           data: {
             ...input,
-            _currentPage: currentPage,
+            _currentPage: 2,
             _totalCount: totalCount,
             _tableId: tableId,
             _runId: runId,
             _customAttributeCodes: customAttributeCodes,
             _attributeMappings: typeof _attributeMappings === 'string' ? _attributeMappings : JSON.stringify(attributeMappings),
             _filterCriteria: filterCriteria,
-            _currentPageProductIndex: currentPageProductIndex,
+            _currentPageProductIndex: 0,
           }
         };
 
-        log.info(`Webhook payload: ${JSON.stringify(payload)}`)
-        
-        // Use retry system for webhook call to handle transient failures
-        const response = await apiCallWithRetry(
-          () => axios.post(webhookUrl, payload),
-          log,
-          3, // maxRetries for webhook
-          1000 // initialDelay for webhook
-        )
-        
-        log.info(`Webhook response status: ${response.status}`)
-        log.info('Successfully called webhook to continue sync.')
-      } catch (err: any) {
-        log.error('Failed to call webhook to continue sync after all retries.', err)
-        if (axios.isAxiosError(err)) {
-          log.error(`Webhook HTTP Status: ${err.response?.status}`)
-          log.error(`Webhook Response: ${JSON.stringify(err.response?.data)}`)
-          log.error(`Webhook URL: ${err.config?.url}`)
+        try {
+          const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          })
+          
+          if (!response.ok) {
+            log.error(`Webhook failed with status ${response.status}`)
+          }
+        } catch (error) {
+          log.error('Failed to send webhook to continue sync:', error)
         }
-        // Don't throw here - we want to continue with the sync even if webhook fails
-        log.warn('Continuing sync despite webhook failure')
+        
+        return {
+          success: true,
+          synced_count: rowsToInsert.length,
+          total_count: totalCount,
+          table_name,
+          status: 'In Progress - Webhook Sent'
+        }
+      } else {
+        // Only one page, sync is complete
+        log.info(`Sync completed successfully. Total products synced: ${totalCount}`)
+        return {
+          success: true,
+          synced_count: totalCount,
+          total_count: totalCount,
+          table_name,
+          status: 'Completed'
+        }
       }
+    } else {
+      // Continue sync for remaining pages (non-initial run)
+      // Validate that this is a proper continuation
+      if (!_currentPage || !_tableId || !_runId) {
+        log.error('Invalid continuation parameters. Missing required state variables.')
+        return {
+          success: false,
+          synced_count: 0,
+          total_count: 0,
+          table_name,
+          error: 'Invalid continuation parameters',
+          status: 'Failed - Invalid State'
+        }
+      }
+      
+      log.info(`Continuing sync from page ${_currentPage} with run ID: ${_runId}`)
+      
+      log.info(`Continuing sync from page ${_currentPage} with run ID: ${_runId}`)
+      
+      const pageSize = 50
+      let hasMorePages = true
+      
+      while (hasMorePages) {
+        const searchCriteria = `searchCriteria[pageSize]=${pageSize}&searchCriteria[currentPage]=${currentPage}${filterCriteria ? `&${filterCriteria}` : ''}`
+        const productsUrl = `https://${magento_domain}/rest/${store_code}/V1/products?${searchCriteria}`
+        
+        log.info(`Fetching page ${currentPage} from: ${productsUrl}`)
+
+        const productsResponse = await apiCallWithRetry(() => axios({
+          method: 'GET',
+          url: productsUrl,
+          headers: { ...oauth.toHeader(oauth.authorize({ url: productsUrl, method: 'GET' }, token)), ...headers },
+        }), log)
+
+        const parsed = ProductListSchema.parse(productsResponse.data)
+        const products = parsed.items
+        
+        if (products.length === 0) {
+          log.warn('No more products found to sync.')
+          hasMorePages = false
+          continue
+        }
+        
+        const remainingProductsInPage = products.length - currentPageProductIndex
+        log.info(`Processing ${remainingProductsInPage} remaining products from page ${currentPage} (starting from index ${currentPageProductIndex})`)
+        
+        if (!tableSchema) {
+          const tableDetailsResponse = await apiCallWithRetry(() => axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders }), log)
+          tableSchema = tableDetailsResponse.data.table?.schema
+        }
+        const availableColumns = Object.keys(tableSchema.properties)
+
+        const rowsToInsert = await processProducts(retrieve_reviews, products.slice(currentPageProductIndex), {
+          logger: log,
+          magento_domain,
+          oauth,
+          token,
+          headers,
+          availableColumns,
+          customAttributeCodes,
+          attributeMappings,
+          tableSchema,
+          store_code,
+        })
+
+        if (rowsToInsert.length > 0) {
+          log.info(`Inserting ${rowsToInsert.length} rows into table ${table_name}`)
+          await apiCallWithRetry(() => axios.post(`${apiBaseUrl}/${tableId}/rows`, { rows: rowsToInsert }, { headers: httpHeaders }), log)
+          log.info(`Successfully inserted rows for page ${currentPage}`)
+        }
+
+        currentPageProductIndex += rowsToInsert.length
+        
+        if (currentPageProductIndex >= products.length) {
+          currentPage++
+          currentPageProductIndex = 0
+        }
+        
+        const currentSyncedCount = ((currentPage - 1) * pageSize) + currentPageProductIndex
+        hasMorePages = currentSyncedCount < totalCount
+      }
+      
+      // Sync completed for remaining pages
+      log.info(`Sync completed successfully. Total products synced: ${totalCount}`)
       return {
         success: true,
-        synced_count: ((currentPage - 1) * 50) + currentPageProductIndex,
+        synced_count: totalCount,
         total_count: totalCount,
         table_name,
-        status: 'In Progress'
+        status: 'Completed'
       }
-    }
-
-    const totalElapsed = Date.now() - startTime
-    log.info(`Sync completed successfully in ${totalElapsed}ms. Total products synced: ${totalCount}`)
-    return {
-      success: true,
-      synced_count: totalCount,
-      total_count: totalCount,
-      table_name,
-      status: 'Completed'
     }
 
   } catch (error) {
@@ -497,22 +554,13 @@ async function processProducts(
         customAttributeCodes: string[]
         attributeMappings: Record<string, Record<string, string>>
         tableSchema: any
-        startTime: number
-        MAX_EXECUTION_TIME_MS: number
-        onTimeLimit: () => boolean
         store_code: string
     }
 ) : Promise<any[]> {
-    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema, startTime, MAX_EXECUTION_TIME_MS, onTimeLimit, store_code } = config
+    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema, store_code } = config
     const rowsToInsert: any[] = []
 
     for (const product of products) {
-        if (Date.now() - startTime >= MAX_EXECUTION_TIME_MS) {
-            logger.warn(`Time limit reached while processing products. Stopping at product ${product.sku}.`)
-            if (onTimeLimit()) {
-                break;
-            }
-        }
         
         try {
             let stockQty = 0
