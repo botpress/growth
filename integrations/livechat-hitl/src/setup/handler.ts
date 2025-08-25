@@ -1,4 +1,4 @@
-import * as sdk from '@botpress/sdk'
+import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
 import { handleIncomingMessage } from "src/events/incomingMessage";
 import { handleChatDeactivated } from "src/events/chatDeactivated";
@@ -14,55 +14,70 @@ const retrieveHitlConversation = async ({
   ctx,
   logger,
 }: {
-  liveChatId: string
-  client: bp.Client
-  ctx: bp.Context
-  logger: bp.Logger
+  liveChatId: string;
+  client: bp.Client;
+  ctx: bp.Context;
+  logger: bp.Logger;
 }) => {
   if (!ctx.configuration.ignoreNonHitlConversations) {
     const { conversation } = await client.getOrCreateConversation({
-      channel: 'hitl',
+      channel: "hitl",
       tags: { id: liveChatId },
-    })
+    });
 
-    return conversation
+    return conversation;
   }
 
   try {
     // Try to find an existing conversation with the LiveChat ID
     const { conversations } = await client.listConversations({
       tags: { id: liveChatId },
-    })
+    });
 
     if (conversations.length === 0) {
-      logger.forBot().debug('No Botpress conversation found for LiveChat ID. Ignoring the conversation...', {
-        liveChatId,
-      })
-      return
+      logger
+        .forBot()
+        .debug(
+          "No Botpress conversation found for LiveChat ID. Ignoring the conversation...",
+          {
+            liveChatId,
+          },
+        );
+      return;
     }
 
-    const conversation = conversations[0]!
+    const conversation = conversations[0]!;
 
-    if (conversation.channel !== 'hitl') {
-      logger.forBot().debug('Ignoring the conversation since it was not created by the startHitl action', {
-        conversation,
-        liveChatId,
-      })
-      return
+    if (conversation.channel !== "hitl") {
+      logger
+        .forBot()
+        .debug(
+          "Ignoring the conversation since it was not created by the startHitl action",
+          {
+            conversation,
+            liveChatId,
+          },
+        );
+      return;
     }
 
-    return conversation
+    return conversation;
   } catch (thrown: unknown) {
     if (sdk.isApiError(thrown) && (thrown as any).code === 404) {
-      logger.forBot().debug('Ignoring the conversation since it does not refer to a Botpress conversation', {
-        liveChatId,
-      })
-      return
+      logger
+        .forBot()
+        .debug(
+          "Ignoring the conversation since it does not refer to a Botpress conversation",
+          {
+            liveChatId,
+          },
+        );
+      return;
     }
-
-    throw thrown
+    const formattedThrown = JSON.stringify(thrown, null, 2);
+    throw new sdk.RuntimeError(`${formattedThrown}`);
   }
-}
+};
 
 export const handler: bp.IntegrationProps["handler"] = async ({
   ctx,
@@ -162,7 +177,12 @@ export const handler: bp.IntegrationProps["handler"] = async ({
             event: eventPayload.event,
             additional_data,
           });
-          await handleIncomingMessage(webhookPayload, logger, client, conversation);
+          await handleIncomingMessage(
+            webhookPayload,
+            logger,
+            client,
+            conversation,
+          );
           break;
 
         default:
