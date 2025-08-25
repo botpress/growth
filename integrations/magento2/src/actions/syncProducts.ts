@@ -48,6 +48,16 @@ function toMagentoAttributeCode(label: string): string {
     .replace(/[^a-z0-9_]/g, '')
 }
 
+function shortenColumnName(name: string): string {
+  if (name.length <= 30) {
+    return name
+  }
+  
+  const truncated = name.substring(0, 26)
+  const hash = crypto.createHash('md5').update(name).digest('hex').substring(0, 3)
+  return `${truncated}_${hash}`
+}
+
 export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, input: any, logger: any }) {
   const {
     magento_domain,
@@ -80,6 +90,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
   log.info(`-> Starting Magento2 product sync (run ID: ${runId})`)
 
   let attributeMappings: Record<string, Record<string, string>> = {};
+  let columnNameMappings: Record<string, string> = {};
   if (typeof _attributeMappings === 'string') {
     try {
       attributeMappings = JSON.parse(_attributeMappings);
@@ -131,11 +142,13 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
 
     if (isInitialRun) {
       log.info('Initial run detected. Setting up table and attributes.')
-      customAttributeCodes = (custom_columns_to_add_to_table || '')
-        .split(',')
-        .map((attr: string) => toMagentoAttributeCode(attr))
-        .filter((attr: string) => attr.length > 0)
-      log.info(`Custom attributes to sync: ${customAttributeCodes.join(', ')}`)
+      const originalAttributes = (custom_columns_to_add_to_table || '').replace(/^["']|["']$/g, '').split(',').filter((attr: string) => attr.trim().length > 0)
+      customAttributeCodes = originalAttributes.map((attr: string) => {
+        const baseCode = toMagentoAttributeCode(attr.trim())
+        const shortName = shortenColumnName(baseCode)
+        columnNameMappings[shortName] = attr.trim()
+        return shortName
+      })
 
       if (filters_json) {
         try {
@@ -250,7 +263,8 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
           review_count: { type: 'number' },
         }
         for (const attrCode of customAttributeCodes) {
-          defaultProperties[attrCode] = { type: 'string' }
+          const shortName = shortenColumnName(attrCode)
+          defaultProperties[shortName] = { type: 'string' }
         }
         if (Object.keys(defaultProperties).length > 20) {
           const error = `Too many columns: ${Object.keys(defaultProperties).length}. Max is 20.`
@@ -275,7 +289,8 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
         log.info('Fetching attribute mappings for custom attributes')
         for (const attrCode of customAttributeCodes) {
           try {
-            const attrUrl = `https://${magento_domain}/rest/${store_code}/V1/products/attributes/${attrCode}`
+            const originalAttributeName = columnNameMappings[attrCode] || attrCode
+            const attrUrl = `https://${magento_domain}/rest/${store_code}/V1/products/attributes/${originalAttributeName}`
             const attrResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: attrUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: attrUrl, method: 'GET' }, token)), ...headers } }), log)
             const attribute = ProductAttributeSchema.parse(attrResponse.data)
             if (attribute.options && attribute.options.length > 0) {
@@ -283,10 +298,11 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
               for (const option of attribute.options) {
                 attributeMappings[attrCode][option.value] = option.label
               }
-              log.info(`Mapped ${attribute.options.length} options for attribute ${attrCode}`)
+              log.info(`Mapped ${attribute.options.length} options for attribute ${originalAttributeName}`)
             }
           } catch (error) {
-            const errorMessage = `Failed to get attribute mapping for ${attrCode}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            const originalAttributeName = columnNameMappings[attrCode] || attrCode
+            const errorMessage = `Failed to get attribute mapping for ${originalAttributeName}: ${error instanceof Error ? error.message : 'Unknown error'}`
             log.error(errorMessage, error)
             return { success: false, synced_count: 0, total_count: 0, table_name, error: errorMessage, status: 'Failed' }
           }
@@ -345,6 +361,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
         availableColumns,
         customAttributeCodes,
         attributeMappings,
+        columnNameMappings,
         tableSchema,
         store_code,
       })
@@ -382,6 +399,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
             _runId: runId,
             _customAttributeCodes: customAttributeCodes,
             _attributeMappings: typeof _attributeMappings === 'string' ? _attributeMappings : JSON.stringify(attributeMappings),
+            _columnNameMappings: JSON.stringify(columnNameMappings),
             _filterCriteria: filterCriteria,
             _currentPageProductIndex: 0,
           }
@@ -479,6 +497,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
           availableColumns,
           customAttributeCodes,
           attributeMappings,
+          columnNameMappings,
           tableSchema,
           store_code,
         })
@@ -543,11 +562,12 @@ async function processProducts(
         availableColumns: string[]
         customAttributeCodes: string[]
         attributeMappings: Record<string, Record<string, string>>
+        columnNameMappings: Record<string, string>
         tableSchema: any
         store_code: string
     }
 ) : Promise<any[]> {
-    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema, store_code } = config
+    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, columnNameMappings, tableSchema, store_code } = config
     const rowsToInsert: any[] = []
 
     for (const product of products) {
@@ -614,13 +634,14 @@ async function processProducts(
                 value = productDataMap[columnName]
 
                 if (value === undefined && customAttributeCodes.includes(columnName) && product.custom_attributes) {
-                    const attr = product.custom_attributes.find(a => a.attribute_code === columnName)
+                    const originalAttributeName = columnNameMappings[columnName] || columnName
+                    const attr = product.custom_attributes.find(a => a.attribute_code === originalAttributeName)
                     if (attr) {
                         value = attr.value
-                        if ((typeof attr.value === 'string' || typeof attr.value === 'number') && attributeMappings[attr.attribute_code]?.[attr.value] !== undefined) {
-                            value = attributeMappings[attr.attribute_code]?.[attr.value]
-                        } else if (Array.isArray(attr.value) && attributeMappings[attr.attribute_code]) {
-                            value = attr.value.map((v: any) => attributeMappings[attr.attribute_code]?.[v] ?? v).join(', ')
+                        if ((typeof attr.value === 'string' || typeof attr.value === 'number') && attributeMappings[originalAttributeName]?.[attr.value] !== undefined) {
+                            value = attributeMappings[originalAttributeName]?.[attr.value]
+                        } else if (Array.isArray(attr.value) && attributeMappings[originalAttributeName]) {
+                            value = attr.value.map((v: any) => attributeMappings[originalAttributeName]?.[v] ?? v).join(', ')
                         }
                     }
                 }
