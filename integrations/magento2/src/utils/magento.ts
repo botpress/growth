@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import * as crypto from "crypto";
 import { AttributeMapping, ColumnNameMapping } from "../types/magento";
 
 export function toMagentoAttributeCode(label: string): string {

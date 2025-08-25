@@ -7,7 +7,7 @@ import {
 } from "./actions";
 import * as bp from ".botpress";
 import axios from "axios";
-import crypto from "crypto";
+import * as crypto from "crypto";
 import OAuth from "oauth-1.0a";
 
 export default new bp.Integration({

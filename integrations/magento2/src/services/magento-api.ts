@@ -1,6 +1,6 @@
 import axios from "axios";
 import OAuth from "oauth-1.0a";
-import crypto from "crypto";
+import * as crypto from "crypto";
 import * as bp from ".botpress";
 import {
   MagentoConfiguration,
@@ -72,7 +72,6 @@ export function createOAuthClient(config: MagentoConfiguration): OAuthClient {
 
 export function createHeaders(
   config: MagentoConfiguration,
-  botId: string,
 ): Record<string, string> {
   return {
     "User-Agent": config.user_agent || DEFAULT_USER_AGENT,
@@ -118,7 +117,6 @@ function createFilterGroup(filters: Filter[], groupIndex: number): string[] {
 
 export function buildFilterCriteria(
   filters: Filter[],
-  attributeMappings: AttributeMapping,
 ): string {
   const filterGroups: string[] = [];
   const fieldGroups: Record<string, Filter[]> = {};
@@ -287,7 +285,7 @@ export async function processFilters(
       return filter;
     });
 
-    return buildFilterCriteria(filters, attributeMappings);
+    return buildFilterCriteria(filters);
   } catch (err) {
     throw new Error(
       `filters_json is not valid JSON: ${err instanceof Error ? err.message : "Unknown parsing error"}`,

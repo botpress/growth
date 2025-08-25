@@ -1,5 +1,5 @@
 import axios from "axios";
-import crypto from "crypto";
+import * as crypto from "crypto";
 import * as bp from ".botpress";
 import {
   BotpressContext,
@@ -38,7 +38,7 @@ function createSyncContext(ctx: BotpressContext): SyncContext {
       key: ctx.configuration.access_token,
       secret: ctx.configuration.access_token_secret,
     },
-    headers: createHeaders(ctx.configuration, ctx.botId),
+    headers: createHeaders(ctx.configuration),
     httpHeaders: createHttpHeaders(ctx.configuration, ctx.botId),
     apiBaseUrl: BOTPRESS_API_BASE_URL,
   };

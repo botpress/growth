@@ -1,5 +1,5 @@
 import axios from "axios";
-import crypto from "crypto";
+import * as crypto from "crypto";
 import OAuth from "oauth-1.0a";
 import * as bp from ".botpress";
 import { StockItemSchema } from "../misc/zod-schemas";
