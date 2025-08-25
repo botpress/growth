@@ -12,7 +12,7 @@ import {
 export default new IntegrationDefinition({
   name: integrationName,
   title: "LiveChat HITL",
-  version: "2.0.4",
+  version: "3.0.0",
   icon: "icon.svg",
   description:
     "This integration allows your bot to use LiveChat as a HITL provider. Messages will appear in LiveChat.",
@@ -22,8 +22,15 @@ export default new IntegrationDefinition({
   channels,
   events,
   user,
-}).extend(hitl, () => ({
-  entities: {},
+  entities: {
+    ticket: {
+      schema: z.object({}),
+    },
+  },
+}).extend(hitl, (self) => ({
+  entities: {
+    hitlSession: self.entities.ticket,
+  },
   channels: {
     hitl: {
       title: "LiveChat",
