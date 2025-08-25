@@ -15,9 +15,11 @@ export const LiveChatConfigurationSchema = z.object({
     .describe("LiveChat Group ID for HITL conversations and chat transfers"),
   ignoreNonHitlConversations: z
     .boolean()
-    .optional()
+    .default(false)
     .title("Ignore non-HITL conversations")
-    .describe("Ignore conversations that were not created by the startHitl action"),
+    .describe(
+      "Ignore conversations that were not created by the startHitl action",
+    ),
 });
 
 export type LiveChatConfiguration = z.infer<typeof LiveChatConfigurationSchema>;
