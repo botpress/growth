@@ -8,7 +8,7 @@ export const handleChatDeactivated = async (
   >,
   logger: bp.Logger,
   client: bp.Client,
-  conversation: any,
+  conversation: bp.AnyMessageProps["conversation"],
 ): Promise<void> => {
   const { chat_id, thread_id, user_id } = webhookPayload.payload;
 
