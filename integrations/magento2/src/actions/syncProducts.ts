@@ -25,7 +25,7 @@ async function apiCallWithRetry<T>(
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
         if (status && (status === 429 || status >= 500) && i < maxRetries - 1) {
-          const delay = initialDelay * Math.pow(2, i) * (1 + Math.random()) // add jitter
+          const delay = initialDelay * Math.pow(2, i) * (1 + Math.random())
           logger.forBot().warn(`API call failed with status ${status}. Retrying in ${delay.toFixed(0)}ms... (Attempt ${
             i + 1
           }/${maxRetries})`)
@@ -44,8 +44,8 @@ function toMagentoAttributeCode(label: string): string {
   return label
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, '_') // spaces to underscores
-    .replace(/[^a-z0-9_]/g, '') // remove non-alphanumeric/underscore
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
 }
 
 export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, input: any, logger: any }) {
@@ -65,7 +65,6 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
     custom_columns_to_add_to_table,
     filters_json,
     retrieve_reviews,
-    // Recursive inputs
     _currentPage,
     _totalCount,
     _tableId,
@@ -80,7 +79,6 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
   const runId = _runId || crypto.randomUUID()
   log.info(`-> Starting Magento2 product sync (run ID: ${runId})`)
 
-  // Parse _attributeMappings from JSON string if needed
   let attributeMappings: Record<string, Record<string, string>> = {};
   if (typeof _attributeMappings === 'string') {
     try {
@@ -172,9 +170,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
             return filter
           })
 
-          // Build Magento searchCriteria with grouping similar to getProducts
-          // - OR within the same field (multiple values for one attribute)
-          // - Separate price from/to into distinct groups for AND logic
+
           const filterGroups: string[] = []
 
           const fieldGroups: Record<string, any[]> = {}
@@ -302,7 +298,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
     let totalCount = _totalCount || 0
     let currentPageProductIndex = _currentPageProductIndex || 0
 
-    // Only process the first page synchronously
+
     if (isInitialRun) {
       const pageSize = 50
       const searchCriteria = `searchCriteria[pageSize]=${pageSize}&searchCriteria[currentPage]=${currentPage}${filterCriteria ? `&${filterCriteria}` : ''}`
@@ -359,11 +355,9 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
         log.info(`Successfully inserted rows for first page`)
       }
 
-      // Check if there are more pages to sync
       const hasMorePages = totalCount > pageSize
       
       if (hasMorePages) {
-        // Send webhook to continue with remaining pages
         if (!ctx.webhookId) {
           log.error('No webhook ID available. Cannot continue sync automatically.')
           return {
@@ -417,7 +411,6 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
           status: 'In Progress - Webhook Sent'
         }
       } else {
-        // Only one page, sync is complete
         log.info(`Sync completed successfully. Total products synced: ${totalCount}`)
         return {
           success: true,
@@ -428,8 +421,6 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
         }
       }
     } else {
-      // Continue sync for remaining pages (non-initial run)
-      // Validate that this is a proper continuation
       if (!_currentPage || !_tableId || !_runId) {
         log.error('Invalid continuation parameters. Missing required state variables.')
         return {
@@ -509,7 +500,6 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, in
         hasMorePages = currentSyncedCount < totalCount
       }
       
-      // Sync completed for remaining pages
       log.info(`Sync completed successfully. Total products synced: ${totalCount}`)
       return {
         success: true,
