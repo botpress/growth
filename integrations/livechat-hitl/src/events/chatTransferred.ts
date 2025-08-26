@@ -1,12 +1,17 @@
-import * as bp from '.botpress'
-import { LiveChatWebhookPayload } from 'src/definitions/livechatEvents'
+import * as bp from ".botpress";
+import { LiveChatWebhookPayload } from "src/definitions/livechatEvents";
 
 export const handleChatTransferred = async (
-  webhookPayload: Extract<LiveChatWebhookPayload, { action: 'chat_transferred' }>,
+  webhookPayload: Extract<
+    LiveChatWebhookPayload,
+    { action: "chat_transferred" }
+  >,
   logger: bp.Logger,
   client: bp.Client,
+  conversation: bp.AnyMessageProps["conversation"],
 ): Promise<void> => {
-  const { chat_id, thread_id, requester_id, reason, transferred_to } = webhookPayload.payload
+  const { chat_id, thread_id, requester_id, reason, transferred_to } =
+    webhookPayload.payload;
 
   logger.forBot().info(`Processing chat transferred event`, {
     chat_id,
@@ -17,26 +22,19 @@ export const handleChatTransferred = async (
       group_ids: transferred_to.group_ids || [],
       agent_ids: transferred_to.agent_ids,
     },
-  })
-
-  const { conversation } = await client.getOrCreateConversation({
-    channel: 'hitl',
-    tags: {
-      id: chat_id,
-    },
-  })
+  });
 
   const { user: botpressUser } = await client.getOrCreateUser({
     tags: {
       livechatConversationId: chat_id,
     },
-  })
+  });
 
   await client.createEvent({
-    type: 'hitlAssigned',
+    type: "hitlAssigned",
     payload: {
       conversationId: conversation.id,
       userId: botpressUser.id as string,
     },
-  })
-} 
+  });
+};

@@ -19,7 +19,7 @@ export default new bp.Integration({
 
     for (const lib of libs) {
       const spClient = new SharepointClient({ ...ctx.configuration}, lib);
-      const spSync = new SharepointSync(spClient, client, logger);
+      const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision);
 
       logger.forBot().info(`[Registration] (${lib}) Creating webhook → ${webhookUrl}`);
       const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl);
@@ -86,7 +86,7 @@ export default new bp.Integration({
     /* 2 - Iterate through each library, perform incremental sync */
     for (const [lib, { changeToken }] of Object.entries(oldSubs)) {
       const spClient = new SharepointClient({ ...ctx.configuration}, lib);
-      const spSync = new SharepointSync(spClient, client, logger);
+      const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision);
 
       logger.forBot().info(`[Webhook] (${lib}) Running incremental sync…`);
       const newToken = await spSync.syncSharepointDocumentLibraryAndBotpressKB(changeToken);

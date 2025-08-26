@@ -1,0 +1,29 @@
+{
+  "name": "@bp-templates/empty-integration",
+  "integrationName": "plus/intercom-hitl",
+  "scripts": {
+    "check:type": "tsc --noEmit",
+    "version": "bp --version",
+    "login": "bp login",
+    "gen": "bp gen",
+    "deploy": "bp deploy"
+  },
+  "private": true,
+  "dependencies": {
+    "@botpress/client": "1.20.0",
+    "@botpress/sdk": "4.15.1",
+    "axios": "^1.8.1",
+    "html-to-text": "^9.0.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@botpress/cli": "^4.12.1",
+    "@types/html-to-text": "^9.0.4",
+    "@types/node": "^18.19.76",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "bpDependencies": {
+    "hitl": "interface:hitl@2.0.0"
+  }
+}

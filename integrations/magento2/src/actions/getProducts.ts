@@ -7,7 +7,7 @@ import { ProductListSchema } from '../misc/zod-schemas'
 export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async ({ ctx, input, logger }) => {
   logger.forBot().info(`Input received: ${JSON.stringify(input)}`)
 
-  const { magento_domain, consumer_key, consumer_secret, access_token, access_token_secret, user_agent } =
+  const { magento_domain, consumer_key, consumer_secret, access_token, access_token_secret, user_agent, store_code } =
     ctx.configuration
 
   logger.forBot().info(`Magento domain: ${magento_domain}`)
@@ -92,7 +92,7 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
   }
 
   const searchCriteriaString = filterCriteria;
-  const url = `https://${magento_domain}/rest/default/V1/products?${searchCriteriaString}`;
+  const url = `https://${magento_domain}/rest/${store_code}/V1/products?${searchCriteriaString}`;
 
   logger.forBot().info(`Constructed API URL: ${url}`)
 

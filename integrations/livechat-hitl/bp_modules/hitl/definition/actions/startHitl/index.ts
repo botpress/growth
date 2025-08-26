@@ -11,4 +11,5 @@ export const startHitl = {
   "output": output.output,
   "billable": false,
   "cacheable": false,
+  "attributes": { "bpActionHiddenInStudio": "true" },
 }

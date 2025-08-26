@@ -48,7 +48,7 @@ function toMagentoAttributeCode(label: string): string {
     .replace(/[^a-z0-9_]/g, '') // remove non-alphanumeric/underscore
 }
 
-export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async ({ ctx, input, logger, client }) => {
+export async function executeSyncProducts({ ctx, input, logger }: { ctx: any, input: any, logger: any }) {
   const {
     magento_domain,
     consumer_key,
@@ -57,12 +57,14 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
     access_token_secret,
     user_agent,
     botpress_pat,
+    store_code,
   } = ctx.configuration
 
   const {
     table_name,
-    custom_attributes,
+    custom_columns_to_add_to_table,
     filters_json,
+    retrieve_reviews,
     // Recursive inputs
     _currentPage,
     _totalCount,
@@ -133,7 +135,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
 
     if (isInitialRun) {
       log.info('Initial run detected. Setting up table and attributes.')
-      customAttributeCodes = (custom_attributes || '')
+      customAttributeCodes = (custom_columns_to_add_to_table || '')
         .split(',')
         .map((attr: string) => toMagentoAttributeCode(attr))
         .filter((attr: string) => attr.length > 0)
@@ -150,7 +152,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
 
           for (const attrCode of attributeFields) {
             try {
-              const attrUrl = `https://${magento_domain}/rest/default/V1/products/attributes/${attrCode}`
+              const attrUrl = `https://${magento_domain}/rest/${store_code}/V1/products/attributes/${attrCode}`
               const attrResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: attrUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: attrUrl, method: 'GET' }, token)), ...headers } }), log)
               const attribute = ProductAttributeSchema.parse(attrResponse.data)
               if (attribute.options && attribute.options.length > 0) {
@@ -172,16 +174,58 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
             return filter
           })
 
+          // Build Magento searchCriteria with grouping similar to getProducts
+          // - OR within the same field (multiple values for one attribute)
+          // - Separate price from/to into distinct groups for AND logic
           const filterGroups: string[] = []
-          filters.forEach((filter: any, idx: number) => {
+
+          const fieldGroups: Record<string, any[]> = {}
+          const separateGroups: any[] = []
+
+          filters.forEach((filter: any) => {
             if (!filter.field || !filter.condition) return
-            const filterGroup = `searchCriteria[filterGroups][${idx}][filters][0][field]=${encodeURIComponent(filter.field)}&searchCriteria[filterGroups][${idx}][filters][0][conditionType]=${filter.condition}`
-            if (filter.value && filter.condition !== 'notnull' && filter.condition !== 'null') {
-              filterGroups.push(`${filterGroup}&searchCriteria[filterGroups][${idx}][filters][0][value]=${encodeURIComponent(filter.value)}`)
-            } else {
-              filterGroups.push(filterGroup)
+            if (filter.field === 'price' && (filter.condition === 'from' || filter.condition === 'to')) {
+              separateGroups.push(filter)
+              return
             }
+            fieldGroups[filter.field] = fieldGroups[filter.field] || []
+            fieldGroups[filter.field]!.push(filter)
           })
+
+          let groupIndex = 0
+
+          Object.entries(fieldGroups).forEach(([_, fieldFilters]) => {
+            fieldFilters.forEach((filter: any, filterIndex: number) => {
+              const base = `searchCriteria[filterGroups][${groupIndex}][filters][${filterIndex}][field]=${encodeURIComponent(
+                filter.field
+              )}&searchCriteria[filterGroups][${groupIndex}][filters][${filterIndex}][condition_type]=${filter.condition}`
+              if (filter.value && filter.condition !== 'notnull' && filter.condition !== 'null') {
+                filterGroups.push(
+                  `${base}&searchCriteria[filterGroups][${groupIndex}][filters][${filterIndex}][value]=${encodeURIComponent(
+                    filter.value
+                  )}`
+                )
+              } else {
+                filterGroups.push(base)
+              }
+            })
+            groupIndex++
+          })
+
+          separateGroups.forEach((filter: any) => {
+            const base = `searchCriteria[filterGroups][${groupIndex}][filters][0][field]=${encodeURIComponent(
+              filter.field
+            )}&searchCriteria[filterGroups][${groupIndex}][filters][0][condition_type]=${filter.condition}`
+            if (filter.value && filter.condition !== 'notnull' && filter.condition !== 'null') {
+              filterGroups.push(
+                `${base}&searchCriteria[filterGroups][${groupIndex}][filters][0][value]=${encodeURIComponent(filter.value)}`
+              )
+            } else {
+              filterGroups.push(base)
+            }
+            groupIndex++
+          })
+
           if (filterGroups.length > 0) {
             filterCriteria = filterGroups.join('&')
           }
@@ -237,7 +281,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         log.info('Fetching attribute mappings for custom attributes')
         for (const attrCode of customAttributeCodes) {
           try {
-            const attrUrl = `https://${magento_domain}/rest/default/V1/products/attributes/${attrCode}`
+            const attrUrl = `https://${magento_domain}/rest/${store_code}/V1/products/attributes/${attrCode}`
             const attrResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: attrUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: attrUrl, method: 'GET' }, token)), ...headers } }), log)
             const attribute = ProductAttributeSchema.parse(attrResponse.data)
             if (attribute.options && attribute.options.length > 0) {
@@ -270,7 +314,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
 
       const pageSize = 50
       const searchCriteria = `searchCriteria[pageSize]=${pageSize}&searchCriteria[currentPage]=${currentPage}${filterCriteria ? `&${filterCriteria}` : ''}`
-      const productsUrl = `https://${magento_domain}/rest/default/V1/products?${searchCriteria}`
+      const productsUrl = `https://${magento_domain}/rest/${store_code}/V1/products?${searchCriteria}`
       
       log.info(`Fetching page ${currentPage} from: ${productsUrl}`)
 
@@ -302,7 +346,7 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
       }
       const availableColumns = Object.keys(tableSchema.properties)
 
-      const rowsToInsert = await processProducts(products.slice(currentPageProductIndex), {
+      const rowsToInsert = await processProducts(retrieve_reviews, products.slice(currentPageProductIndex), {
         logger: log,
         magento_domain,
         oauth,
@@ -317,7 +361,8 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
         onTimeLimit: () => {
           log.info(`Time limit reached while processing products. Will resume from current position.`)
           return true
-        }
+        },
+        store_code,
       })
 
       if (rowsToInsert.length > 0) {
@@ -344,12 +389,27 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
       }
     }
 
-    if (hasMorePages) {
-      log.info('Time limit reached. Creating magentoSyncContinue event for next batch.')
+    if (hasMorePages) {      
+      // Check if webhookId is available
+      if (!ctx.webhookId) {
+        log.error('No webhook ID available. Cannot continue sync automatically.')
+        return {
+          success: false,
+          synced_count: ((currentPage - 1) * 50) + currentPageProductIndex,
+          total_count: totalCount,
+          table_name,
+          error: 'No webhook ID available for continuation',
+          status: 'Failed - No Webhook'
+        }
+      }
+      
       try {
-        await client.createEvent({
+        const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`
+        log.info(`Attempting to call webhook: ${webhookUrl}`)
+        
+        const payload = {
           type: 'magentoSyncContinue',
-          payload: {
+          data: {
             ...input,
             _currentPage: currentPage,
             _totalCount: totalCount,
@@ -359,11 +419,30 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
             _attributeMappings: typeof _attributeMappings === 'string' ? _attributeMappings : JSON.stringify(attributeMappings),
             _filterCriteria: filterCriteria,
             _currentPageProductIndex: currentPageProductIndex,
-          },
-        } as any)
-        log.info('Successfully created magentoSyncContinue event for continued sync.')
+          }
+        };
+
+        log.info(`Webhook payload: ${JSON.stringify(payload)}`)
+        
+        // Use retry system for webhook call to handle transient failures
+        const response = await apiCallWithRetry(
+          () => axios.post(webhookUrl, payload),
+          log,
+          3, // maxRetries for webhook
+          1000 // initialDelay for webhook
+        )
+        
+        log.info(`Webhook response status: ${response.status}`)
+        log.info('Successfully called webhook to continue sync.')
       } catch (err: any) {
-        log.error('Failed to create magentoSyncContinue event for continued sync.', err)
+        log.error('Failed to call webhook to continue sync after all retries.', err)
+        if (axios.isAxiosError(err)) {
+          log.error(`Webhook HTTP Status: ${err.response?.status}`)
+          log.error(`Webhook Response: ${JSON.stringify(err.response?.data)}`)
+          log.error(`Webhook URL: ${err.config?.url}`)
+        }
+        // Don't throw here - we want to continue with the sync even if webhook fails
+        log.warn('Continuing sync despite webhook failure')
       }
       return {
         success: true,
@@ -401,7 +480,12 @@ export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = asyn
   }
 }
 
+export const syncProducts: bp.IntegrationProps['actions']['syncProducts'] = async ({ ctx, input, logger }) => {
+  return executeSyncProducts({ ctx, input, logger })
+}
+
 async function processProducts(
+    retrieve_reviews: boolean,
     products: ProductData[],
     config: {
         logger: bp.Logger
@@ -416,9 +500,10 @@ async function processProducts(
         startTime: number
         MAX_EXECUTION_TIME_MS: number
         onTimeLimit: () => boolean
+        store_code: string
     }
 ) : Promise<any[]> {
-    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema, startTime, MAX_EXECUTION_TIME_MS, onTimeLimit } = config
+    const { logger, magento_domain, oauth, token, headers, availableColumns, customAttributeCodes, attributeMappings, tableSchema, startTime, MAX_EXECUTION_TIME_MS, onTimeLimit, store_code } = config
     const rowsToInsert: any[] = []
 
     for (const product of products) {
@@ -436,29 +521,31 @@ async function processProducts(
                 stockQty = product.extension_attributes.stock_item.qty || 0
                 isInStock = product.extension_attributes.stock_item.is_in_stock || false
             } else {
-                const stockUrl = `https://${magento_domain}/rest/default/V1/stockItems/${encodeURIComponent(product.sku)}`
+                const stockUrl = `https://${magento_domain}/rest/${store_code}/V1/stockItems/${encodeURIComponent(product.sku)}`
                 const stockResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: stockUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: stockUrl, method: 'GET' }, token)), ...headers } }), logger)
                 const stockData = StockItemSchema.parse(stockResponse.data)
                 stockQty = stockData.qty
                 isInStock = stockData.is_in_stock
             }
 
-            const reviewsUrl = `https://${magento_domain}/rest/default/V1/products/${encodeURIComponent(product.sku)}/reviews`
             let averageRating = 0
             let reviewCount = 0
-            try {
-                const reviewsResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: reviewsUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: reviewsUrl, method: 'GET' }, token)), ...headers } }), logger)
-                const reviews = ReviewsArraySchema.parse(reviewsResponse.data)
-                reviewCount = reviews.length
-                if (reviewCount > 0) {
-                    const totalRating = reviews.reduce((sum, review) => {
-                        const ratingObj = Array.isArray(review.ratings) && review.ratings.length > 0 ? review.ratings[0] : null
-                        return sum + (ratingObj ? Number(ratingObj.value) : 0)
-                    }, 0)
-                    averageRating = Math.round((totalRating / reviewCount) * 10) / 10
-                }
-            } catch (e) {
-                logger.warn(`Could not fetch reviews for product ${product.sku}`)
+            if (retrieve_reviews) {
+              const reviewsUrl = `https://${magento_domain}/rest/${store_code}/V1/products/${encodeURIComponent(product.sku)}/reviews`
+              try {
+                  const reviewsResponse = await apiCallWithRetry(() => axios({ method: 'GET', url: reviewsUrl, headers: { ...oauth.toHeader(oauth.authorize({ url: reviewsUrl, method: 'GET' }, token)), ...headers } }), logger)
+                  const reviews = ReviewsArraySchema.parse(reviewsResponse.data)
+                  reviewCount = reviews.length
+                  if (reviewCount > 0) {
+                      const totalRating = reviews.reduce((sum, review) => {
+                          const ratingObj = Array.isArray(review.ratings) && review.ratings.length > 0 ? review.ratings[0] : null
+                          return sum + (ratingObj ? Number(ratingObj.value) : 0)
+                      }, 0)
+                      averageRating = Math.round((totalRating / reviewCount) * 10) / 10
+                  }
+              } catch (e) {
+                  logger.warn(`Could not fetch reviews for product ${product.sku}`)
+              }
             }
 
             let imageUrl = ''

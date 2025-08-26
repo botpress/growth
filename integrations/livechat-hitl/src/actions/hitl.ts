@@ -1,12 +1,18 @@
-import { getClient } from '../client';
-import { RuntimeError } from '@botpress/client';
-import * as bp from '.botpress';
+import { getClient } from "../client";
+import { RuntimeError } from "@botpress/client";
+import * as bp from ".botpress";
+import type { Payload as LivechatTokenPayload } from ".botpress/implementation/typings/states/livechatToken/payload";
 
-export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, logger, input }) => {
+export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
+  ctx,
+  client,
+  logger,
+  input,
+}) => {
   const liveChatClient = getClient(
     ctx.configuration.clientId,
     ctx.configuration.organizationId,
-    logger
+    logger,
   );
 
   logger.forBot().info("Starting LiveChat HITL...");
@@ -14,7 +20,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
   try {
     const { userId, title, description = "No description available" } = input;
 
-    const { user } = await client.getUser({ id: userId })
+    const { user } = await client.getUser({ id: userId });
 
     const userInfoState = await client.getState({
       id: input.userId,
@@ -22,32 +28,90 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       type: "user",
     });
 
-    if (!userInfoState?.state.payload.email) {
+    if (!userInfoState?.state?.payload) {
       throw new RuntimeError("No userInfo found in state");
     }
-    const { email } = userInfoState.state.payload;
 
-    const customerTokenResponse = await liveChatClient.createCustomerToken(`https://webhook.botpress.cloud/${ctx.webhookId}`);
+    const payload = userInfoState.state.payload as unknown as { email: string };
+
+    if (!payload.email) {
+      throw new RuntimeError("No email found in userInfo state");
+    }
+
+    const { email } = payload;
+
+    if (!ctx.configuration.agentToken || !ctx.configuration.groupId) {
+      throw new RuntimeError(
+        "Agent token and group ID are required for HITL conversations",
+      );
+    }
+
+    const initialMessage = `${title}\n\n${description}`;
+    const agentResult = await liveChatClient.startAgentChat(
+      ctx.configuration.agentToken,
+      ctx.configuration.groupId,
+      initialMessage,
+    );
+
+    if (!agentResult.success || !agentResult.chatId) {
+      throw new RuntimeError(
+        agentResult.message ||
+          "Failed to create LiveChat conversation via Agent API",
+      );
+    }
+
+    const liveChatConversationId = agentResult.chatId;
+    logger
+      .forBot()
+      .info(`Agent chat started with ID: ${liveChatConversationId}`);
+
+    const customerTokenResponse = await liveChatClient.createCustomerToken(
+      `https://webhook.botpress.cloud/${ctx.webhookId}`,
+    );
     const accessToken = customerTokenResponse.access_token;
 
     await liveChatClient.customerUpdate(accessToken, {
       email: email,
     });
 
-    const result = await liveChatClient.startChat(
-      title,
-      description,
-      accessToken
+    const addCustomerResult = await liveChatClient.addCustomerToChat(
+      ctx.configuration.agentToken,
+      liveChatConversationId,
+      accessToken,
+      { email, name: user.name },
     );
 
-    if (!result.success || !result.data?.chat_id) {
-      throw new RuntimeError(result.message || "Failed to create LiveChat conversation");
+    if (!addCustomerResult.success) {
+      const errorMessage = `Failed to add customer to chat: ${addCustomerResult.message}`;
+      logger.forBot().error(errorMessage);
+      throw new RuntimeError(errorMessage);
     }
 
-    const liveChatConversationId = result.data.chat_id;
+    logger
+      .forBot()
+      .info(
+        `Transferring chat to group ${ctx.configuration.groupId} to ensure proper placement...`,
+      );
+    const transferResult = await liveChatClient.transferChat(
+      ctx.configuration.agentToken,
+      liveChatConversationId,
+      ctx.configuration.groupId,
+    );
+
+    if (transferResult.success) {
+      logger
+        .forBot()
+        .info(
+          `Chat transferred successfully to group ${ctx.configuration.groupId}`,
+        );
+    } else {
+      logger
+        .forBot()
+        .warn(`Failed to transfer chat: ${transferResult.message}`);
+    }
 
     const { conversation } = await client.getOrCreateConversation({
-      channel: 'hitl',
+      channel: "hitl",
       tags: {
         id: liveChatConversationId,
         userId: user.id,
@@ -58,52 +122,61 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       ...user,
       tags: {
         email: email,
-        livechatConversationId: liveChatConversationId
+        livechatConversationId: liveChatConversationId,
       },
-    })
+    });
 
     await client.setState({
       id: conversation.id,
       type: "conversation",
-      name: 'livechatToken',
+      name: "livechatToken",
       payload: {
+        livechatConversationId: liveChatConversationId,
         customerAccessToken: accessToken,
-      },
+      } as any,
     });
 
-    logger.forBot().debug(`LiveChat Conversation ID: ${liveChatConversationId}`);
+    logger
+      .forBot()
+      .debug(`LiveChat Conversation ID: ${liveChatConversationId}`);
     logger.forBot().debug(`Botpress Conversation ID: ${conversation.id}`);
 
     await client.createEvent({
-      type: 'hitlStarted',
+      type: "hitlStarted",
       conversationId: conversation.id,
       payload: {
         conversationId: conversation.id,
         userId,
-        title: title ?? 'Untitled ticket',
+        title: title ?? "Untitled ticket",
         description,
       },
-    })
+    });
 
     return {
       conversationId: conversation.id,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     logger.forBot().error(`'Create Conversation' exception: ${errorMessage}`);
     throw new RuntimeError(errorMessage);
   }
-}
+};
 
-export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx, client, logger, input }) => {
+export const stopHitl: bp.IntegrationProps["actions"]["stopHitl"] = async ({
+  ctx,
+  client,
+  logger,
+  input,
+}) => {
   const liveChatClient = getClient(
     ctx.configuration.clientId,
     ctx.configuration.organizationId,
-    logger
+    logger,
   );
 
   logger.forBot().info("Stopping LiveChat HITL...");
- 
+
   try {
     const { conversationId } = input as { conversationId: string };
 
@@ -115,10 +188,15 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
     const userId = conversation.tags.userId as string;
 
     if (!liveChatConversationId || !userId) {
-      logger.forBot().error("No LiveChat conversation ID or user ID found in conversation tags");
+      logger
+        .forBot()
+        .error(
+          "No LiveChat conversation ID or user ID found in conversation tags",
+        );
       return {
         success: false,
-        message: "No LiveChat conversation ID or user ID found in conversation tags",
+        message:
+          "No LiveChat conversation ID or user ID found in conversation tags",
       };
     }
 
@@ -128,23 +206,32 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
       type: "conversation",
     });
 
-    if (!accessTokenState?.state.payload.customerAccessToken) {
-      throw new RuntimeError("No access token found in state");
+    if (!(accessTokenState?.state.payload as any)?.livechatConversationId) {
+      throw new RuntimeError("No LiveChat conversation ID found in state");
     }
-    const { customerAccessToken } = accessTokenState.state.payload;
+    const { livechatConversationId: stateConversationId } = accessTokenState
+      .state.payload as unknown as LivechatTokenPayload;
 
-    if (!customerAccessToken) {
-      logger.forBot().error("No customer access token found in user tags");
+    if (!stateConversationId) {
+      logger.forBot().error("No LiveChat conversation ID found in state");
       return {
         success: false,
-        message: "No customer access token found in user tags",
+        message: "No LiveChat conversation ID found in state",
       };
     }
+    if (!ctx.configuration.agentToken) {
+      throw new RuntimeError(
+        "Agent token is required to stop HITL conversation",
+      );
+    }
 
-    await liveChatClient.deactivateChat(liveChatConversationId, customerAccessToken);
+    await liveChatClient.deactivateChatWithAgent(
+      ctx.configuration.agentToken,
+      liveChatConversationId,
+    );
 
     await client.createEvent({
-      type: 'hitlStopped',
+      type: "hitlStopped",
       payload: {
         conversationId,
       },
@@ -155,7 +242,8 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
       message: "Chat deactivated successfully",
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     logger.forBot().error(`'Stop HITL' exception: ${errorMessage}`);
 
     return {
@@ -165,13 +253,17 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
   }
 };
 
-export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, logger }) => {
+export const createUser: bp.IntegrationProps["actions"]["createUser"] = async ({
+  client,
+  input,
+  logger,
+}) => {
   try {
     const { name = "None", email = "None", pictureUrl = "None" } = input;
 
     if (!email) {
-      logger.forBot().error('Email necessary for HITL');
-      throw new RuntimeError('Email necessary for HITL');
+      logger.forBot().error("Email necessary for HITL");
+      throw new RuntimeError("Email necessary for HITL");
     }
 
     const { user: botpressUser } = await client.getOrCreateUser({
@@ -185,10 +277,10 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
     await client.setState({
       id: botpressUser.id,
       type: "user",
-      name: 'userInfo',
+      name: "userInfo",
       payload: {
         email: email,
-      },
+      } as any,
     });
 
     logger.forBot().debug(`Created/Found user: ${botpressUser.id}`);

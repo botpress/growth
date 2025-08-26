@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "@botpress/client": "1.15.1",
-    "@botpress/sdk": "4.11.0",
+    "@botpress/sdk": "4.14.3",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
     "axios": "^1.7.3",
@@ -35,7 +35,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@botpress/cli": "4.9.0",
+    "@botpress/cli": "4.11.3",
     "@types/lodash": "^4.14.191",
     "@types/ms": "^0.7.34",
     "@types/node": "^18.11.17",
