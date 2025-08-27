@@ -30,11 +30,16 @@ export const register: RegisterFunction = async ({ ctx, logger }) => {
         "Successfully created a customer token. Integration credentials are valid.",
       );
   } catch (error: any) {
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : (typeof error === 'object' && error !== null 
+        ? JSON.stringify(error) 
+        : String(error));
     logger
       .forBot()
-      .error("Failed to create customer token:", error.message || error);
+      .error("Failed to create customer token:", errorMessage);
     throw new bpclient.RuntimeError(
-      "Failed to create customer token: " + (error.message || error),
+      "Failed to create customer token: " + errorMessage,
     );
   }
 };
