@@ -93,7 +93,7 @@ export class LiveChatApi {
         .forBot()
         .error(
           "Error creating customer token:",
-          error.response?.data || error.message,
+          JSON.stringify(error.response?.data) || error.message || String(error),
         );
       throw error;
     }
@@ -216,13 +216,14 @@ export class LiveChatApi {
 
       return { success: true, data: response.data };
     } catch (error: any) {
+      const errorMessage = JSON.stringify(error.response?.data) || error.message || String(error);
       this.logger
         .forBot()
         .error(
           "Error deactivating chat with agent:",
-          error.response?.data || error.message,
+          errorMessage,
         );
-      return { success: false, message: error.response?.data || error.message };
+      return { success: false, message: errorMessage };
     }
   }
 
@@ -244,11 +245,11 @@ export class LiveChatApi {
       const response = await axios.get(url, { headers });
       return response.data;
     } catch (error: any) {
-      this.logger
+              this.logger
         .forBot()
         .error(
           "Error fetching organization_id:",
-          error.response?.data || error.message,
+          JSON.stringify(error.response?.data) || error.message || String(error),
         );
       throw error;
     }
@@ -308,13 +309,14 @@ export class LiveChatApi {
 
       return { success: true, data: response.data, chatId };
     } catch (error: any) {
+      const errorMessage = JSON.stringify(error.response?.data) || error.message || String(error);
       this.logger
         .forBot()
         .error(
           "Error starting agent chat:",
-          error.response?.data || error.message,
+          errorMessage,
         );
-      return { success: false, message: error.response?.data || error.message };
+      return { success: false, message: errorMessage };
     }
   }
 
@@ -345,16 +347,17 @@ export class LiveChatApi {
 
       return { success: true, data: response.data };
     } catch (error: any) {
-      this.logger
+              const errorMessage = JSON.stringify(error.response?.data) || error.message || String(error);
+        this.logger
         .forBot()
         .error(
           "Error getting customer:",
-          error.response?.data || error.message,
+          errorMessage,
         );
       if (error.response?.data) {
-        this.logger.forBot().error("Error response data:", error.response.data);
+        this.logger.forBot().error("Error response data:", JSON.stringify(error.response.data));
       }
-      return { success: false, message: error.response?.data || error.message };
+      return { success: false, message: errorMessage };
     }
   }
 
@@ -425,13 +428,14 @@ export class LiveChatApi {
 
       return { success: true, data: response.data };
     } catch (error: any) {
+      const errorMessage = JSON.stringify(error.response?.data) || error.message || String(error);
       this.logger
         .forBot()
         .error(
           "Error adding customer to chat:",
-          error.response?.data || error.message,
+          errorMessage,
         );
-      return { success: false, message: error.response?.data || error.message };
+      return { success: false, message: errorMessage };
     }
   }
 
@@ -476,7 +480,7 @@ export class LiveChatApi {
         );
       return { success: true, data: targetGroup };
     } catch (error: any) {
-      const errorData = error.response?.data || error.message;
+      const errorData = JSON.stringify(error.response?.data) || error.message || String(error);
       this.logger.forBot().error("Error validating group:", errorData);
       return { success: false, message: errorData };
     }
@@ -522,12 +526,13 @@ export class LiveChatApi {
         );
       return { success: true, data: response.data };
     } catch (error: any) {
-      const errorData = error.response?.data || error.message;
+      const rawErrorData = error.response?.data;
+      const errorData = JSON.stringify(rawErrorData) || error.message || String(error);
       this.logger.forBot().error("Error transferring chat:", errorData);
 
       if (
-        errorData?.error?.type === "validation" &&
-        errorData?.error?.message?.includes(
+        rawErrorData?.error?.type === "validation" &&
+        rawErrorData?.error?.message?.includes(
           "Cannot assign any agent from requested groups",
         )
       ) {

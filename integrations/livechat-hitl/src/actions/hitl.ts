@@ -156,8 +156,11 @@ export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
       conversationId: conversation.id,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error occurred";
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : (typeof error === 'object' && error !== null 
+        ? JSON.stringify(error) 
+        : String(error));
     logger.forBot().error(`'Create Conversation' exception: ${errorMessage}`);
     throw new RuntimeError(errorMessage);
   }
@@ -242,8 +245,11 @@ export const stopHitl: bp.IntegrationProps["actions"]["stopHitl"] = async ({
       message: "Chat deactivated successfully",
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error occurred";
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : (typeof error === 'object' && error !== null 
+        ? JSON.stringify(error) 
+        : String(error));
     logger.forBot().error(`'Stop HITL' exception: ${errorMessage}`);
 
     return {
