@@ -7,8 +7,9 @@ import * as output from "./output";
 export * as output from "./output";
 
 export const startHitl = {
-  "input": input.input,
-  "output": output.output,
-  "billable": false,
-  "cacheable": false,
-}
+  input: input.input,
+  output: output.output,
+  billable: false,
+  cacheable: false,
+  attributes: { bpActionHiddenInStudio: "true" },
+};
