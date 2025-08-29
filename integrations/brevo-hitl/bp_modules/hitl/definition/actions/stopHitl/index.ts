@@ -7,9 +7,9 @@ import * as output from "./output";
 export * as output from "./output";
 
 export const stopHitl = {
-  "input": input.input,
-  "output": output.output,
-  "billable": false,
-  "cacheable": false,
-  "attributes": { "bpActionHiddenInStudio": "true" },
-}
+  input: input.input,
+  output: output.output,
+  billable: false,
+  cacheable: false,
+  attributes: { bpActionHiddenInStudio: "true" },
+};

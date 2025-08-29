@@ -15,10 +15,10 @@ import * as text from "./text";
 export * as text from "./text";
 
 export const messages = {
-  "bloc": bloc.bloc,
-  "file": file.file,
-  "video": video.video,
-  "audio": audio.audio,
-  "image": image.image,
-  "text": text.text,
-}
+  bloc: bloc.bloc,
+  file: file.file,
+  video: video.video,
+  audio: audio.audio,
+  image: image.image,
+  text: text.text,
+};
