@@ -1,12 +1,9 @@
 import axios, { AxiosError } from "axios";
 import * as bp from '.botpress'
 import { IntegrationLogger } from '@botpress/sdk';
+import { CreateNoteRequestBody } from './misc/custom-schemas';
 
 const logger = new IntegrationLogger();
-
-import sdk, { z } from '@botpress/sdk'
-
-
 export class GoHighLevelApi  {
   private accessToken: string;
   private refreshToken: string;
@@ -25,7 +22,6 @@ export class GoHighLevelApi  {
     this.bpClient = bpClient;
   }
 
-  /** Retrieves stored credentials from Botpress state */
 private async getStoredCredentials(): Promise<{ accessToken: string; refreshToken: string } | null> {
   try {
     const { state } = await this.bpClient.getState({
@@ -93,9 +89,6 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
     }
   }
 
-  /**
-   * Refreshes the access token using the refresh token.
-   */
   private async refreshAccessToken() {
     try {
       const creds = await this.getStoredCredentials()
@@ -224,6 +217,51 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
 
   async deleteEvent(eventId: string) {
     return this.makeRequest(`/calendars/events/${eventId}`, "DELETE");
+  }
+
+  async searchContacts(locationId: string, phone: string) {
+    const searchPayload = this.buildPhoneSearchPayload(locationId, phone);
+    return this.makeRequest('/contacts/search', 'POST', searchPayload);
+  }
+
+  async createNote(contactId: string, noteData: CreateNoteRequestBody) {
+    return this.makeRequest(`/contacts/${contactId}/notes`, "POST", noteData);
+  }
+
+  private buildPhoneSearchPayload(locationId: string, phone: string) {
+    const normalizedPhone = this.normalizePhoneNumber(phone);
+    
+    return {
+      locationId,
+      page: 1,
+      pageLimit: 20,
+      filters: [
+        {
+          group: "OR",
+          filters: [
+            {
+              field: "phone",
+              operator: "contains",
+              value: normalizedPhone
+            },
+            {
+              field: "phone",
+              operator: "eq",
+              value: phone
+            },
+            {
+              field: "phone",
+              operator: "eq",
+              value: `+1${normalizedPhone}`
+            }
+          ]
+        }
+      ]
+    };
+  }
+
+  private normalizePhoneNumber(phone: string): string {
+    return phone.replace(/[\s()\-+]/g, '');
   }
 }
 

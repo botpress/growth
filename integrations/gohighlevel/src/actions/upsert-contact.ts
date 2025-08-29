@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { updateContactInputSchema, updateContactOutputSchema, upsertContactInputSchema } from '../misc/custom-schemas';
+import { upsertContactInputSchema } from '../misc/custom-schemas';
 import type { Implementation } from '../misc/types';
 
 export const upsertContact: Implementation['actions']['upsertContact'] = async ({ ctx, client, logger, input }) => {
