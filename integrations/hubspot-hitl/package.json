@@ -1,6 +1,6 @@
 {
   "name": "@bp-templates/empty-integration",
-  "integrationName": "envyro/hubspot-hitl",
+  "integrationName": "plus/hubspot-hitl",
   "scripts": {
     "check:type": "tsc --noEmit",
     "version": "bp --version",
