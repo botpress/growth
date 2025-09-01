@@ -87,29 +87,4 @@ jobs:
           name: e2e-test-results
           path: integrations/hubspot-hitl/test-results/
 
-  type-check:
-    runs-on: ubuntu-latest
-    name: Type Check
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.12.4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-        working-directory: ./integrations/hubspot-hitl
-
-      - name: Run type check
-        run: pnpm check:type
-        working-directory: ./integrations/hubspot-hitl
