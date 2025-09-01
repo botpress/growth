@@ -84,7 +84,7 @@ pnpm test:watch
   - Infrastructure verification
   - Error response structure validation
 
-### E2E Tests (Comprehensive Integration Testing)
+### E2E Tests (Comprehensive Integration Testing) - Run on every branch
 - **HubSpot Client Tests** - API authentication and basic operations
 - **Registration Tests** - Channel creation and connection workflows
 - **Component Tests** - Individual HITL action testing
