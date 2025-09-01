@@ -1,6 +1,72 @@
 import axios, { AxiosError } from "axios";
 import * as bp from ".botpress";
 
+// Rate limiting and retry utilities
+interface RetryConfig {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffMultiplier: number;
+}
+
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
+  maxRetries: 5,
+  baseDelay: 1000, // 1 second
+  maxDelay: 32000, // 32 seconds
+  backoffMultiplier: 2,
+};
+
+/**
+ * Sleep utility for delays
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Calculate exponential backoff delay with jitter
+ */
+function calculateDelay(attempt: number, config: RetryConfig): number {
+  const exponentialDelay = Math.min(
+    config.baseDelay * Math.pow(config.backoffMultiplier, attempt),
+    config.maxDelay
+  );
+  // Add jitter (±25% randomization)
+  const jitter = exponentialDelay * 0.25 * (Math.random() - 0.5);
+  return Math.floor(exponentialDelay + jitter);
+}
+
+/**
+ * Check if error is a rate limit error
+ */
+function isRateLimitError(error: any): boolean {
+  return error.response?.status === 429 || 
+         error.code === 'ECONNRESET' ||
+         error.code === 'ETIMEDOUT';
+}
+
+/**
+ * Extract retry-after header value in milliseconds
+ */
+function getRetryAfterMs(error: any): number | null {
+  const retryAfter = error.response?.headers?.['retry-after'];
+  if (!retryAfter) return null;
+  
+  // Can be in seconds (number) or HTTP date
+  const parsed = parseInt(retryAfter, 10);
+  if (!isNaN(parsed)) {
+    return parsed * 1000; // Convert seconds to milliseconds
+  }
+  
+  // Try parsing as HTTP date
+  const date = new Date(retryAfter);
+  if (!isNaN(date.getTime())) {
+    return Math.max(0, date.getTime() - Date.now());
+  }
+  
+  return null;
+}
+
 const hubspot_api_base_url = "https://api.hubapi.com";
 
 /**
@@ -71,11 +137,19 @@ export class HubSpotApi {
 
   /**
    * Refreshes the HubSpot access token using the refresh token and updates Botpress state.
+   * Includes rate limiting handling.
    *
    * @returns {Promise<void>}
    */
   async refreshAccessToken(): Promise<void> {
-    try {
+    const refreshTokenConfig: RetryConfig = {
+      maxRetries: 3,
+      baseDelay: 2000,
+      maxDelay: 16000,
+      backoffMultiplier: 2,
+    };
+
+    await this.executeWithRetry(async () => {
       const requestData = new URLSearchParams();
       requestData.append("client_id", this.clientId);
       requestData.append("client_secret", this.clientSecret);
@@ -89,6 +163,7 @@ export class HubSpotApi {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
+          timeout: 30000,
         }
       );
 
@@ -106,15 +181,9 @@ export class HubSpotApi {
       });
 
       this.logger.forBot().info("Access token refreshed successfully.");
-    } catch (error: unknown) {
-      const err = error as AxiosError;
-      this.logger
-        .forBot()
-        .error(
-          "Error refreshing access token:",
-          err.response?.data || err.message
-        );
-    }
+
+      return response.data;
+    }, refreshTokenConfig, "refresh-token");
   }
 
   /**
@@ -164,9 +233,9 @@ export class HubSpotApi {
       };
     } catch (error: any) {
       if (error.response?.status === 401) {
-        this.logger
-          .forBot()
-          .warn("Access token may be expired. Attempting refresh...");
+          this.logger
+            .forBot()
+            .warn("Access token may be expired. Attempting refresh...");
         const creds = await this.getStoredCredentials();
         if (creds?.accessToken) {
           await this.refreshAccessToken();
@@ -174,15 +243,88 @@ export class HubSpotApi {
         }
       }
 
-      this.logger
-        .forBot()
-        .error("HubSpot API error:", error.response?.data || error.message);
+        this.logger
+          .forBot()
+          .error("HubSpot API error:", error.response?.data || error.message);
       return {
         success: false,
         message: error.response?.data?.message || error.message,
         data: null,
       };
     }
+  }
+
+  /**
+   * Execute a request with retry logic and rate limiting handling
+   */
+  private async executeWithRetry<T>(
+    requestFn: () => Promise<T>,
+    retryConfig: RetryConfig,
+    endpoint: string
+  ): Promise<T> {
+    let lastError: any;
+    
+    for (let attempt = 0; attempt <= retryConfig.maxRetries; attempt++) {
+      try {
+        return await requestFn();
+      } catch (error: any) {
+        lastError = error;
+        
+        // Handle 401 token refresh
+        if (error.response?.status === 401 && attempt === 0) {
+          this.logger
+            .forBot()
+            .warn("Access token may be expired. Attempting refresh...");
+          const creds = await this.getStoredCredentials();
+          if (creds?.accessToken) {
+            await this.refreshAccessToken();
+            continue; // Retry with refreshed token
+          }
+        }
+        
+        // Check if we should retry
+        const shouldRetry = attempt < retryConfig.maxRetries && (
+          isRateLimitError(error) ||
+          error.response?.status >= 500 || // Server errors
+          error.code === 'ECONNRESET' ||
+          error.code === 'ETIMEDOUT'
+        );
+        
+        if (!shouldRetry) {
+          this.logger
+            .forBot()
+            .error(`HubSpot API error (final attempt): ${endpoint}`, error.response?.data || error.message);
+          return {
+            success: false,
+            message: error.response?.data?.message || error.message,
+            data: null,
+          } as T;
+        }
+        
+        // Calculate delay
+        let delay: number;
+        if (error.response?.status === 429) {
+          // Use Retry-After header if available
+          const retryAfterMs = getRetryAfterMs(error);
+          delay = retryAfterMs || calculateDelay(attempt, retryConfig);
+          
+          this.logger
+            .forBot()
+            .warn(`Rate limited on ${endpoint}. Retrying in ${delay}ms (attempt ${attempt + 1}/${retryConfig.maxRetries + 1})`);
+        } else {
+          delay = calculateDelay(attempt, retryConfig);
+          
+          this.logger
+            .forBot()
+            .warn(`Request failed for ${endpoint}. Retrying in ${delay}ms (attempt ${attempt + 1}/${retryConfig.maxRetries + 1}). Error: ${error.message}`);
+        }
+        
+        await sleep(delay);
+      }
+    }
+    
+    // This should never be reached, but just in case
+    throw lastError;
   }
 
   /**
@@ -284,11 +426,12 @@ export class HubSpotApi {
 
   /**
    * Retrieves the list of custom channels.
+   * Includes rate limiting handling.
    *
    * @returns {Promise<any>} A list of custom channels.
    */
   public async getCustomChannels(): Promise<any> {
-    try {
+    return this.executeWithRetry(async () => {
       const response = await axios.get(
         `${hubspot_api_base_url}/conversations/v3/custom-channels`,
         {
@@ -299,17 +442,50 @@ export class HubSpotApi {
           headers: {
             Accept: "application/json",
           },
+          timeout: 30000,
         }
       );
       return response.data;
+    }, DEFAULT_RETRY_CONFIG, "get-custom-channels");
+  }
+
+  /**
+   * Deletes a custom channel.
+   * Includes rate limiting handling.
+   *
+   * @param {string} channelId - The channel ID to delete.
+   * @returns {Promise<boolean>} True if deletion was successful.
+   */
+  public async deleteCustomChannel(channelId: string): Promise<boolean> {
+    try {
+      const result = await this.executeWithRetry(async () => {
+        const response = await axios.delete(
+          `${hubspot_api_base_url}/conversations/v3/custom-channels/${channelId}`,
+          {
+            params: {
+              hapikey: this.ctx.configuration.developerApiKey,
+              appId: this.ctx.configuration.appId,
+            },
+            headers: {
+              Accept: "application/json",
+            },
+            timeout: 30000,
+          }
+        );
+        
+        this.logger.forBot().info(`Successfully deleted channel: ${channelId}`);
+        return response.status === 204 || response.status === 200;
+      }, DEFAULT_RETRY_CONFIG, `delete-channel-${channelId}`);
+      
+      return result;
     } catch (error: any) {
       this.logger
         .forBot()
         .error(
-          "Failed to fetch custom channels:",
+          `Failed to delete channel ${channelId}:`,
           error.response?.data || error.message
         );
-      throw error;
+      return false;
     }
   }
 
@@ -355,7 +531,7 @@ export class HubSpotApi {
    * @param {string} channelAccountId - The channel account ID.
    * @param {string} integrationThreadId - The thread ID.
    * @param {string} name - Sender's name.
-   * @param {string} email - Sender's email.
+   * @param {string} phoneNumber - Sender's phone number.
    * @param {string} title - Message title (not used).
    * @param {string} description - Message description (not used).
    * @returns {Promise<any>} The conversation response.
