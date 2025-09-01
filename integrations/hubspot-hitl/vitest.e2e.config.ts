@@ -8,6 +8,10 @@ export default defineConfig({
     globals: true,
     include: ['tests/e2e/**/*.test.ts'],
     setupFiles: ['./vitest.setup.ts'],
+    reporters: ['default', 'junit'],
+    outputFile: {
+      junit: './test-results/junit-e2e.xml',
+    },
   },
   resolve: {
     alias: {
