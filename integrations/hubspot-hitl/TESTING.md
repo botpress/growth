@@ -1,8 +1,8 @@
-# HubSpot HITL Testing Implementation
+# HubSpot Inbox HITL Testing Implementation
 
 ## Overview
 
-This document outlines the comprehensive testing strategy implemented for the HubSpot HITL integration following the plan for both unit tests and real e2e tests.
+This document outlines the comprehensive testing strategy implemented for the HubSpot Inbox HITL integration following the plan for both unit tests and real e2e tests.
 
 ## What Was Implemented
 
@@ -13,20 +13,20 @@ This document outlines the comprehensive testing strategy implemented for the Hu
 - **GitHub Actions** workflow for CI/CD testing
 
 ### 2. Unit Tests
-- **Signature validation tests** - Comprehensive testing of HubSpot webhook signature verification
+- **Signature validation tests** - Comprehensive testing of HubSpot Inbox webhook signature verification
 - **HITL action tests** - Testing of createUser, startHitl, stopHitl with various scenarios
 - **Error handling tests** - Validation of error paths and edge cases
 - **Mock-based testing** - No external API calls, pure business logic testing
 
 ### 3. E2E Test Framework  
-- **Real HubSpot API integration** - Tests use actual HubSpot credentials
+- **Real HubSpot Inbox API integration** - Tests use actual HubSpot Inbox credentials
 - **Environment validation** - Checks for required credentials before running
 - **Graceful skipping** - E2E tests skip if credentials not configured
-- **Real API call testing** - Tests actual HubSpot channel creation, authentication, etc.
+- **Real API call testing** - Tests actual HubSpot Inbox channel creation, authentication, etc.
 
 ### 4. CI/CD Integration
 - **GitHub Actions workflow** with separate unit and e2e test jobs
-- **Secret management** for HubSpot credentials
+- **Secret management** for HubSpot Inbox credentials
 - **Environment-based testing** - E2E tests only run on main branch or manual trigger
 - **Type checking** and linting integration
 

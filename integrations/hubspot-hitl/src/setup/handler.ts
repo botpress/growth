@@ -3,7 +3,7 @@ import { handleConversationCompleted } from 'src/events/operatorConversationComp
 import { handleOperatorReplied } from 'src/events/operatorSendMessage'
 import { handleOperatorAssignedUpdate } from 'src/events/operatorAssignedUpdate'
 import { getClient } from 'src/client'
-import { validateHubSpotSignature } from 'src/utils/signature'
+import { validateHubSpotInboxSignature } from 'src/utils/signature'
 
 export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger, client }) => {
   if (!req.body) {
@@ -19,7 +19,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
   // Get the webhook URL from the configuration
   const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`
   
-  if (!validateHubSpotSignature(
+  if (!validateHubSpotInboxSignature(
     rawBody,
     signature as string,
     timestamp as string,
@@ -31,7 +31,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
     return
   }
   
-  logger.forBot().info('HubSpot webhook signature verified successfully')
+  logger.forBot().info('HubSpot Inbox webhook signature verified successfully')
   
   const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, logger);  
   let payload: any
@@ -78,5 +78,5 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
     return
   }
 
-  logger.forBot().warn("Unhandled HubSpot event format")
+  logger.forBot().warn("Unhandled HubSpot Inbox event format")
 }

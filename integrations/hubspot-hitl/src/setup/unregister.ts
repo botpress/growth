@@ -2,7 +2,7 @@ import { getClient } from '../client';
 import type { UnregisterFunction } from '../misc/types';
 
 export const unregister: UnregisterFunction = async ({ ctx, client, logger }) => {
-  logger.forBot().info("Starting HubSpot HITL integration unregistration...");
+  logger.forBot().info("Starting HubSpot Inbox HITL integration unregistration...");
 
   try {
     const { state } = await client.getState({
@@ -31,14 +31,14 @@ export const unregister: UnregisterFunction = async ({ ctx, client, logger }) =>
     const deleteSuccess = await hubspotClient.deleteCustomChannel(channelId);
     
     if (deleteSuccess) {
-      logger.forBot().info(`Successfully deleted HubSpot channel: ${channelId}`);
+      logger.forBot().info(`Successfully deleted HubSpot Inbox channel: ${channelId}`);
     } else {
-      logger.forBot().warn(`Failed to delete HubSpot channel: ${channelId}. Manual cleanup may be required.`);
+      logger.forBot().warn(`Failed to delete HubSpot Inbox channel: ${channelId}. Manual cleanup may be required.`);
     }
 
   } catch (error) {
-    logger.forBot().error("Error during HubSpot HITL integration unregistration:", error);
+    logger.forBot().error("Error during HubSpot Inbox HITL integration unregistration:", error);
   }
 
-  logger.forBot().info("HubSpot HITL integration unregistration completed.");
+  logger.forBot().info("HubSpot Inbox HITL integration unregistration completed.");
 }

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { validateHubSpotSignature } from '../../../src/utils/signature';
+import { validateHubSpotInboxSignature } from '../../../src/utils/signature';
 import { createMockLogger } from '../../utils/mocks';
 import * as crypto from 'crypto';
 
-describe('validateHubSpotSignature', () => {
+describe('validateHubSpotInboxSignature', () => {
   let mockLogger: any;
 
   beforeEach(() => {
@@ -23,7 +23,7 @@ describe('validateHubSpotSignature', () => {
     hmac.update(rawString);
     const expectedSignature = hmac.digest('base64');
 
-    const result = validateHubSpotSignature(
+    const result = validateHubSpotInboxSignature(
       requestBody,
       expectedSignature,
       timestamp,
@@ -49,7 +49,7 @@ describe('validateHubSpotSignature', () => {
     hmac.update(rawString);
     const invalidSignature = hmac.digest('base64');
 
-    const result = validateHubSpotSignature(
+    const result = validateHubSpotInboxSignature(
       requestBody,
       invalidSignature,
       timestamp,
@@ -60,7 +60,7 @@ describe('validateHubSpotSignature', () => {
     );
 
     expect(result).toBe(false);
-    expect(mockLogger.forBot().error).toHaveBeenCalledWith('Invalid HubSpot webhook signature');
+    expect(mockLogger.forBot().error).toHaveBeenCalledWith('Invalid HubSpot Inbox webhook signature');
   });
 
   it('should return false for missing signature', () => {
@@ -70,7 +70,7 @@ describe('validateHubSpotSignature', () => {
     const webhookUrl = 'https://webhook.botpress.cloud/test';
     const clientSecret = 'test-secret';
 
-    const result = validateHubSpotSignature(
+    const result = validateHubSpotInboxSignature(
       requestBody,
       '',
       timestamp,
@@ -91,7 +91,7 @@ describe('validateHubSpotSignature', () => {
     const webhookUrl = 'https://webhook.botpress.cloud/test';
     const signature = 'valid-signature';
 
-    const result = validateHubSpotSignature(
+    const result = validateHubSpotInboxSignature(
       requestBody,
       signature,
       timestamp,
@@ -113,7 +113,7 @@ describe('validateHubSpotSignature', () => {
     const clientSecret = 'test-secret';
     const signature = 'valid-signature';
 
-    const result = validateHubSpotSignature(
+    const result = validateHubSpotInboxSignature(
       requestBody,
       signature,
       expiredTimestamp,
@@ -144,7 +144,7 @@ describe('validateHubSpotSignature', () => {
     hmac.update(rawString);
     const validSignature = hmac.digest('base64');
 
-    const result = validateHubSpotSignature(
+    const result = validateHubSpotInboxSignature(
       requestBody,
       validSignature,
       recentTimestamp,
@@ -170,7 +170,7 @@ describe('validateHubSpotSignature', () => {
       hmac.update(rawString);
       const signature = hmac.digest('base64');
 
-      const result = validateHubSpotSignature(
+      const result = validateHubSpotInboxSignature(
         requestBody,
         signature,
         timestamp,

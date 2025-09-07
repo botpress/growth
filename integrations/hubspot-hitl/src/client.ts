@@ -70,7 +70,7 @@ function getRetryAfterMs(error: any): number | null {
 const hubspot_api_base_url = "https://api.hubapi.com";
 
 /**
- * A class for interacting with HubSpot's API via Botpress integrations.
+ * A class for interacting with HubSpot Inbox's API via Botpress integrations.
  */
 export class HubSpotApi {
   private ctx: bp.Context;
@@ -85,9 +85,9 @@ export class HubSpotApi {
    *
    * @param {bp.Context} ctx - Botpress integration context.
    * @param {bp.Client} bpClient - Botpress client for managing state.
-   * @param {string} refreshToken - HubSpot refresh token.
-   * @param {string} clientId - HubSpot client ID.
-   * @param {string} clientSecret - HubSpot client secret.
+   * @param {string} refreshToken - HubSpot Inbox refresh token.
+   * @param {string} clientId - HubSpot Inbox client ID.
+   * @param {string} clientSecret - HubSpot Inbox client secret.
    * @param {bp.Logger} logger - Botpress logger instance.
    */
   constructor(
@@ -136,7 +136,7 @@ export class HubSpotApi {
   }
 
   /**
-   * Refreshes the HubSpot access token using the refresh token and updates Botpress state.
+   * Refreshes the HubSpot Inbox access token using the refresh token and updates Botpress state.
    * Includes rate limiting handling.
    *
    * @returns {Promise<void>}
@@ -169,7 +169,7 @@ export class HubSpotApi {
 
       this.logger
         .forBot()
-        .info("Response from HubSpot API REFRESH TOKEN:", response.data);
+        .info("Response from HubSpot Inbox API REFRESH TOKEN:", response.data);
 
       await this.bpClient.setState({
         id: this.ctx.integrationId,
@@ -187,10 +187,10 @@ export class HubSpotApi {
   }
 
   /**
-   * Makes an authenticated HTTP request to the HubSpot API.
+   * Makes an authenticated HTTP request to the HubSpot Inbox API.
    * Automatically refreshes token and retries on 401 errors.
    *
-   * @param {string} endpoint - The HubSpot API endpoint.
+   * @param {string} endpoint - The HubSpot Inbox API endpoint.
    * @param {string} [method="GET"] - The HTTP method.
    * @param {*} [data=null] - Optional request body.
    * @param {*} [params={}] - Optional query parameters.
@@ -245,7 +245,7 @@ export class HubSpotApi {
 
         this.logger
           .forBot()
-          .error("HubSpot API error:", error.response?.data || error.message);
+          .error("HubSpot Inbox API error:", error.response?.data || error.message);
       return {
         success: false,
         message: error.response?.data?.message || error.message,
@@ -293,7 +293,7 @@ export class HubSpotApi {
         if (!shouldRetry) {
           this.logger
             .forBot()
-            .error(`HubSpot API error (final attempt): ${endpoint}`, error.response?.data || error.message);
+            .error(`HubSpot Inbox API error (final attempt): ${endpoint}`, error.response?.data || error.message);
           return {
             success: false,
             message: error.response?.data?.message || error.message,
@@ -328,7 +328,7 @@ export class HubSpotApi {
   }
 
   /**
-   * Fetches thread information from HubSpot Conversations API.
+   * Fetches thread information from HubSpot Inbox Conversations API.
    *
    * @param {string} threadId - The thread ID.
    * @returns {Promise<any>} The thread information.
@@ -345,7 +345,7 @@ export class HubSpotApi {
   }
 
   /**
-   * Fetches a HubSpot contact's phone number by contactId.
+   * Fetches a HubSpot Inbox contact's phone number by contactId.
    *
    * @param {string} contactId - The ID of the contact.
    * @returns {Promise<string>} The contact object's phone number.
@@ -364,7 +364,7 @@ export class HubSpotApi {
   }
 
   /**
-   * Fetches email of a HubSpot actor (user).
+   * Fetches email of a HubSpot Inbox actor (user).
    *
    * @param {string} actorId - The actor ID.
    * @returns {Promise<string>} The actor's email.
@@ -381,7 +381,7 @@ export class HubSpotApi {
   }
 
   /**
-   * Creates a custom HubSpot channel.
+   * Creates a custom HubSpot Inbox channel.
    *
    * @param {string} developerApiKey - Developer API key.
    * @param {string} appId - App ID.
@@ -418,7 +418,7 @@ export class HubSpotApi {
     );
 
     if (!response.success || !response.data) {
-      throw new Error(`HubSpot createConversation failed: ${response.message}`);
+      throw new Error(`HubSpot Inbox createConversation failed: ${response.message}`);
     }
 
     return response.data.id;
@@ -490,7 +490,7 @@ export class HubSpotApi {
   }
 
   /**
-   * Connects a HubSpot custom channel to a specific inbox.
+   * Connects a HubSpot Inbox custom channel to a specific inbox.
    *
    * @param {string} channelId - The channel ID.
    * @param {string} inboxId - The inbox ID.
@@ -525,7 +525,7 @@ export class HubSpotApi {
   }
 
   /**
-   * Starts a new conversation in HubSpot.
+   * Starts a new conversation in HubSpot Inbox.
    *
    * @param {string} channelId - The channel ID.
    * @param {string} channelAccountId - The channel account ID.
@@ -566,13 +566,13 @@ export class HubSpotApi {
       const response = await this.makeHitlRequest(endpoint, "POST", payload);
       return response;
     } catch (error) {
-      this.logger.forBot().error("Error sending message to HubSpot:", error);
+      this.logger.forBot().error("Error sending message to HubSpot Inbox:", error);
       throw error;
     }
   }
 
   /**
-   * Sends a message to an existing HubSpot conversation.
+   * Sends a message to an existing HubSpot Inbox conversation.
    *
    * @param {string} message - Message content.
    * @param {string} senderName - Sender's name.
@@ -625,7 +625,7 @@ export class HubSpotApi {
       const response = await this.makeHitlRequest(endpoint, "POST", payload);
       return response;
     } catch (error) {
-      this.logger.forBot().error("Error sending message to HubSpot:", error);
+      this.logger.forBot().error("Error sending message to HubSpot Inbox:", error);
       throw error;
     }
   }
@@ -636,9 +636,9 @@ export class HubSpotApi {
  *
  * @param {bp.Context} ctx - Botpress context.
  * @param {bp.Client} bpClient - Botpress client.
- * @param {string} refreshToken - HubSpot refresh token.
- * @param {string} clientId - HubSpot client ID.
- * @param {string} clientSecret - HubSpot client secret.
+ * @param {string} refreshToken - HubSpot Inbox refresh token.
+ * @param {string} clientId - HubSpot Inbox client ID.
+ * @param {string} clientSecret - HubSpot Inbox client secret.
  * @param {bp.Logger} logger - Botpress logger instance.
  * @returns {HubSpotApi} An instance of HubSpotApi.
  */

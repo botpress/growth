@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Run full integration flow tests for HubSpot HITL
-echo "🧪 Running HubSpot HITL Full Integration Tests..."
+# Run full integration flow tests for HubSpot Inbox HITL
+echo "🧪 Running HubSpot Inbox HITL Full Integration Tests..."
 
 # Check if environment file exists
 if [ -f "test.env" ]; then

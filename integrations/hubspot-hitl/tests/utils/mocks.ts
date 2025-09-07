@@ -2,6 +2,13 @@ import { vi } from 'vitest';
 import type * as bp from '../../.botpress';
 
 /**
+ * Type definitions for action function parameters
+ */
+export type CreateUserParams = Parameters<bp.IntegrationProps["actions"]["createUser"]>[0];
+export type StartHitlParams = Parameters<bp.IntegrationProps["actions"]["startHitl"]>[0];
+export type StopHitlParams = Parameters<bp.IntegrationProps["actions"]["stopHitl"]>[0];
+
+/**
  * Mock Botpress Client for unit tests
  */
 export const createMockBpClient = () => {

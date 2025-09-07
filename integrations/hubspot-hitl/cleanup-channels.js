@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * HubSpot Channel Cleanup Script
+ * HubSpot Inbox Channel Cleanup Script
  * 
  * This script:
- * 1. Gets all custom channels from HubSpot
+ * 1. Gets all custom channels from HubSpot Inbox
  * 2. Deletes each channel found
  * 
  * Usage: node cleanup-channels.js
@@ -59,11 +59,11 @@ if (!HUBSPOT_APP_ID) {
   process.exit(1);
 }
 
-console.log('🔑 Using HubSpot Developer API Key:', HUBSPOT_DEVELOPER_API_KEY);
-console.log('📱 Using HubSpot App ID:', HUBSPOT_APP_ID);
+console.log('🔑 Using HubSpot Inbox Developer API Key:', HUBSPOT_DEVELOPER_API_KEY);
+console.log('📱 Using HubSpot Inbox App ID:', HUBSPOT_APP_ID);
 
 /**
- * Get all custom channels from HubSpot
+ * Get all custom channels from HubSpot Inbox
  */
 async function getAllChannels() {
   const url = `https://api.hubapi.com/conversations/v3/custom-channels/?hapikey=${HUBSPOT_DEVELOPER_API_KEY}&appId=${HUBSPOT_APP_ID}`;
@@ -129,7 +129,7 @@ async function deleteChannel(channelId) {
  * Main execution function
  */
 async function main() {
-  console.log('🚀 Starting HubSpot Channel Cleanup...\n');
+  console.log('🚀 Starting HubSpot Inbox Channel Cleanup...\n');
   
   try {
     // Step 1: Get all channels

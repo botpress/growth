@@ -1,6 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { startHitl, stopHitl, createUser } from '../../../src/actions/hitl';
-import { createMockBpClient, createMockBpContext, createMockLogger, createMockUser, createMockStatePayload } from '../../utils/mocks';
+import { 
+  createMockBpClient, 
+  createMockBpContext, 
+  createMockLogger, 
+  createMockUser, 
+  CreateUserParams,
+  StartHitlParams,
+  StopHitlParams
+} from '../../utils/mocks';
 import { RuntimeError } from '@botpress/client';
 
 // Mock the HubSpot client
@@ -40,7 +48,7 @@ describe('HITL Actions', () => {
         client: mockClient,
         input,
         logger: mockLogger,
-      } as any);
+      } as CreateUserParams);
 
       expect(result).toEqual({
         userId: mockUser.id,
@@ -76,7 +84,7 @@ describe('HITL Actions', () => {
           client: mockClient,
           input,
           logger: mockLogger,
-        } as any)
+        } as CreateUserParams)
       ).rejects.toThrow(RuntimeError);
 
       expect(mockLogger.forBot().error).toHaveBeenCalledWith('Email necessary for HITL');
@@ -98,7 +106,7 @@ describe('HITL Actions', () => {
         client: mockClient,
         input,
         logger: mockLogger,
-      } as any);
+      } as CreateUserParams);
 
       expect(result).toEqual({
         userId: mockUser.id,
@@ -126,7 +134,7 @@ describe('HITL Actions', () => {
           client: mockClient,
           input,
           logger: mockLogger,
-        } as any)
+        } as CreateUserParams)
       ).rejects.toThrow(RuntimeError);
     });
   });
@@ -151,7 +159,7 @@ describe('HITL Actions', () => {
         client: mockClient,
         logger: mockLogger,
         input,
-      } as any);
+      } as StartHitlParams);
 
       expect(result).toEqual({
         success: false,
@@ -182,7 +190,7 @@ describe('HITL Actions', () => {
         client: mockClient,
         logger: mockLogger,
         input,
-      } as any);
+      } as StartHitlParams);
 
       expect(result).toEqual({
         success: false,
@@ -206,7 +214,7 @@ describe('HITL Actions', () => {
         client: mockClient,
         logger: mockLogger,
         input,
-      } as any);
+      } as StartHitlParams);
 
       expect(result).toEqual({
         success: false,
@@ -250,7 +258,7 @@ describe('HITL Actions', () => {
         client: mockClient,
         logger: mockLogger,
         input,
-      } as any);
+      } as StartHitlParams);
 
       expect(result).toEqual({
         conversationId: 'test-conversation-id',
@@ -301,7 +309,7 @@ describe('HITL Actions', () => {
         client: mockClient,
         logger: mockLogger,
         input,
-      } as any);
+      } as StartHitlParams);
 
       expect(result).toEqual({
         conversationId: 'test-conversation-id',
@@ -341,7 +349,7 @@ describe('HITL Actions', () => {
 
   describe('stopHitl', () => {
     it('should return empty object', async () => {
-      const result = await stopHitl({} as any);
+      const result = await stopHitl({} as StopHitlParams);
       expect(result).toEqual({});
     });
   });

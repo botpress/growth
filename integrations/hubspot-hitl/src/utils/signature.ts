@@ -2,17 +2,17 @@ import * as crypto from 'crypto'
 import * as bp from '.botpress'
 
 /**
- * Validates the HubSpot webhook signature
+ * Validates the HubSpot Inbox webhook signature
  * @param requestBody - The raw request body as a string
  * @param signature - The X-HubSpot-Signature-V3 header value
  * @param timestamp - The X-HubSpot-Request-Timestamp header value
  * @param method - The HTTP method
- * @param webhookUrl - The webhook URL that HubSpot is configured to send to
- * @param clientSecret - The HubSpot client secret
+ * @param webhookUrl - The webhook URL that HubSpot Inbox is configured to send to
+ * @param clientSecret - The HubSpot Inbox client secret
  * @param logger - Botpress logger
  * @returns boolean indicating if the signature is valid
  */
-export function validateHubSpotSignature(
+export function validateHubSpotInboxSignature(
   requestBody: string,
   signature: string,
   timestamp: string,
@@ -51,7 +51,7 @@ export function validateHubSpotSignature(
   )
   
   if (!isValid) {
-    logger.forBot().error('Invalid HubSpot webhook signature')
+    logger.forBot().error('Invalid HubSpot Inbox webhook signature')
   }
   
   return isValid
