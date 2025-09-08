@@ -1,0 +1,67 @@
+name: Deploy Integrations
+description: Deploy integrations to Botpress
+
+inputs:
+  environment:
+    description: "Environment to deploy to (staging/production)"
+    required: true
+  extra_filter:
+    description: "Extra filter for integrations to deploy"
+    required: false
+    default: ""
+  force:
+    description: "Force re-deploying integrations"
+    required: false
+    default: "false"
+  token_cloud_ops_account:
+    description: "Botpress token for cloud ops account"
+    required: true
+  cloud_ops_workspace_id:
+    description: "Botpress workspace ID for cloud ops"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Login to Botpress
+      shell: bash
+      run: |
+        pnpm bp login -y --token ${{ inputs.token_cloud_ops_account }} --workspace-id ${{ inputs.cloud_ops_workspace_id }}
+
+    - name: Deploy integrations
+      shell: bash
+      run: |
+        # Get list of integration directories
+        cd integrations
+        for integration in */; do
+          if [ -d "$integration" ]; then
+            integration_name=${integration%/}
+            echo "Deploying integration: $integration_name"
+            
+            # Skip if extra_filter excludes this integration
+            if [ -n "${{ inputs.extra_filter }}" ]; then
+              if echo "$integration_name" | grep -E "${{ inputs.extra_filter }}" > /dev/null; then
+                echo "Skipping $integration_name due to filter"
+                continue
+              fi
+            fi
+            
+            cd "$integration_name"
+            
+            # Build the integration
+            echo "Building $integration_name..."
+            pnpm exec bp build
+            
+            # Deploy the integration
+            echo "Deploying $integration_name..."
+            if [ "${{ inputs.force }}" = "true" ]; then
+              pnpm exec bp deploy --force
+            else
+              pnpm exec bp deploy
+            fi
+            
+            cd ..
+          fi
+        done
+
+      echo "Deployment completed successfully"
