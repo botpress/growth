@@ -14,7 +14,7 @@ export const user = {
 export default new IntegrationDefinition({
   name: integrationName,
   title: 'SalesForce Messaging (Alpha)',
-  version: '0.5.0',
+  version: '1.0.1',
   icon: 'icon.svg',
   description:
     'This integration allows your bot to interact with Salesforce Messaging, this version uses the HITL Interface',
@@ -33,6 +33,14 @@ export default new IntegrationDefinition({
     TT_SK: {
       description: 'Secret from the Transport Translator service',
       optional: false,
+    },
+    VALIDATION_ENDPOINT_URL: {
+      description: 'URL for workspace validation endpoint',
+      optional: true,
+    },
+    VALIDATION_SECRET: {
+      description: 'Secret for workspace validation endpoint',
+      optional: true,
     },
   },
   entities: {

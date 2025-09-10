@@ -35,7 +35,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@botpress/cli": "4.11.3",
+    "@botpress/cli": "4.17.7",
     "@types/lodash": "^4.14.191",
     "@types/ms": "^0.7.34",
     "@types/node": "^18.11.17",
