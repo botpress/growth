@@ -21,14 +21,6 @@ async function validateBotId(botId: string, logger: bp.Logger) {
     const validationEndpointUrl = bp.secrets.VALIDATION_ENDPOINT_URL;
     const validationSecret = bp.secrets.VALIDATION_SECRET
 
-    console.log("validationEndpointUrl", validationEndpointUrl)
-    console.log("validationSecret", validationSecret)
-    console.log("botId", botId)
-    console.log("headers", {
-        "Content-Type": "application/json",
-        "X-API-Key": `${validationSecret}`,
-    })
-
     // Skip validation if endpoint URL is not configured
     if (!validationEndpointUrl) {
         logger.forBot().info("Validation endpoint URL is not configured. Skipping workspace validation.");
