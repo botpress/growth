@@ -110,7 +110,6 @@ export default new bp.Integration({
         logger.forBot().info(`[Webhook] (${lib}) Successfully synced.`);
       } catch (error) {
         logger.forBot().error(`[Webhook] (${lib}) Failed to sync: ${error instanceof Error ? error.message : String(error)}. Skipping this library.`);
-        // Keep the old changeToken for this library so we can retry next time
         continue;
       }
     }
