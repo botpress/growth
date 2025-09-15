@@ -22,15 +22,13 @@ export default new IntegrationDefinition({
         .string()
         .min(1)
         .describe(
-          'Comma-separated list **or** JSON array of Document Libraries to sync ' +
-            '(e.g. "Policies,Procedures" or \'["Policies","Procedures"]\').'
+            "Document Libraries to sync. Supported formats: Single library (NewDL), Comma-separated (Policies,Procedures), JSON array ([\"Policies\",\"Procedures\"]), or Single item JSON array ([\"NewDL\"])"
         ),
       folderKbMap: z
         .string()
         .min(1)
         .describe(
-          'Optional JSON map of kbId → array of folder prefixes used for routing.\n' +
-            'Example: {"kb-marketing":["Campaigns"],"kb-policies":["HR","Legal"]}'
+          "JSON map of kbId to array of folder prefixes for routing files to specific KBs. Example: {\"kb-marketing\":[\"Campaigns\"],\"kb-policies\":[\"HR\",\"Legal\"]}"
         ),
       enableVision: z
         .boolean()
