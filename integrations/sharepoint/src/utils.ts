@@ -50,6 +50,8 @@ export const guessMimeType = (filename: string): string => {
       return 'application/msword'
     case 'docx':
       return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    case 'md':
+      return 'text/markdown'
     default:
       return 'application/octet-stream'
   }
