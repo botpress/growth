@@ -3,11 +3,12 @@ import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '3.0.4',
-  title: 'SharePoint',
-  description: 'Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.',
-  readme: 'hub.md',
-  icon: 'icon.svg',
+  version: "3.0.5",
+  title: "SharePoint",
+  description:
+    "Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.",
+  readme: "hub.md",
+  icon: "icon.svg",
 
   configuration: {
     schema: z.object({
