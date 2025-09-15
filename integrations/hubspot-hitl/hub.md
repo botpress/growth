@@ -1,12 +1,12 @@
 
-# HubSpot Custom Channels HITL (Human-in-the-Loop) Integration
+# HubSpot Inbox Custom Channels HITL (Human-in-the-Loop) Integration
 
-This integration enables Botpress to escalate conversations from a chatbot to a live agent in a HubSpot Inbox via Custom Channels. It uses the HubSpot Custom Channels API to create, send, and manage HITL (Human-in-the-Loop) conversations and agent interactions.
+This integration enables Botpress to escalate conversations from a chatbot to a live agent in a HubSpot Inbox via Custom Channels. It uses the HubSpot Inbox Custom Channels API to create, send, and manage HITL (Human-in-the-Loop) conversations and agent interactions.
 
 ## Note: This integration requires one of the following products or higher.
-HubSpot Sales Hub - Enterprise
+HubSpot Sales Hub - Professional
 
-HubSpot Service Hub - Enterprise
+HubSpot Service Hub - Professional
 
 ### Escalate to Human - Phone Number Requirement
 
@@ -19,18 +19,18 @@ To successfully trigger HITL's **"Escalate to a Human"** card, you must pass a *
 ### Conversation Start
 
 - When a user requests live agent support, the bot:
-  - Calls HubSpot’s Custom Channels API to start a new conversation thread.
+  - Calls HubSpot Inbox's Custom Channels API to start a new conversation thread.
   - Registers the custom channel and sends the initial "Name, title, description" message.
 
 ### Message Handling
 
 - All subsequent user messages are:
-  - Sent to HubSpot as INCOMING messages through the Custom Channels API.
-  - Routed to the appropriate inbox and agent in the HubSpot Conversations UI.
+  - Sent to HubSpot Inbox as INCOMING messages through the Custom Channels API.
+  - Routed to the appropriate inbox and agent in the HubSpot Inbox Conversations UI.
 
 ### Operator Events Tracking
 
-The integration listens for HubSpot webhook events, including:
+The integration listens for HubSpot Inbox webhook events, including:
 - `operatorAssignedUpdate`: Fires when an agent joins the thread.
 - `operatorSendMessage`: Captures replies sent by the agent.
 - `operatorConversationCompleted`: Fires when the conversation is closed by the agent.

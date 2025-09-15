@@ -77,7 +77,7 @@ export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
       description,
     );
     const hubspotConversationId = result.data.conversationsThreadId;
-    logger.forBot().debug("HubSpot Channel Response:", result);
+    logger.forBot().debug("HubSpot Inbox Channel Response:", result);
 
     const { conversation } = await client.getOrCreateConversation({
       channel: "hitl",
@@ -94,7 +94,7 @@ export const startHitl: bp.IntegrationProps["actions"]["startHitl"] = async ({
       },
     });
 
-    logger.forBot().debug(`HubSpot Channel ID: ${channelId}`);
+    logger.forBot().debug(`HubSpot Inbox Channel ID: ${channelId}`);
     logger.forBot().debug(`Botpress Conversation ID: ${conversation.id}`);
 
     return {
