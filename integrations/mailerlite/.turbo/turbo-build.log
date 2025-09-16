@@ -1,0 +1,11 @@
+
+
+> @bp-templates/mailerlite@ build /Users/maxfong/Documents/Github/botpress/integrations/mailerlite
+> bp add -y && bp build
+
+🤖 Botpress CLI [1mv4.17.8[22m
+No bp dependencies found in package.json
+🤖 Botpress CLI [1mv4.17.8[22m
+[2K[1G[38;2;128;0;128m○[39m Generating typings for integration [1mmax/mailerlite[22m...[2K[1G[32m✔[39m Typings available at [90m.botpress[39m
+[2K[1G[38;2;128;0;128m○[39m Bundling integration [1mmax/mailerlite[22m...[2K[1G[32m✔[39m Bundle available at [90m.botpress[39m
+Build completed in 463ms
