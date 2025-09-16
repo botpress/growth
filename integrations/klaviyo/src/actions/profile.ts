@@ -193,32 +193,7 @@ export const getProfile: bp.IntegrationProps["actions"]["getProfile"] = async ({
     const result = await profilesApi.getProfile(profileId);
 
     const returnValue = {
-      profile: {
-        id: result.body.data.id || "",
-        email: result.body.data.attributes.email || undefined,
-        phone: result.body.data.attributes.phoneNumber || undefined,
-        firstName: result.body.data.attributes.firstName || undefined,
-        lastName: result.body.data.attributes.lastName || undefined,
-        organization: result.body.data.attributes.organization || undefined,
-        title: result.body.data.attributes.title || undefined,
-        locale: result.body.data.attributes.locale || undefined,
-        location: result.body.data.attributes.location
-          ? {
-              address1:
-                result.body.data.attributes.location.address1 || undefined,
-              address2:
-                result.body.data.attributes.location.address2 || undefined,
-              city: result.body.data.attributes.location.city || undefined,
-              country:
-                result.body.data.attributes.location.country || undefined,
-              region: result.body.data.attributes.location.region || undefined,
-              zip: result.body.data.attributes.location.zip || undefined,
-            }
-          : undefined,
-        properties: result.body.data.attributes.properties
-          ? JSON.stringify(result.body.data.attributes.properties)
-          : undefined,
-      },
+      profile: formatProfileResponse(result.body.data),
     };
 
     logger
