@@ -2,11 +2,11 @@ import { IntegrationDefinition, z } from "@botpress/sdk";
 import { actions } from "./definitions";
 
 export default new IntegrationDefinition({
-  name: "plus/klaviyo",
+  name: "klaviyo",
   title: "Klaviyo",
   description:
     "Manage customer profiles, generate leads, and curate marketing campaigns",
-  version: "0.1.22",
+  version: "0.1.23",
   readme: "hub.md",
   icon: "icon.svg",
   configuration: {

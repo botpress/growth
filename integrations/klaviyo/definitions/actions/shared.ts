@@ -76,11 +76,19 @@ export const jobTitleSchema = z
   .title("Job title")
   .describe("The job title of the profile")
   .optional();
-//TODO: just make it json (like just a body of json) rather than a z.record
 export const profilePropertiesSchema = z
-  .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+  .string()
+  .displayAs<any>({
+    id: "text",
+    params: {
+      allowDynamicVariable: true,
+      growVertically: true,
+      multiLine: true,
+      resizable: true,
+    },
+  })
   .title("Custom Properties")
-  .describe("Custom key-value pairs to store with the profile")
+  .describe("Custom key-value pairs to store with the profile (JSON string)")
   .optional();
 
 /** Get Profiles Schemas */

@@ -42,3 +42,11 @@ export const buildFilter = (
       throw new Error(`Unsupported filter operator: ${operator}`);
   }
 };
+
+export const parseJsonSafely = (properties: string): Record<string, any> => {
+  try {
+    return JSON.parse(properties);
+  } catch {
+    return {};
+  }
+};

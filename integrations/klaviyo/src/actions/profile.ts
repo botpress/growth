@@ -10,7 +10,7 @@ import { getProfilesApi } from "../auth";
 import { MAX_PROFILES_PER_BULK_OPERATION } from "./constants";
 import { getErrorMessage } from "./error-handler";
 import { ProfileSubscriptions, GetProfilesOptions } from "./types";
-import { buildFilter } from "./utils";
+import { buildFilter, parseJsonSafely } from "./utils";
 import * as bp from ".botpress";
 
 export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
@@ -56,7 +56,10 @@ export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
         };
       }
       if (properties) {
-        profileAttributes.properties = properties;
+        const parsedProperties = parseJsonSafely(properties);
+        if (parsedProperties) {
+          profileAttributes.properties = parsedProperties;
+        }
       }
 
       const profileQuery: ProfileCreateQuery = {
@@ -128,7 +131,10 @@ export const updateProfile: bp.IntegrationProps["actions"]["updateProfile"] =
         };
       }
       if (properties) {
-        updatedProfileAttributes.properties = properties;
+        const parsedProperties = parseJsonSafely(properties);
+        if (parsedProperties) {
+          updatedProfileAttributes.properties = parsedProperties;
+        }
       }
 
       const updatedProfileQuery: ProfilePartialUpdateQuery = {
