@@ -1,12 +1,12 @@
-import { RuntimeError } from '@botpress/sdk'
-import * as bp from '.botpress'
+import { RuntimeError } from "@botpress/sdk";
+import * as bp from ".botpress";
 
-export const register: bp.IntegrationProps['register'] = async ({ ctx }) => {
-  const { apiKey } = ctx.configuration
+export const register: bp.IntegrationProps["register"] = async ({ ctx }) => {
+  const { apiKey } = ctx.configuration;
 
   if (!apiKey) {
-    throw new RuntimeError('API Key is required for manual configuration')
+    throw new RuntimeError("API Key is required for manual configuration");
   }
-}
+};
 
-export const unregister: bp.IntegrationProps['unregister'] = async () => {}
+export const unregister: bp.IntegrationProps["unregister"] = async () => {};
