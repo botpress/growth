@@ -30,3 +30,5 @@ export type GetProfilesOptions = {
     | "updated"
     | "-updated";
 };
+
+export type KlaviyoPropertyValue = string | number | boolean | null;

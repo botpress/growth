@@ -1,4 +1,5 @@
 import { FilterBuilder } from "klaviyo-api";
+import { KlaviyoPropertyValue } from "./types";
 
 // Utility function to convert a string or date to a date
 const toDate = (value: string | Date): Date => {
@@ -43,7 +44,9 @@ export const buildFilter = (
   }
 };
 
-export const parseJsonSafely = (properties: string): Record<string, any> => {
+export const parseJsonSafely = (
+  properties: string
+): Record<string, KlaviyoPropertyValue> => {
   try {
     return JSON.parse(properties);
   } catch {

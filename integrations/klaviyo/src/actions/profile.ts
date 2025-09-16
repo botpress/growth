@@ -214,7 +214,7 @@ export const getProfiles: bp.IntegrationProps["actions"]["getProfiles"] =
 
       const result = await profilesApi.getProfiles(options);
 
-      const profiles = result.body.data.map((profile: any) => ({
+      const profiles = result.body.data.map((profile) => ({
         id: profile.id || "",
         email: profile.attributes.email || undefined,
         phone: profile.attributes.phoneNumber || undefined,

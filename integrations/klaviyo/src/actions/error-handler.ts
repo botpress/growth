@@ -1,83 +1,43 @@
-function isAxiosError(err: unknown): err is {
-  message: string;
-  response?: {
-    data?: unknown;
-    status?: number;
-  };
-} {
-  return (
-    err !== null &&
-    typeof err === "object" &&
-    "message" in err &&
-    typeof (err as { message: unknown }).message === "string" &&
-    "response" in err
-  );
-}
+import { isAxiosError } from "axios";
+import { z } from "@botpress/sdk";
+
+const formatZodErrors = (issues: z.ZodIssue[]) =>
+  "Validation Error: " +
+  issues
+    .map((issue) => {
+      const path = issue.path?.length ? `${issue.path.join(".")}: ` : "";
+      return path ? `${path}${issue.message}` : issue.message;
+    })
+    .join("\n");
 
 export const getErrorMessage = (err: unknown): string => {
   if (isAxiosError(err)) {
+    const status = err.response?.status;
     const data = err.response?.data;
-    const statusCode = err.response?.status;
 
-    if (!data) {
-      return `${err.message} (no response data) (Status Code: ${statusCode})`;
+    if (typeof data === "string" && data.trim()) {
+      return status ? `${data} (Status: ${status})` : data;
     }
+    return status ? `${err.message} (Status: ${status})` : err.message;
+  }
 
-    if (
-      Array.isArray(data) &&
-      data.length > 0 &&
-      typeof data[0] === "object" &&
-      data[0] !== null
-    ) {
-      return `${printKlaviyoErrors(data)} (Status Code: ${statusCode})`;
-    }
+  if (err instanceof z.ZodError) {
+    return formatZodErrors(err.errors);
+  }
 
-    return `${err.message} (Status Code: ${statusCode})`;
-  } else if (err instanceof Error) {
-    return err.message || "Unexpected error";
-  } else if (
-    err &&
-    typeof err === "object" &&
-    "message" in err &&
-    typeof err.message === "string"
-  ) {
+  if (err instanceof Error) {
     return err.message;
-  } else if (typeof err === "string") {
+  }
+
+  if (typeof err === "string") {
     return err;
   }
 
-  return "Unexpected error";
-};
-
-const printKlaviyoErrors = (errors: unknown[]): string => {
-  return errors
-    .map((error) => {
-      if (
-        error &&
-        typeof error === "object" &&
-        "detail" in error &&
-        typeof error.detail === "string"
-      ) {
-        return error.detail;
-      }
-      if (
-        error &&
-        typeof error === "object" &&
-        "title" in error &&
-        typeof error.title === "string"
-      ) {
-        return error.title;
-      }
-      if (
-        error &&
-        typeof error === "object" &&
-        "message" in error &&
-        typeof error.message === "string"
-      ) {
-        return error.message;
-      }
-      return String(error);
-    })
-    .filter((s): s is string => Boolean(s && s.trim()))
-    .join(", ");
+  if (err && typeof err === "object" && "message" in err) {
+    const message = (err as { message: unknown }).message;
+    if (typeof message === "string") {
+      return message;
+    }
+  }
+  return "An unexpected error occurred";
 };
