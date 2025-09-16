@@ -1,5 +1,5 @@
 {
-  "name": "pipedrive",
+  "name": "plus/pipedrive",
   "description": "Pipedrive integration for Botpress",
   "private": true,
   "scripts": {
