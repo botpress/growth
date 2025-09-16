@@ -1,6 +1,7 @@
 import { webhookSchema } from 'definitions/schemas'
 import { events } from 'src/events'
 import * as bp from '.botpress'
+import { RuntimeError } from '@botpress/client'
 
 export const handler: bp.IntegrationProps['handler'] = async (props) => {
   const { req, logger, client } = props
@@ -25,7 +26,7 @@ export const handler: bp.IntegrationProps['handler'] = async (props) => {
           await events.subscriberCreated({ payload, client, logger })
           break
         default:
-          throw new Error(`Unsupported event type: ${event}`)
+          throw new RuntimeError(`Unsupported event type: ${event}`)
       }
     } catch (error) {
       logger.error('Webhook validation failed:', error)
