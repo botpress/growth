@@ -8,6 +8,6 @@ export const getApiConfig = async ({ ctx }: { ctx: bp.Context }) => {
     return new v2.Configuration({ apiKey })
   } catch (error) {
     console.error(error)
-    throw new Error(`Failed to get API config: ${error}`)
+    throw new RuntimeError(`Failed to get API config: ${error}`)
   }
 }

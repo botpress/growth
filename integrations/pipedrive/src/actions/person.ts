@@ -1,77 +1,77 @@
 import * as bp from '.botpress'
+import { RuntimeError } from '@botpress/sdk'
 import { v2 } from 'pipedrive'
 import { getApiConfig } from '../auth'
-import { PersonSearchFields } from '../types'
+import { addPersonSchema, updatePersonSchema, findPersonSchema, outputPersonSchema } from '../../definitions/schemas'
 
-export const createPerson: bp.IntegrationProps['actions']['createPerson'] = async ({ ctx, input }) => {
+export const addPerson: bp.IntegrationProps['actions']['addPerson'] = async ({ ctx, input }) => {
   try {
     const personsApi = new v2.PersonsApi(await getApiConfig({ ctx }))
 
-    const {
-      name, org_id, owner_id, visible_to,
-      emailValue, emailPrimary,
-      phoneValue, phonePrimary,
-    } = input
-
+    const { emailValue, emailPrimary, phoneValue, phonePrimary, ...rest } = addPersonSchema.parse(input)
+    
     const addPersonRequest: v2.AddPersonRequest = {
-      name,
-      ...(org_id !== undefined && { org_id }),
-      ...(owner_id !== undefined && { owner_id }),
-      ...(visible_to !== undefined && { visible_to }),
+      ...rest,
       ...(emailValue && { emails: [{ value: emailValue, primary: !!emailPrimary }] }),
       ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] }),
     }
+    
     const req: v2.PersonsApiAddPersonRequest = { AddPersonRequest: addPersonRequest }
     const res = await personsApi.addPerson(req)
 
-    return { person: res.data}
+    const parsedPerson = outputPersonSchema.parse(res.data)
+
+    return { person: parsedPerson }
   } catch (error) {
     console.error(error)
-    throw new Error(`Failed to create person: ${error}`)
+    throw new RuntimeError(`Failed to create person: ${error}`)
   }
 }
 
 export const updatePerson: bp.IntegrationProps['actions']['updatePerson'] = async ({ ctx, input }) => {
     try {
       const personsApi = new v2.PersonsApi(await getApiConfig({ ctx }))
-  
-      const { person_id, name, org_id, owner_id, visible_to, emailValue, emailPrimary, phoneValue, phonePrimary } = input
-    
-      const body: v2.UpdatePersonRequest = {
-        ...(name !== undefined && { name }),
-        ...(org_id !== undefined && { org_id }),
-        ...(owner_id !== undefined && { owner_id }),
-        ...(visible_to !== undefined && { visible_to }),
+
+      const { person_id, emailValue, emailPrimary, phoneValue, phonePrimary, ...rest } = updatePersonSchema.parse(input)
+      
+      const updatePersonRequest: v2.UpdatePersonRequest = {
+        ...rest,
         ...(emailValue && { emails: [{ value: emailValue, primary: !!emailPrimary }] }),
         ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] }),
       }
-    
-      const req: v2.PersonsApiUpdatePersonRequest = { id: person_id, UpdatePersonRequest: body }
+      
+      const req: v2.PersonsApiUpdatePersonRequest = { id: person_id, UpdatePersonRequest: updatePersonRequest }
       const res = await personsApi.updatePerson(req)
 
-    return { person: res.data }
+      const parsedPerson = outputPersonSchema.parse(res.data)
+
+      return { person: parsedPerson }
     } catch (error) {
         console.error(error)
-        throw new Error(`Failed to update person: ${error}`)
+        throw new RuntimeError(`Failed to update person: ${error}`)
     }
 }
 
 export const findPerson: bp.IntegrationProps['actions']['findPerson'] = async ({ ctx, input }) => {
     try {
       const personsApi = new v2.PersonsApi(await getApiConfig({ ctx }))
-      const { term, fields, exact_match } = input
-    
-    const req: v2.PersonsApiSearchPersonsRequest = {
-      term,
-      ...(fields && { fields: fields as PersonSearchFields }),
-      ...(exact_match !== undefined && { exact_match }),
-    }
-    
+
+      const { term, fields, organization_id, exact_match } = findPersonSchema.parse(input)
+      
+      const req: v2.PersonsApiSearchPersonsRequest = { 
+        term, 
+        ...(fields && { fields: fields as any }), 
+        ...(organization_id !== undefined && { organization_id }), 
+        ...(exact_match !== undefined && { exact_match }) 
+      }
+  
       const res = await personsApi.searchPersons(req)
 
-      return { persons: res.data?.items ?? [] }
+      const parsedPersons = (res.data?.items || []).map(item => outputPersonSchema.parse(item))
+      
+      return { persons: parsedPersons }
     } catch (error) {
         console.error(error)
-        throw new Error(`Failed to find person: ${error}`)
+        throw new RuntimeError(`Failed to find person: ${error}`)
     }
 }
