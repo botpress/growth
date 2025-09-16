@@ -1,6 +1,6 @@
 {
-  "name": "@bp-templates/empty-integration",
-  "integrationName": "simon/klaviyo",
+  "name": "klaviyo",
+  "integrationName": "plus/klaviyo",
   "scripts": {
     "check:type": "tsc --noEmit"
   },
