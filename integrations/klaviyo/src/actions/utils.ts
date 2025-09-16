@@ -53,3 +53,74 @@ export const parseJsonSafely = (
     return {};
   }
 };
+
+/**
+ * Converts Klaviyo profile data to the standardized profile format
+ */
+export const formatProfileResponse = (profileData: {
+  id?: string | null | undefined;
+  attributes: {
+    email?: string | null;
+    phoneNumber?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    organization?: string | null;
+    title?: string | null;
+    locale?: string | null;
+    location?: {
+      address1?: string | null;
+      address2?: string | null;
+      city?: string | null;
+      country?: string | null;
+      region?: string | null;
+      zip?: string | null;
+    } | null;
+    properties?: Record<string, any> | null;
+  };
+}) => ({
+  id: profileData.id || "",
+  email: profileData.attributes.email || undefined,
+  phone: profileData.attributes.phoneNumber || undefined,
+  firstName: profileData.attributes.firstName || undefined,
+  lastName: profileData.attributes.lastName || undefined,
+  organization: profileData.attributes.organization || undefined,
+  title: profileData.attributes.title || undefined,
+  locale: profileData.attributes.locale || undefined,
+  location: profileData.attributes.location
+    ? {
+        address1: profileData.attributes.location.address1 || undefined,
+        address2: profileData.attributes.location.address2 || undefined,
+        city: profileData.attributes.location.city || undefined,
+        country: profileData.attributes.location.country || undefined,
+        region: profileData.attributes.location.region || undefined,
+        zip: profileData.attributes.location.zip || undefined,
+      }
+    : undefined,
+  properties: profileData.attributes.properties
+    ? JSON.stringify(profileData.attributes.properties)
+    : undefined,
+});
+
+export const formatProfilesArray = (
+  profilesData: Array<{
+    id?: string | null | undefined;
+    attributes: {
+      email?: string | null;
+      phoneNumber?: string | null;
+      firstName?: string | null;
+      lastName?: string | null;
+      organization?: string | null;
+      title?: string | null;
+      locale?: string | null;
+      location?: {
+        address1?: string | null;
+        address2?: string | null;
+        city?: string | null;
+        country?: string | null;
+        region?: string | null;
+        zip?: string | null;
+      } | null;
+      properties?: Record<string, any> | null;
+    };
+  }>
+) => profilesData.map(formatProfileResponse);

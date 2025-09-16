@@ -10,7 +10,12 @@ import { getProfilesApi } from "../auth";
 import { MAX_PROFILES_PER_BULK_OPERATION } from "./constants";
 import { getErrorMessage } from "./error-handler";
 import { ProfileSubscriptions, GetProfilesOptions } from "./types";
-import { buildFilter, parseJsonSafely } from "./utils";
+import {
+  buildFilter,
+  parseJsonSafely,
+  formatProfileResponse,
+  formatProfilesArray,
+} from "./utils";
 import * as bp from ".botpress";
 
 export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
@@ -72,33 +77,7 @@ export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
       const result = await profilesApi.createProfile(profileQuery);
 
       const returnValue = {
-        profile: {
-          id: result.body.data.id || "",
-          email: result.body.data.attributes.email || undefined,
-          phone: result.body.data.attributes.phoneNumber || undefined,
-          firstName: result.body.data.attributes.firstName || undefined,
-          lastName: result.body.data.attributes.lastName || undefined,
-          organization: result.body.data.attributes.organization || undefined,
-          title: result.body.data.attributes.title || undefined,
-          locale: result.body.data.attributes.locale || undefined,
-          location: result.body.data.attributes.location
-            ? {
-                address1:
-                  result.body.data.attributes.location.address1 || undefined,
-                address2:
-                  result.body.data.attributes.location.address2 || undefined,
-                city: result.body.data.attributes.location.city || undefined,
-                country:
-                  result.body.data.attributes.location.country || undefined,
-                region:
-                  result.body.data.attributes.location.region || undefined,
-                zip: result.body.data.attributes.location.zip || undefined,
-              }
-            : undefined,
-          properties: result.body.data.attributes.properties
-            ? JSON.stringify(result.body.data.attributes.properties)
-            : undefined,
-        },
+        profile: formatProfileResponse(result.body.data),
       };
 
       logger
@@ -180,33 +159,7 @@ export const updateProfile: bp.IntegrationProps["actions"]["updateProfile"] =
       );
 
       const returnValue = {
-        profile: {
-          id: result.body.data.id || "",
-          email: result.body.data.attributes.email || undefined,
-          phone: result.body.data.attributes.phoneNumber || undefined,
-          firstName: result.body.data.attributes.firstName || undefined,
-          lastName: result.body.data.attributes.lastName || undefined,
-          organization: result.body.data.attributes.organization || undefined,
-          title: result.body.data.attributes.title || undefined,
-          locale: result.body.data.attributes.locale || undefined,
-          location: result.body.data.attributes.location
-            ? {
-                address1:
-                  result.body.data.attributes.location.address1 || undefined,
-                address2:
-                  result.body.data.attributes.location.address2 || undefined,
-                city: result.body.data.attributes.location.city || undefined,
-                country:
-                  result.body.data.attributes.location.country || undefined,
-                region:
-                  result.body.data.attributes.location.region || undefined,
-                zip: result.body.data.attributes.location.zip || undefined,
-              }
-            : undefined,
-          properties: result.body.data.attributes.properties
-            ? JSON.stringify(result.body.data.attributes.properties)
-            : undefined,
-        },
+        profile: formatProfileResponse(result.body.data),
       };
 
       logger
@@ -300,29 +253,7 @@ export const getProfiles: bp.IntegrationProps["actions"]["getProfiles"] =
 
       const result = await profilesApi.getProfiles(options);
 
-      const profiles = result.body.data.map((profile) => ({
-        id: profile.id || "",
-        email: profile.attributes.email || undefined,
-        phone: profile.attributes.phoneNumber || undefined,
-        firstName: profile.attributes.firstName || undefined,
-        lastName: profile.attributes.lastName || undefined,
-        organization: profile.attributes.organization || undefined,
-        title: profile.attributes.title || undefined,
-        locale: profile.attributes.locale || undefined,
-        location: profile.attributes.location
-          ? {
-              address1: profile.attributes.location.address1 || undefined,
-              address2: profile.attributes.location.address2 || undefined,
-              city: profile.attributes.location.city || undefined,
-              country: profile.attributes.location.country || undefined,
-              region: profile.attributes.location.region || undefined,
-              zip: profile.attributes.location.zip || undefined,
-            }
-          : undefined,
-        properties: profile.attributes.properties
-          ? JSON.stringify(profile.attributes.properties)
-          : undefined,
-      }));
+      const profiles = formatProfilesArray(result.body.data);
 
       const returnValue = {
         profiles,
