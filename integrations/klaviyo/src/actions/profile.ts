@@ -71,15 +71,44 @@ export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
 
       const result = await profilesApi.createProfile(profileQuery);
 
-      return {
+      const returnValue = {
         profile: {
           id: result.body.data.id || "",
           email: result.body.data.attributes.email || undefined,
           phone: result.body.data.attributes.phoneNumber || undefined,
           firstName: result.body.data.attributes.firstName || undefined,
           lastName: result.body.data.attributes.lastName || undefined,
+          organization: result.body.data.attributes.organization || undefined,
+          title: result.body.data.attributes.title || undefined,
+          locale: result.body.data.attributes.locale || undefined,
+          location: result.body.data.attributes.location
+            ? {
+                address1:
+                  result.body.data.attributes.location.address1 || undefined,
+                address2:
+                  result.body.data.attributes.location.address2 || undefined,
+                city: result.body.data.attributes.location.city || undefined,
+                country:
+                  result.body.data.attributes.location.country || undefined,
+                region:
+                  result.body.data.attributes.location.region || undefined,
+                zip: result.body.data.attributes.location.zip || undefined,
+              }
+            : undefined,
+          properties: result.body.data.attributes.properties
+            ? JSON.stringify(result.body.data.attributes.properties)
+            : undefined,
         },
       };
+
+      logger
+        .forBot()
+        .debug(
+          `Successfully created profile with ID: ${result.body.data.id}. Returned data:`,
+          JSON.stringify(returnValue, null, 2)
+        );
+
+      return returnValue;
     } catch (error) {
       logger.forBot().error("Failed to create Klaviyo profile", error);
       throw new RuntimeError(getErrorMessage(error));
@@ -150,15 +179,44 @@ export const updateProfile: bp.IntegrationProps["actions"]["updateProfile"] =
         updatedProfileQuery
       );
 
-      return {
+      const returnValue = {
         profile: {
           id: result.body.data.id || "",
           email: result.body.data.attributes.email || undefined,
           phone: result.body.data.attributes.phoneNumber || undefined,
           firstName: result.body.data.attributes.firstName || undefined,
           lastName: result.body.data.attributes.lastName || undefined,
+          organization: result.body.data.attributes.organization || undefined,
+          title: result.body.data.attributes.title || undefined,
+          locale: result.body.data.attributes.locale || undefined,
+          location: result.body.data.attributes.location
+            ? {
+                address1:
+                  result.body.data.attributes.location.address1 || undefined,
+                address2:
+                  result.body.data.attributes.location.address2 || undefined,
+                city: result.body.data.attributes.location.city || undefined,
+                country:
+                  result.body.data.attributes.location.country || undefined,
+                region:
+                  result.body.data.attributes.location.region || undefined,
+                zip: result.body.data.attributes.location.zip || undefined,
+              }
+            : undefined,
+          properties: result.body.data.attributes.properties
+            ? JSON.stringify(result.body.data.attributes.properties)
+            : undefined,
         },
       };
+
+      logger
+        .forBot()
+        .debug(
+          `Successfully updated profile with ID: ${profileId}. Returned data:`,
+          JSON.stringify(returnValue, null, 2)
+        );
+
+      return returnValue;
     } catch (error) {
       logger.forBot().error("Failed to update Klaviyo profile", error);
       throw new RuntimeError(getErrorMessage(error));
@@ -181,15 +239,43 @@ export const getProfile: bp.IntegrationProps["actions"]["getProfile"] = async ({
 
     const result = await profilesApi.getProfile(profileId);
 
-    return {
+    const returnValue = {
       profile: {
         id: result.body.data.id || "",
         email: result.body.data.attributes.email || undefined,
         phone: result.body.data.attributes.phoneNumber || undefined,
         firstName: result.body.data.attributes.firstName || undefined,
         lastName: result.body.data.attributes.lastName || undefined,
+        organization: result.body.data.attributes.organization || undefined,
+        title: result.body.data.attributes.title || undefined,
+        locale: result.body.data.attributes.locale || undefined,
+        location: result.body.data.attributes.location
+          ? {
+              address1:
+                result.body.data.attributes.location.address1 || undefined,
+              address2:
+                result.body.data.attributes.location.address2 || undefined,
+              city: result.body.data.attributes.location.city || undefined,
+              country:
+                result.body.data.attributes.location.country || undefined,
+              region: result.body.data.attributes.location.region || undefined,
+              zip: result.body.data.attributes.location.zip || undefined,
+            }
+          : undefined,
+        properties: result.body.data.attributes.properties
+          ? JSON.stringify(result.body.data.attributes.properties)
+          : undefined,
       },
     };
+
+    logger
+      .forBot()
+      .debug(
+        `Successfully retrieved profile with ID: ${profileId}. Returned data:`,
+        JSON.stringify(returnValue, null, 2)
+      );
+
+    return returnValue;
   } catch (error) {
     logger.forBot().error("Failed to get Klaviyo profile", error);
     throw new RuntimeError(getErrorMessage(error));
@@ -220,12 +306,37 @@ export const getProfiles: bp.IntegrationProps["actions"]["getProfiles"] =
         phone: profile.attributes.phoneNumber || undefined,
         firstName: profile.attributes.firstName || undefined,
         lastName: profile.attributes.lastName || undefined,
+        organization: profile.attributes.organization || undefined,
+        title: profile.attributes.title || undefined,
+        locale: profile.attributes.locale || undefined,
+        location: profile.attributes.location
+          ? {
+              address1: profile.attributes.location.address1 || undefined,
+              address2: profile.attributes.location.address2 || undefined,
+              city: profile.attributes.location.city || undefined,
+              country: profile.attributes.location.country || undefined,
+              region: profile.attributes.location.region || undefined,
+              zip: profile.attributes.location.zip || undefined,
+            }
+          : undefined,
+        properties: profile.attributes.properties
+          ? JSON.stringify(profile.attributes.properties)
+          : undefined,
       }));
 
-      return {
+      const returnValue = {
         profiles,
         totalCount: result.body.data.length,
       };
+
+      logger
+        .forBot()
+        .debug(
+          `Retrieved ${profiles.length} profiles from Klaviyo. Returned data:`,
+          JSON.stringify(returnValue, null, 2)
+        );
+
+      return returnValue;
     } catch (error) {
       logger.forBot().error("Failed to get Klaviyo profiles", error);
       throw new RuntimeError(getErrorMessage(error));
@@ -305,9 +416,18 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
         subscribeProfilesQuery
       );
 
-      return {
+      const returnValue = {
         success: result.response.status === 202,
       };
+
+      logger
+        .forBot()
+        .debug(
+          `Successfully scheduled subscription job for ${profileSubscriptions.length} profiles. Returned data:`,
+          JSON.stringify(returnValue, null, 2)
+        );
+
+      return returnValue;
     } catch (error) {
       logger.forBot().error("Failed to subscribe Klaviyo profiles", error);
       throw new RuntimeError(getErrorMessage(error));

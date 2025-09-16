@@ -29,15 +29,6 @@ export const lastNameSchema = z
   .title("Last name")
   .describe("The last name of the profile")
   .optional();
-export const profileSchema = z
-  .object({
-    id: profileIdSchema,
-    email: emailSchema,
-    phone: phoneSchema,
-    firstName: firstNameSchema,
-    lastName: lastNameSchema,
-  })
-  .title("Profile");
 export const localeSchema = z
   .string()
   .regex(LOCALE_REGEX)
@@ -90,6 +81,21 @@ export const profilePropertiesSchema = z
   .title("Custom Properties")
   .describe("Custom key-value pairs to store with the profile (JSON string)")
   .optional();
+
+export const profileSchema = z
+  .object({
+    id: profileIdSchema,
+    email: emailSchema,
+    phone: phoneSchema,
+    firstName: firstNameSchema,
+    lastName: lastNameSchema,
+    organization: organizationSchema,
+    title: jobTitleSchema,
+    locale: localeSchema,
+    location: locationSchema,
+    properties: profilePropertiesSchema,
+  })
+  .title("Profile");
 
 /** Get Profiles Schemas */
 
