@@ -30,13 +30,14 @@ export const fetchSubscriber: bp.Integration["actions"]["fetchSubscriber"] =
 
     try {
       const response = await mlClient.subscribers.find(searchParam);
-      return subscriberSchema.parse(response.data.data);
+      return { subscriber: subscriberSchema.parse(response.data.data) };
     } catch (error) {
-      throw new RuntimeError(extractError(error, logger));
+      logger.forBot().debug("No subscriber found!");
+      return { subscriber: undefined };
     }
   };
 
-export const createOrUpsertSubscriber: bp.Integration["actions"]["createOrUpsertSubscriber"] =
+export const upsertSubscriber: bp.Integration["actions"]["upsertSubscriber"] =
   async ({ client, ctx, input, logger }) => {
     const mlClient: MailerLiteClient = await getAuthenticatedMailerLiteClient({
       ctx,

@@ -5,7 +5,7 @@ Manage your MailerLite subscribers directly from Botpress. Create or update subs
 ## Features
 
 - Fetch a subscriber by id or email
-- Create or upsert a subscriber (standard and custom fields)
+- Upsert a subscriber (standard and custom fields)
 - Delete a subscriber by id
 - Receive the `subscriber.created` webhook as a Botpress event
 
@@ -27,7 +27,7 @@ Manage your MailerLite subscribers directly from Botpress. Create or update subs
 - Output: Subscriber
 - Notes: Throws a friendly error if neither id nor email is provided. If not found, returns a clear "not found" error.
 
-### createOrUpsertSubscriber
+### upsertSubscriber
 
 - Input:
   - `email` (required)

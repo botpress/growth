@@ -19,12 +19,14 @@ const fetchSubscriber: ActionDefinition = {
     }),
   },
   output: {
-    schema: subscriberSchema,
+    schema: z.object({
+      subscriber: subscriberSchema.optional(),
+    }),
   },
 };
 
-const createOrUpsertSubscriber: ActionDefinition = {
-  title: "Create or Upsert Subscriber",
+const upsertSubscriber: ActionDefinition = {
+  title: "Upsert Subscriber",
   description:
     "Create or update existing subscriber with given fields, identified by their email or id",
   input: {
@@ -32,7 +34,8 @@ const createOrUpsertSubscriber: ActionDefinition = {
       email: z
         .string()
         .title("Email")
-        .describe("Email of the subscriber to create/upsert"),
+        .describe("Email of the subscriber to create/upsert")
+        .min(1),
       name: z
         .string()
         .title("Name")
@@ -78,7 +81,8 @@ const deleteSubscriber: ActionDefinition = {
       id: z
         .string()
         .title("Subscriber id")
-        .describe("Id of the subscriber to remove"),
+        .describe("Id of the subscriber to remove")
+        .min(1),
     }),
   },
   output: {
@@ -97,6 +101,6 @@ const deleteSubscriber: ActionDefinition = {
 
 export const actions = {
   fetchSubscriber,
-  createOrUpsertSubscriber,
+  upsertSubscriber,
   deleteSubscriber,
 } as const;
