@@ -3,11 +3,11 @@ import type {
   ProfileCreateQuery,
   ProfilePartialUpdateQuery,
   SubscriptionCreateJobCreateQuery,
+  SubscriptionChannels,
 } from "klaviyo-api";
 import { getProfilesApi } from "../auth";
 import { MAX_PROFILES_PER_BULK_OPERATION } from "../misc/constants";
 import { getErrorMessage } from "../misc/error-handler";
-import { ProfileSubscriptions } from "../misc/types";
 import {
   buildFilter,
   parseJsonSafely,
@@ -257,9 +257,7 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
 
       const subscriptionProfilesData = profileSubscriptions.map(
         (profileSubscription) => {
-          const subscriptionPreferences: NonNullable<
-            SubscriptionCreateJobCreateQuery["data"]["attributes"]["profiles"]["data"][0]["attributes"]["subscriptions"]
-          > = {};
+          const subscriptionPreferences: SubscriptionChannels = {};
 
           if (profileSubscription.emailConsent) {
             subscriptionPreferences.email = {
