@@ -10,14 +10,14 @@ import {
   lastNameSchema,
   organizationSchema,
   jobTitleSchema,
-  profilePropertiesSchema,
+  customProfilePropertiesSchema,
   profileSubscriptionsSchema,
   filterFieldsSchema,
   filterOperatorsSchema,
   filterValueSchema,
   pageSizeSchema,
   sortingOptionsSchema,
-} from "./shared";
+} from "../schemas/shared";
 
 const createProfile = {
   title: "Create Profile",
@@ -32,7 +32,7 @@ const createProfile = {
       title: jobTitleSchema,
       locale: localeSchema,
       location: locationSchema,
-      properties: profilePropertiesSchema,
+      customProperties: customProfilePropertiesSchema,
     }),
   },
   output: {
@@ -56,7 +56,7 @@ const updateProfile = {
       title: jobTitleSchema,
       locale: localeSchema,
       location: locationSchema,
-      properties: profilePropertiesSchema,
+      customProperties: customProfilePropertiesSchema,
     }),
   },
   output: {

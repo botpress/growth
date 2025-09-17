@@ -67,7 +67,7 @@ export const jobTitleSchema = z
   .title("Job title")
   .describe("The job title of the profile")
   .optional();
-export const profilePropertiesSchema = z
+export const customProfilePropertiesSchema = z
   .string()
   .displayAs<any>({
     id: "text",
@@ -93,7 +93,7 @@ export const profileSchema = z
     title: jobTitleSchema,
     locale: localeSchema,
     location: locationSchema,
-    properties: profilePropertiesSchema,
+    properties: customProfilePropertiesSchema,
   })
   .title("Profile");
 

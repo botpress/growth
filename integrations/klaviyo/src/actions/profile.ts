@@ -7,15 +7,15 @@ import {
   ProfileSubscriptionBulkCreateJobEnum,
 } from "klaviyo-api";
 import { getProfilesApi } from "../auth";
-import { MAX_PROFILES_PER_BULK_OPERATION } from "./constants";
-import { getErrorMessage } from "./error-handler";
-import { ProfileSubscriptions, GetProfilesOptions } from "./types";
+import { MAX_PROFILES_PER_BULK_OPERATION } from "../misc/constants";
+import { getErrorMessage } from "../misc/error-handler";
+import { ProfileSubscriptions, GetProfilesOptions } from "../misc/types";
 import {
   buildFilter,
   parseJsonSafely,
   formatProfileResponse,
   formatProfilesArray,
-} from "./utils";
+} from "../misc/utils";
 import * as bp from ".botpress";
 
 export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
@@ -29,7 +29,7 @@ export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
       title,
       locale,
       location,
-      properties,
+      customProperties,
     } = input;
 
     if (!email && !phone) {
@@ -60,8 +60,8 @@ export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
           zip: location.zip,
         };
       }
-      if (properties) {
-        const parsedProperties = parseJsonSafely(properties);
+      if (customProperties) {
+        const parsedProperties = parseJsonSafely(customProperties);
         if (parsedProperties) {
           profileAttributes.properties = parsedProperties;
         }
@@ -106,14 +106,8 @@ export const updateProfile: bp.IntegrationProps["actions"]["updateProfile"] =
       title,
       locale,
       location,
-      properties,
+      customProperties,
     } = input;
-
-    if (!profileId) {
-      throw new RuntimeError(
-        "Klaviyo Profile ID is required to update a profile"
-      );
-    }
 
     try {
       const profilesApi = getProfilesApi(ctx);
@@ -138,8 +132,8 @@ export const updateProfile: bp.IntegrationProps["actions"]["updateProfile"] =
           zip: location.zip,
         };
       }
-      if (properties) {
-        const parsedProperties = parseJsonSafely(properties);
+      if (customProperties) {
+        const parsedProperties = parseJsonSafely(customProperties);
         if (parsedProperties) {
           updatedProfileAttributes.properties = parsedProperties;
         }
