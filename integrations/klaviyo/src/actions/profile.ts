@@ -255,45 +255,51 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
     try {
       const profilesApi = getProfilesApi(ctx);
 
-      const profilesData = profileSubscriptions.map((p) => {
-        const subscriptions: NonNullable<
-          SubscriptionCreateJobCreateQuery["data"]["attributes"]["profiles"]["data"][0]["attributes"]["subscriptions"]
-        > = {};
+      const subscriptionProfilesData = profileSubscriptions.map(
+        (profileSubscription) => {
+          const subscriptionPreferences: NonNullable<
+            SubscriptionCreateJobCreateQuery["data"]["attributes"]["profiles"]["data"][0]["attributes"]["subscriptions"]
+          > = {};
 
-        if (p.emailConsent) {
-          subscriptions.email = {
-            marketing: {
-              consent: "SUBSCRIBED",
-              consentedAt: historicalImport ? new Date() : undefined,
+          if (profileSubscription.emailConsent) {
+            subscriptionPreferences.email = {
+              marketing: {
+                consent: "SUBSCRIBED",
+                consentedAt: historicalImport ? new Date() : undefined,
+              },
+            };
+          }
+
+          if (profileSubscription.smsConsent) {
+            subscriptionPreferences.sms = {
+              marketing: {
+                consent: "SUBSCRIBED",
+                consentedAt: historicalImport ? new Date() : undefined,
+              },
+            };
+          }
+
+          return {
+            type: "profile" as const,
+            id: profileSubscription.id,
+            attributes: {
+              ...(profileSubscription.email && {
+                email: profileSubscription.email,
+              }),
+              ...(profileSubscription.phone && {
+                phone_number: profileSubscription.phone,
+              }),
+              subscriptions: subscriptionPreferences,
             },
           };
         }
-
-        if (p.smsConsent) {
-          subscriptions.sms = {
-            marketing: {
-              consent: "SUBSCRIBED",
-              consentedAt: historicalImport ? new Date() : undefined,
-            },
-          };
-        }
-
-        return {
-          type: "profile" as const,
-          id: p.id,
-          attributes: {
-            ...(p.email && { email: p.email }),
-            ...(p.phone && { phone_number: p.phone }),
-            subscriptions,
-          },
-        };
-      });
+      );
 
       const subscribeProfilesQuery: SubscriptionCreateJobCreateQuery = {
         data: {
           type: "profile-subscription-bulk-create-job",
           attributes: {
-            profiles: { data: profilesData },
+            profiles: { data: subscriptionProfilesData },
             ...(historicalImport !== undefined && {
               historical_import: historicalImport,
             }),
