@@ -1,15 +1,20 @@
-import { RuntimeError } from '@botpress/client'
+import { RuntimeError } from "@botpress/client";
+import * as bp from ".botpress";
+import { extractError } from "misc/utils/errorUtils";
 
-export const getRequestPayload = <T extends { email: string; customFields?: string }>(
-  input: T
+export const getRequestPayload = <
+  T extends { email: string; customFields?: string },
+>(
+  input: T,
+  logger: bp.Logger,
 ): Record<string, any> => {
-  const { email, customFields, ...rest } = input
+  const { email, customFields, ...rest } = input;
 
-  let parsedCustomFields = {}
+  let parsedCustomFields = {};
   try {
-    parsedCustomFields = customFields ? JSON.parse(customFields) : {}
-  } catch (e) {
-    throw new RuntimeError('Parsing JSON failed with error ', e instanceof Error ? e : undefined)
+    parsedCustomFields = customFields ? JSON.parse(customFields) : {};
+  } catch (error) {
+    throw new RuntimeError(extractError(error, logger));
   }
   return {
     email,
@@ -17,5 +22,5 @@ export const getRequestPayload = <T extends { email: string; customFields?: stri
       ...rest,
       ...parsedCustomFields,
     },
-  }
-}
+  };
+};

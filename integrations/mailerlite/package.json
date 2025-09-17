@@ -10,8 +10,7 @@
   "dependencies": {
     "@botpress/client": "1.24.1",
     "@botpress/sdk": "4.15.6",
-    "@mailerlite/mailerlite-nodejs": "^1.4.1",
-    "botpress": "^10.51.10"
+    "@mailerlite/mailerlite-nodejs": "^1.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.16.4",
