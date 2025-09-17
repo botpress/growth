@@ -12,13 +12,16 @@ const formatZodErrors = (issues: z.ZodIssue[]) =>
 
 export const getErrorMessage = (err: unknown): string => {
   if (isAxiosError(err)) {
+    // server dependent error
     const status = err.response?.status;
     const data = err.response?.data;
+    // always present
+    const message = err.message;
 
     if (typeof data === "string" && data.trim()) {
       return status ? `${data} (Status: ${status})` : data;
     }
-    return status ? `${err.message} (Status: ${status})` : err.message;
+    return status ? `${message} (Status: ${status})` : message;
   }
 
   if (err instanceof z.ZodError) {

@@ -2,31 +2,6 @@
 
 The Klaviyo integration allows you to connect your Botpress chatbot with Klaviyo, a leading customer data and marketing automation platform. With this integration, your chatbot can create leads, update customer information, and subscribe profiles to SMS and Email marketing.
 
-## Configuration
-
-### Manual Configuration with API Key
-
-To set up the Klaviyo integration, you'll need to provide your Klaviyo Private API Key. This allows your chatbot to interact with your Klaviyo account securely.
-
-#### Step 1: Get your Klaviyo API Key
-
-1. Log in to your Klaviyo account
-2. Navigate to **Account** → **Settings** → **API Keys**
-3. Click **Create Private API Key**
-4. Give your API key a descriptive name (e.g., "Botpress Integration")
-5. Select the appropriate scopes for your use cases
-   - **Profiles** - Full access
-   - **Subscriptions** - Full access
-6. Click **Create API Key**
-7. **Important**: Copy the API key immediately as it won't be shown again
-
-#### Step 2: Configure the Integration in Botpress
-
-1. In Botpress, navigate to the Klaviyo integration settings
-2. Select **Manual Configuration**
-3. Paste your Klaviyo Private API Key into the **API Key** field
-4. Click **Save** to save the configuration
-
 ## Available Actions
 
 ### Create Profile
@@ -124,18 +99,3 @@ Subscribe multiple customer profiles to email and/or SMS marketing lists in Klav
 - The operation is processed asynchronously by Klaviyo
 
 **Output:** Returns a success boolean indicating whether the subscription job was scheduled successfully.
-
-## Security Notes
-
-- Your API key is stored securely and encrypted
-- The integration only requests the minimum required permissions
-- All API communications are encrypted using HTTPS
-
-## Support
-
-If you encounter any issues with the integration:
-
-1. Verify your API key has the correct permissions
-2. Check that your Klaviyo account is active
-3. Review the Botpress logs for detailed error messages
-4. Contact support if the issue persists
