@@ -93,7 +93,7 @@ export const profileSchema = z
     title: jobTitleSchema,
     locale: localeSchema,
     location: locationSchema,
-    properties: customProfilePropertiesSchema,
+    customProperties: customProfilePropertiesSchema,
   })
   .title("Profile");
 

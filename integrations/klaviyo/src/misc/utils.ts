@@ -45,10 +45,10 @@ export const buildFilter = (
 };
 
 export const parseJsonSafely = (
-  properties: string
+  customProperties: string
 ): Record<string, KlaviyoPropertyValue> => {
   try {
-    return JSON.parse(properties);
+    return JSON.parse(customProperties);
   } catch {
     return {};
   }
@@ -96,7 +96,7 @@ export const formatProfileResponse = (profileData: {
         zip: profileData.attributes.location.zip || undefined,
       }
     : undefined,
-  properties: profileData.attributes.properties
+  customProperties: profileData.attributes.properties
     ? JSON.stringify(profileData.attributes.properties)
     : undefined,
 });
