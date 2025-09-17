@@ -1,0 +1,4 @@
+.botpress
+node_modules
+dist
+coverage

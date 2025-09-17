@@ -1,30 +1,30 @@
-import { IntegrationDefinition, z } from "@botpress/sdk";
-import { actions, events, states } from "definitions";
-import { integrationName } from "./package.json";
+import { IntegrationDefinition, z } from '@botpress/sdk';
+import { actions, events, states } from 'definitions';
+import { integrationName } from './package.json';
 
 export default new IntegrationDefinition({
   name: integrationName,
-  title: "MailerLite",
+  title: 'MailerLite',
   description:
-    "Connect with MailerLite to manage subscribers, groups, and email campaigns",
-  version: "3.0.0",
-  readme: "hub.md",
-  icon: "icon.svg",
+    'Connect with MailerLite to manage subscribers, groups, and email campaigns',
+  version: '3.0.0',
+  readme: 'hub.md',
+  icon: 'icon.svg',
 
   configuration: {
     schema: z
       .object({
         APIKey: z
           .string()
-          .title("API Key")
-          .describe("Developer API token")
+          .title('API Key')
+          .describe('Developer API token')
           .min(1)
-          .secret(),
+          .secret()
       })
-      .required(),
+      .required()
   },
 
   actions,
   events,
-  states,
+  states
 });

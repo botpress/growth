@@ -1,12 +1,12 @@
-import { RuntimeError } from "@botpress/client";
-import * as bp from ".botpress";
-import { extractError } from "misc/utils/errorUtils";
+import { RuntimeError } from '@botpress/client';
+import * as bp from '.botpress';
+import { extractError } from 'misc/utils/errorUtils';
 
 export const getRequestPayload = <
-  T extends { email: string; customFields?: string },
+  T extends { email: string; customFields?: string }
 >(
   input: T,
-  logger: bp.Logger,
+  logger: bp.Logger
 ): Record<string, any> => {
   const { email, customFields, ...rest } = input;
 
@@ -20,7 +20,7 @@ export const getRequestPayload = <
     email,
     fields: {
       ...rest,
-      ...parsedCustomFields,
-    },
+      ...parsedCustomFields
+    }
   };
 };
