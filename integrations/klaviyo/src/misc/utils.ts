@@ -96,9 +96,7 @@ export const formatProfileResponse = (profileData: {
         zip: profileData.attributes.location.zip || undefined,
       }
     : undefined,
-  customProperties: profileData.attributes.properties
-    ? JSON.stringify(profileData.attributes.properties)
-    : undefined,
+  customProperties: profileData.attributes.properties || undefined,
 });
 
 export const formatProfilesArray = (

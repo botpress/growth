@@ -67,7 +67,8 @@ export const jobTitleSchema = z
   .title("Job title")
   .describe("The job title of the profile")
   .optional();
-export const customProfilePropertiesSchema = z
+// Input schema: accepts JSON string (can't use z.record for input)
+export const customProfilePropertiesInputSchema = z
   .string()
   .displayAs<any>({
     id: "text",
@@ -82,6 +83,13 @@ export const customProfilePropertiesSchema = z
   .describe("Custom key-value pairs to store with the profile (JSON string)")
   .optional();
 
+// Output schema: returns object
+export const customProfilePropertiesOutputSchema = z
+  .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+  .title("Custom Properties")
+  .describe("Custom key-value pairs to store with the profile")
+  .optional();
+
 export const profileSchema = z
   .object({
     id: profileIdSchema,
@@ -93,7 +101,7 @@ export const profileSchema = z
     title: jobTitleSchema,
     locale: localeSchema,
     location: locationSchema,
-    customProperties: customProfilePropertiesSchema,
+    customProperties: customProfilePropertiesOutputSchema,
   })
   .title("Profile");
 

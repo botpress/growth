@@ -10,7 +10,7 @@ import {
   lastNameSchema,
   organizationSchema,
   jobTitleSchema,
-  customProfilePropertiesSchema,
+  customProfilePropertiesInputSchema,
   profileSubscriptionsSchema,
   filterFieldsSchema,
   filterOperatorsSchema,
@@ -32,7 +32,7 @@ const createProfile = {
       title: jobTitleSchema,
       locale: localeSchema,
       location: locationSchema,
-      customProperties: customProfilePropertiesSchema,
+      customProperties: customProfilePropertiesInputSchema,
     }),
   },
   output: {
@@ -56,7 +56,7 @@ const updateProfile = {
       title: jobTitleSchema,
       locale: localeSchema,
       location: locationSchema,
-      customProperties: customProfilePropertiesSchema,
+      customProperties: customProfilePropertiesInputSchema,
     }),
   },
   output: {
