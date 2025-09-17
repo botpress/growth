@@ -1,67 +1,38 @@
 # MailerLite Integration
 
-Manage your MailerLite subscribers directly from Botpress. Create or update subscribers, look them up by id/email, delete them, and react to new-subscriber webhooks.
+The MailerLite integration connects your Botpress chatbot with MailerLite, a modern email marketing and automation platform. With this integration, your bot can add or update subscribers, find people by email or ID, and get notified when someone new joins your list. You can also include extra details using custom fields so your audience stays organized and up to date.
 
-## Features
+## What you can do
 
-- Fetch a subscriber by id or email
-- Upsert a subscriber (standard and custom fields)
-- Delete a subscriber by id
-- Receive the `subscriber.created` webhook as a Botpress event
+- Find a subscriber by email or ID
+- Add or update a subscriber
+- Delete a subscriber
+- Get notified when someone new subscribes
 
-## Prerequisites
+## Get started
 
-- MailerLite API key with access to Subscribers and Webhooks
-
-## Setup
-
-1. Install this integration in your Botpress workspace.
-2. Configure the API Key in the integration settings.
-3. Enable the integration. On register, a MailerLite webhook will be created pointing to your integration handler.
+1. Install the integration
+2. Enter your MailerLite API key
+3. Save configuration
 
 ## Actions
 
 ### fetchSubscriber
 
-- Input: `{ id?: string, email?: string }` (provide at least one)
-- Output: Subscriber
-- Notes: Throws a friendly error if neither id nor email is provided. If not found, returns a clear "not found" error.
+- Input: email or ID (give at least one)
+- Output: the subscriber’s details if found; otherwise nothing
 
 ### upsertSubscriber
 
-- Input:
-  - `email` (required)
-  - Optional profile fields: `name, last_name, company, country, city, phone, state, zip`
-  - Optional `customFields` (stringified JSON) or provide additional fields directly; all non-email properties are mapped to `fields`.
-- Output: Subscriber
-- Notes: Creates a new subscriber or updates an existing one when the email already exists.
+- Input: email (required) and any details you want to save (name, last name, company, country, city, phone, state, ZIP)
+- You can also add extra custom fields by sending them as JSON text under "customFields" (for example: `{"favorite_color":"blue"}`).
+- Output: the saved subscriber’s details
 
 ### deleteSubscriber
 
-- Input: `{ id: string }`
-- Output: `{ success: boolean, message: string }`
-- Notes: Returns `success: false` if the subscriber does not exist.
+- Input: subscriber ID
+- Output: a simple success message
 
 ## Events
 
-### subscriberCreated
-
-- Emitted when MailerLite sends a `subscriber.created` webhook.
-- Payload: Subscriber (normalized; extra properties ignored).
-
-## Data model (Subscriber)
-
-The subscriber payload aligns with MailerLite's API:
-
-- Core fields: `id, email, status, source, sent, opens_count, clicks_count, open_rate, click_rate, ip_address, subscribed_at, unsubscribed_at, created_at, updated_at`
-- Nested `fields`: custom profile fields (e.g., `name, last_name, company, country, city, phone, state, zip`) and any additional custom keys
-
-## Troubleshooting
-
-- 404 on fetch/delete: The subscriber does not exist. Verify the id/email.
-- Validation errors (Zod): Ensure numeric counters/nullable fields match the API, and `customFields` is valid JSON when provided.
-- Webhook registration fails: Check that your API key is valid and the integration is reachable from the internet.
-
-## Uninstall
-
-Disabling/uninstalling the integration will attempt to clean up the webhook created during registration.
+- subscriberCreated: notifies your bot when someone new subscribes

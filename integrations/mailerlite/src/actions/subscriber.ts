@@ -1,7 +1,7 @@
 import { RuntimeError } from '@botpress/client';
 import { subscriberSchema } from 'definitions/schemas';
-import { getRequestPayload } from 'misc/utils/utils';
-import { getAuthenticatedMailerLiteClient } from 'src/utils';
+import { getRequestPayload } from 'misc/utils/payloadUtils';
+import { getAuthenticatedMailerLiteClient } from 'src/client';
 import * as bp from '.botpress';
 import { extractError } from 'misc/utils/errorUtils';
 
