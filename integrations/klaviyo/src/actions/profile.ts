@@ -256,15 +256,15 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
       const profilesApi = getProfilesApi(ctx);
 
       const profilesData = profileSubscriptions.map((p) => {
-        const subscriptions: ProfileSubscriptions = {};
+        const subscriptions: NonNullable<
+          SubscriptionCreateJobCreateQuery["data"]["attributes"]["profiles"]["data"][0]["attributes"]["subscriptions"]
+        > = {};
 
         if (p.emailConsent) {
           subscriptions.email = {
             marketing: {
               consent: "SUBSCRIBED",
-              consented_at: historicalImport
-                ? new Date().toISOString()
-                : undefined,
+              consentedAt: historicalImport ? new Date() : undefined,
             },
           };
         }
@@ -273,9 +273,7 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
           subscriptions.sms = {
             marketing: {
               consent: "SUBSCRIBED",
-              consented_at: historicalImport
-                ? new Date().toISOString()
-                : undefined,
+              consentedAt: historicalImport ? new Date() : undefined,
             },
           };
         }
