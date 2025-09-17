@@ -3,7 +3,7 @@ description: Deploy integrations to Botpress
 
 inputs:
   environment:
-    description: "Environment to deploy to (staging/production)"
+    description: "Environment to deploy to production"
     required: true
   extra_filter:
     description: "Extra filter for integrations to deploy"
@@ -13,11 +13,11 @@ inputs:
     description: "Force re-deploying integrations"
     required: false
     default: "false"
-  token_cloud_ops_account:
-    description: "Botpress token for cloud ops account"
+  token_pat:
+    description: "Botpress token for plus account"
     required: true
-  cloud_ops_workspace_id:
-    description: "Botpress workspace ID for cloud ops"
+  plus_workspace_id:
+    description: "Botpress workspace ID for plus"
     required: true
 
 runs:
@@ -26,7 +26,7 @@ runs:
     - name: Login to Botpress
       shell: bash
       run: |
-        pnpm bp login -y --token ${{ inputs.token_cloud_ops_account }} --workspace-id ${{ inputs.cloud_ops_workspace_id }}
+        pnpm bp login -y --token ${{ inputs.token_pat }} --workspace-id ${{ inputs.plus_workspace_id }}
 
     - name: Deploy integrations
       shell: bash
@@ -55,9 +55,9 @@ runs:
             # Deploy the integration
             echo "Deploying $integration_name..."
             if [ "${{ inputs.force }}" = "true" ]; then
-              pnpm exec bp deploy --force
+              pnpm exec bp deploy --force --visibility public
             else
-              pnpm exec bp deploy
+              pnpm exec bp deploy --visibility public
             fi
             
             cd ..
