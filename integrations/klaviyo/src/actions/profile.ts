@@ -312,12 +312,10 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
         },
       };
 
-      const result = await profilesApi.bulkSubscribeProfiles(
-        subscribeProfilesQuery
-      );
+      await profilesApi.bulkSubscribeProfiles(subscribeProfilesQuery);
 
       const returnValue = {
-        success: result.response.status === 202,
+        success: true,
       };
 
       logger
