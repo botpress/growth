@@ -85,7 +85,8 @@ export const customProfilePropertiesInputSchema = z
 
 // Output schema: returns object
 export const customProfilePropertiesOutputSchema = z
-  .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+  .object({})
+  .passthrough()
   .title("Custom Properties")
   .describe("Custom key-value pairs to store with the profile")
   .optional();
