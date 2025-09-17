@@ -4,7 +4,6 @@ import type {
   ProfilePartialUpdateQuery,
   SubscriptionCreateJobCreateQuery,
 } from "klaviyo-api";
-import { ProfileEnum, ProfileSubscriptionBulkCreateJobEnum } from "klaviyo-api";
 import { getProfilesApi } from "../auth";
 import { MAX_PROFILES_PER_BULK_OPERATION } from "../misc/constants";
 import { getErrorMessage } from "../misc/error-handler";
@@ -68,7 +67,7 @@ export const createProfile: bp.IntegrationProps["actions"]["createProfile"] =
 
       const profileQuery: ProfileCreateQuery = {
         data: {
-          type: ProfileEnum.Profile,
+          type: "profile",
           attributes: profileAttributes,
         },
       };
@@ -140,7 +139,7 @@ export const updateProfile: bp.IntegrationProps["actions"]["updateProfile"] =
 
       const updatedProfileQuery: ProfilePartialUpdateQuery = {
         data: {
-          type: ProfileEnum.Profile,
+          type: "profile",
           id: profileId,
           attributes: updatedProfileAttributes,
         },
@@ -280,7 +279,7 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
         }
 
         return {
-          type: ProfileEnum.Profile,
+          type: "profile" as const,
           ...(p.id && { id: p.id }),
           attributes: {
             ...(p.email && { email: p.email }),
@@ -292,7 +291,7 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
 
       const subscribeProfilesQuery: SubscriptionCreateJobCreateQuery = {
         data: {
-          type: ProfileSubscriptionBulkCreateJobEnum.ProfileSubscriptionBulkCreateJob,
+          type: "profile-subscription-bulk-create-job",
           attributes: {
             profiles: { data: profilesData },
             ...(historicalImport !== undefined && {
