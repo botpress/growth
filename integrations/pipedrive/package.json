@@ -1,6 +1,6 @@
 {
   "name": "pipedrive",
-  "integrationName": "pipedrive",
+  "integrationName": "plus/pipedrive",
   "description": "Pipedrive integration for Botpress",
   "private": true,
   "scripts": {
