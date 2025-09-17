@@ -176,10 +176,6 @@ export const getProfile: bp.IntegrationProps["actions"]["getProfile"] = async ({
 }) => {
   const { profileId } = input;
 
-  if (!profileId) {
-    throw new RuntimeError("Klaviyo Profile ID is required to get a profile");
-  }
-
   try {
     const profilesApi = getProfilesApi(ctx);
 
