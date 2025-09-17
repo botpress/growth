@@ -2,7 +2,7 @@ import { IntegrationDefinition, z } from '@botpress/sdk'
 import { actions } from './definitions'
 
 export default new IntegrationDefinition({
-  name: 'plus/pipedrive',
+  name: 'pipedrive',
   title: 'Pipedrive',
   description: 'Manage contacts, deals and more from your chatbot.',
   version: '0.1.0',
