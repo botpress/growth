@@ -300,9 +300,7 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
           type: "profile-subscription-bulk-create-job",
           attributes: {
             profiles: { data: subscriptionProfilesData },
-            ...(historicalImport !== undefined && {
-              historical_import: historicalImport,
-            }),
+            historicalImport: historicalImport,
           },
           ...(listId && {
             relationships: {

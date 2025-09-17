@@ -118,8 +118,10 @@ const subscribeProfiles = {
       historicalImport: z
         .boolean()
         .title("Historical Import")
-        .describe("Whether to import historical profiles")
-        .optional(),
+        .describe(
+          "Whether to import historical profiles (true = existing subscribers with timestamp, false = new real-time opt-ins)"
+        )
+        .default(false),
     }),
   },
   output: {
