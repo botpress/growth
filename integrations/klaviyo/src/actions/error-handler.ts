@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
-import { z } from "@botpress/sdk";
+import { ZodError, ZodIssue } from "@botpress/sdk";
 
-const formatZodErrors = (issues: z.ZodIssue[]) =>
+const formatZodErrors = (issues: ZodIssue[]) =>
   "Validation Error: " +
   issues
     .map((issue) => {
@@ -24,7 +24,7 @@ export const getErrorMessage = (err: unknown): string => {
     return status ? `${message} (Status: ${status})` : message;
   }
 
-  if (err instanceof z.ZodError) {
+  if (err instanceof ZodError) {
     return formatZodErrors(err.errors);
   }
 
