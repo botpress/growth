@@ -3,6 +3,7 @@ import { RuntimeError } from '@botpress/sdk'
 import { v2 } from 'pipedrive'
 import { getApiConfig } from '../auth'
 import { addPersonSchema, updatePersonSchema, findPersonSchema, outputPersonSchema } from '../../definitions/schemas'
+import { PersonSearchFields } from '../types'
 
 export const addPerson: bp.IntegrationProps['actions']['addPerson'] = async ({ ctx, input }) => {
   try {
@@ -60,7 +61,7 @@ export const findPerson: bp.IntegrationProps['actions']['findPerson'] = async ({
       
       const req: v2.PersonsApiSearchPersonsRequest = { 
         term, 
-        ...(fields && { fields: fields as any }), 
+        ...(fields && { fields: fields as PersonSearchFields }), 
         ...(organization_id !== undefined && { organization_id }), 
         ...(exact_match !== undefined && { exact_match }) 
       }

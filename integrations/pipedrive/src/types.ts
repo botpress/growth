@@ -1,0 +1,1 @@
+export type PersonSearchFields = 'custom_fields' | 'email' | 'notes' | 'phone' | 'name'
