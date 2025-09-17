@@ -1,11 +1,10 @@
 import { RuntimeError } from "@botpress/sdk";
-import {
+import type {
   ProfileCreateQuery,
   ProfilePartialUpdateQuery,
-  ProfileEnum,
   SubscriptionCreateJobCreateQuery,
-  ProfileSubscriptionBulkCreateJobEnum,
 } from "klaviyo-api";
+import { ProfileEnum, ProfileSubscriptionBulkCreateJobEnum } from "klaviyo-api";
 import { getProfilesApi } from "../auth";
 import { MAX_PROFILES_PER_BULK_OPERATION } from "../misc/constants";
 import { getErrorMessage } from "../misc/error-handler";
