@@ -1,5 +1,5 @@
 import { z, ActionDefinition } from '@botpress/sdk'
-import { addPersonSchema, updatePersonSchema, findPersonSchema, outputPersonSchema } from '../schemas'
+import { addPersonSchema, updatePersonSchema, findPersonSchema, upsertPersonOutputSchema, searchPersonOutputSchema } from '../schemas'
 
 const addPerson: ActionDefinition = {
   title: 'Add Person',
@@ -7,10 +7,11 @@ const addPerson: ActionDefinition = {
   input: {
       schema: addPersonSchema
   },
-  output: { 
-      schema: z.object({
-        person: outputPersonSchema.title('Person').describe('Person data returned by Pipedrive API')
-      })
+  output: {
+    schema: z.object({
+      success: z.boolean().optional(),
+      data: upsertPersonOutputSchema.optional()
+    })
   }
 }
 
@@ -20,10 +21,11 @@ const updatePerson: ActionDefinition = {
   input: {
       schema: updatePersonSchema
   },
-  output: { 
-      schema: z.object({
-        person: outputPersonSchema.title('Person').describe('Person data returned by Pipedrive API')
-      })
+  output: {
+    schema: z.object({
+      success: z.boolean().optional(),
+      data: upsertPersonOutputSchema.optional()
+    })
   }
 }
 
@@ -33,10 +35,14 @@ const findPerson: ActionDefinition = {
   input: {
       schema: findPersonSchema
   },
-  output: { 
-      schema: z.object({
-        persons: z.array(outputPersonSchema).title('Persons').describe('Array of persons found by Pipedrive API')
-      })
+  output: {
+    schema: z.object({
+      success: z.boolean().optional(),
+      data: z.object({
+        items: z.array(searchPersonOutputSchema).optional()
+      }).optional(),
+      additional_data: z.unknown().optional()
+    })
   }
 }
 

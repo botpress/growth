@@ -1,11 +1,11 @@
 import actions from './actions' 
 import * as bp from '.botpress'
-import { getApiConfig } from './auth'
+import { validateCredentials } from './auth'
 import { RuntimeError } from '@botpress/sdk'
 
 export const register: bp.IntegrationProps['register'] = async ({ ctx, logger }) => {
   try {
-    await getApiConfig({ ctx })
+    await validateCredentials({ ctx })
     logger.forBot().info('Pipedrive integration registered')
   } catch (error) {
     logger.forBot().error('Failed to register Pipedrive integration', error)
