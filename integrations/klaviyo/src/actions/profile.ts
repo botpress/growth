@@ -280,7 +280,7 @@ export const subscribeProfiles: bp.IntegrationProps["actions"]["subscribeProfile
 
         return {
           type: "profile" as const,
-          ...(p.id && { id: p.id }),
+          id: p.id,
           attributes: {
             ...(p.email && { email: p.email }),
             ...(p.phone && { phone_number: p.phone }),
