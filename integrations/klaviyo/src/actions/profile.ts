@@ -7,7 +7,7 @@ import type {
 import { getProfilesApi } from "../auth";
 import { MAX_PROFILES_PER_BULK_OPERATION } from "../misc/constants";
 import { getErrorMessage } from "../misc/error-handler";
-import { ProfileSubscriptions, GetProfilesOptions } from "../misc/types";
+import { ProfileSubscriptions } from "../misc/types";
 import {
   buildFilter,
   parseJsonSafely,
@@ -205,7 +205,9 @@ export const getProfiles: bp.IntegrationProps["actions"]["getProfiles"] =
     try {
       const profilesApi = getProfilesApi(ctx);
 
-      const options: GetProfilesOptions = {};
+      const options: Parameters<
+        ReturnType<typeof getProfilesApi>["getProfiles"]
+      >[0] = {};
 
       if (filterField && filterOperator && filterValue) {
         options.filter = buildFilter(filterField, filterOperator, filterValue);

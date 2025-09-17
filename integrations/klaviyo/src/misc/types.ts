@@ -13,22 +13,4 @@ export type ProfileSubscriptions = {
   };
 };
 
-export type GetProfilesOptions = {
-  filter?: string;
-  pageSize?: number;
-  sort?:
-    | "created"
-    | "-created"
-    | "email"
-    | "-email"
-    | "id"
-    | "-id"
-    | "subscriptions.email.marketing.list_suppressions.timestamp"
-    | "-subscriptions.email.marketing.list_suppressions.timestamp"
-    | "subscriptions.email.marketing.suppression.timestamp"
-    | "-subscriptions.email.marketing.suppression.timestamp"
-    | "updated"
-    | "-updated";
-};
-
 export type KlaviyoPropertyValue = string | number | boolean | null;
