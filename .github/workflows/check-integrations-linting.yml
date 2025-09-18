@@ -1,0 +1,49 @@
+name: Check Integrations Linting
+
+on:
+  pull_request:
+    paths:
+      - "integrations/klaviyo/**"
+      - ".github/workflows/check-integrations-linting.yml"
+
+jobs:
+  lint-integrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+
+      - name: Check Klaviyo Integration
+        run: |
+          echo "Checking Klaviyo integration..."
+          cd integrations/klaviyo
+          pnpm install
+          pnpm check:eslint
+          pnpm check:prettier
+          pnpm check:type
+          echo "Klaviyo integration checks passed"
+        continue-on-error: true
+
+      # Future integrations can be added here:
+      # - name: Check MailerLite Integration
+      #   run: |
+      #     echo "Checking MailerLite integration..."
+      #     cd integrations/mailerlite
+      #     pnpm install
+      #     pnpm check:eslint
+      #     pnpm check:prettier
+      #     pnpm check:type
+      #     echo "MailerLite integration checks passed"
+      #   continue-on-error: true
