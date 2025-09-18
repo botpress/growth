@@ -58,7 +58,7 @@ export const findPerson: bp.IntegrationProps['actions']['findPerson'] = async ({
       const req: v2.PersonsApiSearchPersonsRequest = { 
         term, 
         ...(fields && { fields: fields }),
-        ...(organization_id && organization_id > 0 ? { organization_id } : {}), 
+        ...(organization_id && { organization_id }), 
         ...(exact_match && { exact_match }) 
       }
   
