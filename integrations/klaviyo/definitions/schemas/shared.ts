@@ -13,29 +13,14 @@ export const phoneSchema = z
   .title('Phone number')
   .describe('The phone number of the profile (E.164 format)')
   .optional();
-export const emailSchema = z
-  .string()
-  .email()
-  .title('Email address')
-  .describe('The email of the profile')
-  .optional();
-export const firstNameSchema = z
-  .string()
-  .title('First name')
-  .describe('The first name of the profile')
-  .optional();
-export const lastNameSchema = z
-  .string()
-  .title('Last name')
-  .describe('The last name of the profile')
-  .optional();
+export const emailSchema = z.string().email().title('Email address').describe('The email of the profile').optional();
+export const firstNameSchema = z.string().title('First name').describe('The first name of the profile').optional();
+export const lastNameSchema = z.string().title('Last name').describe('The last name of the profile').optional();
 export const localeSchema = z
   .string()
   .regex(LOCALE_REGEX)
   .title('The locale of the profile')
-  .describe(
-    'The locale of the profile in the IETF BCP 47 language tag format like (ISO 639-1/2)-(ISO 3166 alpha-2)'
-  )
+  .describe('The locale of the profile in the IETF BCP 47 language tag format like (ISO 639-1/2)-(ISO 3166 alpha-2)')
   .optional();
 export const locationSchema = z
   .object({
@@ -56,11 +41,7 @@ export const organizationSchema = z
   .title('Organization')
   .describe('The organization or company of the profile')
   .optional();
-export const jobTitleSchema = z
-  .string()
-  .title('Job title')
-  .describe('The job title of the profile')
-  .optional();
+export const jobTitleSchema = z.string().title('Job title').describe('The job title of the profile').optional();
 // Input schema: accepts JSON string (can't use z.record for input)
 export const customProfilePropertiesInputSchema = z
   .string()
@@ -156,14 +137,8 @@ const profileSubscriptionSchema = z.object({
   id: profileIdSchema,
   email: emailSchema,
   phone: phoneSchema,
-  emailConsent: z
-    .boolean()
-    .title('Email Consent')
-    .describe('Whether the profile has consented to email'),
-  smsConsent: z
-    .boolean()
-    .title('Phone Consent')
-    .describe('Whether the profile has consented to SMS'),
+  emailConsent: z.boolean().title('Email Consent').describe('Whether the profile has consented to email'),
+  smsConsent: z.boolean().title('Phone Consent').describe('Whether the profile has consented to SMS'),
 });
 export const profileSubscriptionsSchema = z
   .array(profileSubscriptionSchema)

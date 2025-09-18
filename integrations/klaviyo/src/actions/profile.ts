@@ -8,30 +8,11 @@ import type {
 import { getProfilesApi } from '../auth';
 import { MAX_PROFILES_PER_BULK_OPERATION } from '../misc/constants';
 import { getErrorMessage } from '../misc/error-handler';
-import {
-  buildFilter,
-  parseJsonSafely,
-  formatProfileResponse,
-  formatProfilesArray,
-} from '../misc/utils';
+import { buildFilter, parseJsonSafely, formatProfileResponse, formatProfilesArray } from '../misc/utils';
 import * as bp from '.botpress';
 
-export const createProfile: bp.IntegrationProps['actions']['createProfile'] = async ({
-  ctx,
-  logger,
-  input,
-}) => {
-  const {
-    email,
-    phone,
-    firstName,
-    lastName,
-    organization,
-    title,
-    locale,
-    location,
-    customProperties,
-  } = input;
+export const createProfile: bp.IntegrationProps['actions']['createProfile'] = async ({ ctx, logger, input }) => {
+  const { email, phone, firstName, lastName, organization, title, locale, location, customProperties } = input;
 
   if (!email && !phone) {
     throw new RuntimeError('Either email or phone is required to create a profile');
@@ -93,23 +74,9 @@ export const createProfile: bp.IntegrationProps['actions']['createProfile'] = as
   }
 };
 
-export const updateProfile: bp.IntegrationProps['actions']['updateProfile'] = async ({
-  ctx,
-  logger,
-  input,
-}) => {
-  const {
-    profileId,
-    email,
-    phone,
-    firstName,
-    lastName,
-    organization,
-    title,
-    locale,
-    location,
-    customProperties,
-  } = input;
+export const updateProfile: bp.IntegrationProps['actions']['updateProfile'] = async ({ ctx, logger, input }) => {
+  const { profileId, email, phone, firstName, lastName, organization, title, locale, location, customProperties } =
+    input;
 
   try {
     const profilesApi = getProfilesApi(ctx);
@@ -168,11 +135,7 @@ export const updateProfile: bp.IntegrationProps['actions']['updateProfile'] = as
   }
 };
 
-export const getProfile: bp.IntegrationProps['actions']['getProfile'] = async ({
-  ctx,
-  logger,
-  input,
-}) => {
+export const getProfile: bp.IntegrationProps['actions']['getProfile'] = async ({ ctx, logger, input }) => {
   const { profileId } = input;
 
   try {
@@ -198,11 +161,7 @@ export const getProfile: bp.IntegrationProps['actions']['getProfile'] = async ({
   }
 };
 
-export const getProfiles: bp.IntegrationProps['actions']['getProfiles'] = async ({
-  ctx,
-  logger,
-  input,
-}) => {
+export const getProfiles: bp.IntegrationProps['actions']['getProfiles'] = async ({ ctx, logger, input }) => {
   const { filterField, filterOperator, filterValue, pageSize, sort } = input;
 
   try {
@@ -251,9 +210,7 @@ export const subscribeProfiles: bp.IntegrationProps['actions']['subscribeProfile
     throw new RuntimeError('At least one profile is required to subscribe');
   }
   if (profileSubscriptions.length > MAX_PROFILES_PER_BULK_OPERATION) {
-    throw new RuntimeError(
-      `You can only subscribe up to ${MAX_PROFILES_PER_BULK_OPERATION} profiles at a time`
-    );
+    throw new RuntimeError(`You can only subscribe up to ${MAX_PROFILES_PER_BULK_OPERATION} profiles at a time`);
   }
 
   try {

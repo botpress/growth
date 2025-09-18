@@ -95,10 +95,7 @@ const getProfiles = {
   },
   output: {
     schema: z.object({
-      profiles: z
-        .array(profileSchema)
-        .title('Profiles')
-        .describe('Array of profiles matching the criteria'),
+      profiles: z.array(profileSchema).title('Profiles').describe('Array of profiles matching the criteria'),
     }),
   },
 };
@@ -109,11 +106,7 @@ const subscribeProfiles = {
   input: {
     schema: z.object({
       profileSubscriptions: profileSubscriptionsSchema,
-      listId: z
-        .string()
-        .title('List ID')
-        .describe('An optional list id to add the subscribed profiles to')
-        .optional(),
+      listId: z.string().title('List ID').describe('An optional list id to add the subscribed profiles to').optional(),
       historicalImport: z
         .boolean()
         .title('Historical Import')
