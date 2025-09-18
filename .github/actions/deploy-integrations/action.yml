@@ -38,20 +38,22 @@ runs:
             # Go back to root directory to access the script
             cd ..
             exists=$(bash ./.github/scripts/integration-exists.sh $integration_name)
+            echo "Integration $integration_name exists check result: $exists"
             cd integrations
             
             # Only deploy if integration doesn't exist or force is enabled
+            echo "Force flag: ${{ inputs.force }}"
             if [ "$exists" = "0" ] || [ "${{ inputs.force }}" = "true" ]; then
-              echo "Deploying integration: $integration_name"
+              echo "Deploying integration: $integration_name (exists=$exists, force=${{ inputs.force }})"
               
               cd "$integration_name"
               
               # Deploy the integration (already built in setup step)
               echo "Deploying $integration_name..."
               if [ "${{ inputs.force }}" = "true" ]; then
-                pnpm exec bp deploy --force --public
+                npx @botpress/cli deploy --force --public --yes
               else
-                pnpm exec bp deploy --public
+                npx @botpress/cli deploy --public --yes
               fi
               
               cd ..
