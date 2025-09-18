@@ -30,6 +30,7 @@ jobs:
           echo "Checking Klaviyo integration..."
           cd integrations/klaviyo
           pnpm install
+          pnpm check:eslint
           pnpm check:prettier
           pnpm check:type
           echo "Klaviyo integration checks passed"

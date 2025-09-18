@@ -1,7 +1,6 @@
 import { RuntimeError } from '@botpress/sdk';
 import { ApiKeySession, ProfilesApi } from 'klaviyo-api';
 import * as bp from '.botpress';
-import { getErrorMessage } from './misc/error-handler';
 
 export const createKlaviyoSession = (apiKey: string): ApiKeySession => {
   if (!apiKey) {
