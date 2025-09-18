@@ -19,7 +19,6 @@ export const addPerson: bp.IntegrationProps['actions']['addPerson'] = async ({ c
     const res = await personsApi.addPerson(req)
     return res
   } catch (error) {
-    console.error(error)
     throw new RuntimeError(`Failed to create person: ${error}`)
   }
 }
@@ -40,7 +39,6 @@ export const updatePerson: bp.IntegrationProps['actions']['updatePerson'] = asyn
       const res = await personsApi.updatePerson(req)
       return res
     } catch (error) {
-        console.error(error)
         throw new RuntimeError(`Failed to update person: ${error}`)
     }
 }
@@ -54,14 +52,13 @@ export const findPerson: bp.IntegrationProps['actions']['findPerson'] = async ({
       const req: v2.PersonsApiSearchPersonsRequest = { 
         term, 
         ...(fields && { fields: fields }),
-        ...(organization_id !== undefined && { organization_id }), 
-        ...(exact_match !== undefined && { exact_match }) 
+        ...(organization_id  && { organization_id }), 
+        ...(exact_match && { exact_match }) 
       }
   
       const res = await personsApi.searchPersons(req)
       return res
     } catch (error) {
-        console.error(error)
         throw new RuntimeError(`Failed to find person: ${error}`)
     }
 }
