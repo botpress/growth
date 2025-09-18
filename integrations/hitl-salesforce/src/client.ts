@@ -127,7 +127,7 @@ class MessagingApi {
               ],
             },
             end: {
-              onRawMatch: ['force_end_tt_transport', 'Jwt is expired'],
+              onRawMatch: ['force_end_tt_transport', 'Jwt is expired', '"status":401,"error":"Unauthorized","path":"/eventrouter/v1/sse"'],
             },
           },
           target: {
