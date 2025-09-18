@@ -43,9 +43,9 @@ runs:
             # Deploy the integration
             echo "Deploying $integration_name..."
             if [ "${{ inputs.force }}" = "true" ]; then
-              pnpm exec bp deploy --force --visibility public
+              pnpm exec bp deploy --force --public
             else
-              pnpm exec bp deploy --visibility public
+              pnpm exec bp deploy --public
             fi
             
             cd ..
