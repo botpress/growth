@@ -31,7 +31,7 @@ runs:
         chmod +x ./.github/scripts/integration-exists.sh
 
         # List of integrations to completely exclude (never deploy)
-        exclude_integrations=("hitl-salesforce")
+        exclude_integrations=("hitl-salesforce" "magento2")
 
         # List of integration:version combinations to skip
         # Format: "integration_name:version"
