@@ -1,12 +1,17 @@
 {
   "name": "@bp-templates/empty-integration",
   "integrationName": "plus/hubspot-hitl",
+  "type": "module",
   "scripts": {
     "check:type": "tsc --noEmit",
     "version": "bp --version",
     "login": "bp login",
     "gen": "bp gen",
-    "deploy": "bp deploy"
+    "deploy": "bp deploy",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:unit": "vitest --run --config vitest.unit.config.ts",
+    "test:e2e": "vitest --run --config vitest.e2e.config.ts"
   },
   "private": true,
   "dependencies": {
@@ -17,9 +22,12 @@
   },
   "devDependencies": {
     "@botpress/cli": "^4.17.2",
-    "@types/node": "^18.19.76",
+    "@types/node": "^20.19.0",
+    "@vitest/ui": "^3.2.4",
+    "dotenv": "^17.2.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.4"
   },
   "bpDependencies": {
     "hitl": "interface:hitl@2.0.0"
