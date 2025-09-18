@@ -2,7 +2,6 @@
   "name": "pipedrive",
   "integrationName": "plus/pipedrive",
   "description": "Pipedrive integration for Botpress",
-  "private": true,
   "scripts": {
     "check:type": "tsc --noEmit",
     "check:bplint": "bp lint",
