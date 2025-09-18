@@ -33,6 +33,7 @@ export class ApifyApi {
     expandClickableElements?: boolean;
     headers?: Record<string, string>;
     rawInputJsonOverride?: string;
+    kbId?: string;
   }) {
     try {
       // Prepare the input for the Website Content Crawler
@@ -59,6 +60,7 @@ export class ApifyApi {
           removeElementsCssSelector: params.removeElementsCssSelector || '',
           crawlerType: params.crawlerType || 'playwright:firefox',
           expandClickableElements: params.expandClickableElements || false,
+          kbId: params.kbId || "kb-default",
         };
       }
 
@@ -168,7 +170,7 @@ export class ApifyApi {
     }
   }
 
-  async getRunResults(runId: string, syncTargetPath?: string) {
+  async getRunResults(runId: string, syncTargetPath?: string, kbId?: string) {
     try {
       const run = await this.client.run(runId).get();
       
@@ -223,9 +225,13 @@ export class ApifyApi {
       this.logger.forBot().info(`Retrieved ${allItems.length} total items from dataset`);
 
       let filesCreated = 0;
-      if (syncTargetPath) {
+      if (kbId && !syncTargetPath) {
+        this.logger.forBot().info(`[GET RUN RESULTS] KB mode: indexing ${allItems.length} documents into KB ${kbId}`);
+        filesCreated = await this.syncContentToBotpress(allItems, undefined, kbId);
+        this.logger.forBot().info(`[GET RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
+      } else if (syncTargetPath) {
         this.logger.forBot().info(`[GET RUN RESULTS] Starting file sync to path: ${syncTargetPath}`);
-        filesCreated = await this.syncContentToBotpress(allItems, syncTargetPath);
+        filesCreated = await this.syncContentToBotpress(allItems, syncTargetPath, kbId || "kb-default");
         this.logger.forBot().info(`[GET RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
       } else {
         this.logger.forBot().info(`[GET RUN RESULTS] No syncTargetPath provided, skipping file creation`);
@@ -271,8 +277,8 @@ export class ApifyApi {
     }
   }
 
-  private async syncContentToBotpress(items: any[], targetPath: string): Promise<number> {
-    this.logger.forBot().info(`[FILE SYNC] Starting file sync for ${items.length} items to path: ${targetPath}`);
+  private async syncContentToBotpress(items: any[], targetPath: string | undefined, kbId: string): Promise<number> {
+    this.logger.forBot().info(`[FILE SYNC] Starting sync for ${items.length} items${targetPath ? ` to path: ${targetPath}` : ''}`);
     let filesCreated = 0;
 
     for (let i = 0; i < items.length; i++) {
@@ -344,18 +350,24 @@ export class ApifyApi {
         // Ensure filename is not too long and has valid characters
         filename = filename.substring(0, 100).replace(/[^a-zA-Z0-9_-]/g, '_');
         const fullFilename = `${filename}.${extension}`;
-        const filePath = `${targetPath}/${fullFilename}`;
+        const filePath = targetPath ? `${targetPath}/${fullFilename}` : fullFilename;
 
-        this.logger.forBot().info(`[FILE SYNC] Creating file: ${filePath}`);
+        this.logger.forBot().info(`[FILE SYNC] Uploading asset: ${filePath} ${targetPath ? '' : '(KB mode, no folder)'}`);
 
         const uploadResult = await this.bpClient.uploadFile({
           key: filePath,
+          tags: {
+            kbId: kbId || "kb-default",
+            dsType: "document",
+            source: "knowledge-base"
+          },
           content: Buffer.from(content, 'utf8'),
           contentType: extension === 'md' ? 'text/markdown' : 
                       extension === 'html' ? 'text/html' : 'text/plain',
+          index: true
         });
 
-        this.logger.forBot().info(`[FILE SYNC] File created successfully: ${filePath}`, uploadResult);
+        this.logger.forBot().info(`[FILE SYNC] Upload successful: ${filePath}`, uploadResult);
         filesCreated++;
       } catch (error) {
         this.logger.forBot().error(`[FILE SYNC] Error creating file for item ${i}:`, error);

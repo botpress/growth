@@ -105,11 +105,29 @@ async function handleCrawlerCompleted({ webhookPayload, client, logger, ctx }: a
       logger
     )
 
-    const syncTargetPath = `apify-results/${runId}`
-    logger.forBot().info(`Will sync results to path: ${syncTargetPath}`)
+    let kbId: string | undefined
+    try {
+      const mapping = await client.getState({ type: 'integration', id: ctx.integrationId, name: 'apifyRunMappings' })
+      const mapPayload = (mapping?.state?.payload || {}) as Record<string, string>
+      kbId = mapPayload[runId]
+      if (kbId) {
+        logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
+      } else {
+        logger.forBot().info(`No kbId mapping found for run ${runId}. Will sync to files.`)
+      }
+    } catch (stateErr) {
+      logger.forBot().warn(`Could not read kbId mapping for run ${runId}: ${stateErr instanceof Error ? stateErr.message : String(stateErr)}`)
+    }
 
-    logger.forBot().info(`Calling getRunResults with syncTargetPath: ${syncTargetPath}`)
-    const resultsResult = await apifyClient.getRunResults(runId, syncTargetPath)
+    const syncTargetPath = kbId ? undefined : `apify-results/${runId}`
+    if (kbId) {
+      logger.forBot().info(`Will index results directly into KB: ${kbId}`)
+    } else {
+      logger.forBot().info(`Will sync results to path: ${syncTargetPath}`)
+    }
+
+    logger.forBot().info(`Calling getRunResults with ${kbId ? `kbId: ${kbId}` : `syncTargetPath: ${syncTargetPath}`}`)
+    const resultsResult = await apifyClient.getRunResults(runId, syncTargetPath, kbId)
 
     if (resultsResult.success) {
       logger.forBot().info(`Successfully processed results for run ${runId}. Items: ${resultsResult.data?.itemsCount}, Files created: ${resultsResult.data?.filesCreated}`)
