@@ -1,6 +1,6 @@
 {
   "name": "klaviyo",
-  "integrationName": "plus/klaviyo",
+  "integrationName": "simon/klaviyo",
   "scripts": {
     "check:type": "tsc --noEmit"
   },

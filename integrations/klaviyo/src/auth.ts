@@ -25,3 +25,14 @@ export const getProfilesApi = (ctx: bp.Context): ProfilesApi => {
   const session = createKlaviyoSession(apiKey);
   return new ProfilesApi(session);
 };
+
+export const validateCredentials = async ({ ctx }: { ctx: bp.Context }) => {
+  try {
+    const profilesApi = getProfilesApi(ctx);
+    await profilesApi.getProfiles({ pageSize: 1 });
+  } catch (error) {
+    throw new RuntimeError(
+      "Something went wrong, make sure your API key is right"
+    );
+  }
+};
