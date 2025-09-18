@@ -51,9 +51,9 @@ runs:
               # Deploy the integration (already built in setup step)
               echo "Deploying $integration_name..."
               if [ "${{ inputs.force }}" = "true" ]; then
-                npx @botpress/cli deploy --force --public --yes
+                npx @botpress/cli deploy --force --public --confirm
               else
-                npx @botpress/cli deploy --public --yes
+                npx @botpress/cli deploy --public --confirm
               fi
               
               cd ..
