@@ -1,13 +1,6 @@
 name: Deploy Integrations Production
 
 on:
-  pull_request:
-    inputs:
-      force:
-        description: "Force re-deploying integrations"
-        type: boolean
-        required: false
-        default: false
   workflow_dispatch:
     inputs:
       force:
