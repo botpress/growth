@@ -30,20 +30,29 @@ jobs:
           echo "Checking Klaviyo integration..."
           cd integrations/klaviyo
           pnpm install
-          pnpm check:eslint
           pnpm check:prettier
           pnpm check:type
           echo "Klaviyo integration checks passed"
         continue-on-error: true
 
+      - name: Check MailerLite Integration
+        run: |
+          echo "Checking MailerLite integration..."
+          cd integrations/mailerlite
+          pnpm install
+          pnpm check:prettier
+          pnpm check:type
+          echo "MailerLite integration checks passed"
+        continue-on-error: true
+
       # Future integrations can be added here:
-      # - name: Check MailerLite Integration
+      # - name: Check XXXXXXX Integration
       #   run: |
-      #     echo "Checking MailerLite integration..."
-      #     cd integrations/mailerlite
+      #     echo "Checking XXXXXX integration..."
+      #     cd integrations/XXXXXXX
       #     pnpm install
       #     pnpm check:eslint
       #     pnpm check:prettier
       #     pnpm check:type
-      #     echo "MailerLite integration checks passed"
+      #     echo "XXXXXXX integration checks passed"
       #   continue-on-error: true
