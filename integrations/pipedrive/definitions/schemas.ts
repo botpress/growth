@@ -3,7 +3,7 @@ import { z } from "@botpress/sdk";
 const basePersonFields = {
     name: z.string().title('Name').describe('The name of the person'),
     owner_id: z.number().optional().title('Owner ID').describe('The ID of the owner of the person'),
-    org_id: z.number().int().optional().title('Organization ID').describe('The ID of the organization the person belongs to'),
+    org_id: z.number().optional().title('Organization ID').describe('The ID of the organization the person belongs to'),
     emailValue: z.string().optional().title('Email').describe('Email address'),
     emailPrimary: z.boolean().optional().title('Email is Primary').describe('Mark the email as primary'),
     phoneValue: z.string().optional().title('Phone Number').describe('Phone number'),
@@ -22,7 +22,7 @@ export const updatePersonSchema = z.object({
 export const findPersonSchema = z.object({
     term: z.string().min(2).title('Search Term').describe('The search term to look for (minimum 2 characters)'),
     fields: z.enum(['custom_fields','email','notes','phone','name']).optional().title('Fields to Search').describe('Which fields to search in (custom_fields, email, notes, phone, name)'),
-    organization_id: z.number().int().optional().title('Organization ID').describe('The ID of the organization to search in'),
+    organization_id: z.number().optional().title('Organization ID').describe('The ID of the organization to search in'),
     exact_match: z.boolean().optional().title('Exact Match').describe('Whether to search for exact matches only'),
 })
 
@@ -32,7 +32,7 @@ export const upsertPersonOutputSchema = z.object({
     first_name: z.string().optional(),
     last_name: z.string().optional(),
     owner_id: z.number().optional(),
-    org_id: z.number().optional(),
+    org_id: z.number().nullable().optional(),
     add_time: z.string().nullable().optional(),
     update_time: z.string().nullable().optional(),
     emails: z.array(z.object({

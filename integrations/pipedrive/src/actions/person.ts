@@ -8,12 +8,13 @@ export const addPerson: bp.IntegrationProps['actions']['addPerson'] = async ({ c
   try {
     const personsApi = new v2.PersonsApi(await getApiConfig({ ctx }))
 
-    const { emailValue, emailPrimary, phoneValue, phonePrimary, ...rest } = input
+    const { emailValue, emailPrimary, phoneValue, phonePrimary, org_id, ...rest } = input
     
     const addPersonRequest: v2.AddPersonRequest = {
       ...rest,
       ...(emailValue && { emails: [{ value: emailValue, primary: !!emailPrimary }] }),
       ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] }),
+      ...(typeof org_id === 'number' && org_id > 0 ? { org_id } : {})
     }
     
     const req: v2.PersonsApiAddPersonRequest = { AddPersonRequest: addPersonRequest }
@@ -29,17 +30,18 @@ export const updatePerson: bp.IntegrationProps['actions']['updatePerson'] = asyn
     try {
       const personsApi = new v2.PersonsApi(await getApiConfig({ ctx }))
 
-      const { person_id, emailValue, emailPrimary, phoneValue, phonePrimary, ...rest } = input
+      const { person_id, emailValue, emailPrimary, phoneValue, phonePrimary, org_id, ...rest } = input
       
       const updatePersonRequest: v2.UpdatePersonRequest = {
         ...rest,
         ...(emailValue && { emails: [{ value: emailValue, primary: !!emailPrimary }] }),
         ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] }),
+        ...(org_id && org_id > 0 ? { org_id } : {})
       }
       
       const req: v2.PersonsApiUpdatePersonRequest = { id: person_id, UpdatePersonRequest: updatePersonRequest }
       const res = await personsApi.updatePerson(req)
-      logger.forBot().info(`Person updated with id ${res?.data?.id}`)
+      logger.forBot().info(`Person with id ${res?.data?.id} is updated`)
       return res
     } catch (error) {
         throw new RuntimeError(`Failed to update person: ${getErrorMessage(error)}`)
