@@ -32,7 +32,7 @@ export const validateCredentials = async ({ ctx }: { ctx: bp.Context }) => {
     await profilesApi.getProfiles({ pageSize: 1 });
   } catch (error) {
     throw new RuntimeError(
-      "Something went wrong, make sure your API key is right"
+      "Failed to validate Klaviyo API key. Please confirm the key is correct and has the necessary permissions."
     );
   }
 };
