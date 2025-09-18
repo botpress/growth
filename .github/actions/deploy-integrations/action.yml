@@ -30,15 +30,32 @@ runs:
         # Make the integration-exists script executable
         chmod +x ./.github/scripts/integration-exists.sh
 
+        # List of integrations to completely exclude (never deploy)
+        exclude_integrations=("hitl-salesforce")
+
         # List of integration:version combinations to skip
         # Format: "integration_name:version"
-        skip_integrations=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "hitl-salesforce:0.3.2" "hubspot-hitl:2.0.1" "huggingface:0.0.2" "salesforce:1.0.3" "zoho-sales-iq-hitl:2.0.1")
+        skip_integrations=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "hubspot-hitl:2.0.1" "huggingface:0.0.2" "salesforce:1.0.3" "zoho-sales-iq-hitl:2.0.1")
 
         # Get list of integration directories
         cd integrations
         for integration in */; do
           if [ -d "$integration" ]; then
             integration_name=${integration%/}
+            
+            # Check if this integration should be completely excluded
+            exclude_integration=false
+            for exclude_name in "${exclude_integrations[@]}"; do
+              if [ "$integration_name" = "$exclude_name" ]; then
+                exclude_integration=true
+                break
+              fi
+            done
+            
+            if [ "$exclude_integration" = "true" ]; then
+              echo "Integration $integration_name is in exclude list, skipping deployment completely"
+              continue
+            fi
             
             # Get the current version of this integration
             cd ..
