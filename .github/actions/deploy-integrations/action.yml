@@ -30,11 +30,38 @@ runs:
         # Make the integration-exists script executable
         chmod +x ./.github/scripts/integration-exists.sh
 
+        # List of integration:version combinations to skip
+        # Format: "integration_name:version"
+        skip_integrations=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "hitl-salesforce:0.3.2" "hubspot-hitl:2.0.1" "huggingface:0.0.2" "salesforce:1.0.3" "sharepoint:3.0.1" "twiliovoice:0.1.2" "zoho-sales-iq-hitl:2.0.1")
+
         # Get list of integration directories
         cd integrations
         for integration in */; do
           if [ -d "$integration" ]; then
             integration_name=${integration%/}
+            
+            # Get the current version of this integration
+            cd ..
+            integration_def=$(pnpm bp read --work-dir "integrations/$integration_name" --json)
+            current_version=$(echo $integration_def | jq -r ".version")
+            cd integrations
+            
+            # Check if this integration:version combination should be skipped
+            skip_integration=false
+            for skip_entry in "${skip_integrations[@]}"; do
+              skip_name=$(echo $skip_entry | cut -d':' -f1)
+              skip_version=$(echo $skip_entry | cut -d':' -f2)
+              if [ "$integration_name" = "$skip_name" ] && [ "$current_version" = "$skip_version" ]; then
+                skip_integration=true
+                break
+              fi
+            done
+            
+            if [ "$skip_integration" = "true" ]; then
+              echo "Integration $integration_name version $current_version is in skip list, skipping deployment"
+              continue
+            fi
+            
             # Go back to root directory to access the script
             cd ..
             exists=$(bash ./.github/scripts/integration-exists.sh $integration_name)
