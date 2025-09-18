@@ -38,14 +38,6 @@ runs:
             integration_name=${integration%/}
             echo "Deploying integration: $integration_name"
             
-            # Skip if extra_filter excludes this integration
-            if [ -n "${{ inputs.extra_filter }}" ]; then
-              if echo "$integration_name" | grep -E "${{ inputs.extra_filter }}" > /dev/null; then
-                echo "Skipping $integration_name due to filter"
-                continue
-              fi
-            fi
-            
             cd "$integration_name"
             
             # Build the integration
