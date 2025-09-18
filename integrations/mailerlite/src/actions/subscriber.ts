@@ -31,7 +31,7 @@ export const fetchSubscriber: bp.Integration['actions']['fetchSubscriber'] =
 		try {
 			const response = await mlClient.subscribers.find(searchParam);
 			return { subscriber: subscriberSchema.parse(response.data.data) };
-		} catch (error) {
+		} catch {
 			logger.forBot().debug('No subscriber found!');
 			return { subscriber: undefined };
 		}
