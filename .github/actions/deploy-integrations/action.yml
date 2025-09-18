@@ -27,12 +27,18 @@ runs:
     - name: Deploy integrations
       shell: bash
       run: |
+        # Make the integration-exists script executable
+        chmod +x ./.github/scripts/integration-exists.sh
+
         # Get list of integration directories
         cd integrations
         for integration in */; do
           if [ -d "$integration" ]; then
             integration_name=${integration%/}
-            exists=$(./.github/scripts/integration-exists.sh $integration)
+            # Go back to root directory to access the script
+            cd ..
+            exists=$(bash ./.github/scripts/integration-exists.sh $integration_name)
+            cd integrations
             
             # Only deploy if integration doesn't exist or force is enabled
             if [ "$exists" = "0" ] || [ "${{ inputs.force }}" = "true" ]; then
