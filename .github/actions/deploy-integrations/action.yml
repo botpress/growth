@@ -32,23 +32,30 @@ runs:
         for integration in */; do
           if [ -d "$integration" ]; then
             integration_name=${integration%/}
-            echo "Deploying integration: $integration_name"
+            exists=$(./.github/scripts/integration-exists.sh $integration)
             
-            cd "$integration_name"
-            
-            # Build the integration
-            echo "Building $integration_name..."
-            pnpm exec bp build
-            
-            # Deploy the integration
-            echo "Deploying $integration_name..."
-            if [ "${{ inputs.force }}" = "true" ]; then
-              pnpm exec bp deploy --force --public
+            # Only deploy if integration doesn't exist or force is enabled
+            if [ "$exists" = "0" ] || [ "${{ inputs.force }}" = "true" ]; then
+              echo "Deploying integration: $integration_name"
+              
+              cd "$integration_name"
+              
+              # Build the integration
+              echo "Building $integration_name..."
+              pnpm exec bp build
+              
+              # Deploy the integration
+              echo "Deploying $integration_name..."
+              if [ "${{ inputs.force }}" = "true" ]; then
+                pnpm exec bp deploy --force --public
+              else
+                pnpm exec bp deploy --public
+              fi
+              
+              cd ..
             else
-              pnpm exec bp deploy --public
+              echo "Integration $integration_name already exists, skipping deployment (use force=true to override)"
             fi
-            
-            cd ..
           fi
         done
 
