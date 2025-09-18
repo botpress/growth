@@ -46,11 +46,7 @@ runs:
               
               cd "$integration_name"
               
-              # Build the integration
-              echo "Building $integration_name..."
-              pnpm exec bp build
-              
-              # Deploy the integration
+              # Deploy the integration (already built in setup step)
               echo "Deploying $integration_name..."
               if [ "${{ inputs.force }}" = "true" ]; then
                 pnpm exec bp deploy --force --public
