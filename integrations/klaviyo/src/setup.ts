@@ -1,12 +1,19 @@
 import { RuntimeError } from '@botpress/sdk';
 import * as bp from '.botpress';
+import { getProfilesApi } from './auth';
 
-export const register: bp.IntegrationProps['register'] = async ({ ctx }) => {
-  const { apiKey } = ctx.configuration;
+export const register: bp.IntegrationProps['register'] = async ({ ctx, logger }) => {
+  try {
+    const profilesApi = getProfilesApi(ctx);
+    await profilesApi.getProfiles({ pageSize: 1 });
 
-  if (!apiKey) {
-    throw new RuntimeError('API Key is required for manual configuration');
+    logger.forBot().info('Klaviyo integration registered successfully');
+  } catch (error) {
+    logger.forBot().error('Failed to register Klaviyo integration', error);
+    throw new RuntimeError(`Failed to register Klaviyo integration: ${error}`);
   }
 };
 
-export const unregister: bp.IntegrationProps['unregister'] = async () => {};
+export const unregister: bp.IntegrationProps['unregister'] = async ({ logger }) => {
+  logger.forBot().info('Klaviyo integration unregistered');
+};
