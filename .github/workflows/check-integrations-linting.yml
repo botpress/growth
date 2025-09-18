@@ -41,6 +41,7 @@ jobs:
           echo "Checking MailerLite integration..."
           cd integrations/mailerlite
           pnpm install
+          pnpm check:eslint
           pnpm check:prettier
           pnpm check:type
           echo "MailerLite integration checks passed"
