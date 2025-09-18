@@ -32,7 +32,7 @@ runs:
 
         # List of integration:version combinations to skip
         # Format: "integration_name:version"
-        skip_integrations=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "hitl-salesforce:0.3.2" "hubspot-hitl:2.0.1" "huggingface:0.0.2" "salesforce:1.0.3" "sharepoint:3.0.1" "twiliovoice:0.1.2" "zoho-sales-iq-hitl:2.0.1")
+        skip_integrations=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "hitl-salesforce:0.3.2" "hubspot-hitl:2.0.1" "huggingface:0.0.2" "salesforce:1.0.3" "zoho-sales-iq-hitl:2.0.1")
 
         # Get list of integration directories
         cd integrations
