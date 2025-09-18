@@ -1,5 +1,5 @@
-import { FilterBuilder } from "klaviyo-api";
-import { KlaviyoPropertyValue } from "./types";
+import { FilterBuilder } from 'klaviyo-api';
+import { KlaviyoPropertyValue } from './types';
 
 // Utility function to convert a string or date to a date
 const toDate = (value: string | Date): Date => {
@@ -15,38 +15,32 @@ const toDate = (value: string | Date): Date => {
 
 // Returns the filter string (e.g. filterBuilder.equals('email', 'test@test.com').build() => "equals(email, test@test.com)")
 
-export const buildFilter = (
-  field: string,
-  operator: string,
-  value: string | Date
-): string => {
+export const buildFilter = (field: string, operator: string, value: string | Date): string => {
   const filterBuilder = new FilterBuilder();
 
   switch (operator) {
-    case "equals":
+    case 'equals':
       return filterBuilder.equals(field, value).build();
-    case "greater-than":
+    case 'greater-than':
       return filterBuilder.greaterThan(field, toDate(value)).build();
-    case "less-than":
+    case 'less-than':
       return filterBuilder.lessThan(field, toDate(value)).build();
-    case "greater-or-equal":
+    case 'greater-or-equal':
       return filterBuilder.greaterOrEqual(field, toDate(value)).build();
-    case "less-or-equal":
+    case 'less-or-equal':
       return filterBuilder.lessOrEqual(field, toDate(value)).build();
-    case "contains":
+    case 'contains':
       return filterBuilder.contains(field, value as string).build();
-    case "starts-with":
+    case 'starts-with':
       return filterBuilder.startsWith(field, value as string).build();
-    case "ends-with":
+    case 'ends-with':
       return filterBuilder.endsWith(field, value as string).build();
     default:
       throw new Error(`Unsupported filter operator: ${operator}`);
   }
 };
 
-export const parseJsonSafely = (
-  customProperties: string
-): Record<string, KlaviyoPropertyValue> => {
+export const parseJsonSafely = (customProperties: string): Record<string, KlaviyoPropertyValue> => {
   try {
     return JSON.parse(customProperties);
   } catch {
@@ -78,7 +72,7 @@ export const formatProfileResponse = (profileData: {
     properties?: Record<string, any> | null;
   };
 }) => ({
-  id: profileData.id || "",
+  id: profileData.id || '',
   email: profileData.attributes.email || undefined,
   phone: profileData.attributes.phoneNumber || undefined,
   firstName: profileData.attributes.firstName || undefined,
