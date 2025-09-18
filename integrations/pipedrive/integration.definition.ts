@@ -5,7 +5,7 @@ export default new IntegrationDefinition({
   name: 'plus/pipedrive',
   title: 'Pipedrive',
   description: 'Manage contacts, deals and more from your chatbot.',
-  version: '1.0.0',
+  version: '3.0.0',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {
