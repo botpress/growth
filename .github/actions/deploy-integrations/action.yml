@@ -2,9 +2,6 @@ name: Deploy Integrations
 description: Deploy integrations to Botpress
 
 inputs:
-  environment:
-    description: "Environment to deploy to production"
-    required: true
   force:
     description: "Force re-deploying integrations"
     required: false
@@ -30,80 +27,92 @@ runs:
         # Make the integration-exists script executable
         chmod +x ./.github/scripts/integration-exists.sh
 
-        # List of integrations to completely exclude (never deploy)
-        exclude_integrations=("hitl-salesforce" "magento2")
+        # Configuration
+        EXCLUDE_INTEGRATIONS=("hitl-salesforce" "magento2")
+        SKIP_VERSIONS=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "huggingface:0.0.2" "salesforce:1.0.3" "zoho-sales-iq-hitl:2.0.1")
 
-        # List of integration:version combinations to skip
-        # Format: "integration_name:version"
-        skip_integrations=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "huggingface:0.0.2" "salesforce:1.0.3" "zoho-sales-iq-hitl:2.0.1")
+        # Helper functions
+        is_in_array() {
+          local item="$1"
+          shift
+          local array=("$@")
+          for element in "${array[@]}"; do
+            if [ "$item" = "$element" ]; then
+              return 0
+            fi
+          done
+          return 1
+        }
 
-        # Get list of integration directories
+        is_version_skipped() {
+          local integration_name="$1"
+          local version="$2"
+          local skip_entry
+          for skip_entry in "${SKIP_VERSIONS[@]}"; do
+            local skip_name=$(echo "$skip_entry" | cut -d':' -f1)
+            local skip_version=$(echo "$skip_entry" | cut -d':' -f2)
+            if [ "$integration_name" = "$skip_name" ] && [ "$version" = "$skip_version" ]; then
+              return 0
+            fi
+          done
+          return 1
+        }
+
+        deploy_integration() {
+          local integration_name="$1"
+          local force_flag="$2"
+          
+          echo "Deploying integration: $integration_name"
+          cd "$integration_name"
+          
+          if [ "$force_flag" = "true" ]; then
+            npx @botpress/cli deploy --force --public --confirm
+          else
+            npx @botpress/cli deploy --public --confirm
+          fi
+          
+          cd ..
+        }
+
+        # Main deployment logic
         cd integrations
-        for integration in */; do
-          if [ -d "$integration" ]; then
-            integration_name=${integration%/}
-            
-            # Check if this integration should be completely excluded
-            exclude_integration=false
-            for exclude_name in "${exclude_integrations[@]}"; do
-              if [ "$integration_name" = "$exclude_name" ]; then
-                exclude_integration=true
-                break
-              fi
-            done
-            
-            if [ "$exclude_integration" = "true" ]; then
-              echo "Integration $integration_name is in exclude list, skipping deployment completely"
-              continue
-            fi
-            
-            # Get the current version of this integration
-            cd ..
-            integration_def=$(pnpm bp read --work-dir "integrations/$integration_name" --json)
-            current_version=$(echo $integration_def | jq -r ".version")
-            cd integrations
-            
-            # Check if this integration:version combination should be skipped
-            skip_integration=false
-            for skip_entry in "${skip_integrations[@]}"; do
-              skip_name=$(echo $skip_entry | cut -d':' -f1)
-              skip_version=$(echo $skip_entry | cut -d':' -f2)
-              if [ "$integration_name" = "$skip_name" ] && [ "$current_version" = "$skip_version" ]; then
-                skip_integration=true
-                break
-              fi
-            done
-            
-            if [ "$skip_integration" = "true" ]; then
-              echo "Integration $integration_name version $current_version is in skip list, skipping deployment"
-              continue
-            fi
-            
-            # Go back to root directory to access the script
-            cd ..
-            exists=$(bash ./.github/scripts/integration-exists.sh $integration_name)
-            echo "Integration $integration_name exists check result: $exists"
-            cd integrations
-            
-            # Only deploy if integration doesn't exist or force is enabled
-            echo "Force flag: ${{ inputs.force }}"
-            if [ "$exists" = "0" ] || [ "${{ inputs.force }}" = "true" ]; then
-              echo "Deploying integration: $integration_name (exists=$exists, force=${{ inputs.force }})"
-              
-              cd "$integration_name"
-              
-              # Deploy the integration (already built in setup step)
-              echo "Deploying $integration_name..."
-              if [ "${{ inputs.force }}" = "true" ]; then
-                npx @botpress/cli deploy --force --public --confirm
-              else
-                npx @botpress/cli deploy --public --confirm
-              fi
-              
-              cd ..
-            else
-              echo "Integration $integration_name already exists, skipping deployment (use force=true to override)"
-            fi
+
+        for integration_dir in */; do
+          if [ ! -d "$integration_dir" ]; then
+            continue
+          fi
+          
+          integration_name=${integration_dir%/}
+          
+          # Check if integration is completely excluded
+          if is_in_array "$integration_name" "${EXCLUDE_INTEGRATIONS[@]}"; then
+            echo "Integration $integration_name is in exclude list, skipping deployment completely"
+            continue
+          fi
+          
+          # Get current version
+          cd ..
+          integration_def=$(pnpm bp read --work-dir "integrations/$integration_name" --json)
+          current_version=$(echo "$integration_def" | jq -r ".version")
+          cd integrations
+          
+          # Check if this specific version should be skipped
+          if is_version_skipped "$integration_name" "$current_version"; then
+            echo "Integration $integration_name version $current_version is in skip list, skipping deployment"
+            continue
+          fi
+          
+          # Check if integration already exists
+          cd ..
+          exists=$(bash ./.github/scripts/integration-exists.sh "$integration_name")
+          echo "Integration $integration_name exists check result: $exists"
+          cd integrations
+          
+          # Deploy if needed
+          if [ "$exists" = "0" ] || [ "${{ inputs.force }}" = "true" ]; then
+            deploy_integration "$integration_name" "${{ inputs.force }}"
+          else
+            echo "Integration $integration_name already exists, skipping deployment (use force=true to override)"
           fi
         done
 

@@ -26,7 +26,6 @@ jobs:
       - name: Deploy Integrations
         uses: ./.github/actions/deploy-integrations
         with:
-          environment: "production"
           force: ${{ github.event.inputs.force || 'false' }}
           token_pat: ${{ secrets.AUDRIC_PROD_PAT }}
           plus_workspace_id: ${{ secrets.BP_WORKSPACEID_PROD }}
