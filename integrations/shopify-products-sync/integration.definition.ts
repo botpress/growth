@@ -9,7 +9,7 @@ import {
 export default new IntegrationDefinition({
   name: "plus/shopify-products-sync",
   title: "Shopify products sync",
-  version: "3.0.0",
+  version: "3.0.1",
   readme: "hub.md",
   icon: "icon.svg",
   description: "Sync products from Shopify to Botpress Knowledge Base",
