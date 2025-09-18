@@ -4,7 +4,13 @@
   "scripts": {
     "build": "bp add -y && bp build",
     "check:type": "tsc --noEmit",
-    "check:bplint": "bp lint"
+    "check:bplint": "bp lint",
+    "check:eslint": "eslint .",
+    "check:prettier": "prettier --check .",
+    "check:lint": "pnpm check:eslint && pnpm check:prettier",
+    "fix:eslint": "eslint . --fix",
+    "fix:prettier": "prettier --write .",
+    "fix:lint": "pnpm fix:eslint && pnpm fix:prettier"
   },
   "private": true,
   "dependencies": {
@@ -14,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.16.4",
+    "prettier": "^3.6.2",
     "typescript": "^5.6.3"
   }
 }

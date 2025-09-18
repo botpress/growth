@@ -1,18 +1,14 @@
-import { getAuthenticatedMailerLiteClient } from "src/client";
-import * as bp from ".botpress";
+import { getAuthenticatedMailerLiteClient } from 'src/client';
+import * as bp from '.botpress';
 
-export const unregister: bp.IntegrationProps["unregister"] = async ({
-  ctx,
-  client,
-  logger,
-}) => {
-  logger.forBot().info("Mailerlite integration unregistered");
+export const unregister: bp.IntegrationProps['unregister'] = async ({ ctx, client, logger }) => {
+  logger.forBot().info('Mailerlite integration unregistered');
 
   const mlClient = await getAuthenticatedMailerLiteClient({ ctx, client });
   const stateMailerLiteIntegrationInfo = await client.getState({
     id: ctx.integrationId,
-    name: "mailerLiteIntegrationInfo",
-    type: "integration",
+    name: 'mailerLiteIntegrationInfo',
+    type: 'integration',
   });
 
   const { state } = stateMailerLiteIntegrationInfo;
@@ -21,7 +17,7 @@ export const unregister: bp.IntegrationProps["unregister"] = async ({
   if (mailerLiteWebhookId) {
     const response = await mlClient.webhooks.delete(mailerLiteWebhookId);
     if (response.status === 200 || response.status === 204) {
-      logger.forBot().info("Webhook successfully deleted");
+      logger.forBot().info('Webhook successfully deleted');
     }
   }
 };
