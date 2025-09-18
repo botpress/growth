@@ -32,7 +32,7 @@ export const upsertPersonOutputSchema = z.object({
     first_name: z.string().optional(),
     last_name: z.string().optional(),
     owner_id: z.number().optional(),
-    org_id: z.number().nullable().optional(),
+    org_id: z.number().optional(),
     add_time: z.string().nullable().optional(),
     update_time: z.string().nullable().optional(),
     emails: z.array(z.object({

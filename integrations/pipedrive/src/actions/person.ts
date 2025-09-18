@@ -2,10 +2,8 @@ import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/sdk'
 import { v2 } from 'pipedrive'
 import { getApiConfig } from '../auth'
-import { toErrorMessage } from '../utils/errors'
+import { getErrorMessage } from '../utils/error-handler'
 import { summarizeAddPersonSuccess, summarizeUpdatePersonSuccess, summarizeFindPersonSuccess } from '../utils/success'
-
- 
 
 export const addPerson: bp.IntegrationProps['actions']['addPerson'] = async ({ ctx, input, logger }) => {
   try {
@@ -24,7 +22,7 @@ export const addPerson: bp.IntegrationProps['actions']['addPerson'] = async ({ c
     logger.forBot().info(summarizeAddPersonSuccess(res, rest?.name as string | undefined))
     return res
   } catch (error) {
-    throw new RuntimeError(`Failed to create person: ${toErrorMessage(error)}`)
+    throw new RuntimeError(`Failed to create person: ${getErrorMessage(error)}`)
   }
 }
 
@@ -45,7 +43,7 @@ export const updatePerson: bp.IntegrationProps['actions']['updatePerson'] = asyn
       logger.forBot().info(summarizeUpdatePersonSuccess(res, person_id, (rest?.name as string | undefined)))
       return res
     } catch (error) {
-        throw new RuntimeError(`Failed to update person: ${toErrorMessage(error)}`)
+        throw new RuntimeError(`Failed to update person: ${getErrorMessage(error)}`)
     }
 }
 
@@ -66,6 +64,6 @@ export const findPerson: bp.IntegrationProps['actions']['findPerson'] = async ({
       logger.forBot().info(summarizeFindPersonSuccess(res, term, organization_id))
       return res
     } catch (error) {
-        throw new RuntimeError(`Failed to find person: ${toErrorMessage(error)}`)
+        throw new RuntimeError(`Failed to find person: ${getErrorMessage(error)}`)
     }
 }
