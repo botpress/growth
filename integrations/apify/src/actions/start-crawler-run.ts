@@ -1,11 +1,22 @@
-import { getClient } from "../client";
-
+import * as bp from '.botpress';
+import { getClient } from 'src/client';
+ 
 export const startCrawlerRun = async ({ 
   ctx, 
-  client, 
-  logger, 
-  input 
-}: any) => {
+  client,
+  input, 
+  logger
+}: {
+  ctx: bp.Context;
+  client: bp.Client;
+  input: { startUrls: string[]; excludeUrlGlobs?: string[]; includeUrlGlobs?: string[]; 
+    maxCrawlPages?: number; kbId?: string; saveMarkdown?: boolean; 
+    htmlTransformer?: 'readableTextIfPossible' | 'readableText' | 'minimal' | 'none'; 
+    removeElementsCssSelector?: string; 
+    crawlerType?: 'playwright:adaptive' | 'playwright:firefox' | 'cheerio' | 'jsdom' | 'playwright:chrome'; 
+    expandClickableElements?: boolean; headers?: Record<string, string>; rawInputJsonOverride?: string; };
+  logger: bp.Logger;
+}) => {
   logger.forBot().info(`Starting crawler run with input: ${JSON.stringify(input)}`);
 
   try {
@@ -15,7 +26,22 @@ export const startCrawlerRun = async ({
       logger
     );
 
-    const result = await apifyClient.startCrawlerRun(input);
+    const params = {
+      startUrls: input.startUrls,
+      excludeUrlGlobs: input.excludeUrlGlobs,
+      includeUrlGlobs: input.includeUrlGlobs,
+      maxCrawlPages: input.maxCrawlPages,
+      saveMarkdown: input.saveMarkdown,
+      htmlTransformer: input.htmlTransformer,
+      removeElementsCssSelector: input.removeElementsCssSelector,
+      crawlerType: input.crawlerType,
+      expandClickableElements: input.expandClickableElements,
+      headers: input.headers,
+      rawInputJsonOverride: input.rawInputJsonOverride,
+      kbId: input.kbId,
+    } as const;
+
+    const result = await apifyClient.startCrawlerRun(params);
 
     if (result.success) {
       logger.forBot().info(`Crawler run started successfully. Run ID: ${result.data?.runId}`);
@@ -30,7 +56,7 @@ export const startCrawlerRun = async ({
             type: 'integration',
             id: ctx.integrationId,
             name: 'apifyRunMappings',
-          }).catch(() => undefined as any);
+          }).catch(() => undefined);
 
           const currentMap = (existing?.state?.payload as Record<string, string> | undefined) ?? {};
           currentMap[runId] = kbId;

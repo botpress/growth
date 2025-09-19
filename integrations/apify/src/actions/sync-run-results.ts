@@ -1,11 +1,17 @@
 import { getClient } from "../client";
+import * as bp from '.botpress';
 
 export const syncRunResults = async ({ 
   ctx, 
   client, 
   logger, 
   input 
-}: any) => {
+}: {
+  ctx: bp.Context;
+  client: bp.Client;
+  input: { runId: string; syncTargetPath?: string };
+  logger: bp.Logger;
+}) => {
   const { runId, syncTargetPath } = input;
   
   if (!runId) {

@@ -1,7 +1,10 @@
 import type { Handler } from '../misc/types'
 import { getClient } from '../client'
 import { apifyWebhookSchema } from '../misc/schemas'
+import * as bp from '.botpress'
+import type { z } from 'zod'
 
+type ApifyWebhook = z.infer<typeof apifyWebhookSchema>
 
 export const handler: Handler = async ({ req, client, logger, ctx }) => {
   const providedToken = req.headers?.['x-botpress-webhook-secret'] || req.headers?.['X-Botpress-Webhook-Secret']
@@ -24,12 +27,7 @@ export const handler: Handler = async ({ req, client, logger, ctx }) => {
   }
 
   try {
-    let webhookPayload: any
-    if (typeof req.body === 'string') {
-      webhookPayload = JSON.parse(req.body)
-    } else {
-      webhookPayload = req.body
-    }
+    const webhookPayload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
 
     logger.forBot().debug('Received webhook payload:', webhookPayload)
 
@@ -88,7 +86,7 @@ export const handler: Handler = async ({ req, client, logger, ctx }) => {
   }
 }
 
-async function handleCrawlerCompleted({ webhookPayload, client, logger, ctx }: any) {
+async function handleCrawlerCompleted({ webhookPayload, client, logger, ctx }: { webhookPayload: ApifyWebhook, client: bp.Client, logger: bp.Logger, ctx: bp.Context }) {
   try {
     const runId = webhookPayload.resource.id
 
@@ -137,7 +135,6 @@ async function handleCrawlerCompleted({ webhookPayload, client, logger, ctx }: a
         type: 'crawlerCompleted',
         payload: {
           actorId: webhookPayload.eventData.actorId,
-          actorTaskId: webhookPayload.actorTaskId,
           actorRunId: webhookPayload.eventData.actorRunId,
           eventType: webhookPayload.eventType,
           runId: runId,
