@@ -4,9 +4,9 @@ import * as bp from '.botpress';
 export class ApifyApi {
   private client: ApifyClient;
   private bpClient: bp.Client;
-  private logger: any;
+  private logger: bp.Logger;
 
-  constructor(apiToken: string, bpClient: bp.Client, logger: any) {
+  constructor(apiToken: string, bpClient: bp.Client, logger: bp.Logger) {
     this.client = new ApifyClient({
       token: apiToken,
       maxRetries: 8,
@@ -36,34 +36,26 @@ export class ApifyApi {
     kbId?: string;
   }) {
     try {
-      // Prepare the input for the Website Content Crawler
-      let input: any;
+      let input = params.rawInputJsonOverride ? (() => {
+        const parsed = JSON.parse(params.rawInputJsonOverride);
+        return parsed.startUrls && Array.isArray(parsed.startUrls) 
+          ? { ...parsed, startUrls: parsed.startUrls.map((url: string | { url: string }) => 
+              typeof url === 'string' ? { url } : url
+            ) }
+          : parsed;
+      })() : {
+        startUrls: params.startUrls.map(url => ({ url })),
+        excludeUrlGlobs: params.excludeUrlGlobs || [],
+        includeUrlGlobs: params.includeUrlGlobs || ['**/*'],
+        maxCrawlPages: params.maxCrawlPages || 10,
+        saveMarkdown: params.saveMarkdown ?? false, 
+        htmlTransformer: params.htmlTransformer || 'readableTextIfPossible',
+        removeElementsCssSelector: params.removeElementsCssSelector || '',
+        crawlerType: params.crawlerType || 'playwright:firefox',
+        expandClickableElements: params.expandClickableElements || false,
+        kbId: params.kbId || "kb-default",
+      };
       
-      if (params.rawInputJsonOverride) {
-        // Use JSON override if provided - gives user full control
-        input = JSON.parse(params.rawInputJsonOverride);
-        // Ensure startUrls is properly formatted
-        if (input.startUrls && Array.isArray(input.startUrls)) {
-          input.startUrls = input.startUrls.map((url: any) => 
-            typeof url === 'string' ? { url } : url
-          );
-        }
-      } else {
-        // Use individual parameters for simple use cases
-        input = {
-          startUrls: params.startUrls.map(url => ({ url })),
-          excludeUrlGlobs: params.excludeUrlGlobs || [],
-          includeUrlGlobs: params.includeUrlGlobs || ['**/*'],
-          maxCrawlPages: params.maxCrawlPages || 10,
-          saveMarkdown: params.saveMarkdown ?? false, 
-          htmlTransformer: params.htmlTransformer || 'readableTextIfPossible',
-          removeElementsCssSelector: params.removeElementsCssSelector || '',
-          crawlerType: params.crawlerType || 'playwright:firefox',
-          expandClickableElements: params.expandClickableElements || false,
-          kbId: params.kbId || "kb-default",
-        };
-      }
-
       if (params.headers && Object.keys(params.headers).length > 0) {
         input.headers = params.headers;
       }
@@ -203,7 +195,13 @@ export class ApifyApi {
       this.logger.forBot().info(`Getting results from dataset: ${run.defaultDatasetId}`);
 
       const dataset = this.client.dataset(run.defaultDatasetId);
-      let allItems: any[] = [];
+      let allItems: {
+        markdown?: string;
+        html?: string;
+        text?: string;
+        url?: string;
+        metadata?: { url?: string };
+      }[] = [];
       let offset = 0;
       const limit = 1000; 
 
@@ -277,7 +275,13 @@ export class ApifyApi {
     }
   }
 
-  private async syncContentToBotpress(items: any[], targetPath: string | undefined, kbId: string): Promise<number> {
+  private async syncContentToBotpress(items: {
+    markdown?: string;
+    html?: string;
+    text?: string;
+    url?: string;
+    metadata?: { url?: string };
+  }[], targetPath: string | undefined, kbId: string): Promise<number> {
     this.logger.forBot().info(`[FILE SYNC] Starting sync for ${items.length} items${targetPath ? ` to path: ${targetPath}` : ''}`);
     let filesCreated = 0;
 
@@ -301,16 +305,16 @@ export class ApifyApi {
         let content: string;
         let extension: string;
 
-        if ((item as any).markdown) {
-          content = (item as any).markdown;
+        if ((item).markdown) {
+          content = (item).markdown;
           extension = 'md';
           this.logger.forBot().info(`[FILE SYNC] Using markdown content (${content.length} chars)`);
-        } else if ((item as any).html) {
-          content = (item as any).html;
+        } else if ((item).html) {
+          content = (item).html;
           extension = 'html';
           this.logger.forBot().info(`[FILE SYNC] Using HTML content (${content.length} chars)`);
-        } else if ((item as any).text) {
-          content = (item as any).text;
+        } else if ((item).text) {
+          content = (item).text;
           extension = 'txt';
           this.logger.forBot().info(`[FILE SYNC] Using text content (${content.length} chars)`);
         } else {
@@ -319,7 +323,7 @@ export class ApifyApi {
         }
 
         // Create filename based on URL or use index
-        const url = (item as any).url || (item as any).metadata?.url;
+        const url = (item).url || (item).metadata?.url;
         let filename: string;
 
         if (url) {
@@ -383,7 +387,7 @@ export class ApifyApi {
 export const getClient = (
   apiToken: string,
   bpClient: bp.Client,
-  logger: any
+  logger: bp.Logger
 ) => {
   return new ApifyApi(apiToken, bpClient, logger);
 };
