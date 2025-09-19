@@ -6,13 +6,6 @@ import * as bp from '.botpress';
 interface ValidationResponse {
   allowed: boolean;
   id: string;
-  metadata: {
-    description: string;
-    status: string;
-    createdAt: string;
-    updatedAt: string;
-    tags: string[];
-  };
 }
 
 async function validateBotId(botId: string, logger: bp.Logger) {
