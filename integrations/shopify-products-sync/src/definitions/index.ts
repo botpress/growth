@@ -13,23 +13,27 @@ export const configuration = {
         description: 'Shopify Admin API Access Token',
       })
       .min(1),
-    knowledgeBaseId: z
-      .string({
-        description: 'ID of the Knowledge Base you wish to synchronize with your Shopify products',
+    rowStorageFactor: z
+      .number({
+        description: 'Every table has a row factor that determines the storage limit for each of its rows. The default row factor is 1 — this allows you store up to 4KB of data per row.',
       })
-      .min(1),
+      .min(1)
+      .optional()
+      .default(1),
   }),
 } satisfies IntegrationDefinitionProps['configuration']
 
 export const states = {} satisfies IntegrationDefinitionProps['states']
 
 export const actions = {
-  syncKb: {
-    title: 'Sync KB',
-    description: 'Sync products from Shopify to Botpress Knowledge Base',
+  syncProducts: {
+    title: 'Sync Products',
+    description: 'Get all products from Shopify and sync them to a Botpress table',
     input: {
       schema: z.object({
-        knowledgeBaseId: z.string().describe('ID of the Knowledge Base you wish to synchronize with your Shopify products'),
+        rowStorageFactor: z.number({
+          description: 'Every table has a row factor that determines the storage limit for each of its rows. The default row factor is 1 — this allows you store up to 4KB of data per row.',
+        }).min(1).optional().default(1),
       }),
     },
     output: {
