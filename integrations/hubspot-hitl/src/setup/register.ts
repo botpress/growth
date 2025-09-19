@@ -27,18 +27,18 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     logger.forBot().info(`Created custom channel with ID: ${newChannelId}`);
 
     // Retry loop with exponential backoff (up to 1 minute)
-    let alreadyConnected = false;
+    let channelExists = false;
     let attempt = 0;
     let maxAttempts = 6; // 1s, 2s, 4s, 8s, 16s, 32s = total ~63s
 
     while (attempt < maxAttempts) {
       const channels = await hubspotClient.getCustomChannels();
 
-      alreadyConnected = channels.results.some(
+      channelExists = channels.results.some(
         (channel: any) => channel.id === newChannelId
       );
 
-      if (alreadyConnected) {
+      if (channelExists) {
         logger.forBot().info(`Channel ID ${newChannelId} found in channel list after ${attempt + 1} attempt(s).`);
         break;
       }
@@ -49,29 +49,25 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       attempt++;
     }
 
-    if (alreadyConnected) {
-      logger.forBot().info(`Channel ID ${newChannelId} is already connected. Skipping connection.`);
-    } else {
-      let connectChannel = await hubspotClient.connectCustomChannel(
-        newChannelId,
-        ctx.configuration.inboxId,
-        channelName
-      );
-      logger.forBot().info("Connected new custom channel to inbox.");
-      // Save channelId to integration state
-      await client.setState({
-        id: ctx.integrationId,
-        type: "integration",
-        name: 'channelInfo',
-        payload: { 
-          channelId: newChannelId, 
-          channelAccountId: connectChannel.data.id,
+    let connectChannel = await hubspotClient.connectCustomChannel(
+      newChannelId,
+      ctx.configuration.inboxId,
+      channelName
+    );
+    logger.forBot().info("Connected new custom channel to inbox.");
 
-        },
-      });
-    }
+    // Save channelId to integration state
+    await client.setState({
+      id: ctx.integrationId,
+      type: "integration",
+      name: 'channelInfo',
+      payload: { 
+        channelId: newChannelId, 
+        channelAccountId: connectChannel.data.id,
+      },
+    });
 
-    logger.forBot().info("Hubspot configuration validated successfully.");
+    logger.forBot().info("HubSpot Inbox configuration validated successfully.");
   } catch (error) {
     logger.forBot().error("Error during integration registration:", error);
     throw new bpclient.RuntimeError(

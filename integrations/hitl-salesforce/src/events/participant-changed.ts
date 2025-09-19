@@ -1,5 +1,8 @@
 import { ParticipantChangedDataPayload, ParticipantChangedMessagingTrigger } from '../triggers'
 import { closeConversation } from './conversation-close'
+import { getSalesforceClient } from '../client'
+import { SFMessagingConfig } from '../definitions/schemas'
+import { ROUTING_STATUS } from '../const'
 import * as bp from '.botpress'
 
 export const executeOnParticipantChanged = async ({
@@ -36,6 +39,94 @@ export const executeOnParticipantChanged = async ({
 
     switch (entry.operation) {
       case 'remove':
+        // Check routing status to determine if this is a transfer or actual agent removal
+        // This prevents conversations from being closed when agents are transferred
+        // For TRANSFER status, send transfer message to user
+        // Only close conversation if routing status is NEEDS_ROUTING (agent ended chat)
+        try {
+          // Get the conversation state to access the access token
+          const conversationState = await client.getState({
+            type: 'conversation',
+            id: conversation.id,
+            name: 'messaging',
+          })
+
+          if (!conversationState?.state?.payload?.accessToken) {
+            logger.forBot().warn('No access token found in conversation state, proceeding with conversation close')
+            await closeConversation({ conversation, ctx, client, logger })
+            return
+          }
+
+          const { accessToken } = conversationState.state.payload
+
+          const salesforceClient = getSalesforceClient(
+            logger,
+            { ...(ctx.configuration as SFMessagingConfig) },
+            {
+              accessToken,
+              sseKey: conversation.tags.transportKey,
+              conversationId: conversation.tags.id,
+            }
+          )
+
+          const routingStatus = await salesforceClient.getConversationRoutingStatus()
+          
+          // Handle different routing statuses
+          if (routingStatus.routingStatus === ROUTING_STATUS.TRANSFER) {
+            // Agent was transferred, check if transfer message is configured
+            const transferMessage = (ctx.configuration as SFMessagingConfig).transferMessage
+            
+            if (transferMessage?.trim()) {
+              // Send transfer message to user if configured
+              logger.forBot().info('Agent removed due to transfer, sending transfer message', {
+                conversationId: conversation.id,
+                routingStatus: routingStatus.routingStatus,
+              })
+              
+              // Create a system user to send the transfer message
+              const { user: systemUser } = await client.getOrCreateUser({
+                name: 'System',
+                tags: {
+                  id: conversation.id,
+                },
+              })
+              
+              // Send transfer message to user
+              await client.createMessage({
+                tags: {},
+                type: 'text',
+                userId: systemUser?.id as string,
+                conversationId: conversation.id,
+                payload: {
+                  text: transferMessage,
+                },
+              })
+            } else {
+              // No transfer message configured, just log the transfer
+              logger.forBot().info('Agent removed due to transfer, no transfer message configured', {
+                conversationId: conversation.id,
+                routingStatus: routingStatus.routingStatus,
+              })
+            }
+            return
+          }
+          
+          if (routingStatus.routingStatus === ROUTING_STATUS.NEEDS_ROUTING) {
+            // Agent ended chat, close conversation
+            logger.forBot().info('Agent removed with NEEDS_ROUTING status, closing conversation', {
+              conversationId: conversation.id,
+              routingStatus: routingStatus.routingStatus,
+            })
+          } else {
+            // Any other status, don't close conversation
+            return
+          }
+        } catch (error) {
+          // If we can't determine the routing status, fall back to the original behavior
+          // This ensures backward compatibility and prevents conversations from getting stuck
+          logger.forBot().warn('Failed to check routing status, proceeding with conversation close', error)
+        }
+        
         await closeConversation({ conversation, ctx, client, logger })
         return
       case 'add':

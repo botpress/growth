@@ -264,6 +264,59 @@ class MessagingApi {
       `/conversation/${this._session.conversationId}?esDeveloperName=${this._config.DeveloperName}`
     )
   }
+
+  /**
+   * Retrieves the routing status of the current conversation from Salesforce MIAW API
+   * This is used to determine if an agent removal is due to a transfer or actual chat ending
+   * 
+   * Routing status values:
+   * - TRANSFER: Agent was transferred (don't close conversation)
+   * - INITIAL: Conversation back to initial status (don't close conversation)
+   * - NEEDS_ROUTING: Agent ended the chat (close conversation)
+   * 
+   * @returns Promise resolving to conversation routing status
+   * @throws RuntimeError if the API call fails or session is not initialized
+   */
+  public async getConversationRoutingStatus(): Promise<{ conversationId: string; routingStatus: string }> {
+    if (!this._session?.conversationId) {
+      throw new RuntimeError('Tried to get routing status for a session that is not initialized yet')
+    }
+
+    try {
+      this._logger.forBot().debug('Getting conversation routing status', {
+        conversationId: this._session.conversationId,
+        url: `${this._apiBaseUrl}/conversation/${this._session.conversationId}`,
+        hasAccessToken: !!this._session?.accessToken,
+      })
+
+      const { data } = await this._client.get(`/conversation/${this._session.conversationId}`, {
+        headers: {
+          'content-type': 'application/json',
+          ...(this._session?.accessToken && {
+            Authorization: `Bearer ${this._session.accessToken}`,
+          }),
+        },
+      })
+      
+      this._logger.forBot().debug('Received routing status response', {
+        conversationId: this._session.conversationId,
+        routingStatus: data.routingStatus,
+        fullResponse: data,
+      })
+      
+      return {
+        conversationId: this._session.conversationId,
+        routingStatus: data.routingStatus,
+      }
+    } catch (thrown: unknown) {
+      const error = thrown instanceof Error ? thrown : new Error(String(thrown))
+      this._logger.forBot().error('Failed to get conversation routing status: ' + error.message, {
+        conversationId: this._session.conversationId,
+        error: thrown,
+      })
+      throw new RuntimeError('Failed to get conversation routing status: ' + error.message)
+    }
+  }
 }
 
 export const getSalesforceClient = (logger: Logger, config: SFMessagingConfig, session: LiveAgentSession = {}) =>
