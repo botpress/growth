@@ -69,8 +69,9 @@ export const channels = {
         } catch (thrown: unknown) {
           const error = thrown instanceof Error ? thrown : new Error(String(thrown))
           logger.forBot().error('Failed to send message: ' + error.message)
+          const status = (error as AxiosError)?.response?.status
 
-          if ((error as AxiosError)?.response?.status === 403) {
+          if (status === 403 || status === 401) {
             // Session is no longer valid
             try {
               await closeConversation({ conversation, ctx, client, logger, force: true })
