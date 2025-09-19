@@ -22,22 +22,22 @@ async function validateBotId(botId: string, logger: bp.Logger) {
     const validationSecret = bp.secrets.VALIDATION_SECRET
 
     // Skip validation if endpoint URL is not configured
-    if (!validationEndpointUrl) {
+    if (!validationEndpointUrl || validationEndpointUrl.trim() === '') {
         logger.forBot().info("Validation endpoint URL is not configured. Skipping workspace validation.");
         return
     }
     
     try {
         const response = await axios.post<ValidationResponse>(
-        validationEndpointUrl,
-        { botId },
-        {
-            headers: {
-                "Content-Type": "application/json",
-                "X-API-Key": `${validationSecret}`,
-            },
-            timeout: 10000, // 10 second timeout
-        }
+          validationEndpointUrl,
+          { botId },
+          {
+              headers: {
+                  "Content-Type": "application/json",
+                  "X-API-Key": `${validationSecret}`,
+              },
+              timeout: 10000, // 10 second timeout
+          }
         );
 
 
@@ -76,7 +76,7 @@ export const register: RegisterFunction = async ({ ctx, logger }) => {
     }
     
     throw new RuntimeError(
-      `Configuration Error! Unable to validate workspace access: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Configuration Error! Unable to validate bot access: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 };
