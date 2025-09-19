@@ -3,7 +3,7 @@ import { z } from "@botpress/sdk";
 const basePersonFields = {
     name: z.string().title('Name').describe('The name of the person'),
     owner_id: z.number().optional().title('Owner ID').describe('The ID of the owner of the person'),
-    org_id: z.number().optional().title('Organization ID').describe('The ID of the organization the person belongs to'),
+    org_id: z.number().positive().optional().title('Organization ID').describe('The ID of the organization the person belongs to'),
     emailValue: z.string().optional().title('Email').describe('Email address'),
     emailPrimary: z.boolean().optional().title('Email is Primary').describe('Mark the email as primary'),
     phoneValue: z.string().optional().title('Phone Number').describe('Phone number'),

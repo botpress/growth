@@ -8,13 +8,12 @@ export const addPerson: bp.IntegrationProps['actions']['addPerson'] = async ({ c
   try {
     const personsApi = new v2.PersonsApi(await getApiConfig({ ctx }))
 
-    const { emailValue, emailPrimary, phoneValue, phonePrimary, org_id, ...rest } = input
+    const { emailValue, emailPrimary, phoneValue, phonePrimary, ...rest } = input
     
     const addPersonRequest: v2.AddPersonRequest = {
       ...rest,
       ...(emailValue && { emails: [{ value: emailValue, primary: !!emailPrimary }] }),
-      ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] }),
-      ...(org_id && org_id > 0 ? { org_id } : {})
+      ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] })
     }
     
     const req: v2.PersonsApiAddPersonRequest = { AddPersonRequest: addPersonRequest }
@@ -30,13 +29,12 @@ export const updatePerson: bp.IntegrationProps['actions']['updatePerson'] = asyn
     try {
       const personsApi = new v2.PersonsApi(await getApiConfig({ ctx }))
 
-      const { person_id, emailValue, emailPrimary, phoneValue, phonePrimary, org_id, ...rest } = input
+      const { person_id, emailValue, emailPrimary, phoneValue, phonePrimary, ...rest } = input
       
       const updatePersonRequest: v2.UpdatePersonRequest = {
         ...rest,
         ...(emailValue && { emails: [{ value: emailValue, primary: !!emailPrimary }] }),
-        ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] }),
-        ...(org_id && org_id > 0 ? { org_id } : {})
+        ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] })
       }
       
       const req: v2.PersonsApiUpdatePersonRequest = { id: person_id, UpdatePersonRequest: updatePersonRequest }
