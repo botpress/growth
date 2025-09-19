@@ -14,7 +14,7 @@ export const addPerson: bp.IntegrationProps['actions']['addPerson'] = async ({ c
       ...rest,
       ...(emailValue && { emails: [{ value: emailValue, primary: !!emailPrimary }] }),
       ...(phoneValue && { phones: [{ value: phoneValue, primary: !!phonePrimary }] }),
-      ...(typeof org_id === 'number' && org_id > 0 ? { org_id } : {})
+      ...(org_id && org_id > 0 ? { org_id } : {})
     }
     
     const req: v2.PersonsApiAddPersonRequest = { AddPersonRequest: addPersonRequest }
