@@ -11,7 +11,8 @@ import {
   MagentoProduct,
 } from "../types/magento";
 import { toMagentoAttributeCode, shortenColumnName } from "../utils/magento";
-import { processFilters, fetchProducts, apiCallWithRetry } from "./magento-api";
+import { processFilters, fetchProducts } from "./sync-utils";
+import { apiCallWithRetry } from "./botpress-api";
 import {
   createOrGetTable,
   fetchAttributeMappings,
@@ -25,7 +26,7 @@ const BOTPRESS_API_BASE_URL = "https://api.botpress.cloud/v1/tables";
 async function ensureTableSchema(
   state: SyncState,
   httpHeaders: Record<string, string>,
-  log: bp.Logger,
+  log: bp.Logger
 ): Promise<void> {
   if (!state.tableSchema) {
     const tableDetailsResponse = await apiCallWithRetry(
@@ -33,7 +34,7 @@ async function ensureTableSchema(
         axios.get(`${BOTPRESS_API_BASE_URL}/${state.tableId}`, {
           headers: httpHeaders,
         }),
-      log,
+      log
     );
     state.tableSchema = tableDetailsResponse.data.table?.schema;
   }
@@ -53,7 +54,7 @@ async function processProductBatch(
   headers: Record<string, string>,
   httpHeaders: Record<string, string>,
   apiBaseUrl: string,
-  log: bp.Logger,
+  log: bp.Logger
 ): Promise<Record<string, string | number | boolean | null>[]> {
   await ensureTableSchema(state, httpHeaders, log);
   const availableColumns = Object.keys(state.tableSchema!.properties);
@@ -73,7 +74,7 @@ async function processProductBatch(
       columnNameMappings: state.columnNameMappings,
       tableSchema: state.tableSchema!,
       store_code: config.store_code || "all",
-    },
+    }
   );
 
   await insertProductsToTable(
@@ -82,14 +83,14 @@ async function processProductBatch(
     apiBaseUrl,
     httpHeaders,
     input.table_name,
-    log,
+    log
   );
   return rowsToInsert;
 }
 
 function createColumnNameMappings(
   originalAttributes: string[],
-  customAttributeCodes: string[],
+  customAttributeCodes: string[]
 ): ColumnNameMapping {
   const columnNameMappings: ColumnNameMapping = {};
   originalAttributes.forEach((attr: string, index: number) => {
@@ -109,7 +110,7 @@ export async function setupInitialSync(
   headers: Record<string, string>,
   httpHeaders: Record<string, string>,
   apiBaseUrl: string,
-  log: bp.Logger,
+  log: bp.Logger
 ): Promise<SyncState> {
   log.info("Initial run detected. Setting up table and attributes.");
 
@@ -125,7 +126,7 @@ export async function setupInitialSync(
 
   const columnNameMappings = createColumnNameMappings(
     originalAttributes,
-    customAttributeCodes,
+    customAttributeCodes
   );
   let filterCriteria = input._filterCriteria || "";
   const attributeMappings: AttributeMapping = {};
@@ -134,12 +135,8 @@ export async function setupInitialSync(
     filterCriteria = await processFilters(
       input.filters_json,
       attributeMappings,
-      config.magento_domain,
-      config.store_code || "all",
-      oauth,
-      token,
-      headers,
-      log,
+      config,
+      log
     );
   }
 
@@ -148,7 +145,7 @@ export async function setupInitialSync(
     customAttributeCodes,
     apiBaseUrl,
     httpHeaders,
-    log,
+    log
   );
 
   log.info(`Clearing existing rows from table ${input.table_name}`);
@@ -158,7 +155,7 @@ export async function setupInitialSync(
     apiBaseUrl,
     httpHeaders,
     input.table_name,
-    log,
+    log
   );
   log.info("Successfully cleared existing rows");
 
@@ -171,7 +168,7 @@ export async function setupInitialSync(
     oauth,
     token,
     headers,
-    log,
+    log
   );
 
   return {
@@ -193,18 +190,14 @@ export async function processFirstPage(
   headers: Record<string, string>,
   httpHeaders: Record<string, string>,
   apiBaseUrl: string,
-  log: bp.Logger,
+  log: bp.Logger
 ): Promise<{ totalCount: number; processedCount: number }> {
   const { products, totalCount } = await fetchProducts(
     1,
     PAGE_SIZE,
     state.filterCriteria,
-    config.magento_domain,
-    config.store_code || "all",
-    oauth,
-    token,
-    headers,
-    log,
+    config,
+    log
   );
 
   log.info(`Total products to sync: ${totalCount}`);
@@ -226,7 +219,7 @@ export async function processFirstPage(
     headers,
     httpHeaders,
     apiBaseUrl,
-    log,
+    log
   );
 
   return { totalCount, processedCount: rowsToInsert.length };
@@ -241,7 +234,7 @@ export async function processRemainingPages(
   headers: Record<string, string>,
   httpHeaders: Record<string, string>,
   apiBaseUrl: string,
-  log: bp.Logger,
+  log: bp.Logger
 ): Promise<{ totalProcessed: number }> {
   let currentPage = input._currentPage || 2;
   let currentPageProductIndex = input._currentPageProductIndex || 0;
@@ -249,7 +242,7 @@ export async function processRemainingPages(
   let totalProcessed = 0;
 
   log.info(
-    `Continuing sync from page ${currentPage} with run ID: ${input._runId}`,
+    `Continuing sync from page ${currentPage} with run ID: ${input._runId}`
   );
 
   while (true) {
@@ -257,12 +250,8 @@ export async function processRemainingPages(
       currentPage,
       PAGE_SIZE,
       state.filterCriteria,
-      config.magento_domain,
-      config.store_code || "all",
-      oauth,
-      token,
-      headers,
-      log,
+      config,
+      log
     );
 
     if (products.length === 0) {
@@ -272,7 +261,7 @@ export async function processRemainingPages(
 
     const remainingProductsInPage = products.length - currentPageProductIndex;
     log.info(
-      `Processing ${remainingProductsInPage} remaining products from page ${currentPage} (starting from index ${currentPageProductIndex})`,
+      `Processing ${remainingProductsInPage} remaining products from page ${currentPage} (starting from index ${currentPageProductIndex})`
     );
 
     const rowsToInsert = await processProductBatch(
@@ -285,7 +274,7 @@ export async function processRemainingPages(
       headers,
       httpHeaders,
       apiBaseUrl,
-      log,
+      log
     );
 
     totalProcessed += rowsToInsert.length;

@@ -26,9 +26,22 @@ export interface SyncInput {
 }
 
 export interface Filter {
-  field: string;
-  condition: string;
+  field?: string;
+  condition?: string;
   value?: string | number;
+}
+
+export interface OAuthConfig {
+  consumer_key: string;
+  consumer_secret: string;
+  access_token: string;
+  access_token_secret: string;
+}
+
+export interface MagentoConfig extends OAuthConfig {
+  magento_domain: string;
+  user_agent: string;
+  store_code: string;
 }
 
 export interface AttributeMapping {

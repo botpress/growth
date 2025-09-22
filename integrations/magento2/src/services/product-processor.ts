@@ -8,7 +8,7 @@ import {
   OAuthClient,
   OAuthToken,
 } from "../types/magento";
-import { apiCallWithRetry } from "./magento-api";
+import { apiCallWithRetry } from "./botpress-api";
 import { StockItemSchema, ReviewsArraySchema } from "../misc/zod-schemas";
 
 interface StockInfo {
@@ -33,7 +33,7 @@ async function fetchStockInfo(
   oauth: OAuthClient,
   token: OAuthToken,
   headers: Record<string, string>,
-  logger: bp.Logger,
+  logger: bp.Logger
 ): Promise<StockInfo> {
   if (product.extension_attributes?.stock_item) {
     return {
@@ -50,12 +50,12 @@ async function fetchStockInfo(
         url: stockUrl,
         headers: {
           ...oauth.toHeader(
-            oauth.authorize({ url: stockUrl, method: "GET" }, token),
+            oauth.authorize({ url: stockUrl, method: "GET" }, token)
           ),
           ...headers,
         },
       }),
-    logger,
+    logger
   );
   const stockData = StockItemSchema.parse(stockResponse.data);
   return {
@@ -72,7 +72,7 @@ async function fetchReviewInfo(
   oauth: OAuthClient,
   token: OAuthToken,
   headers: Record<string, string>,
-  logger: bp.Logger,
+  logger: bp.Logger
 ): Promise<ReviewInfo> {
   if (!retrieve_reviews) {
     return { averageRating: 0, reviewCount: 0 };
@@ -87,12 +87,12 @@ async function fetchReviewInfo(
           url: reviewsUrl,
           headers: {
             ...oauth.toHeader(
-              oauth.authorize({ url: reviewsUrl, method: "GET" }, token),
+              oauth.authorize({ url: reviewsUrl, method: "GET" }, token)
             ),
             ...headers,
           },
         }),
-      logger,
+      logger
     );
     const reviews = ReviewsArraySchema.parse(reviewsResponse.data);
     const reviewCount = reviews.length;
@@ -111,7 +111,7 @@ async function fetchReviewInfo(
 
     const averageRating = Math.round((totalRating / reviewCount) * 10) / 10;
     return { averageRating, reviewCount };
-  } catch (e) {
+  } catch {
     logger.warn(`Could not fetch reviews for product ${product.sku}`);
     return { averageRating: 0, reviewCount: 0 };
   }
@@ -119,7 +119,7 @@ async function fetchReviewInfo(
 
 function getImageInfo(
   product: MagentoProduct,
-  magento_domain: string,
+  magento_domain: string
 ): ImageInfo {
   const mainImage = product.media_gallery_entries?.[0];
   if (mainImage?.file) {
@@ -133,15 +133,15 @@ function getProductDataMap(
   product: MagentoProduct,
   stockInfo: StockInfo,
   reviewInfo: ReviewInfo,
-  imageInfo: ImageInfo,
+  imageInfo: ImageInfo
 ): Record<string, string | number | boolean> {
   return {
     sku: product.sku || "",
     name: product.name || "",
     description: String(
       product.custom_attributes?.find(
-        (a: CustomAttribute) => a.attribute_code === "description",
-      )?.value || "",
+        (a: CustomAttribute) => a.attribute_code === "description"
+      )?.value || ""
     ),
     price: product.price || 0,
     original_price: product.price || 0,
@@ -160,7 +160,7 @@ function getCustomAttributeValue(
   product: MagentoProduct,
   customAttributeCodes: string[],
   columnNameMappings: Record<string, string>,
-  attributeMappings: Record<string, Record<string, string>>,
+  attributeMappings: Record<string, Record<string, string>>
 ): string | number | boolean | null {
   if (
     !customAttributeCodes.includes(columnName) ||
@@ -171,7 +171,7 @@ function getCustomAttributeValue(
 
   const originalAttributeName = columnNameMappings[columnName] || columnName;
   const attr = product.custom_attributes.find(
-    (a: CustomAttribute) => a.attribute_code === originalAttributeName,
+    (a: CustomAttribute) => a.attribute_code === originalAttributeName
   );
 
   if (!attr) {
@@ -191,7 +191,7 @@ function getCustomAttributeValue(
     return attrValue
       .map(
         (v: string | number) =>
-          attributeMappings[originalAttributeName]?.[v] ?? v,
+          attributeMappings[originalAttributeName]?.[v] ?? v
       )
       .join(", ");
   } else {
@@ -201,7 +201,7 @@ function getCustomAttributeValue(
 
 function convertValueToColumnType(
   value: string | number | boolean | null,
-  columnType: string | undefined,
+  columnType: string | undefined
 ): string | number | boolean | null {
   if (value !== undefined && value !== null) {
     if (columnType === "number") {
@@ -224,7 +224,7 @@ function convertValueToColumnType(
 async function processSingleProduct(
   product: MagentoProduct,
   retrieve_reviews: boolean,
-  config: ProcessProductsConfig,
+  config: ProcessProductsConfig
 ): Promise<ProductRow> {
   const {
     logger,
@@ -247,7 +247,7 @@ async function processSingleProduct(
     oauth,
     token,
     headers,
-    logger,
+    logger
   );
   const reviewInfo = await fetchReviewInfo(
     product,
@@ -257,7 +257,7 @@ async function processSingleProduct(
     oauth,
     token,
     headers,
-    logger,
+    logger
   );
   const imageInfo = getImageInfo(product, magento_domain);
 
@@ -265,7 +265,7 @@ async function processSingleProduct(
     product,
     stockInfo,
     reviewInfo,
-    imageInfo,
+    imageInfo
   );
   const row: ProductRow = {};
 
@@ -285,7 +285,7 @@ async function processSingleProduct(
         product,
         customAttributeCodes,
         columnNameMappings,
-        attributeMappings,
+        attributeMappings
       );
     }
 
@@ -300,7 +300,7 @@ async function processSingleProduct(
 export async function processProducts(
   retrieve_reviews: boolean,
   products: MagentoProduct[],
-  config: ProcessProductsConfig,
+  config: ProcessProductsConfig
 ): Promise<ProductRow[]> {
   const rowsToInsert: ProductRow[] = [];
 
@@ -311,7 +311,7 @@ export async function processProducts(
     } catch (error) {
       config.logger.error(
         `Failed to process product ${product.sku ?? ""}: ${error instanceof Error ? error.message : "Unknown error"}`,
-        error,
+        error
       );
     }
   }

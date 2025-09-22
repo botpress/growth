@@ -12,24 +12,64 @@ import {
   OAuthToken,
   ProductRow,
 } from "../types/magento";
-import { apiCallWithRetry } from "./magento-api";
 import { shortenColumnName } from "../utils/magento";
 import { ProductAttributeSchema } from "../misc/zod-schemas";
+import { sleep } from "../utils/common";
+
+const MAX_RETRIES = 5;
+const INITIAL_DELAY = 1000;
+
+export async function apiCallWithRetry<T>(
+  request: () => Promise<T>,
+  logger: bp.Logger,
+  maxRetries = MAX_RETRIES,
+  initialDelay = INITIAL_DELAY
+): Promise<T> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await request();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        if (status && (status === 429 || status >= 500) && i < maxRetries - 1) {
+          const delay = initialDelay * Math.pow(2, i) * (1 + Math.random());
+          logger
+            .forBot()
+            .warn(
+              `API call failed with status ${status}. Retrying in ${delay.toFixed(0)}ms... (Attempt ${
+                i + 1
+              }/${maxRetries})`
+            );
+          await sleep(delay);
+          continue;
+        }
+      }
+      logger
+        .forBot()
+        .error(
+          "API call failed after all retries or with a non-retriable error.",
+          error
+        );
+      throw error;
+    }
+  }
+  throw new Error("API call failed after all retries.");
+}
 
 export async function createOrGetTable(
   tableName: string,
   customAttributeCodes: string[],
   apiBaseUrl: string,
   httpHeaders: Record<string, string>,
-  log: bp.Logger,
+  log: bp.Logger
 ): Promise<{ tableId: string; tableSchema: TableSchema }> {
   const listTablesResponse = await apiCallWithRetry(
     () => axios.get<TablesListResponse>(apiBaseUrl, { headers: httpHeaders }),
-    log,
+    log
   );
   const existingTables = listTablesResponse.data.tables || [];
   let foundTable = existingTables.find(
-    (t: { id: string; name: string }) => t.name === tableName,
+    (t: { id: string; name: string }) => t.name === tableName
   );
 
   if (!foundTable) {
@@ -56,7 +96,7 @@ export async function createOrGetTable(
 
     if (Object.keys(defaultProperties).length > 20) {
       throw new Error(
-        `Too many columns: ${Object.keys(defaultProperties).length}. Max is 20.`,
+        `Too many columns: ${Object.keys(defaultProperties).length}. Max is 20.`
       );
     }
 
@@ -69,7 +109,7 @@ export async function createOrGetTable(
         axios.post<TableResponse>(apiBaseUrl, createTablePayload, {
           headers: httpHeaders,
         }),
-      log,
+      log
     );
     const tableId = createTableResponse.data.table.id;
     const tableSchema = createTableResponse.data.table.schema;
@@ -83,7 +123,7 @@ export async function createOrGetTable(
         axios.get<TableResponse>(`${apiBaseUrl}/${tableId}`, {
           headers: httpHeaders,
         }),
-      log,
+      log
     );
     const tableSchema = tableDetailsResponse.data.table?.schema;
     return { tableId, tableSchema };
@@ -99,7 +139,7 @@ export async function fetchAttributeMappings(
   oauth: OAuthClient,
   token: OAuthToken,
   headers: Record<string, string>,
-  log: bp.Logger,
+  log: bp.Logger
 ): Promise<void> {
   if (customAttributeCodes.length === 0) return;
 
@@ -115,12 +155,12 @@ export async function fetchAttributeMappings(
             url: attrUrl,
             headers: {
               ...oauth.toHeader(
-                oauth.authorize({ url: attrUrl, method: "GET" }, token),
+                oauth.authorize({ url: attrUrl, method: "GET" }, token)
               ),
               ...headers,
             },
           }),
-        log,
+        log
       );
       const attribute = ProductAttributeSchema.parse(attrResponse.data);
       if (attribute.options && attribute.options.length > 0) {
@@ -129,7 +169,7 @@ export async function fetchAttributeMappings(
           attributeMappings[attrCode][option.value] = option.label;
         }
         log.info(
-          `Mapped ${attribute.options.length} options for attribute ${originalAttributeName}`,
+          `Mapped ${attribute.options.length} options for attribute ${originalAttributeName}`
         );
       }
     } catch (error) {
@@ -147,7 +187,7 @@ export async function insertProductsToTable(
   apiBaseUrl: string,
   httpHeaders: Record<string, string>,
   tableName: string,
-  log: bp.Logger,
+  log: bp.Logger
 ): Promise<void> {
   if (rowsToInsert.length === 0) return;
 
@@ -157,9 +197,9 @@ export async function insertProductsToTable(
       axios.post(
         `${apiBaseUrl}/${tableId}/rows`,
         { rows: rowsToInsert },
-        { headers: httpHeaders },
+        { headers: httpHeaders }
       ),
-    log,
+    log
   );
   log.info(`Successfully inserted rows for table ${tableName}`);
 }
