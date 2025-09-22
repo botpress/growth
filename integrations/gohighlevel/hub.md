@@ -35,28 +35,25 @@ businesses.readonly
 businesses.write
 ```
 
-## **Step 2: Generate the Authorization URL**
+## **Step 2: Get the Authorization Link**
 
-Use the appropriate **authorization URL** based on whether you are using the standard GoHighLevel or a white-label instance.
+The GoHighLevel marketplace provides a direct authorization link in your app dashboard.
 
-### **Standard (Non-White Label) URL**
-```
-https://marketplace.gohighlevel.com/oauth/chooselocation?response_type=code&redirect_uri=BOTPRESS_WEBHOOK/oauth&client_id=CLIENT_ID&scope=contacts.readonly contacts.write conversations.readonly users.write opportunities.readonly opportunities.write payments/orders.readonly payments/orders.write calendars.readonly calendars.write calendars/events.readonly calendars/events.write companies.readonly businesses.readonly businesses.write
-```
-### **White Label URL**
+1. In your GoHighLevel app dashboard, navigate to the **"Basic Info"** section.
+2. Look for the **"Install Link"** section - you'll see a pre-configured authorization URL.
+3. This link includes all the necessary parameters (client_id, scopes, redirect_uri) automatically.
+4. **Copy this direct link** from the dashboard.
 
-```
-https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=BOTPRESS_WEBHOOK/oauth&client_id=CLIENT_ID&scope=contacts.readonly contacts.write conversations.readonly users.write opportunities.readonly opportunities.write payments/orders.readonly payments/orders.write calendars.readonly calendars.write calendars/events.readonly calendars/events.write companies.readonly businesses.readonly businesses.write
-```
 ## **Step 3: Obtain the Authorization Code**
 
-When a user grants access, their browser will be **redirected to the specified redirect URI** with an **authorization code** as a query parameter.
+1. Use the **direct authorization link** from your GoHighLevel app dashboard (Step 2).
+2. When a user clicks this link and grants access, their browser will be **redirected to the specified redirect URI** with an **authorization code** as a query parameter.
 
  Example:
 
  https://myapp.com/oauth/callback/gohighlevel?code=7676cjcbdc6t76cdcbkjcd09821jknnkj
 
-**Copy the authorization code** from the URL.
+3. **Copy the authorization code** from the URL.
 
 ## **Step 4: Exchange the Code for an Access Token**
 
