@@ -1,6 +1,6 @@
 {
   "name": "@botpresshub/email-notifier",
-  "integrationName": "nabilnest/email-notifier",
+  "integrationName": "plus/email-notifier",
   "scripts": {
     "check:type": "tsc --noEmit"
   },
