@@ -163,6 +163,7 @@ export class ApifyApi {
   }
 
   async getAndSyncRunResults(runId: string, syncTargetPath?: string, kbId?: string) {
+    const targetPath = syncTargetPath || './crawled-content/';
     try {
       const run = await this.client.run(runId).get();
       
@@ -215,8 +216,8 @@ export class ApifyApi {
       try {
         // Manual sync
         if (syncTargetPath) {
-          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] Starting file sync to path: ${syncTargetPath}`);
-          filesCreated = await this.syncContentToBotpress(allItems, syncTargetPath, kbId || "kb-default");
+          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] Starting file sync to path: ${targetPath}`);
+          filesCreated = await this.syncContentToBotpress(allItems, targetPath, kbId || "kb-default");
           this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
         // Webhook sync
         } else if (kbId) {
@@ -224,7 +225,9 @@ export class ApifyApi {
           filesCreated = await this.syncContentToBotpress(allItems, undefined, kbId);
           this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
         } else {
-          this.logger.forBot().warn(`[GET AND SYNC RUN RESULTS] No syncTargetPath or kbId provided, skipping sync`);
+          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] Starting file sync to default path: ${targetPath}`);
+          filesCreated = await this.syncContentToBotpress(allItems, targetPath, kbId || "kb-default");
+          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
         }
       } catch (error) {
         this.logger.forBot().error('Error syncing content to Botpress:', error);
@@ -245,7 +248,7 @@ export class ApifyApi {
           datasetId: run.defaultDatasetId,
           itemsCount: allItems.length,
           filesCreated,
-          syncTargetPath,
+          syncTargetPath: targetPath,
         },
       };
     } catch (error) {

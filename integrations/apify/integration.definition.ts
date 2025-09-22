@@ -102,11 +102,10 @@ export default new IntegrationDefinition({
     },
     syncRunResults: {
       title: 'Sync Run Results',
-      description: 'Get the results from a completed crawler run and optionally sync to Botpress files',
+      description: 'Get the results from a completed crawler run and sync to Botpress files at ./crawled-content/',
       input: {
         schema: z.object({
           runId: z.string().describe('The run ID to get results for'),
-          syncTargetPath: z.string().optional().describe('Botpress file path where content will be saved (optional)'),
         }),
       },
       output: {
