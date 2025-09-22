@@ -1,8 +1,9 @@
 import { IntegrationDefinition } from "@botpress/sdk";
+import { integrationName } from "./package.json";
 import { actions, events, states } from "src/definitions/index";
 
 export default new IntegrationDefinition({
-  name: "email-notifier",
+  name: integrationName,
   version: "1.0.0",
   readme: "hub.md",
   icon: "icon.svg",
