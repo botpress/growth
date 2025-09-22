@@ -4,7 +4,7 @@ import { actions, events, states } from "src/definitions/index";
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: "1.0.0",
+  version: "2.0.0",
   title: "Email Notifier",
   description: "Send emails to your Botpress bot in minutes",
   readme: "hub.md",
