@@ -2,4 +2,3 @@ node_modules
 .env
 .botpress
 .idea
-.DS_Store
