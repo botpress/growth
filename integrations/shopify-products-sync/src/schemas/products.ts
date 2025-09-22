@@ -37,3 +37,12 @@ export type StoredProduct = {
   options?: string[]; // e.g., sizes, colors
   url: string;
 }
+
+export const PRODUCT_TABLE_SCHEMA = {
+  type: 'object',
+  properties: {
+    product_id: { type: 'number', 'x-zui': { searchable: false }  },
+    aggregate: { type: 'string', 'x-zui': { searchable: true }  },
+  },
+  required: ['product_id', 'aggregate'],
+}

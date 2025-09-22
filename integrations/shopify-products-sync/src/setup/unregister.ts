@@ -1,4 +1,3 @@
-import { deleteKbArticles } from 'src/misc/kb'
 import { Integration } from '../../.botpress'
 import { getShopifyClient } from '../client'
 
@@ -8,8 +7,6 @@ type UnregisterFunction = Implementation['unregister']
 export const unregister: UnregisterFunction = async ({ ctx, logger, webhookUrl, client }) => {
   logger.forBot().info('Unregistering Shopify integration')
   
-  await deleteKbArticles(ctx.configuration.knowledgeBaseId, client)
-
   const shopifyClient = getShopifyClient(ctx.configuration)
   const response = await shopifyClient.getWebhooks(webhookUrl)
 
