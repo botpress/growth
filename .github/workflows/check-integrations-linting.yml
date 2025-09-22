@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "integrations/klaviyo/**"
+      - "integrations/mailerlite/**"
       - ".github/workflows/check-integrations-linting.yml"
 
 jobs:
