@@ -4,14 +4,9 @@ import {
   AlreadyExistsException,
 } from "@aws-sdk/client-sesv2";
 import * as bp from ".botpress";
+import { getSesClient } from "./client";
 
-const SESClient = new SESv2Client({
-  region: bp.secrets.AWS_REGION,
-  credentials: {
-    accessKeyId: bp.secrets.AWS_ACCESS_KEY_ID,
-    secretAccessKey: bp.secrets.AWS_SECRET_ACCESS_KEY,
-  },
-});
+const SESClient = getSesClient();
 
 export const CONTACT_LIST = "default";
 

@@ -8,7 +8,7 @@ export const actions = {
       schema: z.object({
         to: z.array(z.string().email()).describe('Recipient email addresses'),
         subject: z.string().describe('Email subject'),
-        body: z.string().optional().describe('Email content (supports both plain text and HTML)'),
+        body: z.string().optional().describe('Email content - supports only plain text'),
       }),
     },
     output: {

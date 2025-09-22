@@ -14,6 +14,7 @@ import {
   InternalServiceErrorException,
 } from "@aws-sdk/client-sesv2";
 import * as sdk from "@botpress/sdk";
+import { getSesClient } from "../client";
 
 export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
   input,
@@ -30,13 +31,7 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
 
   try {
     //initialize aws ses client
-    const SESClient = new SESv2Client({
-      region: bp.secrets.AWS_REGION,
-      credentials: {
-        accessKeyId: bp.secrets.AWS_ACCESS_KEY_ID,
-        secretAccessKey: bp.secrets.AWS_SECRET_ACCESS_KEY,
-      },
-    });
+    const SESClient = getSesClient();
 
     const header = "This is a notification from your Botpress bot.";
     const textBodyCore = input.body || "";
