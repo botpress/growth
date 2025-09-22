@@ -33,7 +33,7 @@ export class ApifyApi {
     expandClickableElements?: boolean;
     headers?: Record<string, string>;
     rawInputJsonOverride?: string;
-    kbId?: string;
+    kbId: string;
   }) {
     try {
       let input = params.rawInputJsonOverride ? (() => {
@@ -53,7 +53,7 @@ export class ApifyApi {
         removeElementsCssSelector: params.removeElementsCssSelector || '',
         crawlerType: params.crawlerType || 'playwright:firefox',
         expandClickableElements: params.expandClickableElements || false,
-        kbId: params.kbId || "kb-default",
+        kbId: params.kbId,
       };
       
       if (params.headers && Object.keys(params.headers).length > 0) {
@@ -162,7 +162,7 @@ export class ApifyApi {
     }
   }
 
-  async getRunResults(runId: string, syncTargetPath?: string, kbId?: string) {
+  async getAndSyncRunResults(runId: string, syncTargetPath?: string, kbId?: string) {
     try {
       const run = await this.client.run(runId).get();
       
@@ -213,26 +213,28 @@ export class ApifyApi {
         allItems.push(...items);
         
         // If there are no more items to fetch, exit the loading
-        if (offset + limit >= total) {
+        if (this.isLastPage(offset, limit, total)) {
           break;
         }
         
-        offset += limit;
+        offset = this.getNextOffset(offset, limit);
       }
 
       this.logger.forBot().info(`Retrieved ${allItems.length} total items from dataset`);
 
       let filesCreated = 0;
-      if (kbId && !syncTargetPath) {
-        this.logger.forBot().info(`[GET RUN RESULTS] KB mode: indexing ${allItems.length} documents into KB ${kbId}`);
-        filesCreated = await this.syncContentToBotpress(allItems, undefined, kbId);
-        this.logger.forBot().info(`[GET RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
-      } else if (syncTargetPath) {
-        this.logger.forBot().info(`[GET RUN RESULTS] Starting file sync to path: ${syncTargetPath}`);
+      // Manual sync
+      if (syncTargetPath) {
+        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] Starting file sync to path: ${syncTargetPath}`);
         filesCreated = await this.syncContentToBotpress(allItems, syncTargetPath, kbId || "kb-default");
-        this.logger.forBot().info(`[GET RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
+        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
+      // Webhook sync
+      } else if (kbId) {
+        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB mode: indexing ${allItems.length} documents into KB ${kbId}`);
+        filesCreated = await this.syncContentToBotpress(allItems, undefined, kbId);
+        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
       } else {
-        this.logger.forBot().info(`[GET RUN RESULTS] No syncTargetPath provided, skipping file creation`);
+        this.logger.forBot().warn(`[GET AND SYNC RUN RESULTS] No syncTargetPath or kbId provided, skipping sync`);
       }
 
       return {
@@ -247,7 +249,7 @@ export class ApifyApi {
         },
       };
     } catch (error) {
-      this.logger.forBot().error('Error in getRunResults:', error);
+      this.logger.forBot().error('Error in getAndSyncRunResults:', error);
       
       if (error instanceof ApifyApiError) {
         const { message, type, statusCode, clientMethod } = error;
@@ -273,6 +275,14 @@ export class ApifyApi {
         },
       };
     }
+  }
+
+  private isLastPage(offset: number, limit: number, total: number): boolean {
+    return offset + limit >= total;
+  }
+
+  private getNextOffset(offset: number, limit: number): number {
+    return offset + limit;
   }
 
   private async syncContentToBotpress(items: {

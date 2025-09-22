@@ -52,10 +52,10 @@ export default new IntegrationDefinition({
               input: {
         schema: z.object({
           startUrls: z.array(z.string().url()).describe('URLs to start crawling from'),
+          kbId: z.string().describe('Knowledge Base ID to tag the crawled content with'),
           excludeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to exclude from crawling'),
           includeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to include in crawling'),
           maxCrawlPages: z.number().min(1).max(10000).optional().describe('Maximum number of pages to crawl'),
-          kbId: z.string().optional().default('kb-default').describe('Knowledge Base ID to tag the crawled content with (optional, defaults to kb-default)'),
           saveMarkdown: z.boolean().optional().describe('Save content as Markdown format'),
           htmlTransformer: z.enum(['readableTextIfPossible', 'readableText', 'minimal', 'none']).optional().describe('HTML processing method'),
           removeElementsCssSelector: z.string().optional().describe('CSS selectors for elements to remove'),

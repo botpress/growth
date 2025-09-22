@@ -27,29 +27,26 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       logger
     )
 
-    let kbId: string | undefined
+    let kbId: string
     try {
       const mapping = await client.getState({ type: 'integration', id: ctx.integrationId, name: 'apifyRunMappings' })
       const mapPayload = mapping?.state?.payload
-      kbId = mapPayload[runId]
-      if (kbId) {
-        logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
-      } else {
-        logger.forBot().info(`No kbId mapping found for run ${runId}. Will sync to files.`)
+      const foundKbId = mapPayload?.[runId]
+      
+      if (!foundKbId) {
+        logger.forBot().warn(`No kbId mapping found for run ${runId}. This run was not started with a kbId, skipping processing.`)
+        return
       }
+      
+      kbId = foundKbId
+      logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
     } catch (stateErr) {
-      logger.forBot().warn(`Could not read kbId mapping for run ${runId}: ${stateErr instanceof Error ? stateErr.message : String(stateErr)}`)
+      logger.forBot().error(`Could not read kbId mapping for run ${runId}: ${stateErr instanceof Error ? stateErr.message : String(stateErr)}`)
+      return
     }
 
-    const syncTargetPath = kbId ? undefined : `apify-results/${runId}`
-    if (kbId) {
-      logger.forBot().info(`Will index results directly into KB: ${kbId}`)
-    } else {
-      logger.forBot().info(`Will sync results to path: ${syncTargetPath}`)
-    }
-
-    logger.forBot().info(`Calling getRunResults with ${kbId ? `kbId: ${kbId}` : `syncTargetPath: ${syncTargetPath}`}`)
-    const resultsResult = await apifyClient.getRunResults(runId, syncTargetPath, kbId)
+    logger.forBot().info(`Will index results directly into KB: ${kbId}`)
+    const resultsResult = await apifyClient.getAndSyncRunResults(runId, undefined, kbId)
 
     if (resultsResult.success) {
       logger.forBot().info(`Successfully processed results for run ${runId}. Items: ${resultsResult.data?.itemsCount}, Files created: ${resultsResult.data?.filesCreated}`)
@@ -64,7 +61,7 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
           runId: runId,
           itemsCount: resultsResult.data?.itemsCount,
           filesCreated: resultsResult.data?.filesCreated,
-          syncTargetPath: syncTargetPath,
+          syncTargetPath: undefined,
         },
       })
       

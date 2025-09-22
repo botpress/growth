@@ -34,7 +34,7 @@ export const syncRunResults = async ({
       logger
     );
 
-    const result = await apifyClient.getRunResults(runId, syncTargetPath);
+    const result = await apifyClient.getAndSyncRunResults(runId, syncTargetPath);
 
     if (result.success) {
       logger.forBot().info(`Run results retrieved successfully. Items: ${result.data?.itemsCount}, Files created: ${result.data?.filesCreated}`);

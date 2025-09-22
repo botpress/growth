@@ -10,7 +10,7 @@ export const startCrawlerRun = async ({
   ctx: bp.Context;
   client: bp.Client;
   input: { startUrls: string[]; excludeUrlGlobs?: string[]; includeUrlGlobs?: string[]; 
-    maxCrawlPages?: number; kbId?: string; saveMarkdown?: boolean; 
+    maxCrawlPages?: number; kbId: string; saveMarkdown?: boolean; 
     htmlTransformer?: 'readableTextIfPossible' | 'readableText' | 'minimal' | 'none'; 
     removeElementsCssSelector?: string; 
     crawlerType?: 'playwright:adaptive' | 'playwright:firefox' | 'cheerio' | 'jsdom' | 'playwright:chrome'; 
@@ -47,11 +47,10 @@ export const startCrawlerRun = async ({
       logger.forBot().info(`Crawler run started successfully. Run ID: ${result.data?.runId}`);
       logger.forBot().debug(`Start result: ${JSON.stringify(result.data)}`);
 
-      const kbId = input?.kbId;
       const runId = result?.data?.runId;
-      if (kbId && runId) {
+      if (runId) {
         try {
-          logger.forBot().info(`Persisting kbId mapping for run ${runId} -> kb ${kbId}`);
+          logger.forBot().info(`Persisting kbId mapping for run ${runId} -> kb ${input.kbId}`);
           const existing = await client.getState({
             type: 'integration',
             id: ctx.integrationId,
@@ -60,7 +59,7 @@ export const startCrawlerRun = async ({
 
           const payload = existing?.state?.payload;
           const currentMap = payload || {};
-          currentMap[runId] = kbId;
+          currentMap[runId] = input.kbId;
 
           await client.setState({
             type: 'integration',
