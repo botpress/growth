@@ -6,7 +6,6 @@ import {
 } from "../utils";
 import {
   SendEmailCommand,
-  SESv2Client,
   MessageRejected,
   BadRequestException,
   NotFoundException,

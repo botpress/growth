@@ -1,7 +1,7 @@
 import { SESv2Client } from "@aws-sdk/client-sesv2";
 import * as bp from ".botpress";
 
-let _ses: SESv2Client | undefined;
+let _ses: SESv2Client;
 
 export const getSesClient = (): SESv2Client => {
   if (_ses) return _ses;
