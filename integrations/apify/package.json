@@ -1,6 +1,6 @@
 {
   "name": "apify",
-  "integrationName": "apify",
+  "integrationName": "plus/apify",
   "scripts": {
     "version": "bp --version",
     "login": "bp login",

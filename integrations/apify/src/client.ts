@@ -99,9 +99,9 @@ export class ApifyApi {
 
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
         data: {
-          error: error instanceof Error ? error.message : 'Unknown error occurred',
+          error: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
         },
       };
     }
@@ -154,9 +154,9 @@ export class ApifyApi {
 
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
         data: {
-          error: error instanceof Error ? error.message : 'Unknown error occurred',
+          error: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
         },
       };
     }
@@ -195,46 +195,46 @@ export class ApifyApi {
       this.logger.forBot().info(`Getting results from dataset: ${run.defaultDatasetId}`);
 
       const dataset = this.client.dataset(run.defaultDatasetId);
-      let allItems: {
-        markdown?: string;
-        html?: string;
-        text?: string;
-        url?: string;
-        metadata?: { url?: string };
-      }[] = [];
-      let offset = 0;
-      const limit = 1000; 
-
-      while (true) {
-        const { items, total } = await dataset.listItems({ limit, offset });
-        
-        this.logger.forBot().info(`Fetched ${items.length} items (offset: ${offset}, total: ${total})`);
-        
-        allItems.push(...items);
-        
-        // If there are no more items to fetch, exit the loading
-        if (this.isLastPage(offset, limit, total)) {
-          break;
-        }
-        
-        offset = this.getNextOffset(offset, limit);
+      let allItems;
+      try {
+        allItems = await this.fetchAllDatasetItems(dataset);
+        this.logger.forBot().info(`Retrieved ${allItems.length} total items from dataset`);
+      } catch (error) {
+        this.logger.forBot().error('Error fetching dataset items:', error);
+        return {
+          success: false,
+          message: 'Error fetching dataset items',
+          data: {
+            error: error instanceof Error ? error.message : 'Error fetching dataset items',
+          },
+        };
       }
 
-      this.logger.forBot().info(`Retrieved ${allItems.length} total items from dataset`);
-
       let filesCreated = 0;
-      // Manual sync
-      if (syncTargetPath) {
-        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] Starting file sync to path: ${syncTargetPath}`);
-        filesCreated = await this.syncContentToBotpress(allItems, syncTargetPath, kbId || "kb-default");
-        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
-      // Webhook sync
-      } else if (kbId) {
-        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB mode: indexing ${allItems.length} documents into KB ${kbId}`);
-        filesCreated = await this.syncContentToBotpress(allItems, undefined, kbId);
-        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
-      } else {
-        this.logger.forBot().warn(`[GET AND SYNC RUN RESULTS] No syncTargetPath or kbId provided, skipping sync`);
+      
+      try {
+        // Manual sync
+        if (syncTargetPath) {
+          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] Starting file sync to path: ${syncTargetPath}`);
+          filesCreated = await this.syncContentToBotpress(allItems, syncTargetPath, kbId || "kb-default");
+          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
+        // Webhook sync
+        } else if (kbId) {
+          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB mode: indexing ${allItems.length} documents into KB ${kbId}`);
+          filesCreated = await this.syncContentToBotpress(allItems, undefined, kbId);
+          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
+        } else {
+          this.logger.forBot().warn(`[GET AND SYNC RUN RESULTS] No syncTargetPath or kbId provided, skipping sync`);
+        }
+      } catch (error) {
+        this.logger.forBot().error('Error syncing content to Botpress:', error);
+        return {
+          success: false,
+          message: 'Error syncing content to Botpress',
+          data: {
+            error: error instanceof Error ? error.message : 'Error syncing content to Botpress',
+          },
+        };
       }
 
       return {
@@ -249,7 +249,7 @@ export class ApifyApi {
         },
       };
     } catch (error) {
-      this.logger.forBot().error('Error in getAndSyncRunResults:', error);
+      this.logger.forBot().error('Error getting run information:', error);
       
       if (error instanceof ApifyApiError) {
         const { message, type, statusCode, clientMethod } = error;
@@ -269,9 +269,9 @@ export class ApifyApi {
 
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
         data: {
-          error: error instanceof Error ? error.message : 'Unknown error occurred',
+          error: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
         },
       };
     }
@@ -283,6 +283,35 @@ export class ApifyApi {
 
   private getNextOffset(offset: number, limit: number): number {
     return offset + limit;
+  }
+
+  private async fetchAllDatasetItems(dataset: any) {
+    let allItems: {
+      markdown?: string;
+      html?: string;
+      text?: string;
+      url?: string;
+      metadata?: { url?: string };
+    }[] = [];
+    let offset = 0;
+    const limit = 1000; 
+
+    while (true) {
+      const { items, total } = await dataset.listItems({ limit, offset });
+      
+      this.logger.forBot().info(`Fetched ${items.length} items (offset: ${offset}, total: ${total})`);
+      
+      allItems.push(...items);
+      
+      // If there are no more items to fetch, exit the loading
+      if (this.isLastPage(offset, limit, total)) {
+        break;
+      }
+      
+      offset = this.getNextOffset(offset, limit);
+    }
+
+    return allItems;
   }
 
   private async syncContentToBotpress(items: {
