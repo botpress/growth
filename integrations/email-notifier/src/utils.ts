@@ -44,13 +44,7 @@ export function isValidEmail(email: string): boolean {
     return false;
   }
 
-  // Split into local and domain parts
-  const parts = email.split("@");
-  if (parts.length !== 2) {
-    return false;
-  }
-
-  const [local, domain] = parts;
+  const [local, domain] = email.split("@") as [string, string];
 
   // Local part validation (before @)
   if (local.length === 0 || local.length > 64) {
