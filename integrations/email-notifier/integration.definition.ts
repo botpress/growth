@@ -3,7 +3,7 @@ import { actions, events, states } from "src/definitions/index";
 
 export default new IntegrationDefinition({
   name: "email-notifier",
-  version: "0.2.19",
+  version: "1.0.0",
   readme: "hub.md",
   icon: "icon.svg",
   secrets: {
