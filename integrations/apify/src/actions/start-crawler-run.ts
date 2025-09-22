@@ -47,8 +47,8 @@ export const startCrawlerRun = async ({
       logger.forBot().info(`Crawler run started successfully. Run ID: ${result.data?.runId}`);
       logger.forBot().debug(`Start result: ${JSON.stringify(result.data)}`);
 
-      const kbId = input?.kbId as string | undefined;
-      const runId = result?.data?.runId as string | undefined;
+      const kbId = input?.kbId;
+      const runId = result?.data?.runId;
       if (kbId && runId) {
         try {
           logger.forBot().info(`Persisting kbId mapping for run ${runId} -> kb ${kbId}`);
@@ -56,9 +56,10 @@ export const startCrawlerRun = async ({
             type: 'integration',
             id: ctx.integrationId,
             name: 'apifyRunMappings',
-          }).catch(() => undefined);
+          });
 
-          const currentMap = (existing?.state?.payload as Record<string, string> | undefined) ?? {};
+          const payload = existing?.state?.payload;
+          const currentMap = payload || {};
           currentMap[runId] = kbId;
 
           await client.setState({
@@ -73,11 +74,21 @@ export const startCrawlerRun = async ({
           logger.forBot().warn(`Failed to persist kbId mapping for run ${runId}: ${stateError instanceof Error ? stateError.message : String(stateError)}`);
         }
       }
+
+      return {
+        success: true,
+        message: `Crawler run started successfully. Run ID: ${result.data?.runId}`,
+        data: result.data,
+      };
     } else {
       logger.forBot().error(`Failed to start crawler run: ${result.message}`);
+      
+      return {
+        success: false,
+        message: result.message || 'Failed to start crawler run',
+        data: result.data || { error: result.message },
+      };
     }
-
-    return result;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     logger.forBot().error(`Start crawler run exception: ${errorMessage}`);
