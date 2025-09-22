@@ -39,11 +39,21 @@ export const syncRunResults = async ({
     if (result.success) {
       logger.forBot().info(`Run results retrieved successfully. Items: ${result.data?.itemsCount}, Files created: ${result.data?.filesCreated}`);
       logger.forBot().debug(`Results summary: ${JSON.stringify(result.data)}`);
+      
+      return {
+        success: true,
+        message: `Run results retrieved successfully. Items: ${result.data?.itemsCount}, Files created: ${result.data?.filesCreated}`,
+        data: result.data,
+      };
     } else {
       logger.forBot().error(`Failed to get run results: ${result.message}`);
+      
+      return {
+        success: false,
+        message: result.message || 'Failed to get run results',
+        data: result.data || { error: result.message },
+      };
     }
-
-    return result;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     logger.forBot().error(`Get run results exception: ${errorMessage}`);

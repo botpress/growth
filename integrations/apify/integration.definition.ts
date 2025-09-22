@@ -61,7 +61,7 @@ export default new IntegrationDefinition({
           removeElementsCssSelector: z.string().optional().describe('CSS selectors for elements to remove'),
           crawlerType: z.enum(['playwright:adaptive', 'playwright:firefox', 'cheerio', 'jsdom', 'playwright:chrome']).optional().describe('Browser type for crawling'),
           expandClickableElements: z.boolean().optional().describe('Expand clickable elements for better content extraction'),
-          headers: z.string().optional().describe('Custom HTTP headers for authentication/requests'),
+          headers: z.record(z.string(), z.string()).optional().describe('Custom HTTP headers for authentication/requests'),
           rawInputJsonOverride: z.string().optional().describe('JSON string to override any crawler parameters, please refer to https://console.apify.com/actors/<actor-id>/input and select JSON format for the available parameters'),
         }),
       },
