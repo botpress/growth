@@ -5,5 +5,5 @@ import * as hitl from "./hitl/index";
 export * as hitl from "./hitl/index";
 
 export const channels = {
-  "hitl": hitl.hitl,
-}
+  hitl: hitl.hitl,
+};
