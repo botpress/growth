@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios'
 import {
   PingPayload,
   CreateRemoteConversationPayload,
@@ -7,7 +7,7 @@ import {
   BotSendsMessagePayload,
   CreateRemoteConversationResponse,
   CreateRemoteUserResponse,
-} from "./types";
+} from './types'
 
 /**
  * @swagger
@@ -24,11 +24,11 @@ import {
  */
 export const pingExternalService = async (endpointBaseUrl: string) => {
   const pingPayload = PingPayload.parse({
-    type: "ping",
-  });
-  const response = await axios.post(`${endpointBaseUrl}/ping`, pingPayload);
-  return response.data;
-};
+    type: 'ping',
+  })
+  const response = await axios.post(`${endpointBaseUrl}/ping`, pingPayload)
+  return response.data
+}
 
 /**
  * @swagger
@@ -52,22 +52,14 @@ export const pingExternalService = async (endpointBaseUrl: string) => {
  *             schema:
  *               $ref: '#/components/schemas/CreateRemoteConversationResponse'
  */
-export const createRemoteConversation = async (
-  endpointBaseUrl: string,
-  input: any
-) => {
-  const createRemoteConversationPayload = CreateRemoteConversationPayload.parse(
-    {
-      type: "createRemoteConversation",
-      payload: { ...input },
-    }
-  );
-  const response = await axios.post(
-    `${endpointBaseUrl}/createRemoteConversation`,
-    createRemoteConversationPayload
-  );
-  return CreateRemoteConversationResponse.parse(response.data);
-};
+export const createRemoteConversation = async (endpointBaseUrl: string, input: any) => {
+  const createRemoteConversationPayload = CreateRemoteConversationPayload.parse({
+    type: 'createRemoteConversation',
+    payload: { ...input },
+  })
+  const response = await axios.post(`${endpointBaseUrl}/createRemoteConversation`, createRemoteConversationPayload)
+  return CreateRemoteConversationResponse.parse(response.data)
+}
 
 /**
  * @swagger
@@ -87,20 +79,14 @@ export const createRemoteConversation = async (
  *       200:
  *         description: Ticket closed successfully.
  */
-export const closeRemoteTicket = async (
-  endpointBaseUrl: string,
-  botpressConversationId: string
-) => {
+export const closeRemoteTicket = async (endpointBaseUrl: string, botpressConversationId: string) => {
   const closeRemoteTicketPayload = CloseRemoteTicketPayload.parse({
-    type: "closeRemoteTicket",
+    type: 'closeRemoteTicket',
     payload: { botpressConversationId },
-  });
-  const response = await axios.post(
-    `${endpointBaseUrl}/closeRemoteTicket`,
-    closeRemoteTicketPayload
-  );
-  return response.data;
-};
+  })
+  const response = await axios.post(`${endpointBaseUrl}/closeRemoteTicket`, closeRemoteTicketPayload)
+  return response.data
+}
 
 /**
  * @swagger
@@ -126,16 +112,13 @@ export const closeRemoteTicket = async (
  */
 export const createRemoteUser = async (endpointBaseUrl: string, input: any) => {
   const payload = {
-    type: "createRemoteUser",
-    payload: { role: "end-user", ...input },
-  };
-  const createRemoteUserPayload = CreateRemoteUserPayload.parse(payload);
-  const response = await axios.post(
-    `${endpointBaseUrl}/createRemoteUser`,
-    createRemoteUserPayload
-  );
-  return CreateRemoteUserResponse.parse(response.data);
-};
+    type: 'createRemoteUser',
+    payload: { role: 'end-user', ...input },
+  }
+  const createRemoteUserPayload = CreateRemoteUserPayload.parse(payload)
+  const response = await axios.post(`${endpointBaseUrl}/createRemoteUser`, createRemoteUserPayload)
+  return CreateRemoteUserResponse.parse(response.data)
+}
 
 /**
  * @swagger
@@ -162,15 +145,12 @@ export const botSendsMessage = async (
   payload: any
 ) => {
   const botSendsMessagePayload = BotSendsMessagePayload.parse({
-    type: "botSendsMessage",
+    type: 'botSendsMessage',
     remoteConversationId: conversationId,
     remoteUserId: userId,
     payload,
-  });
-  const response = await axios.post(
-    `${endpointBaseUrl}/botSendsMessage`,
-    botSendsMessagePayload
-  );
+  })
+  const response = await axios.post(`${endpointBaseUrl}/botSendsMessage`, botSendsMessagePayload)
 
-  return response.data;
-};
+  return response.data
+}

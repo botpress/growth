@@ -10,9 +10,5 @@ export default new bp.Integration({
   unregister,
   actions,
   handler,
-  channels
+  channels,
 })
-
-
-
-

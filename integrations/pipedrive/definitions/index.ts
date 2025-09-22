@@ -1,5 +1,5 @@
 import { actions as personActions } from './actions/person'
 
 export const actions = {
-  ...personActions
+  ...personActions,
 } as const

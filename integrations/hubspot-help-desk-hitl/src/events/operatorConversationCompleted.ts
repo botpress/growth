@@ -1,9 +1,6 @@
 import { ConversationCompletedParams } from '../misc/types'
 
-export const handleConversationCompleted = async ({
-  hubspotEvent,
-  client,
-}: ConversationCompletedParams) => {
+export const handleConversationCompleted = async ({ hubspotEvent, client }: ConversationCompletedParams) => {
   const { conversation } = await client.getOrCreateConversation({
     channel: 'hitl',
     tags: {

@@ -21,7 +21,14 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
     brevoEventPayload = JSON.parse(req.body)
     logger.forBot().info('Conversation ID from Brevo:', brevoEventPayload.conversationId)
   } catch (error: any) {
-    logger.forBot().error('Failed to parse Brevo event JSON from request body:', error.message ? error.message : error, 'Raw body:', req.body)
+    logger
+      .forBot()
+      .error(
+        'Failed to parse Brevo event JSON from request body:',
+        error.message ? error.message : error,
+        'Raw body:',
+        req.body
+      )
     return
   }
 
@@ -34,7 +41,11 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
 
   const eventType = validationResult.data.eventName
 
-  logger.forBot().info(`Handler: Processing Brevo event type: ${eventType} for conversation: ${validationResult.data.conversationId || 'N/A'}`)
+  logger
+    .forBot()
+    .info(
+      `Handler: Processing Brevo event type: ${eventType} for conversation: ${validationResult.data.conversationId || 'N/A'}`
+    )
 
   switch (eventType) {
     case 'conversationFragment':

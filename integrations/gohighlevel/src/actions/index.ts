@@ -39,5 +39,5 @@ export default {
   updateAppointment,
   createAppointment,
   deleteEvent,
-  makeApiCall
+  makeApiCall,
 }

@@ -1,1 +1,1 @@
-export type KlaviyoPropertyValue = string | number | boolean | null;
+export type KlaviyoPropertyValue = string | number | boolean | null

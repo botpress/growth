@@ -30,7 +30,7 @@ export function validateHubSpotSignature(
   const MAX_ALLOWED_TIMESTAMP = 300000
   const currentTime = Date.now()
   const timestampDiff = currentTime - parseInt(timestamp)
-  
+
   if (timestampDiff > MAX_ALLOWED_TIMESTAMP) {
     logger.forBot().error('Timestamp is too old:', timestampDiff, 'ms')
     return false
@@ -45,14 +45,11 @@ export function validateHubSpotSignature(
   const computedSignature = hmac.digest('base64')
 
   // Compare signatures using timing-safe comparison
-  const isValid = crypto.timingSafeEqual(
-    Buffer.from(computedSignature),
-    Buffer.from(signature)
-  )
-  
+  const isValid = crypto.timingSafeEqual(Buffer.from(computedSignature), Buffer.from(signature))
+
   if (!isValid) {
     logger.forBot().error('Invalid HubSpot webhook signature')
   }
-  
+
   return isValid
-} 
+}
