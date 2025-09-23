@@ -1,6 +1,9 @@
 name: Deploy Integrations Production
 
 on:
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       force:
@@ -17,6 +20,7 @@ jobs:
   deploy-production:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'integrations/') || contains(github.event.head_commit.added, 'integrations/')
     steps:
       - uses: actions/checkout@v4
 
