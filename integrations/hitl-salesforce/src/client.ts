@@ -35,7 +35,7 @@ class MessagingApi {
     this._config = SFMessagingConfigSchema.parse(_config)
 
     this._client.interceptors.request.use((axiosConfig) => {
-      // @ts-ignore
+      // @ts-expect-error
       axiosConfig.headers = {
         ...axiosConfig.headers,
         ...this._getMessagingConfig().headers,
