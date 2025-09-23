@@ -49,29 +49,25 @@ export const startCrawlerRun = async ({
 
       const runId = result?.data?.runId;
       if (runId) {
-        try {
-          logger.forBot().info(`Persisting kbId mapping for run ${runId} -> kb ${input.kbId}`);
-          const existing = await client.getState({
-            type: 'integration',
-            id: ctx.integrationId,
-            name: 'apifyRunMappings',
-          });
+        logger.forBot().info(`Persisting kbId mapping for run ${runId} -> kb ${input.kbId}`);
+        const existing = await client.getState({
+          type: 'integration',
+          id: ctx.integrationId,
+          name: 'apifyRunMappings',
+        });
 
-          const payload = existing?.state?.payload;
-          const currentMap = payload || {};
-          currentMap[runId] = input.kbId;
+        const payload = existing?.state?.payload;
+        const currentMap = payload || {};
+        currentMap[runId] = input.kbId;
 
-          await client.setState({
-            type: 'integration',
-            id: ctx.integrationId,
-            name: 'apifyRunMappings',
-            payload: currentMap,
-          });
+        await client.setState({
+          type: 'integration',
+          id: ctx.integrationId,
+          name: 'apifyRunMappings',
+          payload: currentMap,
+        });
 
-          logger.forBot().info(`Persisted kbId mapping for run ${runId}`);
-        } catch (stateError) {
-          logger.forBot().warn(`Failed to persist kbId mapping for run ${runId}: ${stateError instanceof Error ? stateError.message : String(stateError)}`);
-        }
+        logger.forBot().info(`Persisted kbId mapping for run ${runId}`);
       }
 
       return {

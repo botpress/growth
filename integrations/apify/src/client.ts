@@ -1,6 +1,63 @@
 import { ApifyClient, ApifyApiError } from 'apify-client';
 import * as bp from '.botpress';
 
+type CrawlerInput = {
+  startUrls: { url: string }[];
+  excludeUrlGlobs: string[];
+  includeUrlGlobs: string[];
+  maxCrawlPages: number;
+  saveMarkdown: boolean;
+  htmlTransformer: string;
+  removeElementsCssSelector: string;
+  crawlerType: string;
+  expandClickableElements: boolean;
+  kbId: string;
+  headers?: Record<string, string>;
+};
+
+function buildCrawlerInput(params: {
+  startUrls: string[];
+  excludeUrlGlobs?: string[];
+  includeUrlGlobs?: string[];
+  maxCrawlPages?: number;
+  saveMarkdown?: boolean;
+  htmlTransformer?: string;
+  removeElementsCssSelector?: string;
+  crawlerType?: string;
+  expandClickableElements?: boolean;
+  headers?: Record<string, string>;
+  rawInputJsonOverride?: string;
+  kbId: string;
+}): CrawlerInput {
+  if (params.rawInputJsonOverride) {
+    const parsed = JSON.parse(params.rawInputJsonOverride);
+    
+    if (parsed.startUrls && Array.isArray(parsed.startUrls)) {
+      return {
+        ...parsed,
+        startUrls: parsed.startUrls.map((url: string | { url: string }) => 
+          typeof url === 'string' ? { url } : url
+        )
+      };
+    }
+    
+    return parsed;
+  }
+  
+  return {
+    startUrls: params.startUrls.map(url => ({ url })),
+    excludeUrlGlobs: params.excludeUrlGlobs || [],
+    includeUrlGlobs: params.includeUrlGlobs || ['**/*'],
+    maxCrawlPages: params.maxCrawlPages || 10,
+    saveMarkdown: params.saveMarkdown ?? false,
+    htmlTransformer: params.htmlTransformer || 'readableTextIfPossible',
+    removeElementsCssSelector: params.removeElementsCssSelector || '',
+    crawlerType: params.crawlerType || 'playwright:firefox',
+    expandClickableElements: params.expandClickableElements || false,
+    kbId: params.kbId,
+  };
+}
+
 export class ApifyApi {
   private client: ApifyClient;
   private bpClient: bp.Client;
@@ -36,25 +93,7 @@ export class ApifyApi {
     kbId: string;
   }) {
     try {
-      let input = params.rawInputJsonOverride ? (() => {
-        const parsed = JSON.parse(params.rawInputJsonOverride);
-        return parsed.startUrls && Array.isArray(parsed.startUrls) 
-          ? { ...parsed, startUrls: parsed.startUrls.map((url: string | { url: string }) => 
-              typeof url === 'string' ? { url } : url
-            ) }
-          : parsed;
-      })() : {
-        startUrls: params.startUrls.map(url => ({ url })),
-        excludeUrlGlobs: params.excludeUrlGlobs || [],
-        includeUrlGlobs: params.includeUrlGlobs || ['**/*'],
-        maxCrawlPages: params.maxCrawlPages || 10,
-        saveMarkdown: params.saveMarkdown ?? false, 
-        htmlTransformer: params.htmlTransformer || 'readableTextIfPossible',
-        removeElementsCssSelector: params.removeElementsCssSelector || '',
-        crawlerType: params.crawlerType || 'playwright:firefox',
-        expandClickableElements: params.expandClickableElements || false,
-        kbId: params.kbId,
-      };
+      const input = buildCrawlerInput(params);
       
       if (params.headers && Object.keys(params.headers).length > 0) {
         input.headers = params.headers;
@@ -162,8 +201,7 @@ export class ApifyApi {
     }
   }
 
-  async getAndSyncRunResults(runId: string, syncTargetPath?: string, kbId?: string) {
-    const targetPath = syncTargetPath || './crawled-content/';
+  async getAndSyncRunResults(runId: string, kbId: string) {
     try {
       const run = await this.client.run(runId).get();
       
@@ -214,21 +252,9 @@ export class ApifyApi {
       let filesCreated = 0;
       
       try {
-        // Manual sync
-        if (syncTargetPath) {
-          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] Starting file sync to path: ${targetPath}`);
-          filesCreated = await this.syncContentToBotpress(allItems, targetPath, kbId || "kb-default");
-          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
-        // Webhook sync
-        } else if (kbId) {
-          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB mode: indexing ${allItems.length} documents into KB ${kbId}`);
-          filesCreated = await this.syncContentToBotpress(allItems, undefined, kbId);
-          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
-        } else {
-          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] Starting file sync to default path: ${targetPath}`);
-          filesCreated = await this.syncContentToBotpress(allItems, targetPath, kbId || "kb-default");
-          this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] File sync completed. Files created: ${filesCreated}`);
-        }
+        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB mode: indexing ${allItems.length} documents into KB ${kbId}`);
+        filesCreated = await this.syncContentToBotpress(allItems, kbId);
+        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
       } catch (error) {
         this.logger.forBot().error('Error syncing content to Botpress:', error);
         return {
@@ -248,7 +274,6 @@ export class ApifyApi {
           datasetId: run.defaultDatasetId,
           itemsCount: allItems.length,
           filesCreated,
-          syncTargetPath: targetPath,
         },
       };
     } catch (error) {
@@ -323,8 +348,8 @@ export class ApifyApi {
     text?: string;
     url?: string;
     metadata?: { url?: string };
-  }[], targetPath: string | undefined, kbId: string): Promise<number> {
-    this.logger.forBot().info(`[FILE SYNC] Starting sync for ${items.length} items${targetPath ? ` to path: ${targetPath}` : ''}`);
+  }[], kbId: string): Promise<number> {
+    this.logger.forBot().info(`[FILE SYNC] Starting sync for ${items.length} items to KB ${kbId}`);
     let filesCreated = 0;
 
     for (let i = 0; i < items.length; i++) {
@@ -396,12 +421,11 @@ export class ApifyApi {
         // Ensure filename is not too long and has valid characters
         filename = filename.substring(0, 100).replace(/[^a-zA-Z0-9_-]/g, '_');
         const fullFilename = `${filename}.${extension}`;
-        const filePath = targetPath ? `${targetPath}/${fullFilename}` : fullFilename;
 
-        this.logger.forBot().info(`[FILE SYNC] Uploading asset: ${filePath} ${targetPath ? '' : '(KB mode, no folder)'}`);
+        this.logger.forBot().info(`[FILE SYNC] Uploading asset: ${fullFilename} (KB mode)`);
 
         const uploadResult = await this.bpClient.uploadFile({
-          key: filePath,
+          key: fullFilename,
           tags: {
             kbId: kbId || "kb-default",
             dsType: "document",
@@ -413,7 +437,7 @@ export class ApifyApi {
           index: true
         });
 
-        this.logger.forBot().info(`[FILE SYNC] Upload successful: ${filePath}`, uploadResult);
+        this.logger.forBot().info(`[FILE SYNC] Upload successful: ${fullFilename}`, uploadResult);
         filesCreated++;
       } catch (error) {
         this.logger.forBot().error(`[FILE SYNC] Error creating file for item ${i}:`, error);

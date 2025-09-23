@@ -27,26 +27,19 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       logger
     )
 
-    let kbId: string
-    try {
-      const mapping = await client.getState({ type: 'integration', id: ctx.integrationId, name: 'apifyRunMappings' })
-      const mapPayload = mapping?.state?.payload
-      const foundKbId = mapPayload?.[runId]
-      
-      if (!foundKbId) {
-        logger.forBot().warn(`No kbId mapping found for run ${runId}. This run was not started with a kbId, skipping processing.`)
-        return
-      }
-      
-      kbId = foundKbId
-      logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
-    } catch (stateErr) {
-      logger.forBot().error(`Could not read kbId mapping for run ${runId}: ${stateErr instanceof Error ? stateErr.message : String(stateErr)}`)
+    const mapping = await client.getState({ type: 'integration', id: ctx.integrationId, name: 'apifyRunMappings' })
+    const mapPayload = mapping?.state?.payload
+    const kbId = mapPayload?.[runId]
+    
+    if (!kbId) {
+      logger.forBot().error(`No kbId mapping found for run ${runId}. This should not happen.`)
       return
     }
+    
+    logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
 
     logger.forBot().info(`Will index results directly into KB: ${kbId}`)
-    const resultsResult = await apifyClient.getAndSyncRunResults(runId, undefined, kbId)
+    const resultsResult = await apifyClient.getAndSyncRunResults(runId, kbId)
 
     if (resultsResult.success) {
       logger.forBot().info(`Successfully processed results for run ${runId}. Items: ${resultsResult.data?.itemsCount}, Files created: ${resultsResult.data?.filesCreated}`)

@@ -9,11 +9,10 @@ export const syncRunResults = async ({
 }: {
   ctx: bp.Context;
   client: bp.Client;
-  input: { runId: string };
+  input: { runId: string, kbId: string };
   logger: bp.Logger;
 }) => {
-  const { runId } = input;
-  const targetPath = './crawled-content/';
+  const { runId, kbId } = input;
   
   if (!runId) {
     logger.forBot().error('Run ID is required');
@@ -26,7 +25,18 @@ export const syncRunResults = async ({
     };
   }
 
-  logger.forBot().info(`Getting results for run ID: ${runId}, sync target: ${targetPath}`);
+  if (!kbId) {
+    logger.forBot().error('Knowledge Base ID is required');
+    return {
+      success: false,
+      message: 'Knowledge Base ID is required',
+      data: {
+        error: 'Knowledge Base ID is required',
+      },
+    };
+  }
+
+  logger.forBot().info(`Getting results for run ID: ${runId}`);
 
   try {
     const apifyClient = getClient(
@@ -35,7 +45,7 @@ export const syncRunResults = async ({
       logger
     );
 
-    const result = await apifyClient.getAndSyncRunResults(runId, targetPath);
+    const result = await apifyClient.getAndSyncRunResults(runId, kbId);
 
     if (result.success) {
       logger.forBot().info(`Run results retrieved successfully. Items: ${result.data?.itemsCount}, Files created: ${result.data?.filesCreated}`);
