@@ -1,63 +1,29 @@
-import axios from 'axios'
-import crypto from 'crypto'
-import OAuth from 'oauth-1.0a'
 import * as bp from '.botpress'
 import { StockItemSchema } from '../misc/zod-schemas'
+import { createMagentoClient } from '../services/magento-client'
 
 export const getStockItem: bp.IntegrationProps['actions']['getStockItem'] = async ({ ctx, input, logger }) => {
-  const { magento_domain, consumer_key, consumer_secret, access_token, access_token_secret, user_agent, store_code } =
-    ctx.configuration
-
-  const oauth = new OAuth({
-    consumer: {
-      key: consumer_key,
-      secret: consumer_secret,
-    },
-    signature_method: 'HMAC-SHA256',
-    hash_function(baseString: string, key: string) {
-      return crypto.createHmac('sha256', key).update(baseString).digest('base64')
-    },
-  })
-
-  const token = {
-    key: access_token,
-    secret: access_token_secret,
-  }
-
-  const url = `https://${magento_domain}/rest/${store_code}/V1/stockItems/${encodeURIComponent(input.sku)}`
-
-  const requestData = {
-    url,
-    method: 'GET',
-  }
-
-  const authHeader = oauth.toHeader(oauth.authorize(requestData, token))
-
-  const config = {
-    method: requestData.method,
-    url: requestData.url,
-    maxBodyLength: Infinity,
-    headers: {
-      ...authHeader,
-      'User-Agent': user_agent,
-    },
-  }
-
-  logger.forBot().info(`Magento stock item URL: ${config.url}`)
-
   try {
-    const response = await axios(config)
-    try {
-      const stockData = StockItemSchema.parse(response.data)
-      return {
-        qty: stockData.qty,
-        is_in_stock: stockData.is_in_stock,
-      }
-    } catch (err) {
-      return { error: 'Invalid stock item response', details: err instanceof Error ? err.message : err }
+    // Create Magento client and get stock item
+    const client = createMagentoClient(ctx.configuration, logger)
+    const stockData = await client.getStockItem(input.sku)
+
+    // Validate response
+    const validatedData = StockItemSchema.parse(stockData)
+    return {
+      qty: validatedData.qty,
+      is_in_stock: validatedData.is_in_stock,
     }
   } catch (error) {
     logger.forBot().error('Error fetching stock item', { error })
+
+    if (error instanceof Error && error.message.includes('Validation failed')) {
+      return {
+        error: 'Invalid stock item response',
+        details: error.message,
+      }
+    }
+
     return {
       error: error instanceof Error ? error.message : 'Unknown error occurred',
     }
