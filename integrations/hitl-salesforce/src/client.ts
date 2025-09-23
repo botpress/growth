@@ -35,7 +35,7 @@ class MessagingApi {
     this._config = SFMessagingConfigSchema.parse(_config)
 
     this._client.interceptors.request.use((axiosConfig) => {
-      // @ts-expect-error
+      // @ts-expect-error The 'headers' property is possibly readonly and needs to be reassigned.
       axiosConfig.headers = {
         ...axiosConfig.headers,
         ...this._getMessagingConfig().headers,
