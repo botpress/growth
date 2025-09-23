@@ -58,12 +58,28 @@ export function parseColumnNameMappings(
   return {};
 }
 
+// Filter input interface
+interface FilterInput {
+  searchCriteria?: {
+    filterGroups?: Array<{
+      filters?: Array<{
+        field?: string;
+        conditionType?: string;
+        value?: string | number;
+      }>;
+    }>;
+  };
+}
+
 // Filter utility functions
-export function parseFilters(input: any, logger: bp.Logger): Filter[] | null {
+export function parseFilters(
+  input: FilterInput,
+  logger: bp.Logger
+): Filter[] | null {
   let filtersInput = input.searchCriteria;
 
   // Handle empty/undefined searchCriteria (optional field)
-  if (!filtersInput || filtersInput === "") {
+  if (!filtersInput) {
     logger.forBot().info("No searchCriteria provided, returning empty filters");
     return [];
   }

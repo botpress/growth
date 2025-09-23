@@ -6,6 +6,16 @@ import {
   MagentoConfiguration,
   OAuthClient,
   OAuthToken,
+  ApiRequestData,
+  WebhookPayload,
+  ProductSearchRequest,
+  StockItemRequest,
+  ProductSearchResponse,
+  StockItemResponse,
+  ReviewResponse,
+  MagentoProduct,
+  ProductAttributeResponse,
+  AttributeOptionsApiResponse,
 } from "../types/magento";
 import { ProductListSchema } from "../misc/zod-schemas";
 import { sleep } from "../utils/common";
@@ -101,7 +111,7 @@ export class MagentoClient {
   async makeRequest<T = any>(
     endpoint: string,
     method: string = "GET",
-    data?: any
+    data?: ApiRequestData
   ): Promise<T> {
     // Ensure URL format matches what works with this Magento instance
     let domain = this.config.magento_domain;
@@ -173,7 +183,7 @@ export class MagentoClient {
   /**
    * Gets products with optional filter criteria
    */
-  async getProducts(filterCriteria?: string): Promise<any> {
+  async getProducts(filterCriteria?: string): Promise<ProductSearchResponse> {
     const endpoint = filterCriteria
       ? `/V1/products?${filterCriteria}`
       : "/V1/products";
@@ -183,35 +193,37 @@ export class MagentoClient {
   /**
    * Gets a specific product by SKU
    */
-  async getProduct(sku: string): Promise<any> {
+  async getProduct(sku: string): Promise<MagentoProduct> {
     return this.makeRequest(`/V1/products/${encodeURIComponent(sku)}`);
   }
 
   /**
    * Gets stock item for a specific SKU
    */
-  async getStockItem(sku: string): Promise<any> {
+  async getStockItem(sku: string): Promise<StockItemResponse> {
     return this.makeRequest(`/V1/stockItems/${encodeURIComponent(sku)}`);
   }
 
   /**
    * Gets product attributes
    */
-  async getProductAttributes(): Promise<any> {
+  async getProductAttributes(): Promise<ProductAttributeResponse[]> {
     return this.makeRequest("/V1/products/attributes");
   }
 
   /**
    * Gets attribute options for a specific attribute
    */
-  async getAttributeOptions(attributeCode: string): Promise<any> {
+  async getAttributeOptions(
+    attributeCode: string
+  ): Promise<AttributeOptionsApiResponse> {
     return this.makeRequest(`/V1/products/attributes/${attributeCode}/options`);
   }
 
   /**
    * Gets product reviews for a specific product
    */
-  async getProductReviews(productId: number): Promise<any> {
+  async getProductReviews(productId: number): Promise<ReviewResponse> {
     const queryParams = [
       "searchCriteria[filterGroups][0][filters][0][field]=entity_id",
       `searchCriteria[filterGroups][0][filters][0][value]=${productId}`,
@@ -282,10 +294,7 @@ export class MagentoClient {
   /**
    * Sends webhook to continue sync processing
    */
-  async sendWebhook(
-    webhookId: string,
-    payload: Record<string, unknown>
-  ): Promise<void> {
+  async sendWebhook(webhookId: string, payload: WebhookPayload): Promise<void> {
     const webhookUrl = `https://webhook.botpress.cloud/${webhookId}`;
 
     try {
@@ -305,6 +314,33 @@ export class MagentoClient {
         .forBot()
         .error("Failed to send webhook to continue sync:", error);
     }
+  }
+
+  /**
+   * Makes a product search request with proper typing
+   */
+  async searchProducts(
+    request: ProductSearchRequest
+  ): Promise<ProductSearchResponse> {
+    return this.makeRequest<ProductSearchResponse>(
+      "/V1/products",
+      "GET",
+      request
+    );
+  }
+
+  /**
+   * Updates stock item with proper typing
+   */
+  async updateStockItem(
+    sku: string,
+    request: StockItemRequest
+  ): Promise<StockItemResponse> {
+    return this.makeRequest<StockItemResponse>(
+      `/V1/products/${sku}/stockItems/${sku}`,
+      "PUT",
+      request
+    );
   }
 }
 
