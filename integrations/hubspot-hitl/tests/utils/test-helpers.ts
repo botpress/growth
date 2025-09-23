@@ -88,7 +88,6 @@ export class TestHelpers {
    */
   static async deleteCustomChannel(channelId: string): Promise<boolean> {
     const maxRetries = 3
-    let lastError: any
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -103,8 +102,6 @@ export class TestHelpers {
         console.log(`Successfully deleted channel: ${channelId}`)
         return response.status === 204 || response.status === 200
       } catch (error: any) {
-        lastError = error
-
         // Check if we should retry
         const isRetryableError =
           error.response?.status === 429 ||
