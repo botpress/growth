@@ -137,7 +137,6 @@ Below are the available actions in this integration:
 - **Description:** Updates an existing contact.
 - **Method:** `PUT /contacts/{contactId}`
 - **Input:**
-
   ```json
     contactId: 12345
 
@@ -145,7 +144,6 @@ Below are the available actions in this integration:
     "firstName": "NewFirstName"
   }
   ```
-
 - **Output:** Same as above.
 
 #### **Delete Contact**
