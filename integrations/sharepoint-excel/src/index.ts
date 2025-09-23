@@ -35,7 +35,7 @@ export default new bp.Integration({
     syncExcelFile: async ({ ctx, input, logger }) => {
       logger.forBot().info(`Starting Excel file sync for bot: ${ctx.botId}`)
 
-      const { sharepointFileUrl, sheetName, processAllSheets, sheetTableMapping } = input as any
+      const { sharepointFileUrl, processAllSheets, sheetTableMapping } = input as any
       logger.forBot().info(`Syncing Excel file: "${sharepointFileUrl}"`)
       logger.forBot().info(`Using sheetTableMapping: ${sheetTableMapping}`)
 
