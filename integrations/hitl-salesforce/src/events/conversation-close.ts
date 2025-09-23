@@ -55,17 +55,17 @@ export const closeConversation = async ({
     },
   })
 
-  let delay = 0
+  let _delay = 0
 
   if (!isConversationAssigned(conversation) || forceDelay) {
     // TODO: Weird race condition stuff, remove when the HITL Agent is migrated to plugins and uses it's own state
-    delay = 3000
+    _delay = 3000
   }
 
   void client.createEvent({
     type: 'hitlStopped',
     conversationId: conversation.id,
-    //...( delay && { schedule: { delay }}),
+    //...( _delay && { schedule: { _delay }}),
     payload: {
       conversationId: conversation.id,
     },
