@@ -1,4 +1,4 @@
-import { z, ZodObject, ZodRawShape, ZodTypeAny } from '@botpress/sdk'
+import { z, ZodObject, ZodRawShape } from '@botpress/sdk'
 
 export const getSearchOutputSchema = (record: ZodObject<ZodRawShape>) => {
   return z

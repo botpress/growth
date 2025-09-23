@@ -1,4 +1,4 @@
-import { IntegrationDefinition, z } from '@botpress/sdk'
+import { IntegrationDefinition } from '@botpress/sdk'
 import hitl from './bp_modules/hitl'
 import { events, configuration, channels as baseChannels, states, user } from './src/definitions'
 

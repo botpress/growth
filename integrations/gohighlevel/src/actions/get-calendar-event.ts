@@ -1,5 +1,5 @@
 import { getClient } from '../client'
-import { getCalendarEventsInputSchema, getCalendarEventsOutputSchema } from '../misc/custom-schemas'
+import { getCalendarEventsInputSchema } from '../misc/custom-schemas'
 import type { Implementation } from '../misc/types'
 
 export const getCalendarEvents: Implementation['actions']['getCalendarEvents'] = async ({

@@ -1,5 +1,5 @@
 import { getClient } from '../client'
-import { deleteContactInputSchema, updateContactInputSchema, updateContactOutputSchema } from '../misc/custom-schemas'
+import { deleteContactInputSchema } from '../misc/custom-schemas'
 import type { Implementation } from '../misc/types'
 
 export const deleteContact: Implementation['actions']['deleteContact'] = async ({ ctx, client, logger, input }) => {

@@ -29,7 +29,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     // Retry loop with exponential backoff (up to 1 minute)
     let alreadyConnected = false
     let attempt = 0
-    let maxAttempts = 6 // 1s, 2s, 4s, 8s, 16s, 32s = total ~63s
+    const maxAttempts = 6 // 1s, 2s, 4s, 8s, 16s, 32s = total ~63s
 
     while (attempt < maxAttempts) {
       const channels = await hubspotClient.getCustomChannels()
@@ -50,7 +50,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     if (alreadyConnected) {
       logger.forBot().info(`Channel ID ${newChannelId} is already connected. Skipping connection.`)
     } else {
-      let connectChannel = await hubspotClient.connectCustomChannel(
+      const connectChannel = await hubspotClient.connectCustomChannel(
         newChannelId,
         ctx.configuration.helpDeskId,
         channelName

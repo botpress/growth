@@ -1,5 +1,5 @@
 import { getClient } from '../client'
-import { getOrderByIdInputSchema, getOrderByIdOutputSchema } from '../misc/custom-schemas'
+import { getOrderByIdInputSchema } from '../misc/custom-schemas'
 import type { Implementation } from '../misc/types'
 
 export const getOrderById: Implementation['actions']['getOrderById'] = async ({ ctx, client, logger, input }) => {

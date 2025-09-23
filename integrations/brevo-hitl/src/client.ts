@@ -49,7 +49,7 @@ export class BrevoApi {
 
   // Sends a message to an existing Brevo conversation
   async sendMessage(text: string, brevoConversationId: string) {
-    let message = `*Botpress User (${brevoConversationId})*: ${text}`
+    const message = `*Botpress User (${brevoConversationId})*: ${text}`
     const payload: any = {
       visitorId: brevoConversationId,
       text: message,

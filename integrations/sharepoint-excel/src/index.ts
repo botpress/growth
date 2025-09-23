@@ -170,7 +170,7 @@ export default new bp.Integration({
             logger.forBot().debug(`Looking for existing table named: "${tableNameForSheet}"`)
             const listTablesResponse = await axios.get(apiBaseUrl, { headers: httpHeaders })
             const existingTables = listTablesResponse.data.tables || []
-            let foundTable = existingTables.find((t: { id: string; name: string }) => t.name === tableNameForSheet)
+            const foundTable = existingTables.find((t: { id: string; name: string }) => t.name === tableNameForSheet)
 
             if (foundTable) {
               tableId = foundTable.id

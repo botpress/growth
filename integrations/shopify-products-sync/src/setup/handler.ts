@@ -35,7 +35,7 @@ export const handler: HandlerFunction = async ({ req, logger, client, ctx }) => 
         logger.forBot().error(`Error creating new row for product ${product.id}: ${error}`)
       }
 
-      let parsedPayload = productCreatedSchema.parse(product)
+      const parsedPayload = productCreatedSchema.parse(product)
 
       try {
         await client.createEvent({
@@ -56,7 +56,7 @@ export const handler: HandlerFunction = async ({ req, logger, client, ctx }) => 
         logger.forBot().error(`Error deleting row for product ${payload.id}: ${error}`)
       }
 
-      let parsedPayload = productDeletedSchema.parse(payload)
+      const parsedPayload = productDeletedSchema.parse(payload)
 
       try {
         await client.createEvent({
@@ -84,7 +84,7 @@ export const handler: HandlerFunction = async ({ req, logger, client, ctx }) => 
         logger.forBot().error(`Error creating new row for product ${product.id}: ${error}`)
       }
 
-      let parsedPayload = productUpdatedSchema.parse(product)
+      const parsedPayload = productUpdatedSchema.parse(product)
 
       try {
         await client.createEvent({

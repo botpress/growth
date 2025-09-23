@@ -24,7 +24,7 @@ export const channels = {
         logger.forBot().info(`[HITL Channel - text msg] Text payload: "${text}"`)
         logger.forBot().info(`[HITL Channel - text msg] User ID: ${user.id}`)
 
-        let brevoConversationId = conversation.tags.id
+        const brevoConversationId = conversation.tags.id
         if (!brevoConversationId) {
           logger.forBot().error('No conversationId found in conversation tags')
           return

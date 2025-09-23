@@ -1,5 +1,5 @@
 import { getClient } from '../client'
-import { getOpportunityInputSchema, getOpportunityOutputSchema } from '../misc/custom-schemas'
+import { getOpportunityInputSchema } from '../misc/custom-schemas'
 import type { Implementation } from '../misc/types'
 
 export const getOpportunity: Implementation['actions']['getOpportunity'] = async ({ ctx, client, logger, input }) => {

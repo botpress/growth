@@ -1,5 +1,5 @@
 import { getClient } from '../client'
-import { updateOpportunityStatusInputSchema, updateOpportunityStatusOutputSchema } from '../misc/custom-schemas'
+import { updateOpportunityStatusInputSchema } from '../misc/custom-schemas'
 import type { Implementation } from '../misc/types'
 
 export const updateOpportunityStatus: Implementation['actions']['updateOpportunityStatus'] = async ({

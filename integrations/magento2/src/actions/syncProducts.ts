@@ -282,7 +282,7 @@ export async function executeSyncProducts({ ctx, input, logger }: { ctx: any; in
       log.info(`Setting up Botpress table: ${table_name}`)
       const listTablesResponse = await apiCallWithRetry(() => axios.get(apiBaseUrl, { headers: httpHeaders }), log)
       const existingTables = listTablesResponse.data.tables || []
-      let foundTable = existingTables.find((t: { id: string; name: string }) => t.name === table_name)
+      const foundTable = existingTables.find((t: { id: string; name: string }) => t.name === table_name)
 
       if (!foundTable) {
         log.info(`Table ${table_name} not found. Creating it.`)

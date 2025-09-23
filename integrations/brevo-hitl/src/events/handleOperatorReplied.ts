@@ -1,5 +1,4 @@
 import * as bp from '.botpress'
-import { BrevoApi } from 'src/client'
 import { brevoConversationFragmentEventSchema } from 'src/definitions/brevo-schemas'
 import { z } from 'zod'
 
@@ -42,7 +41,7 @@ export const handleOperatorReplied = async ({
   })
 
   let agentId = brevoEvent.agents[0]?.id
-  let message = brevoEvent.messages[0]?.text
+  const message = brevoEvent.messages[0]?.text
 
   // Additional validation for agent and message content
   if (!agentId) {

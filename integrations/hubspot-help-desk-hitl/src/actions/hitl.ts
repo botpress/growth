@@ -134,10 +134,10 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
     }
 
     const trimmedEmail = email.trim()
-    let userInfoPayload: { name: string; phoneNumber?: string; email?: string; [key: string]: any } = {
+    const userInfoPayload: { name: string; phoneNumber?: string; email?: string; [key: string]: any } = {
       name: name,
     }
-    let userTags: { email?: string; phoneNumber?: string; [key: string]: any } = {}
+    const userTags: { email?: string; phoneNumber?: string; [key: string]: any } = {}
 
     if (trimmedEmail.includes('@')) {
       logger.forBot().info(`Input '${trimmedEmail}' identified as an email address.`)

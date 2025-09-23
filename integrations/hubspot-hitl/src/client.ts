@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 import * as bp from '.botpress'
 
 // Rate limiting and retry utilities

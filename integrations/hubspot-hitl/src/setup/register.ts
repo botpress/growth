@@ -29,7 +29,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     // Retry loop with exponential backoff (up to 1 minute)
     let channelExists = false
     let attempt = 0
-    let maxAttempts = 6 // 1s, 2s, 4s, 8s, 16s, 32s = total ~63s
+    const maxAttempts = 6 // 1s, 2s, 4s, 8s, 16s, 32s = total ~63s
 
     while (attempt < maxAttempts) {
       const channels = await hubspotClient.getCustomChannels()
@@ -47,7 +47,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       attempt++
     }
 
-    let connectChannel = await hubspotClient.connectCustomChannel(newChannelId, ctx.configuration.inboxId, channelName)
+    const connectChannel = await hubspotClient.connectCustomChannel(newChannelId, ctx.configuration.inboxId, channelName)
     logger.forBot().info('Connected new custom channel to inbox.')
 
     // Save channelId to integration state

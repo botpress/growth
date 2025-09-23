@@ -6,7 +6,7 @@ export const handleOperatorAssignedUpdate = async ({
   hubSpotClient,
   logger,
 }: OperatorAssignedUpdateParams) => {
-  let threadInfo: ThreadInfo = await hubSpotClient.getThreadInfo(hubspotEvent.objectId)
+  const threadInfo: ThreadInfo = await hubSpotClient.getThreadInfo(hubspotEvent.objectId)
 
   // Get the contact ID and determine if we need email or phone
   const contactId = threadInfo.associatedContactId

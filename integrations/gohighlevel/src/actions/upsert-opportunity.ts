@@ -1,5 +1,5 @@
 import { getClient } from '../client'
-import { upsertOpportunityInputSchema, upsertOpportunityOutputSchema } from '../misc/custom-schemas'
+import { upsertOpportunityInputSchema } from '../misc/custom-schemas'
 import type { Implementation } from '../misc/types'
 
 export const upsertOpportunity: Implementation['actions']['upsertOpportunity'] = async ({

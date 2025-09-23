@@ -4,7 +4,6 @@ import { IntegrationLogger } from '@botpress/sdk'
 
 const logger = new IntegrationLogger()
 
-import sdk, { z } from '@botpress/sdk'
 
 export class GoHighLevelApi {
   private accessToken: string
@@ -77,7 +76,7 @@ export class GoHighLevelApi {
       if (method !== 'GET' && method !== 'DELETE') {
         headers['Content-Type'] = 'application/json'
       }
-      let params = paramString ? JSON.parse(paramString) : {}
+      const params = paramString ? JSON.parse(paramString) : {}
       const response = await axios({
         method,
         url: `${this.baseUrl}${endpoint}`,

@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios'
+import { AxiosError } from 'axios'
 export const handleAxiosError = (error: AxiosError) => {
   // Handle the error
   if (error.response) {

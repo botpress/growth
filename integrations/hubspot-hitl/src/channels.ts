@@ -1,4 +1,3 @@
-import { conversation } from '@botpress/sdk'
 import * as bp from '../.botpress'
 import { getClient } from './client'
 

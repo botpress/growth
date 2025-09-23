@@ -1,5 +1,4 @@
 import * as bp from '.botpress'
-import { BrevoApi } from 'src/client'
 import { brevoConversationTranscriptEventSchema } from 'src/definitions/brevo-schemas'
 import { z } from 'zod'
 

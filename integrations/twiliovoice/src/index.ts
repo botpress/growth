@@ -2,7 +2,7 @@ import * as bp from '.botpress';
 import * as bpclient from '@botpress/client';
 import handleIncoming from './handleIncoming';
 import handleOutgoing from './handleOutgoing';
-import { Twilio, twiml } from 'twilio';
+import { Twilio } from 'twilio';
 
 const integration = new bp.Integration({
   register: async ({ ctx, logger }) => {

@@ -1,7 +1,6 @@
 import { getClient } from 'src/client'
 import * as bpclient from '@botpress/client'
 import type { RegisterFunction } from '../misc/types'
-import { Credentials } from '.botpress/implementation/typings/states/credentials'
 
 export const register: RegisterFunction = async ({ ctx, client, logger }) => {
   try {

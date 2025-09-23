@@ -15,7 +15,7 @@ export type TriggerPayload = {
 // https://developer.salesforce.com/docs/service/messaging-api/references/about/server-sent-events-structure.html
 
 export type RawMessagingTrigger = {
-  raw: String
+  raw: string
 }
 
 export type UndefinedMessagingTrigger = {
