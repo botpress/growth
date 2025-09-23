@@ -37,7 +37,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
   }
 
   try {
-    const googleClient = getClient(ctx)
+    getClient(ctx)
     const spaceId = event.space.name.replace('spaces/', '')
 
     // Get or create conversation

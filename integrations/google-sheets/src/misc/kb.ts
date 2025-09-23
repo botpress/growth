@@ -44,7 +44,7 @@ const createDeleteBatchProcessor = (client: bp.Client, timeoutMs: number = 11000
       try {
         await client.deleteFile({ id: file.id })
         return
-      } catch (e) {
+      } catch {
         if (attempt === retries - 1) throw new sdk.RuntimeError('Failed to delete file after retries')
         await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 500))
       }

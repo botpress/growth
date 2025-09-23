@@ -20,7 +20,7 @@ const integration = new bp.Integration({
     }
     try {
       new Twilio(ctx.configuration.accountSID, ctx.configuration.authToken);
-    } catch (e) {
+    } catch {
       throw new bpclient.RuntimeError('Configuration error! Failed to verify accountSID and authToken');
     }
   },

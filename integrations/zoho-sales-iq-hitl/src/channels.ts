@@ -14,7 +14,7 @@ export const channels = {
           client
         )
 
-        const { text: userMessage, userId } = props.payload
+        const { text: userMessage } = props.payload
 
         const zohoConversationId = conversation.tags.id
 

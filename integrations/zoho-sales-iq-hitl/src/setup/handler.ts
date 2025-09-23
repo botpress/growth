@@ -4,7 +4,7 @@ import { handleOperatorAssignedUpdate } from 'src/events/operatorAssignedUpdate'
 import { handleConversationMissed } from 'src/events/operatorConversationMissed'
 import { handleOperatorReplied } from 'src/events/operatorSendMessage'
 
-export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger, client }) => {
+export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, client }) => {
   if (!req.body) {
     logger.forBot().warn('Handler received an empty body')
     return

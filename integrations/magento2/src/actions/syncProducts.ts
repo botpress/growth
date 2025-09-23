@@ -655,7 +655,7 @@ async function processProducts(
             }, 0)
             averageRating = Math.round((totalRating / reviewCount) * 10) / 10
           }
-        } catch (e) {
+        } catch {
           logger.warn(`Could not fetch reviews for product ${product.sku}`)
         }
       }

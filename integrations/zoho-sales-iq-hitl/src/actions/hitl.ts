@@ -50,7 +50,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
   }
 }
 
-export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx, input, client, logger }) => {
+export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx, input, client }) => {
   const { conversation } = await client.getConversation({
     id: input.conversationId,
   })

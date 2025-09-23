@@ -285,7 +285,7 @@ export default new bp.Integration({
                 try {
                   const tableDetailsResponse = await axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders })
                   tableSchema = tableDetailsResponse.data.table?.schema
-                } catch (error) {
+                } catch {
                   logger.forBot().warn('Could not fetch table schema, will use string types for all columns')
                 }
               }

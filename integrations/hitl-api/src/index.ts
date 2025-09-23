@@ -14,7 +14,6 @@ const sendRawPayload = async ({
   payload,
   conversation,
   ctx,
-  user,
 }: {
   client: any
   payload: any

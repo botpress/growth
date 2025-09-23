@@ -4,7 +4,7 @@ import { getClient } from './client'
 export const channels = {
   text: {
     messages: {
-      text: async ({ client, ctx, conversation, logger, payload }) => {
+      text: async ({ ctx, conversation, logger, payload }) => {
         const { spaceId } = conversation.tags
 
         if (!spaceId) {

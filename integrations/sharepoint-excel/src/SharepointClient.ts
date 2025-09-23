@@ -182,7 +182,7 @@ export class SharepointClient {
           } else {
             detailedErrorMessage += ` Details: ${errorDataStr}`
           }
-        } catch (parseError) {
+        } catch {
           detailedErrorMessage += ` Raw Error Details: ${Buffer.isBuffer(errorData) ? errorData.toString() : String(errorData)}`
         }
       } else if (error.message && !status) {

@@ -4,7 +4,7 @@ import type { RegisterFunction } from '../misc/types'
 
 export const register: RegisterFunction = async ({ ctx, client, logger }) => {
   try {
-    const goHighLevelClient = getClient(
+    getClient(
       ctx.configuration.accessToken,
       ctx.configuration.refreshToken,
       ctx.configuration.clientId,

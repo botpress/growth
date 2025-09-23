@@ -88,13 +88,13 @@ export const closeConversation = async ({
       accessToken,
       sseKey: conversation.tags.transportKey,
       conversationId: conversation.tags.id,
-    },
+    }
   )
 
   // Conversation could already be closed on Salesforce, ignore errors
   try {
     await salesforceClient.closeConversation()
-  } catch (e) {}
+  } catch {}
 
   await salesforceClient.stopSSE(conversation.tags.transportKey as string)
 }

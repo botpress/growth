@@ -122,7 +122,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({}) =
   return {}
 }
 
-export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, ctx, logger }) => {
+export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, logger }) => {
   try {
     // The 'email' input field can accept either an email address or a phone number.
     const { name = 'None', email = 'None', pictureUrl = 'None' } = input

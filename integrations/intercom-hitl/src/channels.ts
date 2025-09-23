@@ -134,7 +134,7 @@ export const channels = {
             userMessage,
             videoUrl ? [videoUrl] : undefined
           )
-        } catch (err) {
+        } catch {
           props.logger.forBot().warn('Video attachment failed, falling back to plain URL text')
           return await intercomClient.replyToConversation(
             intercomConversationId,
@@ -155,7 +155,7 @@ export const channels = {
             userMessage,
             audioUrl ? [audioUrl] : undefined
           )
-        } catch (err) {
+        } catch {
           props.logger.forBot().warn('Audio attachment failed, falling back to plain URL text')
           return await intercomClient.replyToConversation(
             intercomConversationId,

@@ -33,7 +33,7 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, logger })
   }
 }
 
-export const unregister: bp.IntegrationProps['unregister'] = async ({ ctx }) => {
+export const unregister: bp.IntegrationProps['unregister'] = async () => {
   // Nothing to clean up
 }
 
