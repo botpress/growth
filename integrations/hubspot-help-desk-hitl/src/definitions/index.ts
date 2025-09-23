@@ -11,13 +11,13 @@ export const configuration = {
 
 export const states = {
   credentials: {
-    type: "integration",
+    type: 'integration',
     schema: z.object({
       accessToken: z.string(),
     }),
   },
   userInfo: {
-    type: "user",
+    type: 'user',
     schema: z.object({
       phoneNumber: z.string().optional(),
       name: z.string(),
@@ -25,12 +25,12 @@ export const states = {
     }),
   },
   channelInfo: {
-    type: "integration",
+    type: 'integration',
     schema: z.object({
       channelId: z.string(),
       channelAccountId: z.string(),
-    })
-  }
+    }),
+  },
 } satisfies IntegrationDefinitionProps['states']
 
 export const user = {

@@ -1,6 +1,6 @@
 import * as bp from '.botpress'
-import { ShopifyClient } from "../client"
-import { ShopifyProduct } from "../schemas/products"
+import { ShopifyClient } from '../client'
+import { ShopifyProduct } from '../schemas/products'
 import { stripHtmlTags } from './utils'
 
 export async function fetchAllProducts(shopifyClient: ShopifyClient, logger: bp.Logger) {
@@ -23,7 +23,7 @@ export async function fetchAllProducts(shopifyClient: ShopifyClient, logger: bp.
   return allProducts
 }
 
-export function buildProduct(body: any): ShopifyProduct   {
+export function buildProduct(body: any): ShopifyProduct {
   return {
     id: body.id,
     title: body.title,
@@ -45,7 +45,9 @@ export function buildProduct(body: any): ShopifyProduct   {
     image: body.image,
     media: body.media,
     variant_gids: body.variant_gids,
-    has_variants_that_requires_components: body.has_variants_that_requires_components ? body.has_variants_that_requires_components : false,
+    has_variants_that_requires_components: body.has_variants_that_requires_components
+      ? body.has_variants_that_requires_components
+      : false,
     category: body.category ? body.category : null,
   }
 }

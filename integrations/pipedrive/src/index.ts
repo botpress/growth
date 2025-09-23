@@ -1,4 +1,4 @@
-import actions from './actions' 
+import actions from './actions'
 import * as bp from '.botpress'
 import { validateCredentials } from './auth'
 import { getErrorMessage } from './utils/error-handler'
@@ -20,9 +20,9 @@ export const unregister: bp.IntegrationProps['unregister'] = async ({ logger }) 
 }
 
 export default new bp.Integration({
-  register,   
+  register,
   unregister,
-  actions, 
+  actions,
   channels: {},
   handler: async () => {},
 })

@@ -1,8 +1,8 @@
 export interface Semaphore {
-  running: number;
-  queue: Array<() => void>;
-  acquire(): Promise<void>;
-  release(): void;
+  running: number
+  queue: Array<() => void>
+  acquire(): Promise<void>
+  release(): void
 }
 
 export const createSemaphore = (maxConcurrent: number): Semaphore => {
@@ -11,14 +11,14 @@ export const createSemaphore = (maxConcurrent: number): Semaphore => {
     queue: [],
     async acquire() {
       if (this.running >= maxConcurrent) {
-        await new Promise<void>((resolve) => this.queue.push(resolve));
+        await new Promise<void>((resolve) => this.queue.push(resolve))
       }
-      this.running++;
+      this.running++
     },
     release() {
-      this.running--;
-      const next = this.queue.shift();
-      if (next) next();
+      this.running--
+      const next = this.queue.shift()
+      if (next) next()
     },
-  };
-};
+  }
+}

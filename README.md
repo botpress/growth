@@ -25,6 +25,7 @@ flowchart TD
 ```
 
 ### Runtime Interaction (example: Google Chat Spaces)
+
 ```mermaid
 sequenceDiagram
   participant User
@@ -41,13 +42,16 @@ sequenceDiagram
 ## Process Breakdown
 
 ### bp-integration-runner
+
 Runs a local integration with live reload and updates its URL in Botpress. Environment variables are loaded from `.env` and checked for required keys `BOTPRESS_PAT` and `BOTPRESS_WORKSPACE_ID` as shown in the script.
 Entry point: [`bp-integration-runner/run.js`](bp-integration-runner/run.js).
 
 ### Integrations
+
 Each folder under `integrations/` is a standalone package. The entry file is `src/index.ts` and configuration schema is defined in `integration.definition.ts`. For example, the Google Chat Spaces integration expects a service account JSON and a default space ID in its configuration【F:integrations/google-chat-spaces/integration.definition.ts†L1-L18】.
 
 ### Advanced Starter Bot Template
+
 A ready‑to‑use bot showcasing techniques such as event tracking, loading user data and live agent handoff. See the topics covered in its README【F:advanced-starter-bot-template/README.md†L1-L17】.
 
 ## Integration Development

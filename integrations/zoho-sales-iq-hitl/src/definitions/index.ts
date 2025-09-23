@@ -10,19 +10,19 @@ export const configuration = {
 } satisfies IntegrationDefinitionProps['configuration']
 
 export const states = {
-    credentials: {
-      type: "integration",
-      schema: z.object({
-        accessToken: z.string(),
-      }),
-    },
-    userInfo: {
-      type: "integration",
-      schema: z.object({
-        email: z.string(),
-        name: z.string(),
-      })
-    }
+  credentials: {
+    type: 'integration',
+    schema: z.object({
+      accessToken: z.string(),
+    }),
+  },
+  userInfo: {
+    type: 'integration',
+    schema: z.object({
+      email: z.string(),
+      name: z.string(),
+    }),
+  },
 } satisfies IntegrationDefinitionProps['states']
 
 export const user = {

@@ -29,22 +29,26 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
     secret: access_token_secret,
   }
 
-  let filtersInput = (input as any).searchCriteria;
-  
+  let filtersInput = (input as any).searchCriteria
+
   if (typeof filtersInput === 'string') {
     logger.forBot().info('Input is a string, attempting to parse as JSON')
     try {
-      filtersInput = JSON.parse(filtersInput);
+      filtersInput = JSON.parse(filtersInput)
       logger.forBot().info(`Successfully parsed JSON input: ${JSON.stringify(filtersInput)}`)
     } catch (err) {
       logger.forBot().error(`Failed to parse JSON input: ${err}`)
-      return { result: { items: [], search_criteria: {}, total_count: 0 }, error: 'Invalid JSON input', details: input };
+      return { result: { items: [], search_criteria: {}, total_count: 0 }, error: 'Invalid JSON input', details: input }
     }
   }
 
   if (!Array.isArray(filtersInput)) {
     logger.forBot().error(`Input is not an array: ${typeof filtersInput}`)
-    return { result: { items: [], search_criteria: {}, total_count: 0 }, error: 'Input must be an array of filters', details: filtersInput };
+    return {
+      result: { items: [], search_criteria: {}, total_count: 0 },
+      error: 'Input must be an array of filters',
+      details: filtersInput,
+    }
   }
 
   logger.forBot().info(`Processing ${filtersInput.length} filters`)
@@ -52,7 +56,7 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
 
   let filterCriteria = ''
   try {
-    const filters = filtersInput;
+    const filters = filtersInput
     if (Array.isArray(filters)) {
       logger.forBot().info(`Building filter criteria for ${filters.length} filters`)
       const filterGroups: string[] = []
@@ -81,18 +85,26 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
     }
   } catch (err) {
     logger.forBot().error(`Error building filter criteria: ${err}`)
-    return { result: { items: [], search_criteria: {}, total_count: 0 }, error: 'Invalid filter array', details: err instanceof Error ? err.message : err };
+    return {
+      result: { items: [], search_criteria: {}, total_count: 0 },
+      error: 'Invalid filter array',
+      details: err instanceof Error ? err.message : err,
+    }
   }
 
   logger.forBot().info(`Final filterCriteria: ${filterCriteria}`)
 
   if (!filterCriteria) {
     logger.forBot().error('No filter criteria generated')
-    return { result: { items: [], search_criteria: {}, total_count: 0 }, error: 'Invalid or unsupported filter array', details: filtersInput };
+    return {
+      result: { items: [], search_criteria: {}, total_count: 0 },
+      error: 'Invalid or unsupported filter array',
+      details: filtersInput,
+    }
   }
 
-  const searchCriteriaString = filterCriteria;
-  const url = `https://${magento_domain}/rest/${store_code}/V1/products?${searchCriteriaString}`;
+  const searchCriteriaString = filterCriteria
+  const url = `https://${magento_domain}/rest/${store_code}/V1/products?${searchCriteriaString}`
 
   logger.forBot().info(`Constructed API URL: ${url}`)
 
@@ -115,15 +127,19 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
   }
 
   logger.forBot().info(`Making API request to: ${url}`)
-  
+
   try {
     logger.forBot().info('Sending HTTP request...')
     const response = await axios(config)
     logger.forBot().info(`API response received - Status: ${response.status}`)
     logger.forBot().info(`Response data: ${typeof response.data}`)
-    
+
     if (response.data && typeof response.data === 'object') {
-      logger.forBot().info(`Response has ${Object.keys(response.data).length} top-level keys: ${Object.keys(response.data).join(', ')}`)
+      logger
+        .forBot()
+        .info(
+          `Response has ${Object.keys(response.data).length} top-level keys: ${Object.keys(response.data).join(', ')}`
+        )
       if (response.data.items) {
         logger.forBot().info(`Found ${response.data.items.length} products in response`)
       }
@@ -138,7 +154,11 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
     } catch (err) {
       logger.forBot().error(`Zod validation failed: ${err}`)
       logger.forBot().error(`Raw response data: ${JSON.stringify(response.data)}`)
-      return { result: { items: [], search_criteria: {}, total_count: 0 }, error: 'Invalid product list response', details: err instanceof Error ? err.message : err }
+      return {
+        result: { items: [], search_criteria: {}, total_count: 0 },
+        error: 'Invalid product list response',
+        details: err instanceof Error ? err.message : err,
+      }
     }
   } catch (error) {
     logger.forBot().error(`API request failed: ${error}`)
@@ -148,6 +168,9 @@ export const getProducts: bp.IntegrationProps['actions']['getProducts'] = async 
       logger.forBot().error(`Request URL: ${error.config?.url}`)
     }
     logger.forBot().error(`API request failed: ${error}`)
-    return { result: { items: [], search_criteria: {}, total_count: 0 }, error: error instanceof Error ? error.message : 'Unknown error' }
+    return {
+      result: { items: [], search_criteria: {}, total_count: 0 },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
   }
 }

@@ -66,23 +66,23 @@ export const executeOnParticipantChanged = async ({
               accessToken,
               sseKey: conversation.tags.transportKey,
               conversationId: conversation.tags.id,
-            }
+            },
           )
 
           const routingStatus = await salesforceClient.getConversationRoutingStatus()
-          
+
           // Handle different routing statuses
           if (routingStatus.routingStatus === ROUTING_STATUS.TRANSFER) {
             // Agent was transferred, check if transfer message is configured
             const transferMessage = (ctx.configuration as SFMessagingConfig).transferMessage
-            
+
             if (transferMessage?.trim()) {
               // Send transfer message to user if configured
               logger.forBot().info('Agent removed due to transfer, sending transfer message', {
                 conversationId: conversation.id,
                 routingStatus: routingStatus.routingStatus,
               })
-              
+
               // Create a system user to send the transfer message
               const { user: systemUser } = await client.getOrCreateUser({
                 name: 'System',
@@ -90,7 +90,7 @@ export const executeOnParticipantChanged = async ({
                   id: conversation.id,
                 },
               })
-              
+
               // Send transfer message to user
               await client.createMessage({
                 tags: {},
@@ -110,7 +110,7 @@ export const executeOnParticipantChanged = async ({
             }
             return
           }
-          
+
           if (routingStatus.routingStatus === ROUTING_STATUS.NEEDS_ROUTING) {
             // Agent ended chat, close conversation
             logger.forBot().info('Agent removed with NEEDS_ROUTING status, closing conversation', {
@@ -126,7 +126,7 @@ export const executeOnParticipantChanged = async ({
           // This ensures backward compatibility and prevents conversations from getting stuck
           logger.forBot().warn('Failed to check routing status, proceeding with conversation close', error)
         }
-        
+
         await closeConversation({ conversation, ctx, client, logger })
         return
       case 'add':
@@ -153,7 +153,7 @@ export const executeOnParticipantChanged = async ({
             assignedAt: new Date().toISOString(),
             transportKey: conversation.tags.transportKey,
             id: conversation.tags.id,
-            closedAt: conversation.tags.closedAt
+            closedAt: conversation.tags.closedAt,
           },
         })
 

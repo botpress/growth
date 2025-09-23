@@ -86,7 +86,6 @@ This guide walks you through the creation and configuration of a LiveChat app vi
 - Set the **Webhook URL** to your **Botpress LiveChat integration webhook URL**
 - **Generate a secret key** and use the same key in your Botpress config
 - Set the following:
-
   - **Type**: `license`
   - **Trigger**: `incoming_event`
   - **Filter**: `author_type = agent`
@@ -98,7 +97,6 @@ This guide walks you through the creation and configuration of a LiveChat app vi
 - Add another **Chat Webhooks** block
 - Use the **same webhook URL** and **secret key**
 - Set:
-
   - **Trigger**: `chat_deactivated`
   - **Type**: `license`
 
@@ -109,7 +107,6 @@ This guide walks you through the creation and configuration of a LiveChat app vi
 - Add one more **Chat Webhooks** block
 - Use the **same webhook URL** and **secret key**
 - Set:
-
   - **Trigger**: `chat_transferred`
   - **Type**: `license`
 

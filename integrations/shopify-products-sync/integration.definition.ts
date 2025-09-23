@@ -11,5 +11,5 @@ export default new IntegrationDefinition({
   configuration,
   actions,
   states,
-  events
+  events,
 })

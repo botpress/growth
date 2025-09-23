@@ -22,6 +22,7 @@ Easily receive and automate Zoom meeting transcripts in Botpress for meetings ho
 ## Prerequisites
 
 You must be:
+
 - A Zoom **account owner**, **admin**, or have the **“Zoom for Developers” role** to be able to create the Zoom OAuth App
 - On a **Zoom premium plan** (free tier doesn't support cloud recordings)
 
@@ -43,9 +44,9 @@ You’ll use these in your Botpress integration configuration later.
 - In **Information**, fill out the necessary information about yourself and the app.
 - In **Features**, copy the **Secret Token**
 - In **Scopes**, add:
-cloud_recording:read:list_user_recordings:admin
-cloud_recording:read:list_recording_files:admin
-cloud_recording:read:recording:admin
+  cloud_recording:read:list_user_recordings:admin
+  cloud_recording:read:list_recording_files:admin
+  cloud_recording:read:recording:admin
 
 - Activate the app under the **Activation** tab
 
@@ -54,14 +55,14 @@ cloud_recording:read:recording:admin
 You can find your Zoom `host_id` directly from the Zoom web portal.
 
 #### Steps:
+
 1. Log in to your Zoom account and navigate to:  
-   **Zoom Admin Panel > User Management > Users**  
+   **Zoom Admin Panel > User Management > Users**
 
 2. Click on the name of the user you want to get the `host_id` for.
 
 3. Look at the URL in your browser's address bar. It will be in this format:
-https://yourdomain.zoom.us/user/xxxxxxxxxxxxx/profile you want to copy the xxxxxxxxxxxxx as that is your host_id
-
+   https://yourdomain.zoom.us/user/xxxxxxxxxxxxx/profile you want to copy the xxxxxxxxxxxxx as that is your host_id
 
 ---
 
@@ -97,7 +98,7 @@ Back in your Zoom OAuth App:
 
 ---
 
-## Done! 
+## Done!
 
 Your Botpress bot will now receive transcripts for allowed Zoom users when cloud recordings complete. Make sure:
 

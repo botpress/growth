@@ -13,7 +13,7 @@ const htmlToFormattedText = (html: string): string => {
 export const handleIncomingReply = async (
   payload: typeof adminRepliedEventSchema._type,
   logger: bp.Logger,
-  client: bp.Client,
+  client: bp.Client
 ): Promise<void> => {
   const conversationId = payload.data.item.id
   const conversationParts = (payload.data.item.conversation_parts as { conversation_parts: any[] }).conversation_parts
@@ -68,4 +68,4 @@ export const handleIncomingReply = async (
     adminUserId: adminUser?.id,
     replyText,
   })
-} 
+}

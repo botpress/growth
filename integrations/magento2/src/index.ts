@@ -8,10 +8,17 @@ import OAuth from 'oauth-1.0a'
 export default new bp.Integration({
   register: async ({ ctx, logger }) => {
     logger.forBot().info('Registering Magento2 integration')
-    
+
     try {
-      const { magento_domain, consumer_key, consumer_secret, access_token, access_token_secret, user_agent, store_code } =
-        ctx.configuration
+      const {
+        magento_domain,
+        consumer_key,
+        consumer_secret,
+        access_token,
+        access_token_secret,
+        user_agent,
+        store_code,
+      } = ctx.configuration
 
       const oauth = new OAuth({
         consumer: {
@@ -45,12 +52,12 @@ export default new bp.Integration({
         headers: {
           ...authHeader,
           'User-Agent': user_agent || 'Botpress-Magento2-Integration',
-          'accept': 'application/json',
+          accept: 'application/json',
         },
       }
 
       const response = await axios(config)
-      
+
       if (response.status === 200) {
         logger.forBot().info('Magento2 configuration validation successful')
         logger.forBot().debug('Currency endpoint response:', response.data)
@@ -75,17 +82,33 @@ export default new bp.Integration({
   handler: async ({ req, logger, ctx }) => {
     try {
       if (!req.body) {
-        logger.forBot().error(`Request body is missing. Bot: ${ctx.botId}, Integration: ${ctx.integrationId}. The incoming request did not contain a body. Request details: ${JSON.stringify(req)}`);
-        return;
+        logger
+          .forBot()
+          .error(
+            `Request body is missing. Bot: ${ctx.botId}, Integration: ${ctx.integrationId}. The incoming request did not contain a body. Request details: ${JSON.stringify(req)}`
+          )
+        return
       }
 
-      const body = JSON.parse(req.body);
+      const body = JSON.parse(req.body)
 
       if (body.type === 'magentoSyncContinue') {
         logger.forBot().info(`Magento sync continue event received: ${JSON.stringify(body)}`)
 
         try {
-          const { table_name, custom_attributes, filters_json, _currentPage, _totalCount, _tableId, _runId, _customAttributeCodes, _attributeMappings, _filterCriteria, _currentPageProductIndex } = body.data
+          const {
+            table_name,
+            custom_attributes,
+            filters_json,
+            _currentPage,
+            _totalCount,
+            _tableId,
+            _runId,
+            _customAttributeCodes,
+            _attributeMappings,
+            _filterCriteria,
+            _currentPageProductIndex,
+          } = body.data
           const result = await executeSyncProducts({
             ctx,
             input: {
@@ -103,7 +126,7 @@ export default new bp.Integration({
             },
             logger,
           })
-          
+
           logger.forBot().info(`Sync result: ${JSON.stringify(result)}`)
         } catch (error) {
           logger.forBot().error(`Error syncing products: ${error}`)

@@ -58,12 +58,11 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     try {
       routingAttributesObj = JSON.parse(input.hitlSession?.routingAttributes || '{}')
-      logger.forBot().debug(`Will use custom routing attributes: ${JSON.stringify({routingAttributesObj})}`)
+      logger.forBot().debug(`Will use custom routing attributes: ${JSON.stringify({ routingAttributesObj })}`)
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(String(thrown))
       logger.forBot().warn('Failed to parse routing attributes, using empty object: ' + err.message)
     }
-
 
     const name = (splitName?.length && splitName[0]) || 'Anon'
 
@@ -71,8 +70,8 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       _firstName: name,
       firstName: name, //backwards compatibility
       _lastName: (splitName && splitName?.length > 1 && splitName[splitName.length]) || '',
-      _email: user.tags?.email  || 'anon@email.com',
-      ...routingAttributesObj
+      _email: user.tags?.email || 'anon@email.com',
+      ...routingAttributesObj,
     })
 
     await client.createEvent({
