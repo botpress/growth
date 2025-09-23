@@ -13,17 +13,3 @@ export default new IntegrationDefinition({
   configuration,
   actions,
 })
-
-//   {
-//     schema: z.object({
-//       apiKey: z.string().describe('Your Apollo.io API Key'),
-//     }),
-//   },
-//   actions: {
-//     createContact: createContactSchema,
-//     updateContact: updateContactSchema,
-//     searchContact: searchContactSchema,
-//     enrichPerson: enrichPersonSchema,
-//     bulkEnrichPeople: bulkEnrichPeopleSchema,
-//   },
-// })
