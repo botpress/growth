@@ -1,3 +1,6 @@
+import OAuth from "oauth-1.0a";
+import { Table } from "@botpress/client";
+
 export interface MagentoConfiguration {
   magento_domain: string;
   consumer_key: string;
@@ -98,8 +101,6 @@ export interface BotpressContext {
 }
 
 // OAuth interfaces
-import OAuth from "oauth-1.0a";
-
 export type OAuthClient = OAuth;
 export type OAuthToken = OAuth.Token;
 
@@ -142,11 +143,8 @@ export interface ReviewRating {
   value: string;
 }
 
-// Table schema interfaces
-export interface TableSchema {
-  type: string;
-  properties: Record<string, TableProperty>;
-}
+// Use the schema type from the client
+export type TableSchema = Table["schema"];
 
 export interface TableProperty {
   type: string;

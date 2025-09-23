@@ -1,10 +1,6 @@
 import axios from "axios";
+import { Client, Table } from "@botpress/client";
 import * as bp from ".botpress";
-import {
-  TableSchema,
-  TableResponse,
-  TablesListResponse,
-} from "../types/botpress";
 import {
   AttributeMapping,
   ColumnNameMapping,
@@ -62,71 +58,54 @@ export async function createOrGetTable(
   apiBaseUrl: string,
   httpHeaders: Record<string, string>,
   log: bp.Logger
-): Promise<{ tableId: string; tableSchema: TableSchema }> {
-  const listTablesResponse = await apiCallWithRetry(
-    () => axios.get<TablesListResponse>(apiBaseUrl, { headers: httpHeaders }),
-    log
-  );
-  const existingTables = listTablesResponse.data.tables || [];
-  let foundTable = existingTables.find(
-    (t: { id: string; name: string }) => t.name === tableName
-  );
+): Promise<{ tableId: string; tableSchema: Table["schema"] }> {
+  const bpClient = new Client({
+    apiUrl: apiBaseUrl,
+    headers: httpHeaders,
+  });
 
-  if (!foundTable) {
-    log.info(`Table ${tableName} not found. Creating it.`);
-    const defaultProperties: Record<string, { type: string }> = {
-      sku: { type: "string" },
-      name: { type: "string" },
-      description: { type: "string" },
-      price: { type: "number" },
-      original_price: { type: "number" },
-      currency: { type: "string" },
-      image_url: { type: "string" },
-      thumbnail_url: { type: "string" },
-      stock_qty: { type: "number" },
-      is_in_stock: { type: "boolean" },
-      average_rating: { type: "number" },
-      review_count: { type: "number" },
-    };
+  const defaultPropertiesTemplate: Record<string, { type: string }> = {
+    sku: { type: "string" },
+    name: { type: "string" },
+    description: { type: "string" },
+    price: { type: "number" },
+    original_price: { type: "number" },
+    currency: { type: "string" },
+    image_url: { type: "string" },
+    thumbnail_url: { type: "string" },
+    stock_qty: { type: "number" },
+    is_in_stock: { type: "boolean" },
+    average_rating: { type: "number" },
+    review_count: { type: "number" },
+  };
 
-    for (const attrCode of customAttributeCodes) {
-      const shortName = shortenColumnName(attrCode);
-      defaultProperties[shortName] = { type: "string" };
-    }
+  const properties = { ...defaultPropertiesTemplate };
 
-    if (Object.keys(defaultProperties).length > 20) {
-      throw new Error(
-        `Too many columns: ${Object.keys(defaultProperties).length}. Max is 20.`
-      );
-    }
+  for (const attrCode of customAttributeCodes) {
+    const shortName = shortenColumnName(attrCode);
+    properties[shortName] = { type: "string" };
+  }
 
-    const createTablePayload = {
-      name: tableName,
-      schema: { type: "object", properties: defaultProperties },
-    };
-    const createTableResponse = await apiCallWithRetry(
-      () =>
-        axios.post<TableResponse>(apiBaseUrl, createTablePayload, {
-          headers: httpHeaders,
-        }),
-      log
+  if (Object.keys(properties).length > 20) {
+    throw new Error(
+      `Too many columns: ${Object.keys(properties).length}. Max is 20.`
     );
-    const tableId = createTableResponse.data.table.id;
-    const tableSchema = createTableResponse.data.table.schema;
-    log.info(`Table ${tableName} created with ID: ${tableId}`);
+  }
+
+  try {
+    const response = await bpClient.getOrCreateTable({
+      table: tableName,
+      schema: { type: "object", properties: properties },
+    });
+
+    const tableId = response.table.id;
+    const tableSchema = response.table.schema;
+
+    log.info(`Table ${tableName} found/created with ID: ${tableId}`);
     return { tableId, tableSchema };
-  } else {
-    const tableId = foundTable.id;
-    log.info(`Found existing table ${tableName} (ID: ${tableId})`);
-    const tableDetailsResponse = await apiCallWithRetry(
-      () =>
-        axios.get<TableResponse>(`${apiBaseUrl}/${tableId}`, {
-          headers: httpHeaders,
-        }),
-      log
-    );
-    const tableSchema = tableDetailsResponse.data.table?.schema;
-    return { tableId, tableSchema };
+  } catch (error) {
+    log.error(`Failed to get or create table ${tableName}:`, error);
+    throw error;
   }
 }
 
@@ -192,14 +171,23 @@ export async function insertProductsToTable(
   if (rowsToInsert.length === 0) return;
 
   log.info(`Inserting ${rowsToInsert.length} rows into table ${tableName}`);
-  await apiCallWithRetry(
-    () =>
-      axios.post(
-        `${apiBaseUrl}/${tableId}/rows`,
-        { rows: rowsToInsert },
-        { headers: httpHeaders }
-      ),
-    log
-  );
-  log.info(`Successfully inserted rows for table ${tableName}`);
+
+  // Initialize Botpress client
+  const bpClient = new Client({
+    apiUrl: apiBaseUrl,
+    headers: httpHeaders,
+  });
+
+  try {
+    // Use the Botpress client's createTableRows method
+    await bpClient.createTableRows({
+      table: tableId,
+      rows: rowsToInsert,
+    });
+
+    log.info(`Successfully inserted rows for table ${tableName}`);
+  } catch (error) {
+    log.error(`Failed to insert rows into table ${tableName}:`, error);
+    throw error;
+  }
 }
