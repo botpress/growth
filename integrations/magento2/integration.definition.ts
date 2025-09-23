@@ -9,7 +9,11 @@ export default new IntegrationDefinition({
   configuration: {
     schema: z.object({
       magento_domain: z.string().describe('The domain of the Magento instance (example www.test-domain.com)'),
-      store_code: z.string().optional().default('all').describe('The store code to use for the request, default is all'),
+      store_code: z
+        .string()
+        .optional()
+        .default('all')
+        .describe('The store code to use for the request, default is all'),
       consumer_key: z.string().describe('The OAuth Consumer Key'),
       consumer_secret: z.string().describe('The OAuth Consumer Secret'),
       access_token: z.string().describe('The OAuth Access Token'),
@@ -55,13 +59,31 @@ export default new IntegrationDefinition({
     },
     syncProducts: {
       title: 'Sync Products to Botpress Table',
-      description: 'Sync products from Magento to a Botpress table. Creates the table automatically if it doesn\'t exist with standard product columns.',
+      description:
+        "Sync products from Magento to a Botpress table. Creates the table automatically if it doesn't exist with standard product columns.",
       input: {
         schema: z.object({
-          table_name: z.string().describe('Name of the Botpress table to sync products to (will be created automatically if it doesn\'t exist)'),
-          custom_columns_to_add_to_table: z.string().optional().describe('Comma-separated list of custom product attributes to sync (e.g., "color,tent_outer_material,tent_type")'),
-          filters_json: z.string().optional().describe('JSON array of filter objects, e.g. [{"field": "price", "condition": "gt", "value": "100"}]'),
-          retrieve_reviews: z.boolean().optional().describe('Whether to retrieve reviews from Magento. To retrieve reviews, you must install the Reviews API module.'),
+          table_name: z
+            .string()
+            .describe(
+              "Name of the Botpress table to sync products to (will be created automatically if it doesn't exist)"
+            ),
+          custom_columns_to_add_to_table: z
+            .string()
+            .optional()
+            .describe(
+              'Comma-separated list of custom product attributes to sync (e.g., "color,tent_outer_material,tent_type")'
+            ),
+          filters_json: z
+            .string()
+            .optional()
+            .describe('JSON array of filter objects, e.g. [{"field": "price", "condition": "gt", "value": "100"}]'),
+          retrieve_reviews: z
+            .boolean()
+            .optional()
+            .describe(
+              'Whether to retrieve reviews from Magento. To retrieve reviews, you must install the Reviews API module.'
+            ),
         }),
       },
       output: {

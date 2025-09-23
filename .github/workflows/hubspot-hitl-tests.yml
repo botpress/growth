@@ -1,0 +1,87 @@
+name: HubSpot Inbox HITL Tests
+
+on:
+  push:
+    paths:
+      - 'integrations/hubspot-hitl/**'
+  pull_request:
+    paths:
+      - 'integrations/hubspot-hitl/**'
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: ./integrations/hubspot-hitl
+
+      - name: Run unit tests
+        run: pnpm test:unit
+        working-directory: ./integrations/hubspot-hitl
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('integrations/hubspot-hitl/test-results/**') != ''
+        with:
+          name: unit-test-results
+          path: integrations/hubspot-hitl/test-results/
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: E2E Tests
+    needs: unit-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: ./integrations/hubspot-hitl
+
+      - name: Run e2e tests
+        run: ./run-integration-tests.sh
+        working-directory: ./integrations/hubspot-hitl
+        env:
+          HUBSPOT_REFRESH_TOKEN: ${{ secrets.HUBSPOT_REFRESH_TOKEN }}
+          HUBSPOT_CLIENT_ID: ${{ secrets.HUBSPOT_CLIENT_ID }}
+          HUBSPOT_CLIENT_SECRET: ${{ secrets.HUBSPOT_CLIENT_SECRET }}
+          HUBSPOT_DEVELOPER_API_KEY: ${{ secrets.HUBSPOT_DEVELOPER_API_KEY }}
+          HUBSPOT_APP_ID: ${{ secrets.HUBSPOT_APP_ID }}
+          HUBSPOT_INBOX_ID: ${{ secrets.HUBSPOT_INBOX_ID }}
+
+      - name: Upload e2e test results
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('integrations/hubspot-hitl/test-results/**') != ''
+        with:
+          name: e2e-test-results
+          path: integrations/hubspot-hitl/test-results/

@@ -1,10 +1,10 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const brevoMessageImageInfoSchema = z.object({
   width: z.number(),
   height: z.number(),
   previewUrl: z.string(),
-});
+})
 
 export const brevoMessageFileSchema = z.object({
   name: z.string(),
@@ -14,7 +14,7 @@ export const brevoMessageFileSchema = z.object({
   isSticker: z.boolean(),
   link: z.string(),
   imageInfo: brevoMessageImageInfoSchema.optional(),
-});
+})
 
 export const brevoMessageSchema = z.object({
   type: z.enum(['agent', 'visitor']),
@@ -29,26 +29,26 @@ export const brevoMessageSchema = z.object({
   isTrigger: z.boolean().optional(),
   file: brevoMessageFileSchema.optional(),
   isMissed: z.boolean().optional(),
-});
+})
 
 export const brevoAgentSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
   userpic: z.string().nullable().optional(),
-});
+})
 
 export const brevoVisitorLastVisitPageSchema = z.object({
   link: z.string(),
   title: z.string(),
-});
+})
 
 export const brevoVisitorLastVisitSchema = z.object({
   startedAt: z.number().optional(),
   finishedAt: z.number().nullable().optional(),
   hostName: z.string(),
   viewedPages: z.array(brevoVisitorLastVisitPageSchema),
-});
+})
 
 export const brevoVisitorSchema = z.object({
   id: z.string(),
@@ -79,12 +79,12 @@ export const brevoVisitorSchema = z.object({
   marketingConsent: z.boolean(),
   termsOfServiceConsent: z.boolean(),
   outsideConnections: z.record(z.any()).optional(),
-});
+})
 
 export const brevoConversationStartPageSchema = z.object({
   link: z.string().optional(),
   title: z.string().optional(),
-});
+})
 
 export const brevoConversationFragmentEventSchema = z.object({
   eventName: z.literal('conversationFragment'),
@@ -93,7 +93,7 @@ export const brevoConversationFragmentEventSchema = z.object({
   agents: z.array(brevoAgentSchema),
   visitor: brevoVisitorSchema,
   isNoAvailableAgent: z.boolean().optional(),
-});
+})
 
 export const brevoConversationTranscriptEventSchema = z.object({
   eventName: z.literal('conversationTranscript'),
@@ -103,10 +103,10 @@ export const brevoConversationTranscriptEventSchema = z.object({
   missedMessagesCount: z.number(),
   agents: z.array(brevoAgentSchema),
   visitor: brevoVisitorSchema,
-});
+})
 
 // Union type for all possible event types
 export const brevoEventSchema = z.discriminatedUnion('eventName', [
   brevoConversationFragmentEventSchema,
   brevoConversationTranscriptEventSchema,
-]); 
+])

@@ -25,36 +25,36 @@ This guide walks you through the setup and configuration of Intercom to enable i
 
 #### 1. Create an Intercom App
 
-* Navigate to [https://app.intercom.com/](https://app.intercom.com/)
-* Sign in to your Intercom account
-* Go to **Apps** in the developer hub
-* Click **"Create App"**
-* Enter your app name (e.g., "Botpress HITL Integration")
-* Click **"Create App"**
+- Navigate to [https://app.intercom.com/](https://app.intercom.com/)
+- Sign in to your Intercom account
+- Go to **Apps** in the developer hub
+- Click **"Create App"**
+- Enter your app name (e.g., "Botpress HITL Integration")
+- Click **"Create App"**
 
 #### 2. Copy Access Token
 
-* In your app dashboard, go to **Authentication**
-* Copy the **Access Token** shown in the Access token section
-* In your **Botpress Intercom integration config**, paste this Access Token
+- In your app dashboard, go to **Authentication**
+- Copy the **Access Token** shown in the Access token section
+- In your **Botpress Intercom integration config**, paste this Access Token
 
 #### 3. Configure Webhooks
 
 ##### a. Conversation Events Webhook
 
-* Go to **Webhooks** in your app dashboard
-* Click **"Add Webhook"**
-* Set the **Webhook URL** to your **Botpress Intercom integration webhook URL**
-* **Subscribe to only these events:**
-  * `conversation.admin.assigned`
-  * `conversation.admin.closed`
-  * `conversation.admin.replied`
-* Click **"Save Webhook"**
+- Go to **Webhooks** in your app dashboard
+- Click **"Add Webhook"**
+- Set the **Webhook URL** to your **Botpress Intercom integration webhook URL**
+- **Subscribe to only these events:**
+  - `conversation.admin.assigned`
+  - `conversation.admin.closed`
+  - `conversation.admin.replied`
+- Click **"Save Webhook"**
 
 ### Summary of Required Botpress Config
 
-* **Access Token**: From Intercom App Authentication
-* **Webhook URL**: Provided by Botpress
+- **Access Token**: From Intercom App Authentication
+- **Webhook URL**: Provided by Botpress
 
 ## Usage
 

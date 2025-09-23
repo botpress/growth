@@ -115,7 +115,7 @@ export const handler: IntegrationProps['handler'] = async (props) => {
             accessToken,
             sseKey: conversation.tags.transportKey,
             conversationId: conversation.tags.id,
-          }
+          },
         )
 
         await salesforceClient.stopSSE(conversation.tags.transportKey as string)

@@ -1,61 +1,49 @@
-import * as crypto from "crypto";
-import * as bp from ".botpress";
-import { AttributeMapping, ColumnNameMapping, Filter } from "../types/magento";
+import * as crypto from 'crypto'
+import * as bp from '.botpress'
+import { AttributeMapping, ColumnNameMapping, Filter } from '../types/magento'
 
 export function toMagentoAttributeCode(label: string): string {
   return label
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, "_")
-    .replace(/[^a-z0-9_]/g, "");
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
 }
 
 export function shortenColumnName(name: string): string {
   if (name.length <= 30) {
-    return name;
+    return name
   }
 
-  const truncated = name.substring(0, 26);
-  const hash = crypto
-    .createHash("md5")
-    .update(name)
-    .digest("hex")
-    .substring(0, 3);
-  return `${truncated}_${hash}`;
+  const truncated = name.substring(0, 26)
+  const hash = crypto.createHash('md5').update(name).digest('hex').substring(0, 3)
+  return `${truncated}_${hash}`
 }
 
 export function parseAttributeMappings(
-  attributeMappingsInput:
-    | string
-    | Record<string, Record<string, string>>
-    | undefined
+  attributeMappingsInput: string | Record<string, Record<string, string>> | undefined
 ): AttributeMapping {
-  if (typeof attributeMappingsInput === "string") {
+  if (typeof attributeMappingsInput === 'string') {
     try {
-      return JSON.parse(attributeMappingsInput);
+      return JSON.parse(attributeMappingsInput)
     } catch {
-      return {};
+      return {}
     }
-  } else if (
-    typeof attributeMappingsInput === "object" &&
-    attributeMappingsInput !== null
-  ) {
-    return attributeMappingsInput;
+  } else if (typeof attributeMappingsInput === 'object' && attributeMappingsInput !== null) {
+    return attributeMappingsInput
   }
-  return {};
+  return {}
 }
 
-export function parseColumnNameMappings(
-  columnNameMappingsInput: string | undefined
-): ColumnNameMapping {
-  if (typeof columnNameMappingsInput === "string") {
+export function parseColumnNameMappings(columnNameMappingsInput: string | undefined): ColumnNameMapping {
+  if (typeof columnNameMappingsInput === 'string') {
     try {
-      return JSON.parse(columnNameMappingsInput);
+      return JSON.parse(columnNameMappingsInput)
     } catch {
-      return {};
+      return {}
     }
   }
-  return {};
+  return {}
 }
 
 // Filter input interface
@@ -63,74 +51,62 @@ interface FilterInput {
   searchCriteria?: {
     filterGroups?: Array<{
       filters?: Array<{
-        field?: string;
-        conditionType?: string;
-        value?: string | number;
-      }>;
-    }>;
-  };
+        field?: string
+        conditionType?: string
+        value?: string | number
+      }>
+    }>
+  }
 }
 
 // Filter utility functions
-export function parseFilters(
-  input: FilterInput,
-  logger: bp.Logger
-): Filter[] | null {
-  let filtersInput = input.searchCriteria;
+export function parseFilters(input: FilterInput, logger: bp.Logger): Filter[] | null {
+  let filtersInput = input.searchCriteria
 
   // Handle empty/undefined searchCriteria (optional field)
   if (!filtersInput) {
-    logger.forBot().info("No searchCriteria provided, returning empty filters");
-    return [];
+    logger.forBot().info('No searchCriteria provided, returning empty filters')
+    return []
   }
 
   // Parse JSON string if needed
-  if (typeof filtersInput === "string") {
+  if (typeof filtersInput === 'string') {
     try {
-      filtersInput = JSON.parse(filtersInput);
+      filtersInput = JSON.parse(filtersInput)
     } catch (err) {
-      logger.forBot().error(`Failed to parse JSON input: ${err}`);
-      return null;
+      logger.forBot().error(`Failed to parse JSON input: ${err}`)
+      return null
     }
   }
 
   // Validate that input is an array
   if (!Array.isArray(filtersInput)) {
-    logger.forBot().error(`Input is not an array: ${typeof filtersInput}`);
-    return null;
+    logger.forBot().error(`Input is not an array: ${typeof filtersInput}`)
+    return null
   }
 
-  return filtersInput;
+  return filtersInput
 }
 
-export function buildFilterCriteria(
-  filters: Filter[],
-  logger: bp.Logger
-): string {
-  const filterGroups: string[] = [];
+export function buildFilterCriteria(filters: Filter[], logger: bp.Logger): string {
+  const filterGroups: string[] = []
 
   filters.forEach((filter, idx) => {
     if (!filter.field || !filter.condition) {
-      logger
-        .forBot()
-        .warn(`Skipping filter ${idx + 1} - missing field or condition`);
-      return;
+      logger.forBot().warn(`Skipping filter ${idx + 1} - missing field or condition`)
+      return
     }
 
-    const baseFilter = `searchCriteria[filterGroups][${idx}][filters][0][field]=${encodeURIComponent(filter.field)}&searchCriteria[filterGroups][${idx}][filters][0][conditionType]=${filter.condition}`;
+    const baseFilter = `searchCriteria[filterGroups][${idx}][filters][0][field]=${encodeURIComponent(filter.field)}&searchCriteria[filterGroups][${idx}][filters][0][conditionType]=${filter.condition}`
 
     // Add value only for conditions that require it
-    if (
-      filter.value &&
-      filter.condition !== "notnull" &&
-      filter.condition !== "null"
-    ) {
-      const fullFilter = `${baseFilter}&searchCriteria[filterGroups][${idx}][filters][0][value]=${encodeURIComponent(filter.value)}`;
-      filterGroups.push(fullFilter);
+    if (filter.value && filter.condition !== 'notnull' && filter.condition !== 'null') {
+      const fullFilter = `${baseFilter}&searchCriteria[filterGroups][${idx}][filters][0][value]=${encodeURIComponent(filter.value)}`
+      filterGroups.push(fullFilter)
     } else {
-      filterGroups.push(baseFilter);
+      filterGroups.push(baseFilter)
     }
-  });
+  })
 
-  return filterGroups.join("&");
+  return filterGroups.join('&')
 }

@@ -6,7 +6,7 @@ export const executeOnConversationMessage = async ({
   conversation,
   client,
   logger,
-  ctx
+  ctx,
 }: bp.HandlerProps & {
   messagingTrigger: MessageMessagingTrigger
   conversation: bp.AnyMessageProps['conversation']
@@ -68,36 +68,37 @@ export const executeOnConversationMessage = async ({
       await createMessage({
         type: 'text',
         payload: {
-          text: `${( ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
-              entryPayload.abstractMessage.staticContent.text
-          }`
-        }
+          text: `${(ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
+            entryPayload.abstractMessage.staticContent.text
+          }`,
+        },
       })
       break
     case 'Attachments':
-      for(const attachment of entryPayload.abstractMessage.staticContent.attachments) {
-        if(attachment.mimeType.startsWith('image/')) {
+      for (const attachment of entryPayload.abstractMessage.staticContent.attachments) {
+        if (attachment.mimeType.startsWith('image/')) {
           await createMessage({
             type: 'image',
             payload: {
-              imageUrl: attachment.url
-            }
+              imageUrl: attachment.url,
+            },
           })
         } else {
           await createMessage({
             type: 'file',
             payload: {
-              fileUrl: attachment.url
-            }
+              fileUrl: attachment.url,
+            },
           })
         }
       }
       break
-    default: logger
+    default:
+      logger
         .forBot()
         .warn(
-            `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
+          `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`,
         )
-    return
+      return
   }
 }

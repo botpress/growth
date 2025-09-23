@@ -11,32 +11,35 @@ export const configuration = {
 
 export const states = {
   credentials: {
-    type: "integration",
+    type: 'integration',
     schema: z.object({
       accessToken: z.string(),
     }),
   },
   userInfo: {
-    type: "user",
+    type: 'user',
     schema: z.object({
       phoneNumber: z.string(),
       name: z.string(),
     }),
   },
   channelInfo: {
-    type: "integration",
+    type: 'integration',
     schema: z.object({
       channelId: z.string(),
       channelAccountId: z.string(),
-    })
-  }
+    }),
+  },
 } satisfies IntegrationDefinitionProps['states']
 
 export const user = {
   tags: {
-    phoneNumber: { description: 'Hubspot Phone Number', title: 'Hubspot Phone Number' },
-    agentId: { description: 'Hubspot Agent Id', title: 'Hubspot Agent Id' },
-    integrationThreadId: { description: 'Hubspot Integration Thread Id', title: 'Hubspot Integration Thread Id' },
-    hubspotConversationId: { description: 'Hubspot Conversation Id', title: 'Hubspot Conversation Id' },
+    phoneNumber: { description: 'HubSpot Inbox Phone Number', title: 'HubSpot Inbox Phone Number' },
+    agentId: { description: 'HubSpot Inbox Agent Id', title: 'HubSpot Inbox Agent Id' },
+    integrationThreadId: {
+      description: 'HubSpot Inbox Integration Thread Id',
+      title: 'HubSpot Inbox Integration Thread Id',
+    },
+    hubspotConversationId: { description: 'HubSpot Inbox Conversation Id', title: 'HubSpot Inbox Conversation Id' },
   },
 } satisfies IntegrationDefinitionProps['user']

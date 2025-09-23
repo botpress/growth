@@ -9,7 +9,7 @@ import * as stopHitl from "./stopHitl/index";
 export * as stopHitl from "./stopHitl/index";
 
 export const actions = {
-  createUser: createUser.createUser,
-  startHitl: startHitl.startHitl,
-  stopHitl: stopHitl.stopHitl,
-};
+  "createUser": createUser.createUser,
+  "startHitl": startHitl.startHitl,
+  "stopHitl": stopHitl.stopHitl,
+}

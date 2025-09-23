@@ -81,5 +81,5 @@ export const getSuccessLoginPage = (botId: string): string => {
     </div>
   </body>
   </html>
-`;
-};
+`
+}

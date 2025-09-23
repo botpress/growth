@@ -22,7 +22,7 @@ const getSalesforceClientFromMessage = async (props: bp.AnyMessageProps) => {
       accessToken,
       sseKey: conversation.tags.transportKey,
       conversationId: conversation.tags.id,
-    }
+    },
   )
 }
 
@@ -37,7 +37,7 @@ export const channels = {
             .forBot()
             .error(
               'Tried to send a message from a conversation that is already closed: ' +
-                JSON.stringify({ conversation }, null, 2)
+                JSON.stringify({ conversation }, null, 2),
             )
           return
         }
@@ -97,7 +97,9 @@ export const channels = {
         await salesforceClient.sendMessage(payload.videoUrl)
       },
       file: async (props: bp.MessageProps['hitl']['file']) => {
-        const { payload: { title, fileUrl } } = props
+        const {
+          payload: { title, fileUrl },
+        } = props
         const salesforceClient = await getSalesforceClientFromMessage(props)
         await salesforceClient.sendFile({ fileUrl, title })
       },
@@ -139,7 +141,7 @@ export const channels = {
               break
           }
         }
-      }
+      },
     },
   },
 } satisfies bp.IntegrationProps['channels']

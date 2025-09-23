@@ -6,7 +6,7 @@ export const channels = {
     messages: {
       text: async ({ client, ctx, conversation, logger, payload }) => {
         const { spaceId } = conversation.tags
-        
+
         if (!spaceId) {
           logger.forBot().error('Missing spaceId in conversation tags')
           return
@@ -15,15 +15,15 @@ export const channels = {
         try {
           const googleClient = getClient(ctx)
           await googleClient.sendMessage(spaceId, payload.text)
-          
+
           logger.forBot().debug('Message sent to Google Chat:', {
             spaceId,
-            message: payload.text
+            message: payload.text,
           })
         } catch (error) {
           logger.forBot().error('Failed to send message to Google Chat:', error)
         }
-      }
-    }
-  }
+      },
+    },
+  },
 } satisfies bp.IntegrationProps['channels']

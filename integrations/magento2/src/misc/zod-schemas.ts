@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 export const ProductAttributeSchema = z.object({
   attribute_code: z.string(),
@@ -10,17 +10,17 @@ export const ProductAttributeSchema = z.object({
       z.object({
         label: z.string(),
         value: z.string(),
-      }),
+      })
     )
     .optional(),
-});
-export type ProductAttribute = z.infer<typeof ProductAttributeSchema>;
+})
+export type ProductAttribute = z.infer<typeof ProductAttributeSchema>
 
 export const StockItemSchema = z.object({
   qty: z.number(),
   is_in_stock: z.boolean(),
-});
-export type StockItem = z.infer<typeof StockItemSchema>;
+})
+export type StockItem = z.infer<typeof StockItemSchema>
 
 export const ProductSchema = z.object({
   id: z.number(),
@@ -34,21 +34,15 @@ export const ProductSchema = z.object({
       z.object({
         media_type: z.string(),
         file: z.string(),
-      }),
+      })
     )
     .optional(),
   custom_attributes: z
     .array(
       z.object({
         attribute_code: z.string(),
-        value: z.union([
-          z.string(),
-          z.array(z.any()),
-          z.number(),
-          z.boolean(),
-          z.object({}).passthrough(),
-        ]),
-      }),
+        value: z.union([z.string(), z.array(z.any()), z.number(), z.boolean(), z.object({}).passthrough()]),
+      })
     )
     .optional(),
   extension_attributes: z
@@ -56,14 +50,14 @@ export const ProductSchema = z.object({
       stock_item: StockItemSchema.optional(),
     })
     .optional(),
-});
-export type ProductData = z.infer<typeof ProductSchema>;
+})
+export type ProductData = z.infer<typeof ProductSchema>
 
 export const ProductListSchema = z.object({
   items: z.array(ProductSchema),
   total_count: z.number(),
-});
-export type ProductList = z.infer<typeof ProductListSchema>;
+})
+export type ProductList = z.infer<typeof ProductListSchema>
 
 export const ReviewSchema = z.object({
   id: z.number(),
@@ -79,9 +73,9 @@ export const ReviewSchema = z.object({
         rating_name: z.string(),
         percent: z.number(),
         value: z.number(),
-      }),
+      })
     )
     .optional(),
-});
-export const ReviewsArraySchema = z.array(ReviewSchema);
-export type ReviewData = z.infer<typeof ReviewSchema>;
+})
+export const ReviewsArraySchema = z.array(ReviewSchema)
+export type ReviewData = z.infer<typeof ReviewSchema>

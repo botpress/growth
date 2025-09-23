@@ -6,13 +6,13 @@ export const channels = {
     messages: {
       text: async ({ client, ctx, conversation, logger, ...props }: bp.AnyMessageProps) => {
         const zohoClient = getClient(
-            ctx.configuration.refreshToken,
-            ctx.configuration.clientId,
-            ctx.configuration.clientSecret,
-            ctx.configuration.dataCenter,
-            ctx,
-            client
-          );
+          ctx.configuration.refreshToken,
+          ctx.configuration.clientId,
+          ctx.configuration.clientSecret,
+          ctx.configuration.dataCenter,
+          ctx,
+          client
+        )
 
         const { text: userMessage, userId } = props.payload
 
@@ -23,10 +23,7 @@ export const channels = {
           return
         }
 
-        return await zohoClient.sendMessage(
-          zohoConversationId as string,
-          userMessage
-        )
+        return await zohoClient.sendMessage(zohoConversationId as string, userMessage)
       },
     },
   },

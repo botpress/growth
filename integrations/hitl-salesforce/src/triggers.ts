@@ -104,7 +104,7 @@ export type AttachmentsStaticContent = {
 export type MessageDataPayload = {
   entryType: 'Message'
   id: string
-  abstractMessage: AbstractMessageBase & { staticContent:  TextStaticContent | AttachmentsStaticContent | any }
+  abstractMessage: AbstractMessageBase & { staticContent: TextStaticContent | AttachmentsStaticContent | any }
   messageReason: string | null
 }
 
