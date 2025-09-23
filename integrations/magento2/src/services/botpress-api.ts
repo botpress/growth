@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Client, Table } from "@botpress/client";
+import { Table, ClientOutputs } from "@botpress/client";
 import * as bp from ".botpress";
 import {
   AttributeMapping,
@@ -59,53 +59,77 @@ export async function createOrGetTable(
   httpHeaders: Record<string, string>,
   log: bp.Logger
 ): Promise<{ tableId: string; tableSchema: Table["schema"] }> {
-  const bpClient = new Client({
-    apiUrl: apiBaseUrl,
-    headers: httpHeaders,
-  });
+  const listTablesResponse = await apiCallWithRetry(
+    () =>
+      axios.get<ClientOutputs["listTables"]>(apiBaseUrl, {
+        headers: httpHeaders,
+      }),
+    log
+  );
+  const existingTables = listTablesResponse.data.tables || [];
+  let foundTable = existingTables.find(
+    (t: { id: string; name: string }) => t.name === tableName
+  );
 
-  const defaultPropertiesTemplate: Record<string, { type: string }> = {
-    sku: { type: "string" },
-    name: { type: "string" },
-    description: { type: "string" },
-    price: { type: "number" },
-    original_price: { type: "number" },
-    currency: { type: "string" },
-    image_url: { type: "string" },
-    thumbnail_url: { type: "string" },
-    stock_qty: { type: "number" },
-    is_in_stock: { type: "boolean" },
-    average_rating: { type: "number" },
-    review_count: { type: "number" },
-  };
+  if (!foundTable) {
+    log.info(`Table ${tableName} not found. Creating it.`);
+    const defaultProperties: Record<string, { type: string }> = {
+      sku: { type: "string" },
+      name: { type: "string" },
+      description: { type: "string" },
+      price: { type: "number" },
+      original_price: { type: "number" },
+      currency: { type: "string" },
+      image_url: { type: "string" },
+      thumbnail_url: { type: "string" },
+      stock_qty: { type: "number" },
+      is_in_stock: { type: "boolean" },
+      average_rating: { type: "number" },
+      review_count: { type: "number" },
+    };
 
-  const properties = { ...defaultPropertiesTemplate };
+    for (const attrCode of customAttributeCodes) {
+      const shortName = shortenColumnName(attrCode);
+      defaultProperties[shortName] = { type: "string" };
+    }
 
-  for (const attrCode of customAttributeCodes) {
-    const shortName = shortenColumnName(attrCode);
-    properties[shortName] = { type: "string" };
-  }
+    if (Object.keys(defaultProperties).length > 20) {
+      throw new Error(
+        `Too many columns: ${Object.keys(defaultProperties).length}. Max is 20.`
+      );
+    }
 
-  if (Object.keys(properties).length > 20) {
-    throw new Error(
-      `Too many columns: ${Object.keys(properties).length}. Max is 20.`
+    const createTablePayload = {
+      name: tableName,
+      schema: { type: "object", properties: defaultProperties },
+    };
+    const createTableResponse = await apiCallWithRetry(
+      () =>
+        axios.post<ClientOutputs["createTable"]>(
+          apiBaseUrl,
+          createTablePayload,
+          {
+            headers: httpHeaders,
+          }
+        ),
+      log
     );
-  }
-
-  try {
-    const response = await bpClient.getOrCreateTable({
-      table: tableName,
-      schema: { type: "object", properties: properties },
-    });
-
-    const tableId = response.table.id;
-    const tableSchema = response.table.schema;
-
-    log.info(`Table ${tableName} found/created with ID: ${tableId}`);
+    const tableId = createTableResponse.data.table.id;
+    const tableSchema = createTableResponse.data.table.schema;
+    log.info(`Table ${tableName} created with ID: ${tableId}`);
     return { tableId, tableSchema };
-  } catch (error) {
-    log.error(`Failed to get or create table ${tableName}:`, error);
-    throw error;
+  } else {
+    const tableId = foundTable.id;
+    log.info(`Found existing table ${tableName} (ID: ${tableId})`);
+    const tableDetailsResponse = await apiCallWithRetry(
+      () =>
+        axios.get<ClientOutputs["getTable"]>(`${apiBaseUrl}/${tableId}`, {
+          headers: httpHeaders,
+        }),
+      log
+    );
+    const tableSchema = tableDetailsResponse.data.table?.schema;
+    return { tableId, tableSchema };
   }
 }
 
@@ -171,23 +195,14 @@ export async function insertProductsToTable(
   if (rowsToInsert.length === 0) return;
 
   log.info(`Inserting ${rowsToInsert.length} rows into table ${tableName}`);
-
-  // Initialize Botpress client
-  const bpClient = new Client({
-    apiUrl: apiBaseUrl,
-    headers: httpHeaders,
-  });
-
-  try {
-    // Use the Botpress client's createTableRows method
-    await bpClient.createTableRows({
-      table: tableId,
-      rows: rowsToInsert,
-    });
-
-    log.info(`Successfully inserted rows for table ${tableName}`);
-  } catch (error) {
-    log.error(`Failed to insert rows into table ${tableName}:`, error);
-    throw error;
-  }
+  await apiCallWithRetry(
+    () =>
+      axios.post(
+        `${apiBaseUrl}/${tableId}/rows`,
+        { rows: rowsToInsert },
+        { headers: httpHeaders }
+      ),
+    log
+  );
+  log.info(`Successfully inserted rows for table ${tableName}`);
 }
