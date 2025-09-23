@@ -28,7 +28,7 @@ runs:
         chmod +x ./.github/scripts/integration-exists.sh
 
         # Configuration
-        EXCLUDE_INTEGRATIONS=("hitl-salesforce" "magento2")
+        EXCLUDE_INTEGRATIONS=("hitl-salesforce")
         SKIP_VERSIONS=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "huggingface:0.0.2" "salesforce:1.0.3" "zoho-sales-iq-hitl:2.0.1")
 
         # Helper functions
