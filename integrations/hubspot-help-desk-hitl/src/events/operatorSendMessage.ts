@@ -1,9 +1,6 @@
 import { OperatorSendMessageParams } from '../misc/types'
 
-export const handleOperatorReplied = async ({
-  hubspotEvent,
-  client
-}: OperatorSendMessageParams) => {
+export const handleOperatorReplied = async ({ hubspotEvent, client }: OperatorSendMessageParams) => {
   if (!hubspotEvent.message?.conversationsThreadId) {
     throw new Error('Missing conversation thread ID in message')
   }
@@ -17,7 +14,7 @@ export const handleOperatorReplied = async ({
 
   const { user } = await client.getOrCreateUser({
     tags: {
-      agentId: hubspotEvent.message?.senders?.[0]?.actorId,    
+      agentId: hubspotEvent.message?.senders?.[0]?.actorId,
     },
   })
 

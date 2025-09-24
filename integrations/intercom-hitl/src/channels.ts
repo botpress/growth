@@ -4,10 +4,7 @@ import { RuntimeError } from '@botpress/sdk'
 
 const getIntercomContextFromMessage = async (props: bp.AnyMessageProps) => {
   const { client, ctx, conversation, logger } = props
-  const intercomClient = getClient(
-    ctx.configuration.accessToken,
-    logger
-  )
+  const intercomClient = getClient(ctx.configuration.accessToken, logger)
 
   const intercomConversationId = conversation.tags.id
   if (!intercomConversationId?.length) {
@@ -43,7 +40,11 @@ export const channels = {
                 await intercomClient.replyToConversation(intercomConversationId, intercomContactId, item.payload.text)
                 break
               case 'markdown':
-                await intercomClient.replyToConversation(intercomConversationId, intercomContactId, item.payload.markdown)
+                await intercomClient.replyToConversation(
+                  intercomConversationId,
+                  intercomContactId,
+                  item.payload.markdown
+                )
                 break
               case 'image':
                 await intercomClient.replyToConversation(
@@ -72,17 +73,16 @@ export const channels = {
               case 'file': {
                 const { fileUrl, title } = item.payload
                 try {
-                  await intercomClient.replyToConversation(
-                    intercomConversationId,
-                    intercomContactId,
-                    title || ' ',
-                    [fileUrl]
-                  )
+                  await intercomClient.replyToConversation(intercomConversationId, intercomContactId, title || ' ', [
+                    fileUrl,
+                  ])
                 } catch (err: unknown) {
                   const e = err as any
                   const msg: string | undefined = e?.response?.data?.errors?.[0]?.message
-                  const fb: string = (err instanceof Error) ? err.message : String(err)
-                  ;(props.logger || { forBot: () => ({ error: () => {} }) }).forBot().error('Failed to attach bloc file: ' + (msg || fb))
+                  const fb: string = err instanceof Error ? err.message : String(err)
+                  ;(props.logger || { forBot: () => ({ error: () => {} }) })
+                    .forBot()
+                    .error('Failed to attach bloc file: ' + (msg || fb))
                   await intercomClient.replyToConversation(
                     intercomConversationId,
                     intercomContactId,
@@ -93,7 +93,9 @@ export const channels = {
               }
             }
           } catch (err) {
-            (props.logger || { forBot: () => ({ error: () => {} }) }).forBot().error('Failed to send bloc item to Intercom: ' + (err as Error).message)
+            ;(props.logger || { forBot: () => ({ error: () => {} }) })
+              .forBot()
+              .error('Failed to send bloc item to Intercom: ' + (err as Error).message)
           }
         }
       },
@@ -107,12 +109,9 @@ export const channels = {
         }
 
         try {
-          return await intercomClient.replyToConversation(
-            intercomConversationId,
-            intercomContactId,
-            title || ' ',
-            [fileUrl]
-          )
+          return await intercomClient.replyToConversation(intercomConversationId, intercomContactId, title || ' ', [
+            fileUrl,
+          ])
         } catch (err: any) {
           const message = (err?.response?.data?.errors?.[0]?.message as string) || (err as Error).message
           props.logger.forBot().error('Failed to attach file: ' + message)
@@ -169,27 +168,31 @@ export const channels = {
         const { intercomClient, intercomConversationId, intercomContactId } = await getIntercomContextFromMessage(props)
         const userMessage = (props.payload as any)?.text || ' '
         const imageUrl = (props.payload as any)?.imageUrl
-        
-        props.logger.forBot().info(`Sending image to Intercom - Conversation ID: ${intercomConversationId}, Contact ID: ${intercomContactId}, Image URL: ${imageUrl}`)
-       
+
+        props.logger
+          .forBot()
+          .info(
+            `Sending image to Intercom - Conversation ID: ${intercomConversationId}, Contact ID: ${intercomContactId}, Image URL: ${imageUrl}`
+          )
+
         return await intercomClient.replyToConversation(
           intercomConversationId,
           intercomContactId,
           userMessage,
           imageUrl ? [imageUrl] : undefined
-        );
+        )
       },
       text: async (props: bp.AnyMessageProps) => {
         const { intercomClient, intercomConversationId, intercomContactId } = await getIntercomContextFromMessage(props)
         const userMessage = (props.payload as any)?.text
-        
-        props.logger.forBot().info(`Sending message to Intercom - Conversation ID: ${intercomConversationId}, Contact ID: ${intercomContactId}, Message: ${userMessage}`)
-       
-        return await intercomClient.replyToConversation(
-          intercomConversationId,
-          intercomContactId,
-          userMessage
-        );
+
+        props.logger
+          .forBot()
+          .info(
+            `Sending message to Intercom - Conversation ID: ${intercomConversationId}, Contact ID: ${intercomContactId}, Message: ${userMessage}`
+          )
+
+        return await intercomClient.replyToConversation(intercomConversationId, intercomContactId, userMessage)
       },
     },
   },

@@ -4,7 +4,7 @@ import { productCreatedSchema, productDeletedSchema, productUpdatedSchema } from
 export type ProductCreated = z.infer<typeof productCreated.schema>
 
 export const productCreated = {
-  schema: productCreatedSchema  ,
+  schema: productCreatedSchema,
   ui: {},
 }
 

@@ -13,7 +13,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     name: Unit Tests
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     name: E2E Tests
     needs: unit-tests
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -85,5 +85,3 @@ jobs:
         with:
           name: e2e-test-results
           path: integrations/hubspot-hitl/test-results/
-
-

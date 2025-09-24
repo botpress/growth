@@ -10,7 +10,7 @@ export const handleConversationCompleted = async ({
   client,
 }: {
   brevoEvent: BrevoConversationTranscriptEvent
-  client: bp.Client,
+  client: bp.Client
 }) => {
   const { conversation } = await client.getOrCreateConversation({
     channel: 'hitl',

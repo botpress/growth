@@ -10,7 +10,7 @@ Manage contacts and leads in Pipedrive directly from your chatbot.
 ## Actions
 
 - **Add Person** - Create new contacts
-- **Update Person** - Update existing contacts  
+- **Update Person** - Update existing contacts
 - **Find Person** - Search for contacts
 
 Perfect for lead generation and contact management workflows.

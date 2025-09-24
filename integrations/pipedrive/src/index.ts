@@ -1,6 +1,7 @@
-import actions from './actions' 
+import actions from './actions'
 import * as bp from '.botpress'
 import { validateCredentials } from './auth'
+import { getErrorMessage } from './utils/error-handler'
 import { RuntimeError } from '@botpress/sdk'
 
 export const register: bp.IntegrationProps['register'] = async ({ ctx, logger }) => {
@@ -8,8 +9,9 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, logger })
     await validateCredentials({ ctx })
     logger.forBot().info('Pipedrive integration registered')
   } catch (error) {
-    logger.forBot().error('Failed to register Pipedrive integration', error)
-    throw new RuntimeError(`Failed to register Pipedrive integration: ${error}`)
+    const message = getErrorMessage(error)
+    logger.forBot().error(`Failed to register Pipedrive integration: ${message}`)
+    throw new RuntimeError(`Failed to register Pipedrive integration: ${message}`)
   }
 }
 
@@ -18,9 +20,9 @@ export const unregister: bp.IntegrationProps['unregister'] = async ({ logger }) 
 }
 
 export default new bp.Integration({
-  register,   
+  register,
   unregister,
-  actions, 
+  actions,
   channels: {},
   handler: async () => {},
 })

@@ -1,5 +1,5 @@
-import { actions as profileActions } from "./profile";
+import { actions as profileActions } from './profile'
 
 export const actions = {
   ...profileActions,
-} as const;
+} as const

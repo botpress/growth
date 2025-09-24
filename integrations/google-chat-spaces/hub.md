@@ -76,6 +76,7 @@ This integration allows you to connect your Botpress chatbot with Google Chat sp
 ### Sending Messages
 
 The bot can send messages to any Google Chat space it has been added to. Messages can be sent:
+
 - In response to user messages
 - Proactively through the Botpress flow editor
 - Via API calls from your custom code
@@ -83,6 +84,7 @@ The bot can send messages to any Google Chat space it has been added to. Message
 ### Receiving Messages
 
 The bot automatically receives and processes messages sent in the Google Chat space. It will:
+
 - Parse incoming messages
 - Process them through your Botpress flows
 - Send appropriate responses back to the space
@@ -90,6 +92,7 @@ The bot automatically receives and processes messages sent in the Google Chat sp
 ### Message Format
 
 The integration supports text messages in Google Chat spaces. Messages can include:
+
 - Plain text
 - Basic formatting
 - Links

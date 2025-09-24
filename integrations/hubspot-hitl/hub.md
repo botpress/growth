@@ -1,9 +1,9 @@
-
 # HubSpot Inbox Custom Channels HITL (Human-in-the-Loop) Integration
 
 This integration enables Botpress to escalate conversations from a chatbot to a live agent in a HubSpot Inbox via Custom Channels. It uses the HubSpot Inbox Custom Channels API to create, send, and manage HITL (Human-in-the-Loop) conversations and agent interactions.
 
 ## Note: This integration requires one of the following products or higher.
+
 HubSpot Sales Hub - Professional
 
 HubSpot Service Hub - Professional
@@ -31,6 +31,7 @@ To successfully trigger HITL's **"Escalate to a Human"** card, you must pass a *
 ### Operator Events Tracking
 
 The integration listens for HubSpot Inbox webhook events, including:
+
 - `operatorAssignedUpdate`: Fires when an agent joins the thread.
 - `operatorSendMessage`: Captures replies sent by the agent.
 - `operatorConversationCompleted`: Fires when the conversation is closed by the agent.
@@ -47,29 +48,34 @@ These events are handled in the `src/events/` directory and forwarded to Botpres
 
 This guide walks you through connecting your HubSpot Inbox with Botpress using OAuth for Human-in-the-Loop functionality.
 
-### **[Loom video walk through setting up the OAuth configuration.](https://www.loom.com/share/4f1671cfd4fd4063b5e8570830100a44?sid=a22987f8-858b-4ef2-a879-ccac762fb6aa)** ###
-
+### **[Loom video walk through setting up the OAuth configuration.](https://www.loom.com/share/4f1671cfd4fd4063b5e8570830100a44?sid=a22987f8-858b-4ef2-a879-ccac762fb6aa)**
 
 ### 1. Create a HubSpot Developer Account
+
 - Go to [HubSpot Developer](https://developers.hubspot.com/) and sign up or log in.
 
 ### 2. Create a Public App
+
 - Navigate to **Apps** > **Create app**
 - Set the **Redirect URL** to your Botpress webhook URL  
   Example: `https://your-botpress-url.com/api/v1/webhooks/hubspot`
 
 ### 3. Generate Your Developer API Key
+
 - In your developer portal, go to **Keys**
 - Generate a `developer_api_key`
 
 ### 4. Configure Your App Credentials in Botpress
+
 In your Botpress integration config, paste the following values:
+
 - `developer_api_key`
 - `app ID`
 - `client ID`
 - `client secret`
 
 ### 5. Retrieve Your Inbox ID
+
 - In HubSpot, go to:  
   **CRM** → **Inbox** → **Inbox Settings**
 - Copy your Inbox ID from the URL:  
@@ -79,6 +85,7 @@ In your Botpress integration config, paste the following values:
 - Paste this Inbox ID into your Botpress integration config.
 
 ### 6. Set App Scopes and Webhook
+
 - In your public app settings, set the **Scopes** to:
   ```
   conversations.custom_channels.read
@@ -91,7 +98,9 @@ In your Botpress integration config, paste the following values:
 - Under **Webhooks**, set the **Target URL** to your Botpress webhook URL.
 
 ### 7. Subscribe to Webhook Events
+
 Create webhook subscriptions for the following events:
+
 - `conversations.newMessage`
 - `conversation.propertyChange` (AssignedTo, Status)
 
@@ -100,13 +109,17 @@ Create webhook subscriptions for the following events:
 ## Get Your OAuth Refresh Token
 
 ### 1. Get the Authorization Code
+
 Open the following URL in your browser (replace values accordingly):
+
 ```bash
 https://app.hubspot.com/oauth/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&scope=conversations.custom_channels.read%20conversations.custom_channels.write%20conversations.read%20conversations.visitor_identification.tokens.create%20conversations.write%20crm.objects.contacts.read&response_type=code
 ```
 
 ### 2. Exchange the Code for Tokens
+
 Use the following cURL request to get your tokens:
+
 ```bash
 curl -X POST https://api.hubapi.com/oauth/v1/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -118,6 +131,7 @@ curl -X POST https://api.hubapi.com/oauth/v1/token \
 ```
 
 You’ll receive:
+
 - `access_token`
 - `refresh_token`
 - `expires_in`
@@ -129,4 +143,5 @@ Save your `refresh_token` in your Botpress integration settings.
 ---
 
 ## You're All Set!
+
 Your HubSpot inbox is now connected to Botpress HITL via OAuth. You should now be able to receive and respond to conversations within Botpress.

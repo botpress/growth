@@ -11,24 +11,24 @@ export const configuration = {
 
 export const states = {
   intercomContact: {
-    type: "conversation",
+    type: 'conversation',
     schema: z.object({
       intercomContactId: z.string(),
     }),
   },
   userInfo: {
-    type: "user",
+    type: 'user',
     schema: z.object({
       email: z.string(),
       intercomContactId: z.string(),
     }),
-  }
+  },
 } satisfies IntegrationDefinitionProps['states']
 
 export const user = {
   tags: {
     email: { description: 'Intercom Email', title: 'Intercom Email' },
     intercomAdminId: { description: 'Intercom Admin Id', title: 'Intercom Admin Id' },
-    intercomConversationId: { description: 'Intercom Conversation Id', title: 'Intercom Conversation Id' }
+    intercomConversationId: { description: 'Intercom Conversation Id', title: 'Intercom Conversation Id' },
   },
 } satisfies IntegrationDefinitionProps['user']

@@ -5,8 +5,15 @@ export const channels = {
   hitl: {
     messages: {
       text: async ({ client, ctx, conversation, logger, ...props }: bp.AnyMessageProps) => {
-        const hubSpotClient = getClient(ctx, client, ctx.configuration.refreshToken, ctx.configuration.clientId, ctx.configuration.clientSecret, logger);
-   
+        const hubSpotClient = getClient(
+          ctx,
+          client,
+          ctx.configuration.refreshToken,
+          ctx.configuration.clientId,
+          ctx.configuration.clientSecret,
+          logger
+        )
+
         const { text: userMessage } = props.payload
 
         const hubspotConversationId = conversation.tags.id
@@ -15,7 +22,7 @@ export const channels = {
           logger.forBot().error('No HubSpot Conversation Id')
           return
         }
-        
+
         const { user: botpressUser } = await client.getOrCreateUser({
           tags: {
             hubspotConversationId: hubspotConversationId,
@@ -24,36 +31,41 @@ export const channels = {
 
         const userInfoState = await client.getState({
           id: botpressUser.id,
-          name: "userInfo",
-          type: "user",
-        });
-    
+          name: 'userInfo',
+          type: 'user',
+        })
+
         // Check if either phoneNumber or email is present in the userInfo state
-        const userPhoneNumber = userInfoState?.state.payload.phoneNumber;
-        const userEmail = userInfoState?.state.payload.email;
+        const userPhoneNumber = userInfoState?.state.payload.phoneNumber
+        const userEmail = userInfoState?.state.payload.email
 
         if (!userPhoneNumber && !userEmail) {
-          logger.forBot().error("No user identifier (phone number or email) found in state for HITL.");
+          logger.forBot().error('No user identifier (phone number or email) found in state for HITL.')
           return {
             success: false,
-            message: "User identifier (phone number or email) not found. Please ensure the user is created with an identifier.",
+            message:
+              'User identifier (phone number or email) not found. Please ensure the user is created with an identifier.',
             data: null,
-            conversationId: "error_no_user_identifier",
-          };
+            conversationId: 'error_no_user_identifier',
+          }
         }
 
-        const { name } = userInfoState.state.payload;
-        
+        const { name } = userInfoState.state.payload
+
         // Prefer phone number if available, otherwise use email
-        const contactIdentifier = userPhoneNumber || userEmail!;
+        const contactIdentifier = userPhoneNumber || userEmail!
         if (userPhoneNumber) {
-          logger.forBot().info(`Using phone number for message: ${userPhoneNumber}`);
+          logger.forBot().info(`Using phone number for message: ${userPhoneNumber}`)
         } else {
-          logger.forBot().info(`Using email for message: ${userEmail}`);
+          logger.forBot().info(`Using email for message: ${userEmail}`)
         }
-        
+
         return await hubSpotClient.sendMessage(
-          userMessage, name, contactIdentifier, botpressUser.tags.integrationThreadId as string)
+          userMessage,
+          name,
+          contactIdentifier,
+          botpressUser.tags.integrationThreadId as string
+        )
       },
     },
   },

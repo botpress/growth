@@ -9,30 +9,38 @@ type HandlerFunction = Implementation['handler']
 export const handler: HandlerFunction = async ({ req, logger, client, ctx }) => {
   try {
     if (!req.body) {
-      logger.forBot().error(`Request body is missing. Bot: ${ctx.botId}, Integration: ${ctx.integrationId}. The incoming request did not contain a body. Request details: ${JSON.stringify(req)}`);
-      return;
+      logger
+        .forBot()
+        .error(
+          `Request body is missing. Bot: ${ctx.botId}, Integration: ${ctx.integrationId}. The incoming request did not contain a body. Request details: ${JSON.stringify(req)}`
+        )
+      return
     }
-    
-    const body = JSON.parse(req.body);
+
+    const body = JSON.parse(req.body)
 
     if (req.headers['x-shopify-topic'] === 'products/create') {
       const product = buildProduct(body)
-      
+
       try {
         await deleteKbArticleById(ctx.configuration.knowledgeBaseId, body.id, client)
-        const payload = getUploadArticlePayload({ kbId: ctx.configuration.knowledgeBaseId, product, shopDomain: ctx.configuration.shopDomain })
-        
+        const payload = getUploadArticlePayload({
+          kbId: ctx.configuration.knowledgeBaseId,
+          product,
+          shopDomain: ctx.configuration.shopDomain,
+        })
+
         await client.uploadFile(payload)
       } catch (error) {
         logger.forBot().error(`Error creating new row for product ${product.id}: ${error}`)
       }
-      
+
       let parsedPayload = productCreatedSchema.parse(product)
 
       try {
         await client.createEvent({
           type: 'productCreated',
-          payload: parsedPayload
+          payload: parsedPayload,
         })
       } catch (error) {
         logger.forBot().error(`Error creating productCreated event for product ${product.id}: ${error}`)
@@ -53,7 +61,7 @@ export const handler: HandlerFunction = async ({ req, logger, client, ctx }) => 
       try {
         await client.createEvent({
           type: 'productDeleted',
-          payload: parsedPayload
+          payload: parsedPayload,
         })
       } catch (error) {
         logger.forBot().error(`Error creating productDeleted event for product ${payload.id}: ${error}`)
@@ -61,13 +69,16 @@ export const handler: HandlerFunction = async ({ req, logger, client, ctx }) => 
     }
 
     if (req.headers['x-shopify-topic'] === 'products/update') {
-
       const product = buildProduct(body)
-    
+
       try {
         await deleteKbArticleById(ctx.configuration.knowledgeBaseId, body.id, client)
-        const payload = getUploadArticlePayload({ kbId: ctx.configuration.knowledgeBaseId, product, shopDomain: ctx.configuration.shopDomain })
-      
+        const payload = getUploadArticlePayload({
+          kbId: ctx.configuration.knowledgeBaseId,
+          product,
+          shopDomain: ctx.configuration.shopDomain,
+        })
+
         await client.uploadFile(payload)
       } catch (error) {
         logger.forBot().error(`Error creating new row for product ${product.id}: ${error}`)
@@ -78,7 +89,7 @@ export const handler: HandlerFunction = async ({ req, logger, client, ctx }) => 
       try {
         await client.createEvent({
           type: 'productUpdated',
-          payload: parsedPayload
+          payload: parsedPayload,
         })
       } catch (error) {
         logger.forBot().error(`Error creating productUpdated event for product ${product.id}: ${error}`)
@@ -88,4 +99,3 @@ export const handler: HandlerFunction = async ({ req, logger, client, ctx }) => 
     logger.forBot().error(`Unexpected error in handler: ${error}`)
   }
 }
-

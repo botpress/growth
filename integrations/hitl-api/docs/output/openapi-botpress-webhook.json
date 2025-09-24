@@ -23,23 +23,17 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "ping"
-            ]
+            "enum": ["ping"]
           }
         },
-        "required": [
-          "type"
-        ]
+        "required": ["type"]
       },
       "CreateRemoteConversationPayload": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "createRemoteConversation"
-            ]
+            "enum": ["createRemoteConversation"]
           },
           "payload": {
             "type": "object",
@@ -65,27 +59,20 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "text"
-                  ]
+                  "required": ["text"]
                 }
               }
             }
           }
         },
-        "required": [
-          "type",
-          "payload"
-        ]
+        "required": ["type", "payload"]
       },
       "CloseRemoteTicketPayload": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "closeRemoteTicket"
-            ]
+            "enum": ["closeRemoteTicket"]
           },
           "payload": {
             "type": "object",
@@ -94,24 +81,17 @@
                 "type": "string"
               }
             },
-            "required": [
-              "botpressConversationId"
-            ]
+            "required": ["botpressConversationId"]
           }
         },
-        "required": [
-          "type",
-          "payload"
-        ]
+        "required": ["type", "payload"]
       },
       "CreateRemoteUserPayload": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "createRemoteUser"
-            ]
+            "enum": ["createRemoteUser"]
           },
           "payload": {
             "type": "object",
@@ -121,19 +101,14 @@
             "description": "whatever user payload sent from Botpress"
           }
         },
-        "required": [
-          "type",
-          "payload"
-        ]
+        "required": ["type", "payload"]
       },
       "BotSendsMessagePayload": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "botSendsMessage"
-            ]
+            "enum": ["botSendsMessage"]
           },
           "remoteConversationId": {
             "type": "string",
@@ -151,12 +126,7 @@
             "description": "The message payload in the botpress format"
           }
         },
-        "required": [
-          "type",
-          "remoteConversationId",
-          "remoteUserId",
-          "payload"
-        ]
+        "required": ["type", "remoteConversationId", "remoteUserId", "payload"]
       },
       "AgentAssignedPayload": {
         "type": "object",
@@ -170,10 +140,7 @@
             "description": "The ID of the chat-user on the live agent platform"
           }
         },
-        "required": [
-          "remoteConversationId",
-          "remoteUserId"
-        ]
+        "required": ["remoteConversationId", "remoteUserId"]
       },
       "StopHitlPayload": {
         "type": "object",
@@ -183,9 +150,7 @@
             "description": "The ID of the conversation on the live agent platform"
           }
         },
-        "required": [
-          "remoteConversationId"
-        ]
+        "required": ["remoteConversationId"]
       },
       "AgentMessagePayload": {
         "type": "object",
@@ -209,12 +174,7 @@
             "description": "The message payload in the botpress format"
           }
         },
-        "required": [
-          "remoteConversationId",
-          "remoteUserId",
-          "messageType",
-          "payload"
-        ]
+        "required": ["remoteConversationId", "remoteUserId", "messageType", "payload"]
       },
       "CreateRemoteConversationResponse": {
         "type": "object",
@@ -224,9 +184,7 @@
             "description": "The ID of the conversation / ticket on the live agent platform"
           }
         },
-        "required": [
-          "id"
-        ]
+        "required": ["id"]
       },
       "CreateRemoteUserResponse": {
         "type": "object",
@@ -236,9 +194,7 @@
             "description": "The ID of the chat-user on the live agent platform"
           }
         },
-        "required": [
-          "id"
-        ]
+        "required": ["id"]
       }
     },
     "parameters": {}
@@ -247,9 +203,7 @@
     "/message-from-agent": {
       "post": {
         "summary": "Send a message from the agent to the bot.",
-        "tags": [
-          "Calling the API"
-        ],
+        "tags": ["Calling the API"],
         "description": "Receives a message from the agent and forwards it to the bot conversation.",
         "operationId": "messageFromAgent",
         "requestBody": {
@@ -272,9 +226,7 @@
     "/agent-assigned": {
       "post": {
         "summary": "Notify that an agent was assigned to a conversation.",
-        "tags": [
-          "Calling the API"
-        ],
+        "tags": ["Calling the API"],
         "description": "This endpoint is triggered when an agent is assigned to a conversation.",
         "operationId": "agentAssigned",
         "requestBody": {
@@ -297,9 +249,7 @@
     "/stop-hitl": {
       "post": {
         "summary": "Stop the human-in-the-loop (HITL) session and close the ticket.",
-        "tags": [
-          "Calling the API"
-        ],
+        "tags": ["Calling the API"],
         "description": "This endpoint is called when the agent stops the human-in-the-loop session.",
         "operationId": "stopHitl",
         "requestBody": {

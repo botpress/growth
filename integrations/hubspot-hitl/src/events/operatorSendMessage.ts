@@ -1,12 +1,6 @@
 import * as bp from '.botpress'
 
-export const handleOperatorReplied = async ({
-  hubspotEvent,
-  client
-}: {
-  hubspotEvent: any
-  client: bp.Client
-}) => {
+export const handleOperatorReplied = async ({ hubspotEvent, client }: { hubspotEvent: any; client: bp.Client }) => {
   const { conversation } = await client.getOrCreateConversation({
     channel: 'hitl',
     tags: {

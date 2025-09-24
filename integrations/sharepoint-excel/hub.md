@@ -19,6 +19,7 @@ To set up the connector, you need an App registration with the correct API permi
 ## Action: Sync Excel File
 
 ### Inputs
+
 - **sharepointFileUrl**: Relative path to the Excel file in SharePoint. The path should be in the format `/{DOCUMENT_LIBRARY}/{file_path}` where:
   - `DOCUMENT_LIBRARY` is the name of your SharePoint document library (e.g., "Documents", "Shared Documents", or any custom library name)
   - `file_path` is the path to your Excel file within that library, including any subfolders
@@ -33,6 +34,7 @@ To set up the connector, you need an App registration with the correct API permi
   Each sheet listed will be synced to the specified table. If a table does not exist, it will be created with a schema matching the sheet's columns. If it exists, all rows will be cleared before new data is inserted. **Note:** If providing a pre-existing table, ensure its column names match the Excel sheet headers exactly, as the integration will not alter an existing table's schema.
 
 ### Example
+
 ```json
 {
   "sharepointFileUrl": "/doclib1/Book.xlsx",
@@ -43,6 +45,7 @@ To set up the connector, you need an App registration with the correct API permi
 ## How to's
 
 ### How to register an app on Microsoft Entra admin center
+
 - From the Home page of Microsoft Entra admin center, open App registrations (under Applications in the left nav).
 - Add a new registration by clicking on "+ New registration".
 - Give your app an appropriate name, and click register.
@@ -51,17 +54,20 @@ To set up the connector, you need an App registration with the correct API permi
   - `Directory (tenant) ID`
 
 ### How to create a certificate for your app registration
+
 - We will be using a self-signed certificate to authenticate. To create a self-signed certificate, run the following commands:
   - `openssl genrsa -out myPrivateKey.key 2048`
   - `openssl req -new -key myPrivateKey.key -out myCertificate.csr`
   - `openssl x509 -req -days 365 -in myCertificate.csr -signkey myPrivateKey.key -out myCertificate.crt`
 
 ### How to add your certificate to your app registration
+
 - Navigate to the Azure portal and go to your Azure AD app registration.
 - Under "Certificates & secrets," choose "Certificates" and click "Upload certificate."
 - Upload your `.crt` file.
 
 ### How to update API permissions for your app registration
+
 - Go to "API Permissions" (under the Manage group in your App Registration).
 - Click "Add a permission".
 - Click on "Microsoft Graph".
@@ -76,6 +82,7 @@ To set up the connector, you need an App registration with the correct API permi
 - Click on "Grant admin consent for <your_org_name>".
 
 ## Notes
+
 - The integration always preserves tables to maintain KB links. Tables are never deleted, only cleared and repopulated.
 - If a sheet or table mapping is invalid, the action will fail with a descriptive error.
 - Data types for columns are auto-detected (string or number) based on the sheet data.

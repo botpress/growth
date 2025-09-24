@@ -1,7 +1,6 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
-import hitl from './bp_modules/hitl';
+import hitl from './bp_modules/hitl'
 import { events, configuration, channels as baseChannels, states, user } from './src/definitions'
-
 
 export default new IntegrationDefinition({
   name: 'plus/brevo-hitl',
@@ -11,7 +10,7 @@ export default new IntegrationDefinition({
   description: 'Brevo HITL Integration',
   icon: 'icon.svg',
   configuration,
-  states, 
+  states,
   channels: baseChannels,
   events,
   user,
@@ -25,11 +24,10 @@ export default new IntegrationDefinition({
         tags: {
           id: {
             title: 'Brevo Conversation ID (Visitor ID)',
-            description: 'The visitor ID used consistently in Brevo webhooks.'
-          }
+            description: 'The visitor ID used consistently in Brevo webhooks.',
+          },
         },
       },
     },
   },
 }))
-

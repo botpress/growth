@@ -24,11 +24,5 @@
     "noPropertyAccessFromIndexSignature": false,
     "noUnusedLocals": false
   },
-  "include": [
-    ".botpress/**/*",
-    "definitions/**/*",
-    "src/**/*",
-    "misc/**/*",
-    "*.ts"
-  ]
+  "include": [".botpress/**/*", "definitions/**/*", "src/**/*", "misc/**/*", "*.ts"]
 }

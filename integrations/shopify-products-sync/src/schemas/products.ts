@@ -24,16 +24,16 @@ export type ShopifyProduct = {
 }
 
 export type StoredProduct = {
-  id: number;
-  title: string;
-  description: string; // from "body_html"
-  vendor: string;
-  tags?: string;
-  productType?: string;
-  price: string;
-  weight: number; // in weightUnit
-  weightUnit: string; // e.g., "oz"
-  images: string[]; // list of image URLs
-  options?: string[]; // e.g., sizes, colors
-  url: string;
+  id: number
+  title: string
+  description: string // from "body_html"
+  vendor: string
+  tags?: string
+  productType?: string
+  price: string
+  weight: number // in weightUnit
+  weightUnit: string // e.g., "oz"
+  images: string[] // list of image URLs
+  options?: string[] // e.g., sizes, colors
+  url: string
 }

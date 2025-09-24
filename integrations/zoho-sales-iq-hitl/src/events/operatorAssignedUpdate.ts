@@ -20,7 +20,7 @@ export const handleOperatorAssignedUpdate = async ({
       id: salesIqEvent.entity.visitor.email_id,
     },
   })
-  
+
   await client.createEvent({
     type: 'hitlAssigned',
     payload: {

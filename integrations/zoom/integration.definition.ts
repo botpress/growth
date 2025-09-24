@@ -9,33 +9,23 @@ export default new IntegrationDefinition({
   readme: 'hub.md',
   configuration: {
     schema: z.object({
-    zoomAccountId: z
-      .string()
-      .describe('Zoom Account ID (Found on Zoom OAuth App under App Credentials)'),
-    zoomClientId: z
-      .string()
-      .describe('Zoom Client ID (Found on Zoom OAuth App under App Credentials)'),
-    zoomClientSecret: z
-      .string()
-      .describe('Zoom Client Secret (Found on Zoom OAuth App under App Credentials)'),
-    secretToken: z
-      .string()
-      .describe('Secret Token (Found on Zoom OAuth App under Features)'),
-    allowedZoomUserIds: z
-      .array(z.string())
-      .describe('Process events from these Zoom User IDs'),
+      zoomAccountId: z.string().describe('Zoom Account ID (Found on Zoom OAuth App under App Credentials)'),
+      zoomClientId: z.string().describe('Zoom Client ID (Found on Zoom OAuth App under App Credentials)'),
+      zoomClientSecret: z.string().describe('Zoom Client Secret (Found on Zoom OAuth App under App Credentials)'),
+      secretToken: z.string().describe('Secret Token (Found on Zoom OAuth App under Features)'),
+      allowedZoomUserIds: z.array(z.string()).describe('Process events from these Zoom User IDs'),
     }),
   },
 
-events: {
-  transcriptReceived: {
-    title: 'Transcript Received',
-    description: 'Fires when a transcript is received from Zoom',
-    schema: z.object({
-      meetingUUID: z.string(),
-      transcript: z.string(),
-      rawVtt: z.string().optional(),
-    }),
+  events: {
+    transcriptReceived: {
+      title: 'Transcript Received',
+      description: 'Fires when a transcript is received from Zoom',
+      schema: z.object({
+        meetingUUID: z.string(),
+        transcript: z.string(),
+        rawVtt: z.string().optional(),
+      }),
+    },
   },
-},
 })
