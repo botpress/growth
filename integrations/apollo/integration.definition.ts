@@ -1,4 +1,4 @@
-import { IntegrationDefinition, z } from '@botpress/sdk'
+import { IntegrationDefinition } from '@botpress/sdk'
 import { integrationName } from './package.json'
 import { actions } from './src/definitions/actions'
 import { configuration } from './src/definitions/index'
@@ -9,7 +9,7 @@ export default new IntegrationDefinition({
   version: '1.0.0',
   readme: 'hub.md',
   icon: 'icon.svg',
-  description: 'Search for and enrich people from your team\'s Apollo.io account',
+  description: "Search for and enrich people from your team's Apollo.io account",
   configuration,
   actions,
 })

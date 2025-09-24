@@ -1,7 +1,16 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
-import { BulkEnrichmentPayload, BulkEnrichPersonResponse, ContactPayload, ContactResponse, EnrichmentPayload, EnrichPersonResponse, SearchContactsResponse, SearchPayload } from './definitions/schemas'
+import {
+  BulkEnrichmentPayload,
+  BulkEnrichPersonResponse,
+  ContactPayload,
+  ContactResponse,
+  EnrichmentPayload,
+  EnrichPersonResponse,
+  SearchContactsResponse,
+  SearchPayload,
+} from './definitions/schemas'
 
 class ApolloApi {
   private _client: AxiosInstance
@@ -38,7 +47,7 @@ class ApolloApi {
       this._handleError(error)
     }
   }
-  
+
   public async createContact(contact: ContactPayload): Promise<ContactResponse> {
     return this.request('POST', '/contacts', contact)
   }
@@ -48,37 +57,40 @@ class ApolloApi {
   }
 
   public async searchContact(contact: SearchPayload): Promise<SearchContactsResponse> {
-    const searchParams = new URLSearchParams();
-    contact.q_keywords && searchParams.append('q_keywords', contact.q_keywords);
-    contact.contact_stage_ids && contact.contact_stage_ids.forEach(stageId => searchParams.append('contact_stage_ids[]', stageId));
-    contact.sort_by_field && searchParams.append('sort_by_field', contact.sort_by_field);
-    contact.sort_ascending && searchParams.append('sort_ascending', contact.sort_ascending.toString());
-    contact.page && searchParams.append('page', contact.page.toString());
-    contact.per_page && searchParams.append('per_page', contact.per_page.toString());
+    const searchParams = new URLSearchParams()
+    contact.q_keywords && searchParams.append('q_keywords', contact.q_keywords)
+    contact.contact_stage_ids &&
+      contact.contact_stage_ids.forEach((stageId) => searchParams.append('contact_stage_ids[]', stageId))
+    contact.sort_by_field && searchParams.append('sort_by_field', contact.sort_by_field)
+    contact.sort_ascending && searchParams.append('sort_ascending', contact.sort_ascending.toString())
+    contact.page && searchParams.append('page', contact.page.toString())
+    contact.per_page && searchParams.append('per_page', contact.per_page.toString())
     return this.request('GET', `/contacts/search?${searchParams.toString()}`)
   }
 
   public async enrichPerson(payload: EnrichmentPayload): Promise<EnrichPersonResponse> {
-    const searchParams = new URLSearchParams();
-    payload.first_name && searchParams.append('first_name', payload.first_name);
-    payload.last_name && searchParams.append('last_name', payload.last_name);
-    payload.email && searchParams.append('email', payload.email);
-    payload.organization_name && searchParams.append('organization_name', payload.organization_name);
-    payload.domain && searchParams.append('domain', payload.domain);
-    payload.id && searchParams.append('id', payload.id);
-    payload.linkedin_url && searchParams.append('linkedin_url', payload.linkedin_url);
-    payload.reveal_personal_emails && searchParams.append('reveal_personal_emails', payload.reveal_personal_emails.toString());
-    payload.reveal_phone_numbers && searchParams.append('reveal_phone_numbers', payload.reveal_phone_numbers.toString());
-    payload.webhook_url && searchParams.append('webhook_url', payload.webhook_url);
+    const searchParams = new URLSearchParams()
+    payload.first_name && searchParams.append('first_name', payload.first_name)
+    payload.last_name && searchParams.append('last_name', payload.last_name)
+    payload.email && searchParams.append('email', payload.email)
+    payload.organization_name && searchParams.append('organization_name', payload.organization_name)
+    payload.domain && searchParams.append('domain', payload.domain)
+    payload.id && searchParams.append('id', payload.id)
+    payload.linkedin_url && searchParams.append('linkedin_url', payload.linkedin_url)
+    payload.reveal_personal_emails &&
+      searchParams.append('reveal_personal_emails', payload.reveal_personal_emails.toString())
+    payload.reveal_phone_numbers && searchParams.append('reveal_phone_numbers', payload.reveal_phone_numbers.toString())
+    payload.webhook_url && searchParams.append('webhook_url', payload.webhook_url)
     return this.request('POST', `/people/match?${searchParams.toString()}`)
   }
 
   public async bulkEnrichPeople(payload: BulkEnrichmentPayload): Promise<BulkEnrichPersonResponse> {
-    const searchParams = new URLSearchParams();
-    payload.reveal_personal_emails && searchParams.append('reveal_personal_emails', payload.reveal_personal_emails.toString());
-    payload.reveal_phone_numbers && searchParams.append('reveal_phone_numbers', payload.reveal_phone_numbers.toString());
-    payload.webhook_url && searchParams.append('webhook_url', payload.webhook_url);
-    return this.request('POST', `/people/bulk_match?${searchParams.toString()}`, { details: payload.people } )
+    const searchParams = new URLSearchParams()
+    payload.reveal_personal_emails &&
+      searchParams.append('reveal_personal_emails', payload.reveal_personal_emails.toString())
+    payload.reveal_phone_numbers && searchParams.append('reveal_phone_numbers', payload.reveal_phone_numbers.toString())
+    payload.webhook_url && searchParams.append('webhook_url', payload.webhook_url)
+    return this.request('POST', `/people/bulk_match?${searchParams.toString()}`, { details: payload.people })
   }
 
   private _handleError(error: unknown): never {
@@ -100,11 +112,10 @@ class ApolloApi {
       }
     }
 
-    throw new sdk.RuntimeError(`Network error: ${(error as any).message || 'Unknown error'}`)
+    throw new sdk.RuntimeError(`Network error: ${(error as { message?: string }).message || 'Unknown error'}`)
   }
 }
 
 export type ApolloClient = InstanceType<typeof ApolloApi>
 
-export const getApolloClient = (config: bp.configuration.Configuration): ApolloApi =>
-  new ApolloApi(config.apiKey)
+export const getApolloClient = (config: bp.configuration.Configuration): ApolloApi => new ApolloApi(config.apiKey)

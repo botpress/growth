@@ -6,6 +6,6 @@ export const configuration = {
       .string({
         description: 'Your Apollo.io API Key',
       })
-      .min(1), 
+      .min(1),
   }),
 } satisfies IntegrationDefinitionProps['configuration']

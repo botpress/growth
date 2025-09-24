@@ -1,5 +1,4 @@
 import { getApolloClient } from '../client'
-import { ContactResponse, ContactPayload } from '../definitions/schemas'
 import * as bp from '.botpress'
 
 export const updateContact: bp.IntegrationProps['actions']['updateContact'] = async ({ input, logger, ctx }) => {

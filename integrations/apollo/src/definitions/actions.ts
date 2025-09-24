@@ -1,5 +1,14 @@
 import { z, IntegrationDefinitionProps } from '@botpress/sdk'
-import { ContactSchema, ContactPayloadSchema, SearchContactSchema, PersonSchema, EnrichmentPayloadSchema, BulkEnrichmentPayloadSchema, SearchPayloadSchema, BulkEnrichPersonResponseSchema, SearchContactsResponseSchema } from 'src/definitions/schemas'
+import {
+  ContactSchema,
+  ContactPayloadSchema,
+  PersonSchema,
+  EnrichmentPayloadSchema,
+  BulkEnrichmentPayloadSchema,
+  SearchPayloadSchema,
+  BulkEnrichPersonResponseSchema,
+  SearchContactsResponseSchema,
+} from 'src/definitions/schemas'
 
 export const createContact = {
   title: 'Create Contact',
@@ -36,7 +45,7 @@ export const updateContact = {
 
 export const searchContact = {
   title: 'Search Contacts',
-  description: 'Find contacts from your team\'s Apollo.io account',
+  description: "Find contacts from your team's Apollo.io account",
   input: {
     schema: SearchPayloadSchema,
   },
@@ -51,7 +60,7 @@ export const searchContact = {
 
 export const enrichPerson = {
   title: 'Enrich Person',
-  description: 'Enrich a person from your team\'s Apollo.io account',
+  description: "Enrich a person from your team's Apollo.io account",
   input: {
     schema: EnrichmentPayloadSchema,
   },
@@ -66,7 +75,7 @@ export const enrichPerson = {
 
 export const bulkEnrichPeople = {
   title: 'Bulk Enrich People',
-  description: 'Enrich a list of people from your team\'s Apollo.io account',
+  description: "Enrich a list of people from your team's Apollo.io account",
   input: {
     schema: BulkEnrichmentPayloadSchema,
   },

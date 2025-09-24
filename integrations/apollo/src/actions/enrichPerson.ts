@@ -8,7 +8,7 @@ export const enrichPerson: bp.IntegrationProps['actions']['enrichPerson'] = asyn
   // Make API call to Apollo
   const apolloResponse = await apolloClient.enrichPerson(input)
 
-  const person: Person = apolloResponse.person;
+  const person: Person = apolloResponse.person
 
   console.log('Person enriched in Apollo.io', person)
   // Transform Apollo response to Botpress output format

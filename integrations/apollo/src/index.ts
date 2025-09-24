@@ -1,4 +1,3 @@
-import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
 import { register, unregister } from './setup'
 import actions from './actions'
