@@ -24,11 +24,13 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
     const SESClient = getSesClient();
 
     const header = "This is a notification from your Botpress bot.";
-    const textBodyCore = input.body || "";
     const updateLinkUrl = `https://studio.botpress.cloud/${ctx.botId}`;
-    const htmlBody = `<div><p>${header}</p>${textBodyCore ? `<p>${textBodyCore}</p>` : ""}<p><a href=\"${updateLinkUrl}\">Update the notification here</a></p><p><a href=\"{{amazonSESUnsubscribeUrl}}\">Unsubscribe</a></p></div>`;
-    logger.forBot().info(`Sending email to: ${input.to.join(", ")}`);
-    logger.forBot().debug(`Email subject: ${input.subject}`);
+    const htmlBody = `<div>
+    <p>${header}</p>
+    ${input.body ? `<p>${input.body}</p>` : ""}
+    <p><a href="${updateLinkUrl}">Update the notification here</a></p>
+    <p><a href="{{amazonSESUnsubscribeUrl}}">Unsubscribe</a></p>
+    </div>`;
 
     const results = {
       successful: [] as Array<{ email: string; messageId: string }>,
