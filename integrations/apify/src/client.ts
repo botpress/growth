@@ -35,7 +35,7 @@ export class ApifyApi {
     }
   }
 
-  async getRunStatus(runId: string) {
+  async getRunStatus(runId: string): Promise<{ runId: string; status: string }> {
     this.logger.forBot().info(`Getting status for run ID: ${runId}`);
 
     const run = await this.client.run(runId).get();
@@ -43,8 +43,8 @@ export class ApifyApi {
     this.logger.forBot().info(`Run status retrieved. Status: ${run?.status}`);
 
     return {
-      runId: run?.id,
-      status: run?.status,
+      runId: run?.id || runId,
+      status: run?.status || 'FAILED',
     }
   }
 
