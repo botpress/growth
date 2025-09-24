@@ -1,6 +1,5 @@
 import * as bp from ".botpress";
 import {
-  CONTACT_LIST,
   addContactToList,
 } from "../utils";
 import {
@@ -12,8 +11,8 @@ import {
   InternalServiceErrorException,
 } from "@aws-sdk/client-sesv2";
 import * as sdk from "@botpress/sdk";
-import { getSesClient } from "../client";
-
+import { getSesClient } from "../misc/client";
+import { CONTACT_LIST, FROM_EMAIL_ADDRESS } from "../misc/constants";
 export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
   input,
   logger,
@@ -70,7 +69,7 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
           ListManagementOptions: {
             ContactListName: CONTACT_LIST,
           },
-          FromEmailAddress: "noreply@bp-mailer.com",
+          FromEmailAddress: FROM_EMAIL_ADDRESS,
         });
 
         const result = await SESClient.send(sendEmailCommand);

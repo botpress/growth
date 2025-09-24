@@ -1,12 +1,10 @@
 import {
   CreateContactCommand,
 } from "@aws-sdk/client-sesv2";
-
-import { getSesClient } from "./client";
+import { getSesClient } from "./misc/client";
+import { CONTACT_LIST } from "./misc/constants";
 
 const SESClient = getSesClient();
-
-export const CONTACT_LIST = "default";
 
 export async function addContactToList(email: string) {
   try {
