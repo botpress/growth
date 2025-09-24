@@ -31,5 +31,5 @@ jobs:
         uses: ./.github/actions/deploy-integrations
         with:
           force: ${{ github.event.inputs.force || 'false' }}
-          token_pat: ${{ secrets.AUDRIC_PROD_PAT }}
+          token_pat: ${{ secrets.PRODUCTION_TOKEN_CLOUD_OPS_ACCOUNT }}
           plus_workspace_id: ${{ secrets.BP_WORKSPACEID_PROD }}
