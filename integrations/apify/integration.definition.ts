@@ -1,9 +1,23 @@
 import { IntegrationDefinition, z } from '@botpress/sdk';
 import { integrationName } from './package.json';
 
+export const startCrawlerRunInputSchema = z.object({
+  startUrls: z.array(z.string().url()).describe('URLs to start crawling from'),
+  excludeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to exclude from crawling'),
+  includeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to include in crawling'),
+  maxCrawlPages: z.number().min(1).max(10000).describe('Maximum number of pages to crawl'),
+  saveMarkdown: z.boolean().describe('Save content as Markdown format'),
+  htmlTransformer: z.enum(['readableTextIfPossible', 'readableText', 'minimal', 'none']).describe('HTML processing method'),
+  removeElementsCssSelector: z.string().optional().describe('CSS selectors for elements to remove'),
+  crawlerType: z.enum(['playwright:adaptive', 'playwright:firefox', 'cheerio', 'jsdom', 'playwright:chrome']).describe('Browser type for crawling'),
+  expandClickableElements: z.boolean().describe('Expand clickable elements for better content extraction'),
+  headers: z.string().optional().describe('Custom HTTP headers for authentication/requests'),
+  rawInputJsonOverride: z.string().optional().describe('JSON string to override any crawler parameters, please refer to https://console.apify.com/actors/<actor-id>/input and select JSON format for the available parameters'),
+});
+
 export default new IntegrationDefinition({
   name: integrationName ?? 'apify',
-  version: '1.0.0',
+  version: '1.0.1',
   title: 'Apify Website Content Crawler',
   readme: 'hub.md',
   icon: 'icon.svg',
@@ -49,31 +63,19 @@ export default new IntegrationDefinition({
     startCrawlerRun: {
       title: 'Start Crawler Run',
       description: 'Start a crawler run asynchronously. Use with webhooks for production crawling. You can either use individual parameters for simple cases, or provide rawInputJsonOverride for full control.',
-              input: {
-        schema: z.object({
-          startUrls: z.array(z.string().url()).describe('URLs to start crawling from'),
-          kbId: z.string().describe('Knowledge Base ID to tag the crawled content with'),
-          excludeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to exclude from crawling'),
-          includeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to include in crawling'),
-          maxCrawlPages: z.number().min(1).max(10000).optional().describe('Maximum number of pages to crawl'),
-          saveMarkdown: z.boolean().optional().describe('Save content as Markdown format'),
-          htmlTransformer: z.enum(['readableTextIfPossible', 'readableText', 'minimal', 'none']).optional().describe('HTML processing method'),
-          removeElementsCssSelector: z.string().optional().describe('CSS selectors for elements to remove'),
-          crawlerType: z.enum(['playwright:adaptive', 'playwright:firefox', 'cheerio', 'jsdom', 'playwright:chrome']).optional().describe('Browser type for crawling'),
-          expandClickableElements: z.boolean().optional().describe('Expand clickable elements for better content extraction'),
-          headers: z.record(z.string(), z.string()).optional().describe('Custom HTTP headers for authentication/requests'),
-          rawInputJsonOverride: z.string().optional().describe('JSON string to override any crawler parameters, please refer to https://console.apify.com/actors/<actor-id>/input and select JSON format for the available parameters'),
-        }),
+      input: {
+        schema: startCrawlerRunInputSchema.extend({
+          kbId: z.string().describe('Knowledge Base ID to save the crawled content to'),
+        })
       },
       output: {
         schema: z.object({
           success: z.boolean(),
           message: z.string(),
           data: z.object({
-            runId: z.string().optional(),
-            status: z.string().optional(),
-            error: z.string().optional(),
-          }).optional(),
+            runId: z.string(),
+            status: z.string(),
+          }),
         }),
       },
     },
@@ -89,14 +91,8 @@ export default new IntegrationDefinition({
         schema: z.object({
           success: z.boolean(),
           message: z.string(),
-          data: z.object({
-            runId: z.string().optional(),
-            status: z.string().optional(),
-            startedAt: z.string().nullable().optional(),
-            finishedAt: z.string().nullable().optional(),
-            defaultDatasetId: z.string().nullable().optional(),
-            error: z.string().optional(),
-          }).optional(),
+          runId: z.string(),
+          status: z.string()
         }),
       },
     },

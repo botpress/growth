@@ -1,22 +1,35 @@
 import * as bp from '.botpress';
 import { getClient } from 'src/client';
- 
-export const startCrawlerRun = async ({ 
-  ctx, 
-  client,
-  input, 
-  logger
-}: {
-  ctx: bp.Context;
-  client: bp.Client;
-  input: { startUrls: string[]; excludeUrlGlobs?: string[]; includeUrlGlobs?: string[]; 
-    maxCrawlPages?: number; kbId: string; saveMarkdown?: boolean; 
-    htmlTransformer?: 'readableTextIfPossible' | 'readableText' | 'minimal' | 'none'; 
-    removeElementsCssSelector?: string; 
-    crawlerType?: 'playwright:adaptive' | 'playwright:firefox' | 'cheerio' | 'jsdom' | 'playwright:chrome'; 
-    expandClickableElements?: boolean; headers?: Record<string, string>; rawInputJsonOverride?: string; };
-  logger: bp.Logger;
-}) => {
+import { buildCrawlerInput } from 'src/misc/crawler-helpers';
+import { RuntimeError } from '@botpress/sdk'
+
+async function persistRunMapping(
+  client: bp.Client, 
+  ctx: bp.Context,
+  runId: string, 
+  kbId: string
+) {
+  const existing = await client.getState({
+    type: 'integration',
+    id: ctx.integrationId,
+    name: 'apifyRunMappings',
+  });
+
+  const payload = existing?.state?.payload;
+  const currentMap = {...payload};
+
+  currentMap[runId] = kbId;
+
+  await client.setState({
+    type: 'integration',
+    id: ctx.integrationId,
+    name: 'apifyRunMappings',
+    payload: currentMap,
+  });
+}
+
+export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) => {
+  const { input, logger, ctx, client } = props;
   logger.forBot().info(`Starting crawler run with input: ${JSON.stringify(input)}`);
 
   try {
@@ -26,74 +39,36 @@ export const startCrawlerRun = async ({
       logger
     );
 
-    const params = {
-      startUrls: input.startUrls,
-      excludeUrlGlobs: input.excludeUrlGlobs,
-      includeUrlGlobs: input.includeUrlGlobs,
-      maxCrawlPages: input.maxCrawlPages,
-      saveMarkdown: input.saveMarkdown,
-      htmlTransformer: input.htmlTransformer,
-      removeElementsCssSelector: input.removeElementsCssSelector,
-      crawlerType: input.crawlerType,
-      expandClickableElements: input.expandClickableElements,
-      headers: input.headers,
-      rawInputJsonOverride: input.rawInputJsonOverride,
-      kbId: input.kbId,
-    } as const;
-
-    const result = await apifyClient.startCrawlerRun(params);
-
-    if (result.success) {
-      logger.forBot().info(`Crawler run started successfully. Run ID: ${result.data?.runId}`);
-      logger.forBot().debug(`Start result: ${JSON.stringify(result.data)}`);
-
-      const runId = result?.data?.runId;
-      if (runId) {
-        logger.forBot().info(`Persisting kbId mapping for run ${runId} -> kb ${input.kbId}`);
-        const existing = await client.getState({
-          type: 'integration',
-          id: ctx.integrationId,
-          name: 'apifyRunMappings',
-        });
-
-        const payload = existing?.state?.payload;
-        const currentMap = payload || {};
-        currentMap[runId] = input.kbId;
-
-        await client.setState({
-          type: 'integration',
-          id: ctx.integrationId,
-          name: 'apifyRunMappings',
-          payload: currentMap,
-        });
-
-        logger.forBot().info(`Persisted kbId mapping for run ${runId}`);
-      }
-
-      return {
-        success: true,
-        message: `Crawler run started successfully. Run ID: ${result.data?.runId}`,
-        data: result.data,
-      };
-    } else {
-      logger.forBot().error(`Failed to start crawler run: ${result.message}`);
-      
-      return {
-        success: false,
-        message: result.message || 'Failed to start crawler run',
-        data: result.data || { error: result.message },
-      };
+    const { kbId, ...apifyParams } = input;
+    const crawlerInput = buildCrawlerInput(apifyParams);   
+    
+    if (apifyParams.headers && Object.keys(apifyParams.headers).length > 0) {
+      crawlerInput.headers = apifyParams.headers;
     }
+
+    const result = await apifyClient.startCrawlerRun(crawlerInput);
+
+    logger.forBot().info(`Crawler run started successfully. Run ID: ${result.runId}`);
+    logger.forBot().debug(`Start result: ${JSON.stringify(result)}`);
+
+    const runId = result.runId;
+    if (!runId) {
+      logger.forBot().error('No run ID found in the response');
+      throw new RuntimeError('Failed to start crawler run');
+    }
+
+    await persistRunMapping(client, ctx, runId, input.kbId);
+
+    logger.forBot().info(`Persisted kbId mapping for run ${runId}`);
+
+    return {
+      success: true,
+      message: `Crawler run started successfully. Run ID: ${result.runId}`,
+      data: result,
+    };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     logger.forBot().error(`Start crawler run exception: ${errorMessage}`);
-
-    return {
-      success: false,
-      message: errorMessage,
-      data: {
-        error: errorMessage,
-      },
-    };
+    throw new RuntimeError(`Apify API Error: ${errorMessage}`);
   }
 }; 

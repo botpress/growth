@@ -1,62 +1,6 @@
 import { ApifyClient, ApifyApiError } from 'apify-client';
 import * as bp from '.botpress';
-
-type CrawlerInput = {
-  startUrls: { url: string }[];
-  excludeUrlGlobs: string[];
-  includeUrlGlobs: string[];
-  maxCrawlPages: number;
-  saveMarkdown: boolean;
-  htmlTransformer: string;
-  removeElementsCssSelector: string;
-  crawlerType: string;
-  expandClickableElements: boolean;
-  kbId: string;
-  headers?: Record<string, string>;
-};
-
-function buildCrawlerInput(params: {
-  startUrls: string[];
-  excludeUrlGlobs?: string[];
-  includeUrlGlobs?: string[];
-  maxCrawlPages?: number;
-  saveMarkdown?: boolean;
-  htmlTransformer?: string;
-  removeElementsCssSelector?: string;
-  crawlerType?: string;
-  expandClickableElements?: boolean;
-  headers?: Record<string, string>;
-  rawInputJsonOverride?: string;
-  kbId: string;
-}): CrawlerInput {
-  if (params.rawInputJsonOverride) {
-    const parsed = JSON.parse(params.rawInputJsonOverride);
-    
-    if (parsed.startUrls && Array.isArray(parsed.startUrls)) {
-      return {
-        ...parsed,
-        startUrls: parsed.startUrls.map((url: string | { url: string }) => 
-          typeof url === 'string' ? { url } : url
-        )
-      };
-    }
-    
-    return parsed;
-  }
-  
-  return {
-    startUrls: params.startUrls.map(url => ({ url })),
-    excludeUrlGlobs: params.excludeUrlGlobs || [],
-    includeUrlGlobs: params.includeUrlGlobs || ['**/*'],
-    maxCrawlPages: params.maxCrawlPages || 10,
-    saveMarkdown: params.saveMarkdown ?? false,
-    htmlTransformer: params.htmlTransformer || 'readableTextIfPossible',
-    removeElementsCssSelector: params.removeElementsCssSelector || '',
-    crawlerType: params.crawlerType || 'playwright:firefox',
-    expandClickableElements: params.expandClickableElements || false,
-    kbId: params.kbId,
-  };
-}
+import { ReturnType } from './misc/types';
 
 export class ApifyApi {
   private client: ApifyClient;
@@ -78,126 +22,29 @@ export class ApifyApi {
    * Starts a crawler run asynchronously and returns the run ID
    * Use this with webhooks for production crawling
    */
-  async startCrawlerRun(params: {
-    startUrls: string[];
-    excludeUrlGlobs?: string[];
-    includeUrlGlobs?: string[];
-    maxCrawlPages?: number;
-    saveMarkdown?: boolean;
-    htmlTransformer?: 'readableText' | 'readableTextIfPossible' | 'minimal' | 'none';
-    removeElementsCssSelector?: string;
-    crawlerType?: 'playwright:adaptive' | 'playwright:firefox' | 'cheerio' | 'jsdom' | 'playwright:chrome';
-    expandClickableElements?: boolean;
-    headers?: Record<string, string>;
-    rawInputJsonOverride?: string;
-    kbId: string;
-  }) {
-    try {
-      const input = buildCrawlerInput(params);
-      
-      if (params.headers && Object.keys(params.headers).length > 0) {
-        input.headers = params.headers;
-      }
+    async startCrawlerRun(input: ReturnType) {
+    this.logger.forBot().info('Starting Apify Website Content Crawler with input:', JSON.stringify(input, null, 2));
 
-      this.logger.forBot().info('Starting Apify Website Content Crawler with input:', JSON.stringify(input, null, 2));
+    const run = await this.client.actor('apify/website-content-crawler').call(input, { waitSecs: 0 });
 
-      const run = await this.client.actor('apify/website-content-crawler').call(input, { waitSecs: 0 });
+    this.logger.forBot().info(`Crawler run started with ID: ${run.id}`);
 
-      if (!run || !run.id) {
-        throw new Error('Failed to start crawler run');
-      }
-
-      this.logger.forBot().info(`Crawler run started with ID: ${run.id}`);
-
-      return {
-        success: true,
-        message: 'Crawler run started successfully',
-        data: {
-          runId: run.id,
-          status: run.status,
-        },
-      };
-    } catch (error) {
-      this.logger.forBot().error('Error in startCrawlerRun:', error);
-      
-      if (error instanceof ApifyApiError) {
-        const { message, type, statusCode, clientMethod } = error;
-        this.logger.forBot().error('Apify API Error:', { message, type, statusCode, clientMethod });
-        
-        return {
-          success: false,
-          message: `Apify API Error: ${message}`,
-          data: {
-            error: message,
-            type,
-            statusCode,
-            clientMethod,
-          },
-        };
-      }
-
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
-        data: {
-          error: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
-        },
-      };
+    return {
+      runId: run.id,
+      status: run.status,
     }
   }
 
   async getRunStatus(runId: string) {
-    try {
-      const run = await this.client.run(runId).get();
-      
-      if (!run) {
-        return {
-          success: false,
-          message: 'Run not found',
-          data: {
-            runId,
-            error: 'Run not found',
-          },
-        };
-      }
-      
-      return {
-        success: true,
-        message: 'Run status retrieved successfully',
-        data: {
-          runId: run.id,
-          status: run.status,
-          startedAt: run.startedAt?.toISOString() || null,
-          finishedAt: run.finishedAt?.toISOString() || null,
-          defaultDatasetId: run.defaultDatasetId,
-        },
-      };
-    } catch (error) {
-      this.logger.forBot().error('Error in getRunStatus:', error);
-      
-      if (error instanceof ApifyApiError) {
-        const { message, type, statusCode, clientMethod } = error;
-        this.logger.forBot().error('Apify API Error:', { message, type, statusCode, clientMethod });
-        
-        return {
-          success: false,
-          message: `Apify API Error: ${message}`,
-          data: {
-            error: message,
-            type,
-            statusCode,
-            clientMethod,
-          },
-        };
-      }
+    this.logger.forBot().info(`Getting status for run ID: ${runId}`);
 
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
-        data: {
-          error: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
-        },
-      };
+    const run = await this.client.run(runId).get();
+
+    this.logger.forBot().info(`Run status retrieved. Status: ${run?.status}`);
+
+    return {
+      runId: run?.id,
+      status: run?.status,
     }
   }
 
