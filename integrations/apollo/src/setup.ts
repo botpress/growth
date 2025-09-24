@@ -8,8 +8,8 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, logger })
     await apolloClient.searchContact({ q_keywords: '', page: 1, per_page: 1 })
     logger.forBot().info('Apollo integration registered successfully')
   } catch (error) {
-    logger.forBot().error('Failed to register Apollo integration', error)
-    throw new RuntimeError('Failed to register Apollo integration')
+    logger.forBot().error('Failed to register Apollo integration. API request failed.', error)
+    throw new RuntimeError("Unable to reach Apollo API. Please check the API key in your configuration.")
   }
 }
 export const unregister: bp.IntegrationProps['unregister'] = async () => {
