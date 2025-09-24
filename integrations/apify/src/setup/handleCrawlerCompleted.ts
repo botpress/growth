@@ -39,7 +39,21 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
     logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
 
     logger.forBot().info(`Will index results directly into KB: ${kbId}`)
-    const resultsResult = await apifyClient.getAndSyncRunResults(runId, kbId)
+  
+    const runDetails = await apifyClient.getRunDetails(runId)
+    const items = await apifyClient.fetchDatasetItems(runDetails.datasetId!)
+    const filesCreated = await apifyClient.syncContentToBotpress(items, kbId)
+
+    const resultsResult = {
+      success: true,
+      message: `Run results synced successfully. Items: ${items.length}, Files created: ${filesCreated}`,
+      data: {
+        runId: runDetails.runId,
+        datasetId: runDetails.datasetId,
+        itemsCount: items.length,
+        filesCreated,
+      },
+    }
 
     if (resultsResult.success) {
       logger.forBot().info(`Successfully processed results for run ${runId}. Items: ${resultsResult.data?.itemsCount}, Files created: ${resultsResult.data?.filesCreated}`)
