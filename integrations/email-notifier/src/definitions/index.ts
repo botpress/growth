@@ -6,8 +6,8 @@ export const actions = {
     description: 'Send an email via AWS SES',
     input: {
       schema: z.object({
-        to: z.array(z.string().email()).describe('Recipient email addresses').min(1),
-        subject: z.string().describe('Email subject'),
+        to: z.array(z.string().email()).describe('Recipient email addresses').min(1).max(50),
+        subject: z.string().min(1).max(998).describe('Email subject'),
         body: z.string().optional().describe('Email content - supports only plain text'),
       }),
     },
