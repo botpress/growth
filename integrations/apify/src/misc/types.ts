@@ -9,4 +9,4 @@ export type UnregisterFunction = Implementation['unregister']
 export type Handler = Implementation['handler']
 
 export type ApifyCrawlerParams = z.infer<typeof startCrawlerRunInputSchema>;
-export type ReturnType = Omit<ApifyCrawlerParams, 'rawInputJsonOverride'|'startUrls'> & { startUrls: { url: string }[] }
+export type CrawlerRunInput = Omit<ApifyCrawlerParams, 'rawInputJsonOverride'|'startUrls'> & { startUrls: { url: string }[] }

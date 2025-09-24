@@ -1,6 +1,6 @@
 import { ApifyClient, ApifyApiError } from 'apify-client';
 import * as bp from '.botpress';
-import { ReturnType } from './misc/types';
+import { CrawlerRunInput } from './misc/types';
 
 export class ApifyApi {
   private client: ApifyClient;
@@ -22,7 +22,7 @@ export class ApifyApi {
    * Starts a crawler run asynchronously and returns the run ID
    * Use this with webhooks for production crawling
    */
-    async startCrawlerRun(input: ReturnType) {
+    async startCrawlerRun(input: CrawlerRunInput): Promise<{ runId: string; status: string }> {
     this.logger.forBot().info('Starting Apify Website Content Crawler with input:', JSON.stringify(input, null, 2));
 
     const run = await this.client.actor('apify/website-content-crawler').call(input, { waitSecs: 0 });

@@ -16,11 +16,14 @@ export const getRunStatus = async (props: bp.ActionProps['getRunStatus']) => {
     );
 
     const result = await apifyClient.getRunStatus(runId);
-      
+
     return {
       success: true,
-      message: `Run status retrieved successfully. Current status: ${result.status}`,
-      data: result.status
+      message: `Run status retrieved successfully.`,
+      data: {
+        runId: result.runId,
+        status: result.status
+      }
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";

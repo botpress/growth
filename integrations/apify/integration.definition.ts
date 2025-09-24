@@ -91,8 +91,10 @@ export default new IntegrationDefinition({
         schema: z.object({
           success: z.boolean(),
           message: z.string(),
-          runId: z.string(),
-          status: z.string()
+          data: z.object({
+            runId: z.string(),
+            status: z.string()
+          })
         }),
       },
     },

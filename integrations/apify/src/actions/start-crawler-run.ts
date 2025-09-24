@@ -5,24 +5,24 @@ import { RuntimeError } from '@botpress/sdk'
 
 async function persistRunMapping(
   client: bp.Client, 
-  ctx: bp.Context,
+  integrationId: string,
   runId: string, 
   kbId: string
 ) {
-  const existing = await client.getState({
+  const existingMapping = await client.getState({
     type: 'integration',
-    id: ctx.integrationId,
+    id: integrationId,
     name: 'apifyRunMappings',
   });
 
-  const payload = existing?.state?.payload;
+  const payload = existingMapping?.state?.payload;
   const currentMap = {...payload};
 
   currentMap[runId] = kbId;
 
   await client.setState({
     type: 'integration',
-    id: ctx.integrationId,
+    id: integrationId,
     name: 'apifyRunMappings',
     payload: currentMap,
   });
@@ -33,12 +33,6 @@ export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) 
   logger.forBot().info(`Starting crawler run with input: ${JSON.stringify(input)}`);
 
   try {
-    const apifyClient = getClient(
-      ctx.configuration.apiToken,
-      client,
-      logger
-    );
-
     const { kbId, ...apifyParams } = input;
     const crawlerInput = buildCrawlerInput(apifyParams);   
     
@@ -46,18 +40,19 @@ export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) 
       crawlerInput.headers = apifyParams.headers;
     }
 
+    const apifyClient = getClient(
+      ctx.configuration.apiToken,
+      client,
+      logger
+    );
     const result = await apifyClient.startCrawlerRun(crawlerInput);
 
     logger.forBot().info(`Crawler run started successfully. Run ID: ${result.runId}`);
     logger.forBot().debug(`Start result: ${JSON.stringify(result)}`);
 
     const runId = result.runId;
-    if (!runId) {
-      logger.forBot().error('No run ID found in the response');
-      throw new RuntimeError('Failed to start crawler run');
-    }
 
-    await persistRunMapping(client, ctx, runId, input.kbId);
+    await persistRunMapping(client, ctx.integrationId, runId, input.kbId);
 
     logger.forBot().info(`Persisted kbId mapping for run ${runId}`);
 

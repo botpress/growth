@@ -1,6 +1,6 @@
-import { ApifyCrawlerParams, ReturnType } from './types';
+import { ApifyCrawlerParams, CrawlerRunInput } from './types';
   
-export function buildCrawlerInput(params: ApifyCrawlerParams): ReturnType {
+export function buildCrawlerInput(params: ApifyCrawlerParams): CrawlerRunInput {
   if (params.rawInputJsonOverride) {
     const parsed = JSON.parse(params.rawInputJsonOverride);      
     if (parsed.startUrls && Array.isArray(parsed.startUrls)) {
