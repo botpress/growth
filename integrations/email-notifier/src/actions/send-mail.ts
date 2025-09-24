@@ -2,7 +2,6 @@ import * as bp from ".botpress";
 import {
   CONTACT_LIST,
   addContactToList,
-  validateSendEmailInput,
 } from "../utils";
 import {
   SendEmailCommand,
@@ -21,13 +20,6 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
   client,
   ctx,
 }) => {
-  const validation = validateSendEmailInput(input);
-  if (!validation.isValid) {
-    const errorMessage = `Invalid input: ${validation.errors.join(", ")}`;
-    logger.forBot().error(errorMessage);
-    throw new sdk.RuntimeError(errorMessage);
-  }
-
   try {
     const SESClient = getSesClient();
 
