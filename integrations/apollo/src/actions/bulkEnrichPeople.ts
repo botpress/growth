@@ -1,4 +1,4 @@
-import { BulkEnrichmentPayloadSchema } from 'src/definitions/schemas'
+import { BulkEnrichmentPayloadSchema } from 'src/definitions/schemas/'
 import { getApolloClient } from '../client'
 import * as bp from '.botpress'
 

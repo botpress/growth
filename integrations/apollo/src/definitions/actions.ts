@@ -8,7 +8,7 @@ import {
   SearchPayloadSchema,
   BulkEnrichPersonResponseSchema,
   SearchContactsResponseSchema,
-} from 'src/definitions/schemas'
+} from 'src/definitions/schemas/'
 
 export const createContact = {
   title: 'Create Contact',
@@ -37,8 +37,8 @@ export const updateContact = {
   output: {
     schema: z.object({
       contact: ContactSchema,
-      success: z.boolean().describe('Whether the contact was successfully created'),
-      message: z.string().describe('Status message about the contact creation'),
+      success: z.boolean().describe('Whether the contact was successfully updated'),
+      message: z.string().describe('Status message about the contact update'),
     }),
   },
 }

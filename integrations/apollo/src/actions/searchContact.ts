@@ -1,5 +1,5 @@
 import { getApolloClient } from '../client'
-import { SearchContact, SearchPayloadSchema } from '../definitions/schemas'
+import { SearchContact, SearchPayloadSchema } from '../definitions/schemas/'
 import * as bp from '.botpress'
 
 export const searchContact: bp.IntegrationProps['actions']['searchContact'] = async ({ input, logger, ctx }) => {

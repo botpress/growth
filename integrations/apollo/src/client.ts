@@ -10,7 +10,7 @@ import {
   EnrichPersonResponse,
   SearchContactsResponse,
   SearchPayload,
-} from './definitions/schemas'
+} from './definitions/schemas/'
 
 class ApolloApi {
   private _client: AxiosInstance
