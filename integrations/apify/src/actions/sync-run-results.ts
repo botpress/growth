@@ -8,6 +8,18 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
 
   logger.forBot().info(`Syncing results for run ID: ${runId} to KB: ${kbId}`);
 
+  if (!runId || runId === '') {
+    const errorMessage = 'Run ID is required';
+    logger.forBot().error(errorMessage);
+    throw new RuntimeError(errorMessage);
+  }
+
+  if (!kbId || kbId === '') {
+    const errorMessage = 'Knowledge Base ID (kbId) is required';
+    logger.forBot().error(errorMessage);
+    throw new RuntimeError(errorMessage);
+  }
+
   try {
     const apifyClient = getClient(
       ctx.configuration.apiToken,
@@ -15,7 +27,13 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
       logger
     );
 
-    const runDetails = await apifyClient.getRunDetails(runId);
+    const runDetails = await apifyClient.getRun(runId);
+    
+    if (runDetails.status === 'UNKNOWN' && runDetails.runId === runId) {
+      const errorMessage = `Run with ID ${runId} not found`;
+      logger.forBot().error(errorMessage);
+      throw new RuntimeError(errorMessage);
+    }
     
     if (runDetails.status !== 'SUCCEEDED') {
       logger.forBot().error(`Run is not completed. Current status: ${runDetails.status}`);

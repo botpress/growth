@@ -40,7 +40,7 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
 
     logger.forBot().info(`Will index results directly into KB: ${kbId}`)
   
-    const runDetails = await apifyClient.getRunDetails(runId)
+    const runDetails = await apifyClient.getRun(runId)
     const items = await apifyClient.fetchDatasetItems(runDetails.datasetId!)
     const filesCreated = await apifyClient.syncContentToBotpress(items, kbId)
 

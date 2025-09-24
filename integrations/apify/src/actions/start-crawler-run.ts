@@ -1,6 +1,6 @@
 import * as bp from '.botpress';
 import { getClient } from 'src/client';
-import { buildCrawlerInput } from 'src/misc/crawler-helpers';
+import { buildCrawlerInput } from '../helpers/utils';
 import { RuntimeError } from '@botpress/sdk'
 
 async function persistRunMapping(
@@ -15,7 +15,7 @@ async function persistRunMapping(
     name: 'apifyRunMappings',
   });
 
-  const payload = existingMapping?.state?.payload;
+  const payload = existingMapping.state.payload;
   const currentMap = {...payload};
 
   currentMap[runId] = kbId;
@@ -34,9 +34,14 @@ export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) 
 
   try {
     const { kbId, ...apifyParams } = input;
+    
+    if (!kbId || kbId === '') {
+      throw new RuntimeError('kbId is required to start a crawler run. Please provide a valid Knowledge Base ID.');
+    }
+    
     const crawlerInput = buildCrawlerInput(apifyParams);   
     
-    if (apifyParams.headers && Object.keys(apifyParams.headers).length > 0) {
+    if (apifyParams.headers) {
       crawlerInput.headers = apifyParams.headers;
     }
 
@@ -58,7 +63,7 @@ export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) 
 
     return {
       success: true,
-      message: `Crawler run started successfully. Run ID: ${result.runId}`,
+      message: `Crawler run started successfully.`,
       data: result,
     };
   } catch (error) {

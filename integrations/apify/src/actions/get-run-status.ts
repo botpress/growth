@@ -15,15 +15,18 @@ export const getRunStatus = async (props: bp.ActionProps['getRunStatus']) => {
       logger
     );
 
-    const result = await apifyClient.getRunStatus(runId);
+    const result = await apifyClient.getRun(runId);
+
+    if (result.status === 'UNKNOWN' && result.runId === runId) {
+      const errorMessage = `Run with ID ${runId} not found`;
+      logger.forBot().error(errorMessage);
+      throw new RuntimeError(errorMessage);
+    }
 
     return {
       success: true,
       message: `Run status retrieved successfully.`,
-      data: {
-        runId: result.runId,
-        status: result.status
-      }
+      data: result
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
