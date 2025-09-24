@@ -1,9 +1,7 @@
 import {
-  SESv2Client,
   CreateContactCommand,
-  AlreadyExistsException,
 } from "@aws-sdk/client-sesv2";
-import * as bp from ".botpress";
+
 import { getSesClient } from "./client";
 
 const SESClient = getSesClient();
