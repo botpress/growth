@@ -10,6 +10,7 @@ import {
   ConflictException,
   InternalServiceErrorException,
 } from "@aws-sdk/client-sesv2";
+import { sendResults } from "../definitions/types";
 import * as sdk from "@botpress/sdk";
 import { getSesClient } from "../misc/client";
 import { CONTACT_LIST, FROM_EMAIL_ADDRESS } from "../misc/constants";
@@ -31,22 +32,14 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
     <p><a href="{{amazonSESUnsubscribeUrl}}">Unsubscribe</a></p>
     </div>`;
 
-    const results = {
-      successful: [] as Array<{ email: string; messageId: string }>,
-      failed: [] as Array<{ email: string; error: string; reason: string }>,
-      messageIds: [] as string[],
+    const results:sendResults = {
+      successful: [],
+      failed: [],
     };
 
     for (const email of input.to) {
       try {
-        try {
           await addContactToList(email);
-          logger.forBot().debug(`Added ${email} to contact list`);
-        } catch (contactError) {
-          logger
-            .forBot()
-            .warn(`Failed to add ${email} to contact list: ${contactError}`);
-        }
 
         const sendEmailCommand = new SendEmailCommand({
           Destination: {
@@ -74,11 +67,14 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
 
         const result = await SESClient.send(sendEmailCommand);
 
+        if (!result.MessageId) {
+          throw new sdk.RuntimeError(`Failed to send email to ${email}`);
+        }
+
         results.successful.push({
           email,
-          messageId: result.MessageId!,
+          messageId: result.MessageId,
         });
-        results.messageIds.push(result.MessageId!);
 
         logger
           .forBot()
@@ -92,7 +88,7 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
             messageId: result.MessageId!,
             to: [email],
             subject: input.subject,
-            fromEmail: "noreply@bp-mailer.com",
+            fromEmail: FROM_EMAIL_ADDRESS,
             timestamp: new Date().toISOString(),
           },
         });
@@ -140,7 +136,6 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
         results.failed.push({
           email,
           error: errorMessage,
-          reason,
         });
 
         logger
@@ -157,31 +152,8 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
         `Email sending completed. Successful: ${results.successful.length}, Failed: ${results.failed.length}`,
       );
 
-    if (results.successful.length === 0) {
-      const failureReasons = results.failed
-        .map((f) => `${f.email}: ${f.reason}`)
-        .join(", ");
-      throw new sdk.RuntimeError(
-        `Failed to send email to any recipients. Reasons: ${failureReasons}`,
-      );
-    }
+    return results;
 
-    const message =
-      results.failed.length > 0
-        ? `Email sent to ${results.successful.length} recipient(s). ${results.failed.length} failed: ${results.failed.map((f) => `${f.email} (${f.reason})`).join(", ")}`
-        : `Email sent successfully to all ${results.successful.length} recipient(s)`;
-
-    return {
-      success: true,
-      messageIds: results.messageIds,
-      message,
-      details: {
-        successful: results.successful,
-        failed: results.failed,
-        totalSent: results.successful.length,
-        totalFailed: results.failed.length,
-      },
-    };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";

@@ -13,22 +13,8 @@ export const actions = {
     },
     output: {
       schema: z.object({
-        success: z.boolean().describe('Whether the email was sent successfully'),
-        messageIds: z.array(z.string()).describe('AWS SES Message IDs for successful sends'),
-        message: z.string().describe('Status message'),
-        details: z.object({
-          successful: z.array(z.object({
-            email: z.string().email(),
-            messageId: z.string(),
-          })),
-          failed: z.array(z.object({
-            email: z.string().email(),
-            error: z.string(),
-            reason: z.string(),
-          })),
-          totalSent: z.number(),
-          totalFailed: z.number(),
-        }).optional(),
+        successful: z.array(z.object({ email: z.string().email(), messageId: z.string() })),
+        failed: z.array(z.object({ email: z.string().email(), error: z.string() })),
       }),
     },
   },
