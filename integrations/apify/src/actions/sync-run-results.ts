@@ -1,42 +1,12 @@
+import { RuntimeError } from "@botpress/sdk";
 import { getClient } from "../client";
 import * as bp from '.botpress';
 
-export const syncRunResults = async ({ 
-  ctx, 
-  client, 
-  logger, 
-  input 
-}: {
-  ctx: bp.Context;
-  client: bp.Client;
-  input: { runId: string, kbId: string };
-  logger: bp.Logger;
-}) => {
+export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) => {
+  const { input, logger, ctx, client } = props;
   const { runId, kbId } = input;
-  
-  if (!runId) {
-    logger.forBot().error('Run ID is required');
-    return {
-      success: false,
-      message: 'Run ID is required',
-      data: {
-        error: 'Run ID is required',
-      },
-    };
-  }
 
-  if (!kbId) {
-    logger.forBot().error('Knowledge Base ID is required');
-    return {
-      success: false,
-      message: 'Knowledge Base ID is required',
-      data: {
-        error: 'Knowledge Base ID is required',
-      },
-    };
-  }
-
-  logger.forBot().info(`Getting results for run ID: ${runId}`);
+  logger.forBot().info(`Syncing results for run ID: ${runId} to KB: ${kbId}`);
 
   try {
     const apifyClient = getClient(
@@ -45,36 +15,37 @@ export const syncRunResults = async ({
       logger
     );
 
-    const result = await apifyClient.getAndSyncRunResults(runId, kbId);
-
-    if (result.success) {
-      logger.forBot().info(`Run results retrieved successfully. Items: ${result.data?.itemsCount}, Files created: ${result.data?.filesCreated}`);
-      logger.forBot().debug(`Results summary: ${JSON.stringify(result.data)}`);
-      
-      return {
-        success: true,
-        message: `Run results retrieved successfully. Items: ${result.data?.itemsCount}, Files created: ${result.data?.filesCreated}`,
-        data: result.data,
-      };
-    } else {
-      logger.forBot().error(`Failed to get run results: ${result.message}`);
-      
-      return {
-        success: false,
-        message: result.message || 'Failed to get run results',
-        data: result.data || { error: result.message },
-      };
+    const runDetails = await apifyClient.getRunDetails(runId);
+    
+    if (runDetails.status !== 'SUCCEEDED') {
+      logger.forBot().error(`Run is not completed. Current status: ${runDetails.status}`);
+      throw new RuntimeError(`Run is not completed. Current status: ${runDetails.status}`);
     }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    logger.forBot().error(`Get run results exception: ${errorMessage}`);
+
+    if (!runDetails.datasetId) {
+      logger.forBot().error('No dataset ID found for completed run');
+      throw new RuntimeError('No dataset ID found for completed run');
+    }
+
+    const items = await apifyClient.fetchDatasetItems(runDetails.datasetId);
+    
+    const filesCreated = await apifyClient.syncContentToBotpress(items, kbId);
+
+    logger.forBot().info(`Sync completed. Items: ${items.length}, Files created: ${filesCreated}`);
 
     return {
-      success: false,
-      message: errorMessage,
+      success: true,
+      message: `Run results synced successfully. Items: ${items.length}, Files created: ${filesCreated}`,
       data: {
-        error: errorMessage,
+        runId: runDetails.runId,
+        datasetId: runDetails.datasetId,
+        itemsCount: items.length,
+        filesCreated,
       },
     };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    logger.forBot().error(`Sync run results exception: ${errorMessage}`);
+    throw new RuntimeError(`Apify API Error: ${errorMessage}`);
   }
 }; 

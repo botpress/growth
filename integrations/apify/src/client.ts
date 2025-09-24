@@ -1,6 +1,6 @@
 import { ApifyClient, ApifyApiError } from 'apify-client';
 import * as bp from '.botpress';
-import { CrawlerRunInput } from './misc/types';
+import { CrawlerRunInput, DatasetItem, ApifyDataset } from './misc/types';
 
 export class ApifyApi {
   private client: ApifyClient;
@@ -44,111 +44,149 @@ export class ApifyApi {
 
     return {
       runId: run?.id || runId,
-      status: run?.status || 'FAILED',
+      status: run?.status || 'UNKNOWN',
     }
   }
 
-  async getAndSyncRunResults(runId: string, kbId: string) {
+  async getRunDetails(runId: string): Promise<{ runId: string; status: string; datasetId?: string }> {
+    this.logger.forBot().info(`Getting run details for ID: ${runId}`);
+
+    const run = await this.client.run(runId).get();
+
+    this.logger.forBot().info(`Run details retrieved. Status: ${run?.status}`);
+
+    return {
+      runId: run?.id || runId,
+      status: run?.status || 'UNKNOWN',
+      datasetId: run?.defaultDatasetId,
+    };
+  }
+
+  async fetchDatasetItems(datasetId: string): Promise<DatasetItem[]> {
+    this.logger.forBot().info(`Fetching items from dataset: ${datasetId}`);
+
+    const dataset = this.client.dataset(datasetId);
+    const allItems = await this.fetchAllDatasetItems(dataset);
+    
+    this.logger.forBot().info(`Retrieved ${allItems.length} total items from dataset`);
+    return allItems;
+  }
+
+  async syncContentToBotpress(items: DatasetItem[], kbId: string): Promise<number> {
+    this.logger.forBot().info(`[FILE SYNC] Starting sync for ${items.length} items to KB ${kbId}`);
+    let filesCreated = 0;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (!item) {
+        this.logger.forBot().warn(`[FILE SYNC] Skipping item ${i}: Item is undefined`);
+        continue;
+      }
+
+      try {
+        const processedItem = this.processItemContent(item, i);
+        if (!processedItem) {
+          this.logger.forBot().warn(`[FILE SYNC] Skipping item ${i}: No content found`);
+          continue;
+        }
+
+        const filename = this.generateFilename(item, i);
+        const fullFilename = `${filename}.${processedItem.extension}`;
+
+        await this.uploadFileToBotpress(fullFilename, processedItem.content, processedItem.extension, kbId);
+        filesCreated++;
+      } catch (error) {
+        this.logger.forBot().error(`[FILE SYNC] Error processing item ${i}:`, error);
+      }
+    }
+
+    this.logger.forBot().info(`[FILE SYNC] File sync completed. Total files created: ${filesCreated}/${items.length}`);
+    return filesCreated;
+  }
+
+  private processItemContent(item: DatasetItem, index: number): { content: string; extension: string } | null {
+    this.logger.forBot().info(`[FILE SYNC] Processing item ${index + 1}:`, {
+      hasMarkdown: !!item.markdown,
+      hasHtml: !!item.html,
+      hasText: !!item.text,
+      url: item.url || item.metadata?.url,
+    });
+
+    if (item.markdown) {
+      this.logger.forBot().info(`[FILE SYNC] Using markdown content (${item.markdown.length} chars)`);
+      return { content: item.markdown, extension: 'md' };
+    }
+    
+    if (item.html) {
+      this.logger.forBot().info(`[FILE SYNC] Using HTML content (${item.html.length} chars)`);
+      return { content: item.html, extension: 'html' };
+    }
+    
+    if (item.text) {
+      this.logger.forBot().info(`[FILE SYNC] Using text content (${item.text.length} chars)`);
+      return { content: item.text, extension: 'txt' };
+    }
+
+    return null;
+  }
+
+  private generateFilename(item: DatasetItem, index: number): string {
+    const url = item.url || item.metadata?.url;
+    
+    if (!url) {
+      this.logger.forBot().info(`[FILE SYNC] No URL found, using index-based filename`);
+      return `page-${index + 1}`;
+    }
+
     try {
-      const run = await this.client.run(runId).get();
+      const urlObj = new URL(url);
+      let pathname = urlObj.pathname.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
       
-      if (!run) {
-        return {
-          success: false,
-          message: 'Run not found',
-          data: {
-            runId,
-            error: 'Run not found',
-          },
-        };
+      // Remove leading underscore if present
+      pathname = pathname.replace(/^_+/, '');
+      
+      // Handle root URLs and empty pathnames
+      if (!pathname || pathname === '_' || pathname === '') {
+        return 'index';
       }
       
-      if (run.status !== 'SUCCEEDED') {
-        return {
-          success: false,
-          message: `Run is not completed. Current status: ${run.status}`,
-          data: {
-            runId: run.id,
-            status: run.status,
-          },
-        };
-      }
+      this.logger.forBot().info(`[FILE SYNC] Generated filename from URL: ${url} -> "${pathname}"`);
+      return pathname;
+    } catch (urlError) {
+      this.logger.forBot().warn(`[FILE SYNC] Invalid URL, using index: ${url}`, urlError);
+      return `page-${index + 1}`;
+    }
+  }
 
-      if (!run.defaultDatasetId) {
-        throw new Error('No dataset ID found for completed run');
-      }
+  private async uploadFileToBotpress(filename: string, content: string, extension: string, kbId: string): Promise<void> {
+    // Ensure filename is not too long and has valid characters
+    const safeFilename = filename.substring(0, 100).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fullFilename = `${safeFilename}.${extension}`;
 
-      this.logger.forBot().info(`Getting results from dataset: ${run.defaultDatasetId}`);
+    this.logger.forBot().info(`[FILE SYNC] Uploading asset: ${fullFilename}`);
 
-      const dataset = this.client.dataset(run.defaultDatasetId);
-      let allItems;
-      try {
-        allItems = await this.fetchAllDatasetItems(dataset);
-        this.logger.forBot().info(`Retrieved ${allItems.length} total items from dataset`);
-      } catch (error) {
-        this.logger.forBot().error('Error fetching dataset items:', error);
-        return {
-          success: false,
-          message: 'Error fetching dataset items',
-          data: {
-            error: error instanceof Error ? error.message : 'Error fetching dataset items',
-          },
-        };
-      }
+    const uploadResult = await this.bpClient.uploadFile({
+      key: fullFilename,
+      tags: {
+        kbId: kbId,
+        dsType: "document",
+        source: "knowledge-base"
+      },
+      content: Buffer.from(content, 'utf8'),
+      contentType: this.getContentType(extension),
+      index: true
+    });
 
-      let filesCreated = 0;
-      
-      try {
-        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB mode: indexing ${allItems.length} documents into KB ${kbId}`);
-        filesCreated = await this.syncContentToBotpress(allItems, kbId);
-        this.logger.forBot().info(`[GET AND SYNC RUN RESULTS] KB indexing completed. Documents indexed: ${filesCreated}`);
-      } catch (error) {
-        this.logger.forBot().error('Error syncing content to Botpress:', error);
-        return {
-          success: false,
-          message: 'Error syncing content to Botpress',
-          data: {
-            error: error instanceof Error ? error.message : 'Error syncing content to Botpress',
-          },
-        };
-      }
+    this.logger.forBot().info(`[FILE SYNC] Upload successful: ${fullFilename}`, uploadResult);
+  }
 
-      return {
-        success: true,
-        message: 'Run results retrieved successfully',
-        data: {
-          runId: run.id,
-          datasetId: run.defaultDatasetId,
-          itemsCount: allItems.length,
-          filesCreated,
-        },
-      };
-    } catch (error) {
-      this.logger.forBot().error('Error getting run information:', error);
-      
-      if (error instanceof ApifyApiError) {
-        const { message, type, statusCode, clientMethod } = error;
-        this.logger.forBot().error('Apify API Error:', { message, type, statusCode, clientMethod });
-        
-        return {
-          success: false,
-          message: `Apify API Error: ${message}`,
-          data: {
-            error: message,
-            type,
-            statusCode,
-            clientMethod,
-          },
-        };
-      }
-
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
-        data: {
-          error: error instanceof Error ? error.message : 'Error in getAndSyncRunResults',
-        },
-      };
+  private getContentType(extension: string): string {
+    switch (extension) {
+      case 'md': return 'text/markdown';
+      case 'html': return 'text/html';
+      case 'txt': return 'text/plain';
+      default: return 'text/plain';
     }
   }
 
@@ -160,14 +198,8 @@ export class ApifyApi {
     return offset + limit;
   }
 
-  private async fetchAllDatasetItems(dataset: any) {
-    let allItems: {
-      markdown?: string;
-      html?: string;
-      text?: string;
-      url?: string;
-      metadata?: { url?: string };
-    }[] = [];
+  private async fetchAllDatasetItems(dataset: ApifyDataset): Promise<DatasetItem[]> {
+    let allItems: DatasetItem[] = [];
     let offset = 0;
     const limit = 1000; 
 
@@ -178,7 +210,6 @@ export class ApifyApi {
       
       allItems.push(...items);
       
-      // If there are no more items to fetch, exit the loading
       if (this.isLastPage(offset, limit, total)) {
         break;
       }
@@ -189,112 +220,6 @@ export class ApifyApi {
     return allItems;
   }
 
-  private async syncContentToBotpress(items: {
-    markdown?: string;
-    html?: string;
-    text?: string;
-    url?: string;
-    metadata?: { url?: string };
-  }[], kbId: string): Promise<number> {
-    this.logger.forBot().info(`[FILE SYNC] Starting sync for ${items.length} items to KB ${kbId}`);
-    let filesCreated = 0;
-
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      
-      this.logger.forBot().info(`[FILE SYNC] Processing item ${i + 1}/${items.length}:`, {
-        hasMarkdown: !!item?.markdown,
-        hasHtml: !!item?.html,
-        hasText: !!item?.text,
-        url: item?.url || item?.metadata?.url,
-        itemKeys: item ? Object.keys(item) : 'undefined'
-      });
-      
-      if (!item) {
-        this.logger.forBot().warn(`[FILE SYNC] Skipping item ${i}: Item is undefined`);
-        continue;
-      }
-      
-      try {
-        let content: string;
-        let extension: string;
-
-        if ((item).markdown) {
-          content = (item).markdown;
-          extension = 'md';
-          this.logger.forBot().info(`[FILE SYNC] Using markdown content (${content.length} chars)`);
-        } else if ((item).html) {
-          content = (item).html;
-          extension = 'html';
-          this.logger.forBot().info(`[FILE SYNC] Using HTML content (${content.length} chars)`);
-        } else if ((item).text) {
-          content = (item).text;
-          extension = 'txt';
-          this.logger.forBot().info(`[FILE SYNC] Using text content (${content.length} chars)`);
-        } else {
-          this.logger.forBot().warn(`[FILE SYNC] Skipping item ${i}: No content found. Item:`, item);
-          continue;
-        }
-
-        // Create filename based on URL or use index
-        const url = (item).url || (item).metadata?.url;
-        let filename: string;
-
-        if (url) {
-          try {
-            const urlObj = new URL(url);
-            let pathname = urlObj.pathname.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
-            
-            // Remove leading underscore if present
-            pathname = pathname.replace(/^_+/, '');
-            
-            // Handle root URLs and empty pathnames
-            if (!pathname || pathname === '_' || pathname === '') {
-              filename = 'index';
-            } else {
-              filename = pathname;
-            }
-            
-            this.logger.forBot().info(`[FILE SYNC] Generated filename from URL: ${url} -> pathname: "${urlObj.pathname}" -> processed: "${pathname}" -> final: "${filename}"`);
-          } catch (urlError) {
-            this.logger.forBot().warn(`[FILE SYNC] Invalid URL, using index: ${url}`, urlError);
-            filename = `page-${i + 1}`;
-          }
-        } else {
-          this.logger.forBot().info(`[FILE SYNC] No URL found, using index-based filename`);
-          filename = `page-${i + 1}`;
-        }
-
-        // Ensure filename is not too long and has valid characters
-        filename = filename.substring(0, 100).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fullFilename = `${filename}.${extension}`;
-
-        this.logger.forBot().info(`[FILE SYNC] Uploading asset: ${fullFilename} (KB mode)`);
-
-        const uploadResult = await this.bpClient.uploadFile({
-          key: fullFilename,
-          tags: {
-            kbId: kbId || "kb-default",
-            dsType: "document",
-            source: "knowledge-base"
-          },
-          content: Buffer.from(content, 'utf8'),
-          contentType: extension === 'md' ? 'text/markdown' : 
-                      extension === 'html' ? 'text/html' : 'text/plain',
-          index: true
-        });
-
-        this.logger.forBot().info(`[FILE SYNC] Upload successful: ${fullFilename}`, uploadResult);
-        filesCreated++;
-      } catch (error) {
-        this.logger.forBot().error(`[FILE SYNC] Error creating file for item ${i}:`, error);
-        this.logger.forBot().error(`[FILE SYNC] Item details:`, item);
-      }
-    }
-
-    this.logger.forBot().info(`[FILE SYNC] File sync completed. Total files created: ${filesCreated}/${items.length}`);
-    return filesCreated;
-  }
 }
 
 export const getClient = (

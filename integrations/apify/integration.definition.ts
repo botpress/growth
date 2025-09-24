@@ -112,13 +112,9 @@ export default new IntegrationDefinition({
           success: z.boolean(),
           message: z.string(),
           data: z.object({
-            runId: z.string().optional(),
-            datasetId: z.string().optional(),
-            itemsCount: z.number().optional(),
-            filesCreated: z.number().optional(),
-            syncTargetPath: z.string().optional(),
-            error: z.string().optional(),
-          }).optional(),
+            runId: z.string(),
+            datasetId: z.string()
+          })
         }),
       },
     },
