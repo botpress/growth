@@ -2,7 +2,7 @@ import { getApolloClient } from '../client'
 import { SearchContact } from '../definitions/schemas'
 import * as bp from '.botpress'
 
-export const searchContact: bp.IntegrationProps['actions']['searchContact'] = async ({ input, ctx }) => {
+export const searchContact: bp.IntegrationProps['actions']['searchContact'] = async ({ input, logger, ctx }) => {
   const apolloClient = getApolloClient(ctx.configuration)
   const contacts: SearchContact[] = []
 
@@ -13,7 +13,7 @@ export const searchContact: bp.IntegrationProps['actions']['searchContact'] = as
     contacts.push(contact)
   })
 
-  console.log('Contacts found in Apollo.io', { contacts })
+  logger.info('Contacts found in Apollo.io', { contacts })
   // Transform Apollo response to Botpress output format
   return {
     ...apolloResponse,

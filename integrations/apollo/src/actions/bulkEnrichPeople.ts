@@ -1,14 +1,14 @@
 import { getApolloClient } from '../client'
 import * as bp from '.botpress'
 
-export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'] = async ({ input, ctx }) => {
+export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'] = async ({ input, logger, ctx }) => {
   const apolloClient = getApolloClient(ctx.configuration)
 
   // Make API call to Apollo
   const apolloResponse = await apolloClient.bulkEnrichPeople(input)
 
-  console.log('People bulk enriched in Apollo.io', apolloResponse.matches)
-  console.log('Credits consumed in Apollo.io', apolloResponse.credits_consumed)
+  logger.info('People bulk enriched in Apollo.io', apolloResponse.matches)
+  logger.info('Credits consumed in Apollo.io', apolloResponse.credits_consumed)
   // Transform Apollo response to Botpress output format
   return {
     ...apolloResponse,
