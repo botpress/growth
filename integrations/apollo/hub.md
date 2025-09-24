@@ -16,32 +16,10 @@ Connect your Botpress chatbot to Apollo.io, a powerful sales intelligence and en
 
 ## Prerequisites
 
-- An Apollo.io API Key
-- An active Apollo.io account with appropriate permissions
-
-### API Key Requirements
-
+- An Apollo.io API Key with appropriate permissions
 - Must be a valid Apollo.io API key
 - Needs access to manage Contacts and search functionality
 - May consume enrichment credits based on your Apollo pricing plan
-
-## Configuration
-
-The integration requires a single setting.
-
-### Configuration schema:
-
-```json
-{
-  "apiKey": {
-    "type": "string",
-    "required": true,
-    "secret": true,
-    "title": "API Key",
-    "description": "Your Apollo.io API Key"
-  }
-}
-```
 
 ### Setup Steps
 
@@ -103,7 +81,7 @@ Search for contacts from your team's Apollo.io account with powerful filtering o
 
 **Input:**
 
-- `q_keywords` (optional): Keywords to narrow search. Can include combinations of names, job titles, employers (company names), and email addresses
+- `q_keywords` (optional): Keywords to narrow search. Can include combinations of names, job titles, employers (company names), and email addresses (Eg. "John Doe", "John Botpress", "John Director Botpress", "john@botpress.com", "John john@xyz.com", etc.).
 - `contact_stage_ids` (optional): Array of Apollo IDs for contact stages to include in results
 - `sort_by_field` (optional): Field to sort results by. Valid options:
   - `contact_last_activity_date`

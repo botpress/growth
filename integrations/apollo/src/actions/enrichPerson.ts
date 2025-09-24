@@ -16,6 +16,6 @@ export const enrichPerson: bp.IntegrationProps['actions']['enrichPerson'] = asyn
   return {
     person,
     success: true,
-    message: 'Contacts found successfully in Apollo.io',
+    message: 'Person enriched successfully in Apollo.io',
   }
 }

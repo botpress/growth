@@ -24,7 +24,7 @@ export const SearchPayloadSchema = z.object({
     .string()
     .optional()
     .describe(
-      'Keywords to narrow search. Can include combinations of names, job titles, employers (company names), and email addresses.'
+      `Keywords to narrow search. Can include combinations of names, job titles, employers (company names), and email addresses (Eg. "John Doe", "John Botpress", "John Director Botpress", "john@botpress.com", "John john@xyz.com", etc.).`
     ),
   contact_stage_ids: z
     .array(z.string())

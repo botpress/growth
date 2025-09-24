@@ -15,6 +15,6 @@ export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'
   return {
     ...apolloResponse,
     success: true,
-    message: 'Contacts found successfully in Apollo.io',
+    message: `${apolloResponse.unique_enriched_records} people enriched successfully in Apollo.io`,
   }
 }
