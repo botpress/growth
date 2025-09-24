@@ -3,12 +3,11 @@ import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: "3.0.5",
-  title: "SharePoint",
-  description:
-    "Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.",
-  readme: "hub.md",
-  icon: "icon.svg",
+  version: '3.0.5',
+  title: 'SharePoint',
+  description: 'Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.',
+  readme: 'hub.md',
+  icon: 'icon.svg',
 
   configuration: {
     schema: z.object({
@@ -23,13 +22,13 @@ export default new IntegrationDefinition({
         .string()
         .min(1)
         .describe(
-            "Document Libraries to sync. Supported formats: Single library (NewDL), Comma-separated (Policies,Procedures), JSON array ([\"Policies\",\"Procedures\"]), or Single item JSON array ([\"NewDL\"])"
+          'Document Libraries to sync. Supported formats: Single library (NewDL), Comma-separated (Policies,Procedures), JSON array (["Policies","Procedures"]), or Single item JSON array (["NewDL"])'
         ),
       folderKbMap: z
         .string()
         .min(1)
         .describe(
-          "JSON map of kbId to array of folder prefixes for routing files to specific KBs. Example: {\"kb-marketing\":[\"Campaigns\"],\"kb-policies\":[\"HR\",\"Legal\"]}"
+          'JSON map of kbId to array of folder prefixes for routing files to specific KBs. Example: {"kb-marketing":["Campaigns"],"kb-policies":["HR","Legal"]}'
         ),
       enableVision: z
         .boolean()

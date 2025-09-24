@@ -4,7 +4,7 @@ import path from 'path'
 import { getFormatedCurrTime } from './utils'
 import * as sdk from '@botpress/sdk'
 
-const SUPPORTED_FILE_EXTENSIONS = [".txt", ".html", ".pdf", ".doc", ".docx", ".md"];
+const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
 
 export class SharepointSync {
   private sharepointClient: SharepointClient
@@ -70,20 +70,18 @@ export class SharepointSync {
       if (!this.isFileSupported(spPath)) {
         continue
       }
-  
-      const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/);
-      const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath;
+
+      const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/)
+      const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
       const targetKbs = this.sharepointClient.getKbForPath(relPath)
       for (const kb of targetKbs) {
         kbIdsToClear.add(kb)
       }
     }
-  
+
     // 3 - Clear only those KBs that haven't been cleared yet
-    const kbIdsToActuallyClear = Array.from(kbIdsToClear).filter(kbId => 
-      !clearedKBs || !clearedKBs.has(kbId)
-    )
-    
+    const kbIdsToActuallyClear = Array.from(kbIdsToClear).filter((kbId) => !clearedKBs || !clearedKBs.has(kbId))
+
     if (kbIdsToActuallyClear.length > 0) {
       await Promise.all(
         kbIdsToActuallyClear.map((kbId) => {
@@ -94,7 +92,7 @@ export class SharepointSync {
         })
       )
     }
-  
+
     // 4 - Download & re‑add each file
     const results = await Promise.allSettled(
       docs.map(async (doc) => {
@@ -105,44 +103,38 @@ export class SharepointSync {
             return
           }
           const spPath = spPathOrNull
-    
+
           if (!this.isFileSupported(spPath)) {
             this.log(`Skipping document ${doc.Id}: Unsupported file type ${path.extname(spPath)}`)
             return
           }
 
-          const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/);
-          const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath;
+          const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/)
+          const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
 
           const kbIds = this.sharepointClient.getKbForPath(relPath)
           if (kbIds.length === 0) {
             this.log(`Skipping document ${doc.Id}: No KB mapping found for path ${relPath}`)
             return
           }
-    
+
           const content = await this.sharepointClient.downloadFile(spPath)
-          await Promise.all(
-            kbIds.map((kbId) =>
-              this.getOrCreateKB(kbId).addFile(
-                doc.Id.toString(),
-                relPath,
-                content
-              )
-            )
-          )
+          await Promise.all(kbIds.map((kbId) => this.getOrCreateKB(kbId).addFile(doc.Id.toString(), relPath, content)))
           this.log(`Successfully processed document ${doc.Id}: ${relPath}`)
         } catch (error) {
-          this.logWarning(`Failed to process document ${doc.Id}: ${error instanceof Error ? error.message : String(error)}`)
-          throw error 
+          this.logWarning(
+            `Failed to process document ${doc.Id}: ${error instanceof Error ? error.message : String(error)}`
+          )
+          throw error
         }
       })
     )
 
     // Log results summary
-    const successful = results.filter(r => r.status === 'fulfilled').length
-    const failed = results.filter(r => r.status === 'rejected').length
+    const successful = results.filter((r) => r.status === 'fulfilled').length
+    const failed = results.filter((r) => r.status === 'rejected').length
     this.log(`File processing complete: ${successful} successful, ${failed} failed`)
-    
+
     // Log any failures for debugging
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
@@ -170,28 +162,30 @@ export class SharepointSync {
         /* 1 = Add */
         case 1: {
           try {
-            const spPath = await this.sharepointClient.getFilePath(ch.ItemId);
+            const spPath = await this.sharepointClient.getFilePath(ch.ItemId)
             if (!spPath || !this.isFileSupported(spPath)) {
-              this.log(`Skipping add for item ${ch.ItemId}: ${!spPath ? 'No file path' : 'Unsupported file type'}`);
-              break;
+              this.log(`Skipping add for item ${ch.ItemId}: ${!spPath ? 'No file path' : 'Unsupported file type'}`)
+              break
             }
 
             // Extract the relative path after the site name, handling URL-encoded characters
-            const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/);
-            const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath;
-            const kbIds   = this.sharepointClient.getKbForPath(relPath);
+            const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/)
+            const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
+            const kbIds = this.sharepointClient.getKbForPath(relPath)
             if (kbIds.length === 0) {
-              this.log(`Skipping add for item ${ch.ItemId}: No KB mapping found for path ${relPath}`);
-              break;
+              this.log(`Skipping add for item ${ch.ItemId}: No KB mapping found for path ${relPath}`)
+              break
             }
 
-            const content = await this.sharepointClient.downloadFile(spPath);
+            const content = await this.sharepointClient.downloadFile(spPath)
             for (const kbId of kbIds) {
-              await this.getOrCreateKB(kbId).addFile(ch.ItemId.toString(), relPath, content);
+              await this.getOrCreateKB(kbId).addFile(ch.ItemId.toString(), relPath, content)
             }
-            this.log(`Successfully added item ${ch.ItemId}: ${relPath}`);
+            this.log(`Successfully added item ${ch.ItemId}: ${relPath}`)
           } catch (error) {
-            this.logWarning(`Failed to add item ${ch.ItemId}: ${error instanceof Error ? error.message : String(error)}`);
+            this.logWarning(
+              `Failed to add item ${ch.ItemId}: ${error instanceof Error ? error.message : String(error)}`
+            )
           }
           break
         }
@@ -199,28 +193,30 @@ export class SharepointSync {
         /* 2 = Update */
         case 2: {
           try {
-            const spPath = await this.sharepointClient.getFilePath(ch.ItemId);
+            const spPath = await this.sharepointClient.getFilePath(ch.ItemId)
             if (!spPath || !this.isFileSupported(spPath)) {
-              this.log(`Skipping update for item ${ch.ItemId}: ${!spPath ? 'No file path' : 'Unsupported file type'}`);
-              break;
+              this.log(`Skipping update for item ${ch.ItemId}: ${!spPath ? 'No file path' : 'Unsupported file type'}`)
+              break
             }
 
             // Extract the relative path after the site name, handling URL-encoded characters
-            const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/);
-            const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath;
-            const kbIds   = this.sharepointClient.getKbForPath(relPath);
+            const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/)
+            const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
+            const kbIds = this.sharepointClient.getKbForPath(relPath)
             if (kbIds.length === 0) {
-              this.log(`Skipping update for item ${ch.ItemId}: No KB mapping found for path ${relPath}`);
-              break;
+              this.log(`Skipping update for item ${ch.ItemId}: No KB mapping found for path ${relPath}`)
+              break
             }
 
-            const content = await this.sharepointClient.downloadFile(spPath);
+            const content = await this.sharepointClient.downloadFile(spPath)
             for (const kbId of kbIds) {
-              await this.getOrCreateKB(kbId).updateFile(ch.ItemId.toString(), relPath, content);
+              await this.getOrCreateKB(kbId).updateFile(ch.ItemId.toString(), relPath, content)
             }
-            this.log(`Successfully updated item ${ch.ItemId}: ${relPath}`);
+            this.log(`Successfully updated item ${ch.ItemId}: ${relPath}`)
           } catch (error) {
-            this.logWarning(`Failed to update item ${ch.ItemId}: ${error instanceof Error ? error.message : String(error)}`);
+            this.logWarning(
+              `Failed to update item ${ch.ItemId}: ${error instanceof Error ? error.message : String(error)}`
+            )
           }
           break
         }
