@@ -29,7 +29,6 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
   }
 
   try {
-    //initialize aws ses client
     const SESClient = getSesClient();
 
     const header = "This is a notification from your Botpress bot.";
@@ -47,7 +46,6 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
 
     for (const email of input.to) {
       try {
-        // Add to contact list
         try {
           await addContactToList(email);
           logger.forBot().debug(`Added ${email} to contact list`);
@@ -59,7 +57,7 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
 
         const sendEmailCommand = new SendEmailCommand({
           Destination: {
-            ToAddresses: [email],
+            ToAddresses: [email], // An unsubscribed email will fail entire operation so emails must be sent individually.
           },
           Content: {
             Simple: {
@@ -95,7 +93,6 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
             `Email sent successfully to ${email}. Message ID: ${result.MessageId}`,
           );
 
-        // trigger event for successful email sending
         await client.createEvent({
           type: "emailSent",
           payload: {
