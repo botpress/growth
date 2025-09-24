@@ -1,12 +1,13 @@
 import { getApolloClient } from '../client'
-import { Person } from '../definitions/schemas'
+import { EnrichmentPayloadSchema, Person } from '../definitions/schemas'
 import * as bp from '.botpress'
 
 export const enrichPerson: bp.IntegrationProps['actions']['enrichPerson'] = async ({ input, logger, ctx }) => {
   const apolloClient = getApolloClient(ctx.configuration)
 
   // Make API call to Apollo
-  const apolloResponse = await apolloClient.enrichPerson(input)
+  const validatedInput = EnrichmentPayloadSchema.parse(input)
+  const apolloResponse = await apolloClient.enrichPerson(validatedInput)
 
   const person: Person = apolloResponse.person
 

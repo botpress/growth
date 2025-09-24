@@ -1,5 +1,5 @@
 import { getApolloClient } from '../client'
-import { SearchContact } from '../definitions/schemas'
+import { SearchContact, SearchPayloadSchema } from '../definitions/schemas'
 import * as bp from '.botpress'
 
 export const searchContact: bp.IntegrationProps['actions']['searchContact'] = async ({ input, logger, ctx }) => {
@@ -7,7 +7,8 @@ export const searchContact: bp.IntegrationProps['actions']['searchContact'] = as
   const contacts: SearchContact[] = []
 
   // Make API call to Apollo
-  const apolloResponse = await apolloClient.searchContact(input)
+  const validatedInput = SearchPayloadSchema.parse(input)
+  const apolloResponse = await apolloClient.searchContact(validatedInput)
 
   apolloResponse.contacts.forEach((contact) => {
     contacts.push(contact)

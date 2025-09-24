@@ -1,3 +1,4 @@
+import { BulkEnrichmentPayloadSchema } from 'src/definitions/schemas'
 import { getApolloClient } from '../client'
 import * as bp from '.botpress'
 
@@ -5,7 +6,8 @@ export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'
   const apolloClient = getApolloClient(ctx.configuration)
 
   // Make API call to Apollo
-  const apolloResponse = await apolloClient.bulkEnrichPeople(input)
+  const validatedInput = BulkEnrichmentPayloadSchema.parse(input)
+  const apolloResponse = await apolloClient.bulkEnrichPeople(validatedInput)
 
   logger.info('People bulk enriched in Apollo.io', apolloResponse.matches)
   logger.info('Credits consumed in Apollo.io', apolloResponse.credits_consumed)
