@@ -201,9 +201,16 @@ export class ApifyApi {
   private async fetchAllDatasetItems(dataset: ApifyDataset): Promise<DatasetItem[]> {
     let allItems: DatasetItem[] = [];
     let offset = 0;
-    const limit = 1000; 
+    const limit = 1000;
+    const startTime = Date.now();
+    const maxDuration = 45000; // 45 seconds safety margin
 
     while (true) {
+      if (Date.now() - startTime > maxDuration) {
+        this.logger.forBot().warn(`Timeout approaching, stopping at ${allItems.length} items`);
+        break;
+      }
+
       const { items, total } = await dataset.listItems({ limit, offset });
       
       this.logger.forBot().info(`Fetched ${items.length} items (offset: ${offset}, total: ${total})`);
@@ -217,9 +224,9 @@ export class ApifyApi {
       offset = this.getNextOffset(offset, limit);
     }
 
+    this.logger.forBot().info(`[FETCH] Completed: ${allItems.length} items in ${Date.now() - startTime}ms`);
     return allItems;
   }
-
 }
 
 export const getClient = (
