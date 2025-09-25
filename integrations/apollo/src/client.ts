@@ -1,16 +1,7 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios'
+import axios, { AxiosInstance, AxiosResponse, Method } from 'axios'
 import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
-import {
-  BulkEnrichmentPayload,
-  BulkEnrichPersonResponse,
-  ContactPayload,
-  ContactResponse,
-  EnrichmentPayload,
-  EnrichPersonResponse,
-  SearchContactsResponse,
-  SearchPayload,
-} from './definitions/schemas/'
+import { BulkEnrichmentPayload, ContactPayload, EnrichmentPayload, SearchPayload } from './definitions/schemas'
 
 class ApolloApi {
   private _client: AxiosInstance
@@ -27,14 +18,7 @@ class ApolloApi {
     })
   }
 
-  /**
-   * Make a generic request to the Apollo API
-   */
-  public async request<InputType, OutputType>(
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
-    endpoint: string,
-    data?: InputType
-  ): Promise<OutputType> {
+  public async request<InputType, OutputType>(method: Method, endpoint: string, data?: InputType): Promise<OutputType> {
     try {
       const response = await this._client.request<OutputType, AxiosResponse<OutputType>, InputType>({
         method,
@@ -48,15 +32,15 @@ class ApolloApi {
     }
   }
 
-  public async createContact(contact: ContactPayload): Promise<ContactResponse> {
+  public async createContact(contact: ContactPayload): Promise<object> {
     return this.request('POST', '/contacts', contact)
   }
 
-  public async updateContact(contact: { contact_id: string } & ContactPayload): Promise<ContactResponse> {
+  public async updateContact(contact: { contact_id: string } & ContactPayload): Promise<object> {
     return this.request('PUT', `/contacts/${contact.contact_id}`, contact)
   }
 
-  public async searchContact(contact: SearchPayload): Promise<SearchContactsResponse> {
+  public async searchContact(contact: SearchPayload): Promise<object> {
     const searchParams = new URLSearchParams()
     contact.q_keywords && searchParams.append('q_keywords', contact.q_keywords)
     contact.contact_stage_ids &&
@@ -68,7 +52,7 @@ class ApolloApi {
     return this.request('GET', `/contacts/search?${searchParams.toString()}`)
   }
 
-  public async enrichPerson(payload: EnrichmentPayload): Promise<EnrichPersonResponse> {
+  public async enrichPerson(payload: EnrichmentPayload): Promise<object> {
     const searchParams = new URLSearchParams()
     payload.first_name && searchParams.append('first_name', payload.first_name)
     payload.last_name && searchParams.append('last_name', payload.last_name)
@@ -84,7 +68,7 @@ class ApolloApi {
     return this.request('POST', `/people/match?${searchParams.toString()}`)
   }
 
-  public async bulkEnrichPeople(payload: BulkEnrichmentPayload): Promise<BulkEnrichPersonResponse> {
+  public async bulkEnrichPeople(payload: BulkEnrichmentPayload): Promise<object> {
     const searchParams = new URLSearchParams()
     payload.reveal_personal_emails &&
       searchParams.append('reveal_personal_emails', payload.reveal_personal_emails.toString())

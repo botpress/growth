@@ -1,5 +1,5 @@
 import { getApolloClient } from '../client'
-import { ContactPayloadSchema } from '../definitions/schemas/'
+import { ContactPayloadSchema } from '../definitions/schemas'
 import * as bp from '.botpress'
 import * as sdk from '@botpress/sdk'
 import { ZodError } from '@botpress/sdk'
@@ -16,9 +16,7 @@ export const updateContact: bp.IntegrationProps['actions']['updateContact'] = as
 
     // Transform Apollo response to Botpress output format
     return {
-      contact: apolloResponse.contact,
-      success: true,
-      message: 'Contact updated successfully in Apollo.io',
+      apiResponse: apolloResponse,
     }
   } catch (error) {
     if (error instanceof ZodError) {

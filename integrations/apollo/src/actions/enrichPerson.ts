@@ -1,6 +1,6 @@
 import { ZodError } from '@botpress/sdk'
 import { getApolloClient } from '../client'
-import { EnrichmentPayloadSchema, Person } from '../definitions/schemas/'
+import { EnrichmentPayloadSchema } from '../definitions/schemas'
 import * as bp from '.botpress'
 import * as sdk from '@botpress/sdk'
 
@@ -12,14 +12,10 @@ export const enrichPerson: bp.IntegrationProps['actions']['enrichPerson'] = asyn
     const validatedInput = EnrichmentPayloadSchema.parse(input)
     const apolloResponse = await apolloClient.enrichPerson(validatedInput)
 
-    const person: Person = apolloResponse.person
-
-    logger.info('Person enriched in Apollo.io', person)
+    logger.info('Person enriched in Apollo.io', apolloResponse)
     // Transform Apollo response to Botpress output format
     return {
-      person,
-      success: true,
-      message: 'Person enriched successfully in Apollo.io',
+      apiResponse: apolloResponse,
     }
   } catch (error) {
     if (error instanceof ZodError) {

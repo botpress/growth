@@ -1,14 +1,10 @@
 import { z, IntegrationDefinitionProps } from '@botpress/sdk'
 import {
-  ContactSchema,
   ContactPayloadSchema,
-  PersonSchema,
   EnrichmentPayloadSchema,
   BulkEnrichmentPayloadSchema,
   SearchPayloadSchema,
-  BulkEnrichPersonResponseSchema,
-  SearchContactsResponseSchema,
-} from 'src/definitions/schemas/'
+} from 'src/definitions/schemas'
 
 export const createContact = {
   title: 'Create Contact',
@@ -17,11 +13,7 @@ export const createContact = {
     schema: ContactPayloadSchema,
   },
   output: {
-    schema: z.object({
-      contact: ContactSchema,
-      success: z.boolean().describe('Whether the contact was successfully created.'),
-      message: z.string().describe('Status message about the contact creation.'),
-    }),
+    schema: z.object({}).passthrough(),
   },
 }
 
@@ -36,9 +28,7 @@ export const updateContact = {
   },
   output: {
     schema: z.object({
-      contact: ContactSchema,
-      success: z.boolean().describe('Whether the contact was successfully updated'),
-      message: z.string().describe('Status message about the contact update'),
+      apiResponse: z.object({}).passthrough(),
     }),
   },
 }
@@ -51,9 +41,7 @@ export const searchContact = {
   },
   output: {
     schema: z.object({
-      ...SearchContactsResponseSchema.shape,
-      success: z.boolean().describe('Whether the search was successful'),
-      message: z.string().describe('Status message about the contact search'),
+      apiResponse: z.object({}).passthrough(),
     }),
   },
 }
@@ -66,9 +54,7 @@ export const enrichPerson = {
   },
   output: {
     schema: z.object({
-      person: PersonSchema.describe('The person found in Apollo'),
-      success: z.boolean().describe('Whether the search was successful'),
-      message: z.string().describe('Status message about the contact search'),
+      apiResponse: z.object({}).passthrough(),
     }),
   },
 }
@@ -81,9 +67,7 @@ export const bulkEnrichPeople = {
   },
   output: {
     schema: z.object({
-      ...BulkEnrichPersonResponseSchema.shape,
-      success: z.boolean().describe('Whether the search was successful'),
-      message: z.string().describe('Status message about the contact search'),
+      apiResponse: z.object({}).passthrough(),
     }),
   },
 }

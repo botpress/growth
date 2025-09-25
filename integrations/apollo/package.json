@@ -1,5 +1,5 @@
 {
-  "name": "@bp-templates/empty-integration",
+  "name": "apollo",
   "integrationName": "plus/apollo",
   "scripts": {
     "check:type": "tsc --noEmit",
@@ -9,9 +9,7 @@
   "dependencies": {
     "@botpress/client": "1.24.2",
     "@botpress/sdk": "4.15.7",
-    "axios": "^1.12.2",
-    "nodemon": "^3.1.10",
-    "zod": "^4.1.9"
+    "axios": "^1.12.2"
   },
   "devDependencies": {
     "@eslint/css": "^0.11.1",
@@ -21,6 +19,7 @@
     "@types/node": "^22.16.4",
     "eslint-plugin-unused-imports": "^4.2.0",
     "globals": "^16.4.0",
+    "nodemon": "^3.1.10",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.44.1"
   }
