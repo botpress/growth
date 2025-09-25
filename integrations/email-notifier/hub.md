@@ -13,10 +13,10 @@ Transform your bot into a smart business communication system that can:
 
 ## How it works
 
-Simply add an email action to your bot conversation flow. When triggered, your bot will send the email and automatically create an event confirming successful delivery. This lets you build sophisticated ticketing systems and lead capture workflows.
+Simply add the "Send Mail" action to your bot conversation flow. When triggered, your bot will send the email and automatically create an event confirming successful delivery. This lets you build sophisticated ticketing systems and lead capture workflows.
 
 ## Getting Started
-1. Add the "Send Email" action anywhere in your bot flow
+1. Add the "Send Mail" action anywhere in your bot flow
 2. Configure your ticket inbox or team email addresses
 3. Optionally use the delivery confirmation event for follow-up automation
 
