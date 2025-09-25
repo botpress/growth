@@ -16,6 +16,7 @@ export const createContact: bp.IntegrationProps['actions']['createContact'] = as
     // Transform Apollo response to Botpress output format
     return {
       apiResponse: apolloResponse,
+      message: 'Contact created successfully.',
     }
   } catch (error) {
     if (error instanceof ZodError) {

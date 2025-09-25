@@ -100,6 +100,11 @@ export const BulkEnrichmentPayloadSchema = z.object({
   people: z.array(PersonPayloadSchema).describe('Array of people to enrich'),
 })
 
+export const ApiResponseSchema = z.object({
+  apiResponse: z.object({}).passthrough(),
+  message: z.string().describe('Status message about the API response'),
+})
+
 export type ContactPayload = z.infer<typeof ContactPayloadSchema>
 export type SearchPayload = z.infer<typeof SearchPayloadSchema>
 export type EnrichmentPayload = z.infer<typeof EnrichmentPayloadSchema>

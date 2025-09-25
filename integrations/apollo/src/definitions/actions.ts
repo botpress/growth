@@ -4,6 +4,7 @@ import {
   EnrichmentPayloadSchema,
   BulkEnrichmentPayloadSchema,
   SearchPayloadSchema,
+  ApiResponseSchema,
 } from 'src/definitions/schemas'
 
 export const createContact = {
@@ -13,7 +14,7 @@ export const createContact = {
     schema: ContactPayloadSchema,
   },
   output: {
-    schema: z.object({}).passthrough(),
+    schema: ApiResponseSchema,
   },
 }
 
@@ -27,9 +28,7 @@ export const updateContact = {
     }),
   },
   output: {
-    schema: z.object({
-      apiResponse: z.object({}).passthrough(),
-    }),
+    schema: ApiResponseSchema,
   },
 }
 
@@ -40,9 +39,7 @@ export const searchContact = {
     schema: SearchPayloadSchema,
   },
   output: {
-    schema: z.object({
-      apiResponse: z.object({}).passthrough(),
-    }),
+    schema: ApiResponseSchema,
   },
 }
 
@@ -53,9 +50,7 @@ export const enrichPerson = {
     schema: EnrichmentPayloadSchema,
   },
   output: {
-    schema: z.object({
-      apiResponse: z.object({}).passthrough(),
-    }),
+    schema: ApiResponseSchema,
   },
 }
 
@@ -66,9 +61,7 @@ export const bulkEnrichPeople = {
     schema: BulkEnrichmentPayloadSchema,
   },
   output: {
-    schema: z.object({
-      apiResponse: z.object({}).passthrough(),
-    }),
+    schema: ApiResponseSchema,
   },
 }
 

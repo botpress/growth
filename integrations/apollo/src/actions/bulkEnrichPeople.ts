@@ -15,6 +15,7 @@ export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'
     // Transform Apollo response to Botpress output format
     return {
       apiResponse: apolloResponse,
+      message: 'People bulk-enriched successfully.',
     }
   } catch (error) {
     if (error instanceof ZodError) {

@@ -16,6 +16,7 @@ export const searchContact: bp.IntegrationProps['actions']['searchContact'] = as
     // Transform Apollo response to Botpress output format
     return {
       apiResponse: apolloResponse,
+      message: 'Contacts found successfully.',
     }
   } catch (error) {
     if (error instanceof ZodError) {

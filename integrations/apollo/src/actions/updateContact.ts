@@ -17,6 +17,7 @@ export const updateContact: bp.IntegrationProps['actions']['updateContact'] = as
     // Transform Apollo response to Botpress output format
     return {
       apiResponse: apolloResponse,
+      message: 'Contact updated successfully.',
     }
   } catch (error) {
     if (error instanceof ZodError) {
