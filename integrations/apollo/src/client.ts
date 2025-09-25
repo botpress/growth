@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios'
+import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import * as bp from '.botpress'
 import { BulkEnrichmentPayload, ContactPayload, EnrichmentPayload, SearchPayload } from './definitions/schemas'
 
@@ -17,7 +17,7 @@ class ApolloApi {
     })
   }
 
-  public async createContact(contact: ContactPayload): Promise<object> {
+  public async createContact(contact: ContactPayload): Promise<AxiosResponse<object>> {
     return this._client.request({
       method: 'POST',
       url: '/contacts',
@@ -25,7 +25,7 @@ class ApolloApi {
     })
   }
 
-  public async updateContact(contact: { contact_id: string } & ContactPayload): Promise<object> {
+  public async updateContact(contact: { contact_id: string } & ContactPayload): Promise<AxiosResponse<object>> {
     return this._client.request({
       method: 'PUT',
       url: `/contacts/${contact.contact_id}`,
@@ -33,7 +33,7 @@ class ApolloApi {
     })
   }
 
-  public async searchContact(contact: SearchPayload): Promise<object> {
+  public async searchContact(contact: SearchPayload): Promise<AxiosResponse<object>> {
     const searchParams = new URLSearchParams()
     contact.q_keywords && searchParams.append('q_keywords', contact.q_keywords)
     contact.contact_stage_ids &&
@@ -48,7 +48,7 @@ class ApolloApi {
     })
   }
 
-  public async enrichPerson(payload: EnrichmentPayload): Promise<object> {
+  public async enrichPerson(payload: EnrichmentPayload): Promise<AxiosResponse<object>> {
     const searchParams = new URLSearchParams()
     payload.first_name && searchParams.append('first_name', payload.first_name)
     payload.last_name && searchParams.append('last_name', payload.last_name)
@@ -68,7 +68,7 @@ class ApolloApi {
     })
   }
 
-  public async bulkEnrichPeople(payload: BulkEnrichmentPayload): Promise<object> {
+  public async bulkEnrichPeople(payload: BulkEnrichmentPayload): Promise<AxiosResponse<object>> {
     const searchParams = new URLSearchParams()
     payload.reveal_personal_emails &&
       searchParams.append('reveal_personal_emails', payload.reveal_personal_emails.toString())

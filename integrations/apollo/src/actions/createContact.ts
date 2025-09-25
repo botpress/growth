@@ -12,7 +12,7 @@ export const createContact: bp.IntegrationProps['actions']['createContact'] = as
     logger.info('Contact created in Apollo.io', { apolloResponse })
 
     return {
-      apiResponse: apolloResponse,
+      apiResponse: apolloResponse.data,
       message: 'Contact created successfully.',
     }
   } catch (error) {

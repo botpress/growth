@@ -10,7 +10,7 @@ export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'
     const apolloResponse = await apolloClient.bulkEnrichPeople(input)
 
     return {
-      apiResponse: apolloResponse,
+      apiResponse: apolloResponse.data,
       message: 'People bulk-enriched successfully.',
     }
   } catch (error) {

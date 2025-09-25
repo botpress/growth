@@ -12,7 +12,7 @@ export const updateContact: bp.IntegrationProps['actions']['updateContact'] = as
     logger.info('Contact updated in Apollo.io', { apolloResponse })
 
     return {
-      apiResponse: apolloResponse,
+      apiResponse: apolloResponse.data,
       message: 'Contact updated successfully.',
     }
   } catch (error) {

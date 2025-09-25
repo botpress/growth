@@ -12,7 +12,7 @@ export const enrichPerson: bp.IntegrationProps['actions']['enrichPerson'] = asyn
     logger.info('Person enriched in Apollo.io', apolloResponse)
 
     return {
-      apiResponse: apolloResponse,
+      apiResponse: apolloResponse.data,
       message: 'Person enriched successfully.',
     }
   } catch (error) {

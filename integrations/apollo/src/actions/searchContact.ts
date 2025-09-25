@@ -11,7 +11,7 @@ export const searchContact: bp.IntegrationProps['actions']['searchContact'] = as
 
     logger.info('Contacts found in Apollo.io', { apolloResponse })
     return {
-      apiResponse: apolloResponse,
+      apiResponse: apolloResponse.data,
       message: 'Contacts found successfully.',
     }
   } catch (error) {
