@@ -23,33 +23,10 @@ jobs:
           ];
 
           const NAME_REGEX = /name:\s*['"]([^'"]+)['"]/;
-          const NAME_VAR_REGEX = /name:\s*integrationName/;
           const TITLE_REGEX = /title:\s*['"]([^'"]+)['"]/;
 
           function validateIntegration(integrationPath) {
             const errors = [];
-            
-            // CHECKING IF PACKAGE.JSON EXISTS
-            const packageJsonPath = path.join(integrationPath, 'package.json');
-            let packageJson = null;
-            
-            try {
-              const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf8');
-              packageJson = JSON.parse(packageJsonContent);
-              
-              // CHECKING IF INTEGRATION NAME EXISTS AND STARTS WITH PLUS/
-              if (!packageJson.integrationName) {
-                errors.push('Missing \'integrationName\' in package.json');
-              } else if (!packageJson.integrationName.startsWith('plus/')) {
-                errors.push(`'integrationName' in package.json must start with 'plus/' prefix, found: ${packageJson.integrationName}`);
-              }
-            } catch (err) {
-              if (err.code === 'ENOENT') {
-                errors.push('package.json file not found');
-              } else {
-                errors.push(`Error parsing package.json: ${err.message}`);
-              }
-            }
             
             // CHECKING IF INTEGRATION.DEFINITION.TS EXISTS
             const definitionPath = path.join(integrationPath, 'integration.definition.ts');
@@ -59,18 +36,11 @@ jobs:
               
               // CHECKING IF NAME PROPERTY WITH PLUS/ PREFIX EXISTS
               const nameMatch = definition.match(NAME_REGEX);
-              const nameVarMatch = definition.match(NAME_VAR_REGEX);
               
-              if (!nameMatch && !nameVarMatch) {
+              if (!nameMatch) {
                 errors.push('Could not find "name" property in integration.definition.ts');
-              } else if (nameMatch && !nameMatch[1].startsWith('plus/')) {
+              } else if (!nameMatch[1].startsWith('plus/')) {
                 errors.push(`"name" in integration.definition.ts must start with 'plus/' prefix, found: ${nameMatch[1]}`);
-              } else if (nameVarMatch && packageJson) {
-                if (!packageJson.integrationName) {
-                  errors.push('Using integrationName in definition but missing in package.json');
-                } else if (!packageJson.integrationName.startsWith('plus/')) {
-                  errors.push(`'integrationName' in package.json must start with 'plus/' prefix, found: ${packageJson.integrationName}`);
-                }
               }
               
               // CHECKING IF TITLE PROPERTY EXISTS
