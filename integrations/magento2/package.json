@@ -1,6 +1,5 @@
 {
   "name": "@bp-templates/hello-world",
-  "integrationName": "plus/magento2",
   "scripts": {
     "check:type": "tsc --noEmit",
     "version": "bp --version",

@@ -1,8 +1,7 @@
 import { z, IntegrationDefinition } from '@botpress/sdk'
-import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'plus/sharepoint',
   version: '3.0.4',
   title: 'SharePoint',
   description: 'Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.',

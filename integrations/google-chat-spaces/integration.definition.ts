@@ -1,8 +1,7 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
-import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'plus/google-chat-spaces',
   title: 'Google Chat Spaces',
   version: '1.0.2',
   readme: 'hub.md',

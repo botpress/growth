@@ -1,10 +1,9 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
-import { integrationName } from './package.json'
 import hitl from './bp_modules/hitl'
 import { events, configuration, states, channels, user } from './src/definitions'
 
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'plus/intercom-hitl',
   title: 'Intercom HITL',
   version: '2.0.0',
   icon: 'icon.svg',

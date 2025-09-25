@@ -1,9 +1,8 @@
 import { IntegrationDefinition } from '@botpress/sdk'
 import hitl from './bp_modules/hitl'
 import { events, configuration, channels, states, user } from './src/definitions'
-import { integrationName } from './package.json'
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'plus/zoho-sales-iq-hitl',
   title: 'Zoho Sales IQ HITL',
   version: '2.0.1',
   icon: 'icon.svg',

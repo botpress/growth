@@ -1,6 +1,5 @@
 {
   "name": "@botpresshub/zoom",
-  "integrationName": "plus/zoom",
   "scripts": {
     "check:type": "tsc --noEmit"
   },

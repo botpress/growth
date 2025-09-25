@@ -1,6 +1,5 @@
 {
   "name": "@bp-templates/empty-integration",
-  "integrationName": "plus/hubspot-hitl",
   "type": "module",
   "scripts": {
     "check:type": "tsc --noEmit",
