@@ -5,11 +5,11 @@ import {
 import {
   SendEmailCommand,
 } from "@aws-sdk/client-sesv2";
-import { sendResults } from "../definitions/types";
 import * as sdk from "@botpress/sdk";
 import { getSesClient } from "../misc/client";
 import { CONTACT_LIST, FROM_EMAIL_ADDRESS } from "../misc/constants";
 import { getErrorMessage } from "../misc/error-handler";
+import { Output } from ".botpress/implementation/typings/actions/sendMail/output";
 
 export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
   input,
@@ -29,14 +29,15 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
     <p><a href="{{amazonSESUnsubscribeUrl}}">Unsubscribe</a></p>
     </div>`;
 
-    const results:sendResults = {
+    const results:Output = {
       successful: [],
       failed: [],
     };
 
-    for (const email of input.to) {
+
+    const sendEmailToRecipient = async (email: string) => {
       try {
-          await addContactToList(email);
+        await addContactToList(email);
 
         const sendEmailCommand = new SendEmailCommand({
           Destination: {
@@ -68,11 +69,6 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
           throw new sdk.RuntimeError(`Failed to send email to ${email}`);
         }
 
-        results.successful.push({
-          email,
-          messageId: result.MessageId,
-        });
-
         logger
           .forBot()
           .info(
@@ -89,19 +85,35 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
             timestamp: new Date().toISOString(),
           },
         });
-      } catch (error) {
-        results.failed.push({
-          email,
-          error: getErrorMessage(error),
-        });
 
+        return {
+          email,
+          messageId: result.MessageId,
+        };
+      } catch (error) {
         logger
           .forBot()
           .warn(
             `Failed to send email to ${email}: ${getErrorMessage(error)}`,
           );
+        
+        throw {
+          email,
+          error: getErrorMessage(error),
+        };
       }
-    }
+    };
+
+    const emailPromises = input.to.map(email => sendEmailToRecipient(email));
+    const emailResults = await Promise.allSettled(emailPromises);
+
+    emailResults.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        results.successful.push(result.value);
+      } else {
+        results.failed.push(result.reason);
+      }
+    });
 
     logger
       .forBot()
