@@ -9,7 +9,7 @@ export const createContact: bp.IntegrationProps['actions']['createContact'] = as
 
     const apolloResponse = await apolloClient.createContact(input)
 
-    logger.info('Contact created in Apollo.io', { apolloResponse })
+    logger.info('Contact created in Apollo.io', { apolloResponse: apolloResponse.data })
 
     return {
       apiResponse: apolloResponse.data,

@@ -33,7 +33,7 @@ class ApolloApi {
     })
   }
 
-  public async searchContact(contact: SearchPayload): Promise<AxiosResponse<object>> {
+  public async searchContacts(contact: SearchPayload): Promise<AxiosResponse<object>> {
     const searchParams = new URLSearchParams()
     contact.q_keywords && searchParams.append('q_keywords', contact.q_keywords)
     contact.contact_stage_ids &&

@@ -32,7 +32,7 @@ export const updateContact = {
   },
 }
 
-export const searchContact = {
+export const searchContacts = {
   title: 'Search Contacts',
   description: "Find contacts from your team's Apollo.io account",
   input: {
@@ -68,7 +68,7 @@ export const bulkEnrichPeople = {
 export const actions = {
   createContact,
   updateContact,
-  searchContact,
+  searchContacts,
   enrichPerson,
   bulkEnrichPeople,
 } satisfies IntegrationDefinitionProps['actions']

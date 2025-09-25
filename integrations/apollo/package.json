@@ -1,6 +1,6 @@
 {
   "name": "apollo",
-  "integrationName": "plus/apollo",
+  "integrationName": "my-pipe/apollo",
   "scripts": {
     "check:type": "tsc --noEmit",
     "dev": "nodemon --watch \"./src/*\" --ext \"ts\" --exec \"bp deploy -y\""

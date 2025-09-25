@@ -9,7 +9,7 @@ export const updateContact: bp.IntegrationProps['actions']['updateContact'] = as
 
     const apolloResponse = await apolloClient.updateContact(input)
 
-    logger.info('Contact updated in Apollo.io', { apolloResponse })
+    logger.info('Contact updated in Apollo.io', { apolloResponse: apolloResponse.data })
 
     return {
       apiResponse: apolloResponse.data,

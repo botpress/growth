@@ -5,7 +5,7 @@ import { RuntimeError } from '@botpress/client'
 export const register: bp.IntegrationProps['register'] = async ({ ctx, logger }) => {
   try {
     const apolloClient = getApolloClient(ctx.configuration)
-    await apolloClient.searchContact({ q_keywords: '', page: 1, per_page: 1 })
+    await apolloClient.searchContacts({ q_keywords: '', page: 1, per_page: 1 })
     logger.forBot().info('Apollo integration registered successfully')
   } catch (error) {
     logger.forBot().error('Failed to register Apollo integration. API request failed.', error)
