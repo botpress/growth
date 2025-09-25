@@ -4,16 +4,13 @@ import {
 } from "../utils";
 import {
   SendEmailCommand,
-  MessageRejected,
-  BadRequestException,
-  NotFoundException,
-  ConflictException,
-  InternalServiceErrorException,
 } from "@aws-sdk/client-sesv2";
 import { sendResults } from "../definitions/types";
 import * as sdk from "@botpress/sdk";
 import { getSesClient } from "../misc/client";
 import { CONTACT_LIST, FROM_EMAIL_ADDRESS } from "../misc/constants";
+import { getErrorMessage } from "../misc/error-handler";
+
 export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
   input,
   logger,
@@ -92,56 +89,16 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
             timestamp: new Date().toISOString(),
           },
         });
-      } catch (error: any) {
-        logger.forBot().error(
-          `Raw error for ${email}:`,
-          JSON.stringify(
-            {
-              name: error.name,
-              message: error.message,
-              code: error.code,
-              statusCode: error.$metadata?.httpStatusCode,
-              errorType: error.$fault,
-              full: error,
-            },
-            null,
-            2,
-          ),
-        );
-
-        let reason = "Unknown error";
-        if (
-          error instanceof MessageRejected ||
-          error.message?.includes("unsubscribed") ||
-          error.message?.includes("suppressed")
-        ) {
-          reason =
-            "Message rejected - recipient may have unsubscribed or email suppressed";
-        } else if (error instanceof NotFoundException) {
-          reason =
-            "Resource not found (contact list or configuration may not exist)";
-        } else if (error instanceof ConflictException) {
-          reason = "Conflict with current state of resource";
-        } else if (error instanceof InternalServiceErrorException) {
-          reason = "Internal AWS service error";
-        } else if (error instanceof BadRequestException) {
-          reason = `Invalid request: ${error.message}`;
-        } else if (error.code) {
-          reason = `AWS Error (${error.code}): ${error.message}`;
-        }
-
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error occurred";
-
+      } catch (error) {
         results.failed.push({
           email,
-          error: errorMessage,
+          error: getErrorMessage(error),
         });
 
         logger
           .forBot()
           .warn(
-            `Failed to send email to ${email}: ${reason} - ${errorMessage}`,
+            `Failed to send email to ${email}: ${getErrorMessage(error)}`,
           );
       }
     }
@@ -155,12 +112,7 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
     return results;
 
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error occurred";
-
-    logger.forBot().error(`Failed to send email: ${errorMessage}`);
-    logger.forBot().error(JSON.stringify(error));
-
-    throw new sdk.RuntimeError(`Failed to send email: ${errorMessage}`);
+    logger.forBot().error(`Failed to send email: ${getErrorMessage(error)}`);
+    throw new sdk.RuntimeError(`Failed to send email: ${getErrorMessage(error)}`);
   }
 };
