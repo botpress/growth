@@ -7,12 +7,10 @@ export const updateContact: bp.IntegrationProps['actions']['updateContact'] = as
   try {
     const apolloClient = getApolloClient(ctx.configuration)
 
-    // Make API call to Apollo
     const apolloResponse = await apolloClient.updateContact(input)
 
     logger.info('Contact updated in Apollo.io', { apolloResponse })
 
-    // Transform Apollo response to Botpress output format
     return {
       apiResponse: apolloResponse,
       message: 'Contact updated successfully.',

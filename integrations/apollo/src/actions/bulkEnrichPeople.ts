@@ -7,10 +7,8 @@ export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'
   try {
     const apolloClient = getApolloClient(ctx.configuration)
 
-    // Make API call to Apollo
     const apolloResponse = await apolloClient.bulkEnrichPeople(input)
 
-    // Transform Apollo response to Botpress output format
     return {
       apiResponse: apolloResponse,
       message: 'People bulk-enriched successfully.',

@@ -100,6 +100,4 @@ class ApolloApi {
   }
 }
 
-export type ApolloClient = InstanceType<typeof ApolloApi>
-
 export const getApolloClient = (config: bp.configuration.Configuration): ApolloApi => new ApolloApi(config.apiKey)
