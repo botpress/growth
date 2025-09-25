@@ -60,7 +60,7 @@ jobs:
             exit 2
           fi
           EOF
-          
+
           chmod +x ./.github/scripts/check-integration-version-without-build.sh
       - name: Check integration versions
         run: |

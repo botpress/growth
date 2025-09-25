@@ -59,16 +59,13 @@ export class ShopifyClient {
         return
       }
 
-      response = await this._client.post(
-        `${this._baseUrl}/webhooks.json`,
-        {
-          webhook: {
-            topic,
-            address: webhookUrl,
-            format: 'json',
-          },
-        }
-      )
+      response = await this._client.post(`${this._baseUrl}/webhooks.json`, {
+        webhook: {
+          topic,
+          address: webhookUrl,
+          format: 'json',
+        },
+      })
 
       return response.data.webhook.id.toString()
     } catch (error) {
@@ -104,5 +101,4 @@ export class ShopifyClient {
   }
 }
 
-export const getShopifyClient = (config: bp.configuration.Configuration): ShopifyClient =>
-  new ShopifyClient(config)
+export const getShopifyClient = (config: bp.configuration.Configuration): ShopifyClient => new ShopifyClient(config)

@@ -20,7 +20,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
       break
     case 'conversation.attender.updated':
       await handleOperatorAssignedUpdate({ salesIqEvent, client })
-      break 
+      break
     case 'conversation.operator.replied':
       await handleOperatorReplied({ salesIqEvent, client })
       break

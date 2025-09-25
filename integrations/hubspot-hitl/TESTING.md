@@ -7,24 +7,28 @@ This document outlines the comprehensive testing strategy implemented for the Hu
 ## What Was Implemented
 
 ### 1. Test Infrastructure
+
 - **Vitest** testing framework setup with separate configurations for unit and e2e tests
 - **Mock utilities** for Botpress client, context, and logger
 - **Test helpers** for e2e test utilities
 - **GitHub Actions** workflow for CI/CD testing
 
 ### 2. Unit Tests
+
 - **Signature validation tests** - Comprehensive testing of HubSpot Inbox webhook signature verification
 - **HITL action tests** - Testing of createUser, startHitl, stopHitl with various scenarios
 - **Error handling tests** - Validation of error paths and edge cases
 - **Mock-based testing** - No external API calls, pure business logic testing
 
-### 3. E2E Test Framework  
+### 3. E2E Test Framework
+
 - **Real HubSpot Inbox API integration** - Tests use actual HubSpot Inbox credentials
 - **Environment validation** - Checks for required credentials before running
 - **Graceful skipping** - E2E tests skip if credentials not configured
 - **Real API call testing** - Tests actual HubSpot Inbox channel creation, authentication, etc.
 
 ### 4. CI/CD Integration
+
 - **GitHub Actions workflow** with separate unit and e2e test jobs
 - **Secret management** for HubSpot Inbox credentials
 - **Environment-based testing** - E2E tests only run on main branch or manual trigger
@@ -65,6 +69,7 @@ pnpm test:watch
 ## Test Coverage
 
 ### Unit Tests (22 tests)
+
 - **Signature validation** (7 tests)
   - Valid signature verification
   - Invalid signature detection
@@ -85,6 +90,7 @@ pnpm test:watch
   - Error response structure validation
 
 ### E2E Tests (Comprehensive Integration Testing) - Run on every branch
+
 - **HubSpot Client Tests** - API authentication and basic operations
 - **Registration Tests** - Channel creation and connection workflows
 - **Component Tests** - Individual HITL action testing
@@ -98,9 +104,10 @@ pnpm test:watch
 ## Environment Setup for E2E Tests
 
 ### Required Secrets (GitHub Actions)
+
 ```
 HUBSPOT_REFRESH_TOKEN
-HUBSPOT_CLIENT_ID  
+HUBSPOT_CLIENT_ID
 HUBSPOT_CLIENT_SECRET
 HUBSPOT_DEVELOPER_API_KEY
 HUBSPOT_APP_ID
@@ -108,6 +115,7 @@ HUBSPOT_INBOX_ID
 ```
 
 ### Local Development
+
 1. Copy `test.env.example` to `test.env`
 2. Fill in HubSpot credentials
 3. Run `./run-integration-tests.sh`
@@ -115,6 +123,7 @@ HUBSPOT_INBOX_ID
 ## Key Features
 
 ### Full Integration Testing
+
 - **Complete workflow validation** - Tests entire Registration → User Creation → HITL flow
 - **State persistence testing** - Validates state management across operations
 - **Real HubSpot API integration** - Uses actual HubSpot credentials and channels
@@ -122,6 +131,7 @@ HUBSPOT_INBOX_ID
 - **Automatic cleanup** - Test channels are automatically deleted after completion
 
 ### Full Integration Flow Tests
+
 - **Scope**: End-to-end workflow validation (Registration → User Creation → HITL)
 - **State Management**: Custom `IntegrationStateStore` for persistent state across operations
 - **Real API Integration**: Uses actual HubSpot channels with automatic cleanup
@@ -139,14 +149,14 @@ HUBSPOT_INBOX_ID
 ## Maintenance
 
 - **Update credentials**: Refresh HubSpot tokens as needed
-- **Monitor rate limits**: Ensure e2e tests don't exceed API limits  
+- **Monitor rate limits**: Ensure e2e tests don't exceed API limits
 - **Review test data**: Clean up any accumulated test conversations
 - **Update dependencies**: Keep test frameworks current
 
 ## Success Criteria ✅
 
 - [x] Unit tests for code paths without HubSpot API calls
-- [x] E2E tests with real HubSpot credentials  
+- [x] E2E tests with real HubSpot credentials
 - [x] **Full integration flow testing** - Complete Registration → User Creation → HITL workflows
 - [x] **State persistence validation** - Proper state management across operations
 - [x] **Rate limiting handling** - Exponential backoff and retry logic for HubSpot API
@@ -160,6 +170,7 @@ HUBSPOT_INBOX_ID
 - [x] Developer-friendly setup
 
 ### Full Integration Flow Test (`full-integration-flow.test.ts`)
+
 - **Complete workflow testing** - Tests the entire integration lifecycle in sequence
 - **Persistent state management** - Custom state store that maintains state across operations
 - **Real HubSpot integration** - Creates and manages actual HubSpot channels

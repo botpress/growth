@@ -4,7 +4,7 @@ import { adminAssignedEventSchema } from 'src/definitions/intercomEvents'
 export const handleConversationAssigned = async (
   payload: typeof adminAssignedEventSchema._type,
   logger: bp.Logger,
-  client: bp.Client,
+  client: bp.Client
 ): Promise<void> => {
   const conversationId = payload.data.item.id
   const adminId = payload.data.item.admin_assignee_id
@@ -34,4 +34,4 @@ export const handleConversationAssigned = async (
       userId: botpressUser.id as string,
     },
   })
-} 
+}

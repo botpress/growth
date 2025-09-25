@@ -10,7 +10,7 @@ export const configuration = {
 
 export const states = {
   userInfo: {
-    type: "user",
+    type: 'user',
     schema: z.object({
       email: z.string(),
     }),

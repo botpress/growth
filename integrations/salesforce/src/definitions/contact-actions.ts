@@ -2,20 +2,13 @@ import {
   CreateContactInputSchema,
   SearchContactsInputSchema,
   UpdateContactInputSchema,
-} from "src/misc/custom-schemas/contact-schemas";
-import {
-  CreateContactUi,
-  SearchContactsUi,
-  UpdateContactUi,
-} from "src/misc/custom-uis/contact-uis";
-import {
-  RecordResultSchema,
-  SearchOutputSchema,
-} from "src/misc/custom-schemas/common-schemas";
+} from 'src/misc/custom-schemas/contact-schemas'
+import { CreateContactUi, SearchContactsUi, UpdateContactUi } from 'src/misc/custom-uis/contact-uis'
+import { RecordResultSchema, SearchOutputSchema } from 'src/misc/custom-schemas/common-schemas'
 
 const createContact = {
-  title: "Create Contact",
-  description: "Create a Salesforce Contact",
+  title: 'Create Contact',
+  description: 'Create a Salesforce Contact',
   input: {
     schema: CreateContactInputSchema,
     ui: CreateContactUi,
@@ -23,11 +16,11 @@ const createContact = {
   output: {
     schema: RecordResultSchema,
   },
-};
+}
 
 const updateContact = {
-  title: "Update Contact",
-  description: "Update a Salesforce Contact",
+  title: 'Update Contact',
+  description: 'Update a Salesforce Contact',
   input: {
     schema: UpdateContactInputSchema,
     ui: UpdateContactUi,
@@ -35,11 +28,11 @@ const updateContact = {
   output: {
     schema: RecordResultSchema,
   },
-};
+}
 
 const searchContacts = {
-  title: "Search Contacts",
-  description: "Search Salesforce Contacts",
+  title: 'Search Contacts',
+  description: 'Search Salesforce Contacts',
   input: {
     schema: SearchContactsInputSchema,
     ui: SearchContactsUi,
@@ -47,10 +40,10 @@ const searchContacts = {
   output: {
     schema: SearchOutputSchema,
   },
-};
+}
 
 export const contactActionDefinitions = {
   createContact,
   searchContacts,
   updateContact,
-};
+}

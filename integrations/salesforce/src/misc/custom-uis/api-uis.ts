@@ -1,17 +1,17 @@
 export const MakeApiRequestUi = {
   method: {
-    title: "HTTP Method",
+    title: 'HTTP Method',
   },
   path: {
-    title: "URL Path (`yourinstance.salesforce.com/services/data/v54.0/PATH`)",
+    title: 'URL Path (`yourinstance.salesforce.com/services/data/v54.0/PATH`)',
   },
   headers: {
-    title: "HTTP Headers (JSON)",
+    title: 'HTTP Headers (JSON)',
   },
   params: {
-    title: "Query Params (JSON)",
+    title: 'Query Params (JSON)',
   },
   requestBody: {
-    title: "Request Body (JSON)",
+    title: 'Request Body (JSON)',
   },
-};
+}

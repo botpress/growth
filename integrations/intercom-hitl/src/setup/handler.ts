@@ -2,7 +2,7 @@ import * as bp from '.botpress'
 import {
   adminAssignedEventSchema,
   adminRepliedEventSchema,
-  adminClosedEventSchema
+  adminClosedEventSchema,
 } from 'src/definitions/intercomEvents'
 import { handleConversationAssigned } from 'src/events/conversationAssigned'
 import { handleConversationClosed } from 'src/events/conversationClosed'
@@ -29,14 +29,14 @@ export const handler: bp.IntegrationProps['handler'] = async ({ logger, req, cli
     await handleConversationAssigned(adminAssignedResult.data, logger, client)
     return
   }
-  
+
   const adminRepliedResult = adminRepliedEventSchema.safeParse(rawPayload)
   if (adminRepliedResult.success) {
     logger.forBot().info('Received and validated conversation.admin.replied event')
     await handleIncomingReply(adminRepliedResult.data, logger, client)
     return
   }
-  
+
   const adminClosedResult = adminClosedEventSchema.safeParse(rawPayload)
   if (adminClosedResult.success) {
     logger.forBot().info('Received and validated conversation.admin.closed event')

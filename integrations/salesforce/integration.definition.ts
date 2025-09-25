@@ -1,17 +1,16 @@
-import { IntegrationDefinition, z } from "@botpress/sdk";
-import { integrationName } from "./package.json";
-import { actionDefinitions } from "./src/definitions";
+import { IntegrationDefinition, z } from '@botpress/sdk'
+import { integrationName } from './package.json'
+import { actionDefinitions } from './src/definitions'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  title: "Salesforce",
-  version: "1.0.3",
-  readme: "hub.md",
-  icon: "icon.svg",
-  description:
-    "Salesforce integration allows you to create, search, update and delete a variety of Salesforce objects",
+  title: 'Salesforce',
+  version: '1.0.3',
+  readme: 'hub.md',
+  icon: 'icon.svg',
+  description: 'Salesforce integration allows you to create, search, update and delete a variety of Salesforce objects',
   identifier: {
-    fallbackHandlerScript: "fallbackHandler.vrl",
+    fallbackHandlerScript: 'fallbackHandler.vrl',
   },
   configuration: {
     schema: z.object({
@@ -20,7 +19,7 @@ export default new IntegrationDefinition({
   },
   states: {
     credentials: {
-      type: "integration",
+      type: 'integration',
       schema: z.object({
         isSandbox: z.boolean(),
         accessToken: z.string(),
@@ -31,11 +30,11 @@ export default new IntegrationDefinition({
   },
   secrets: {
     CONSUMER_KEY: {
-      description: "Consumer key of the Salesforce app",
+      description: 'Consumer key of the Salesforce app',
     },
     CONSUMER_SECRET: {
-      description: "Consumer secret of the Salesforce app",
+      description: 'Consumer secret of the Salesforce app',
     },
   },
   actions: actionDefinitions,
-});
+})

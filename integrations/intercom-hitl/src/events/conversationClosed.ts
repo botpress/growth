@@ -4,7 +4,7 @@ import { adminClosedEventSchema } from 'src/definitions/intercomEvents'
 export const handleConversationClosed = async (
   payload: typeof adminClosedEventSchema._type,
   logger: bp.Logger,
-  client: bp.Client,
+  client: bp.Client
 ): Promise<void> => {
   const conversationId = payload.data.item.id
   const adminId = payload.data.item.admin_assignee_id
@@ -45,4 +45,4 @@ export const handleConversationClosed = async (
     adminId,
     adminUserId: adminUser?.id,
   })
-} 
+}

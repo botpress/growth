@@ -15,14 +15,19 @@ const syncKb: bp.IntegrationProps['actions']['syncKb'] = async ({ ctx, client, l
     return {
       success: true,
       message: 'Successfully synced Shopify products to BP KB',
-      productsCount: productsCount || 0
+      productsCount: productsCount || 0,
     }
   } catch (error) {
     throw new sdk.RuntimeError(`Error: ${error instanceof Error ? error.message : 'An unknown error occurred'}`)
   }
 }
 
-export const uploadProductsToKb = async (props: { ctx: bp.Context; client: bp.Client; logger: bp.Logger; kbId: string }) => {
+export const uploadProductsToKb = async (props: {
+  ctx: bp.Context
+  client: bp.Client
+  logger: bp.Logger
+  kbId: string
+}) => {
   const { ctx, client, logger, kbId } = props
 
   logger.forBot().info('Attempting to sync Shopify products to BP KB')
@@ -34,8 +39,7 @@ export const uploadProductsToKb = async (props: { ctx: bp.Context; client: bp.Cl
 
   try {
     for (const product of allProducts) {
-
-      const payload = getUploadArticlePayload({ kbId, product, shopDomain: ctx.configuration.shopDomain })      
+      const payload = getUploadArticlePayload({ kbId, product, shopDomain: ctx.configuration.shopDomain })
       await client.uploadFile(payload)
 
       logger.forBot().info(`Successfully uploaded article ${product.title} to BP KB`)
@@ -55,4 +59,4 @@ export const uploadProductsToKb = async (props: { ctx: bp.Context; client: bp.Cl
   return productsCount
 }
 
-export default syncKb 
+export default syncKb
