@@ -5,7 +5,7 @@ export default new IntegrationDefinition({
   title: 'Twilio Voice',
   description:
     'The Twilio Voice integration facilitates seamless voice communication between your AI-powered chatbot and Twilio',
-  version: '0.2.2',
+  version: '0.2.3',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {

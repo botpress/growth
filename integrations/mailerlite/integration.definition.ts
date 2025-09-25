@@ -5,7 +5,7 @@ export default new IntegrationDefinition({
   name: 'mailerlite',
   title: 'MailerLite',
   description: 'Connect with MailerLite to manage subscribers, groups, and email campaigns',
-  version: '3.0.1',
+  version: '3.0.2',
   readme: 'hub.md',
   icon: 'icon.svg',
 

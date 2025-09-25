@@ -2,7 +2,7 @@ import { z, IntegrationDefinition } from '@botpress/sdk'
 
 export default new IntegrationDefinition({
   name: 'plus/sharepoint-excel',
-  version: '2.2.0',
+  version: '2.2.1',
   title: 'SharePoint Excel',
   description: 'Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.',
   readme: 'hub.md',

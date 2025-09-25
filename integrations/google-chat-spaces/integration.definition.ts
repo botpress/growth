@@ -3,7 +3,7 @@ import { IntegrationDefinition, z } from '@botpress/sdk'
 export default new IntegrationDefinition({
   name: 'plus/google-chat-spaces',
   title: 'Google Chat Spaces',
-  version: '1.0.2',
+  version: '1.0.3',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {

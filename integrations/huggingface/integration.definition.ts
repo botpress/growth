@@ -3,7 +3,7 @@ import { z, IntegrationDefinition, interfaces } from '@botpress/sdk'
 export default new IntegrationDefinition({
   name: 'plus/huggingface',
   title: 'Hugging Face',
-  version: '0.0.2',
+  version: '0.0.3',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {
