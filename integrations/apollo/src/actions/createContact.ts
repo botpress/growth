@@ -1,15 +1,14 @@
-import { ContactPayloadSchema } from 'src/definitions/schemas'
 import { getApolloClient } from '../client'
 import * as bp from '.botpress'
-import { ZodError } from '@botpress/sdk'
 import * as sdk from '@botpress/sdk'
+import { getErrorMessage } from 'src/errorHandler'
 
 export const createContact: bp.IntegrationProps['actions']['createContact'] = async ({ input, logger, ctx }) => {
   try {
     const apolloClient = getApolloClient(ctx.configuration)
+    
     // Make API call to Apollo
-    const validatedInput = ContactPayloadSchema.parse(input)
-    const apolloResponse = await apolloClient.createContact(validatedInput)
+    const apolloResponse = await apolloClient.createContact(input)
 
     logger.info('Contact created in Apollo.io', { apolloResponse })
 
@@ -19,12 +18,6 @@ export const createContact: bp.IntegrationProps['actions']['createContact'] = as
       message: 'Contact created successfully.',
     }
   } catch (error) {
-    if (error instanceof ZodError) {
-      throw new sdk.RuntimeError(
-        `Error creating contact in Apollo.io: ${error.errors.map((error) => error.message).join(', ')}`,
-        error
-      )
-    }
-    throw new sdk.RuntimeError('Error creating contact in Apollo.io')
+    throw new sdk.RuntimeError(getErrorMessage(error))
   }
 }

@@ -1,16 +1,14 @@
-import { BulkEnrichmentPayloadSchema } from 'src/definitions/schemas'
 import { getApolloClient } from '../client'
 import * as bp from '.botpress'
-import { ZodError } from '@botpress/sdk'
 import * as sdk from '@botpress/sdk'
+import { getErrorMessage } from '../errorHandler'
 
 export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'] = async ({ input, ctx }) => {
   try {
     const apolloClient = getApolloClient(ctx.configuration)
 
     // Make API call to Apollo
-    const validatedInput = BulkEnrichmentPayloadSchema.parse(input)
-    const apolloResponse = await apolloClient.bulkEnrichPeople(validatedInput)
+    const apolloResponse = await apolloClient.bulkEnrichPeople(input)
 
     // Transform Apollo response to Botpress output format
     return {
@@ -18,12 +16,6 @@ export const bulkEnrichPeople: bp.IntegrationProps['actions']['bulkEnrichPeople'
       message: 'People bulk-enriched successfully.',
     }
   } catch (error) {
-    if (error instanceof ZodError) {
-      throw new sdk.RuntimeError(
-        `Error bulk enriching people in Apollo.io: ${error.errors.map((error) => error.message).join(', ')}`,
-        error
-      )
-    }
-    throw new sdk.RuntimeError('Error bulk enriching people in Apollo.io')
+    throw new sdk.RuntimeError(getErrorMessage(error))
   }
 }
