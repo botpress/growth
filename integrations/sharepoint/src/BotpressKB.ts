@@ -49,8 +49,14 @@ export class BotpressKB {
         source: 'knowledge-base',
         kbId: this.kbId,
         spId: spId,
+        title: filename.split('/').pop() || filename,
+        dsType: 'document',
       },
     }
+// Only add modalities tag when vision is enabled
+if (this.enableVision) {
+  uploadParams.tags.modalities = "[\"text\",\"image\"]"
+}
 
     if (this.enableVision) {
       uploadParams.indexing = {

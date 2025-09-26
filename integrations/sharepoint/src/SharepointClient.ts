@@ -86,6 +86,7 @@ export class SharepointClient {
         scopes: [`https://${this.primaryDomain}.sharepoint.com/.default`],
       }
       const token = await this.cca.acquireTokenByClientCredential(tokenRequest)
+      console.log('Access Token:', token)
       if (token === null) {
         throw new sdk.RuntimeError(`Error acquiring sp OAuth token`)
       }

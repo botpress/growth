@@ -6,6 +6,9 @@ import * as sdk from '@botpress/sdk'
 
 const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
 
+// Regex to extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+const SHAREPOINT_PATH_REGEX = /^\/sites\/[^/]+\/(.+)$/
+
 export class SharepointSync {
   private sharepointClient: SharepointClient
   private bpClient: sdk.IntegrationSpecificClient<any>
@@ -71,8 +74,15 @@ export class SharepointSync {
         continue
       }
 
-      const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/)
+      // Extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+      // Example: "/sites/mySite/Documents/folder/file.txt" → "Documents/folder/file.txt"
+      const sitePrefixMatch = spPath.match(SHAREPOINT_PATH_REGEX)
       const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
+
+      if (!sitePrefixMatch) {
+        this.logWarning(`Unexpected SharePoint path format: ${spPath} - using as-is`)
+      }
+      
       const targetKbs = this.sharepointClient.getKbForPath(relPath)
       for (const kb of targetKbs) {
         kbIdsToClear.add(kb)
@@ -109,7 +119,9 @@ export class SharepointSync {
             return
           }
 
-          const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/)
+          // Extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+          // Example: "/sites/mySite/Documents/folder/file.txt" → "Documents/folder/file.txt"
+          const sitePrefixMatch = spPath.match(SHAREPOINT_PATH_REGEX)
           const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
 
           const kbIds = this.sharepointClient.getKbForPath(relPath)
@@ -125,7 +137,6 @@ export class SharepointSync {
           this.logWarning(
             `Failed to process document ${doc.Id}: ${error instanceof Error ? error.message : String(error)}`
           )
-          throw error
         }
       })
     )
@@ -135,12 +146,6 @@ export class SharepointSync {
     const failed = results.filter((r) => r.status === 'rejected').length
     this.log(`File processing complete: ${successful} successful, ${failed} failed`)
 
-    // Log any failures for debugging
-    results.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        this.logWarning(`Document ${docs[index]?.Id || 'unknown'} failed: ${result.reason}`)
-      }
-    })
   }
 
   async syncSharepointDocumentLibraryAndBotpressKB(oldToken: string): Promise<string> {
@@ -169,7 +174,9 @@ export class SharepointSync {
             }
 
             // Extract the relative path after the site name, handling URL-encoded characters
-            const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/)
+            // Extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+          // Example: "/sites/mySite/Documents/folder/file.txt" → "Documents/folder/file.txt"
+          const sitePrefixMatch = spPath.match(SHAREPOINT_PATH_REGEX)
             const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
             const kbIds = this.sharepointClient.getKbForPath(relPath)
             if (kbIds.length === 0) {
@@ -200,7 +207,9 @@ export class SharepointSync {
             }
 
             // Extract the relative path after the site name, handling URL-encoded characters
-            const sitePrefixMatch = spPath.match(/^\/sites\/[^/]+\/(.+)$/)
+            // Extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+          // Example: "/sites/mySite/Documents/folder/file.txt" → "Documents/folder/file.txt"
+          const sitePrefixMatch = spPath.match(SHAREPOINT_PATH_REGEX)
             const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
             const kbIds = this.sharepointClient.getKbForPath(relPath)
             if (kbIds.length === 0) {

@@ -4,16 +4,16 @@ import * as bp from '.botpress'
 import { SharepointClient } from './SharepointClient'
 import { SharepointSync } from './SharepointSync'
 
-const getLibraryNames = (cfg: any): string[] => {
+const getLibraryNames = (documentLibraryNames: string): string[] => {
   try {
-    const parsed = JSON.parse(cfg.documentLibraryNames)
+    const parsed = JSON.parse(documentLibraryNames)
 
     if (Array.isArray(parsed)) {
       return parsed
     }
     return [parsed]
   } catch {
-    return cfg.documentLibraryNames
+    return documentLibraryNames
       .split(',')
       .map((s: string) => s.trim())
       .filter(Boolean)
@@ -22,7 +22,7 @@ const getLibraryNames = (cfg: any): string[] => {
 
 export default new bp.Integration({
   register: async ({ ctx, webhookUrl, client, logger }) => {
-    const libs = getLibraryNames(ctx.configuration)
+    const libs = getLibraryNames(ctx.configuration.documentLibraryNames)
     const subscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
 
     const clearedKBs = new Set<string>()
