@@ -24,7 +24,7 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
     const updateLinkUrl = `https://studio.botpress.cloud/${ctx.botId}`;
     const htmlBody = `<div>
     <p>${header}</p>
-    ${input.body ? `<p>${input.body}</p>` : ""}
+    ${input.htmlBody || ""}
     <p><a href="${updateLinkUrl}">Update the notification here</a></p>
     <p><a href="{{amazonSESUnsubscribeUrl}}">Unsubscribe</a></p>
     </div>`;
@@ -52,6 +52,10 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
               Body: {
                 Html: {
                   Data: htmlBody,
+                  Charset: "UTF-8",
+                },
+                Text: {
+                  Data: input.body,
                   Charset: "UTF-8",
                 },
               },

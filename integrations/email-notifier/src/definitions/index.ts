@@ -9,6 +9,7 @@ export const actions = {
         to: z.array(z.string().email()).describe('Recipient email addresses').min(1).max(50),
         subject: z.string().min(1).max(998).describe('Email subject'),
         body: z.string().optional().describe('Email content - supports only plain text'),
+        htmlBody: z.string().optional().describe('Email content supporting HTML'),
       }),
     },
     output: {
