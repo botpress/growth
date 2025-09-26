@@ -1,11 +1,10 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
-import { integrationName } from './package.json'
 import { actionDefinitions } from './src/definitions'
 
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'plus/salesforce',
   title: 'Salesforce',
-  version: '1.0.3',
+  version: '1.0.4',
   readme: 'hub.md',
   icon: 'icon.svg',
   description: 'Salesforce integration allows you to create, search, update and delete a variety of Salesforce objects',

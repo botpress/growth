@@ -1,6 +1,5 @@
 {
   "name": "@botpresshub/shopify-products-sync",
-  "integrationName": "plus/shopify-products-sync",
   "scripts": {
     "check:type": "tsc --noEmit",
     "build": "bp add -y && bp build"

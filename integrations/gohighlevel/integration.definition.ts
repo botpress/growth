@@ -1,5 +1,4 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
-import { integrationName } from './package.json'
 
 import {
   createContactInputSchema,
@@ -45,8 +44,8 @@ import {
 } from './src/misc/custom-schemas'
 
 export default new IntegrationDefinition({
-  name: integrationName ?? 'go-high-level',
-  version: '1.0.3',
+  name: 'plus/go-high-level',
+  version: '1.0.4',
   title: 'GoHighLevel',
   readme: 'hub.md',
   icon: 'icon.svg',

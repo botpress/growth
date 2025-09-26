@@ -1,9 +1,8 @@
 import { IntegrationDefinition, messages, interfaces, z } from '@botpress/sdk'
-import { name, integrationName } from './package.json'
 
 export default new IntegrationDefinition({
-  name: integrationName ?? name,
-  version: '0.2.1',
+  name: 'plus/hitl-api',
+  version: '0.2.2',
   title: 'Human in the Loop API',
   description: 'This integration allows you to connect Botpress to a Human in the Loop / Live Agent API',
   icon: 'icon.svg',
