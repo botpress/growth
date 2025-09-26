@@ -33,3 +33,4 @@ jobs:
           force: ${{ github.event.inputs.force || 'false' }}
           token_pat: ${{ secrets.PRODUCTION_TOKEN_CLOUD_OPS_ACCOUNT }}
           plus_workspace_id: ${{ secrets.BP_WORKSPACEID_PROD }}
+          botpress_workspace_id: ${{ secrets.GLOBAL_BP_WORKSPACE_ID }}

@@ -10,110 +10,27 @@ inputs:
     description: "Botpress token for plus account"
     required: true
   plus_workspace_id:
-    description: "Botpress workspace ID for plus"
+    description: "Growth workspace ID for plus"
+    required: true
+  botpress_workspace_id:
+    description: "Botpress workspace ID"
     required: true
 
 runs:
   using: "composite"
   steps:
-    - name: Login to Botpress
-      shell: bash
-      run: |
-        pnpm bp login -y --token ${{ inputs.token_pat }} --workspace-id ${{ inputs.plus_workspace_id }}
-
     - name: Deploy integrations
       shell: bash
       run: |
-        # Make the integration-exists script executable
+        # Make scripts executable
+        chmod +x ./.github/scripts/deploy-all-integrations.sh
+        chmod +x ./.github/scripts/deploy-integration.sh
+        chmod +x ./.github/scripts/deploy-helpers.sh
         chmod +x ./.github/scripts/integration-exists.sh
-
-        # Configuration
-        EXCLUDE_INTEGRATIONS=("hitl-salesforce")
-        SKIP_VERSIONS=("gohighlevel:1.0.1" "google-chat-spaces:1.0.2" "hitl-api:0.2.1" "huggingface:0.0.2" "salesforce:1.0.3" "zoho-sales-iq-hitl:2.0.1")
-
-        # Helper functions
-        is_in_array() {
-          local item="$1"
-          shift
-          local array=("$@")
-          for element in "${array[@]}"; do
-            if [ "$item" = "$element" ]; then
-              return 0
-            fi
-          done
-          return 1
-        }
-
-        is_version_skipped() {
-          local integration_name="$1"
-          local version="$2"
-          local skip_entry
-          for skip_entry in "${SKIP_VERSIONS[@]}"; do
-            local skip_name=$(echo "$skip_entry" | cut -d':' -f1)
-            local skip_version=$(echo "$skip_entry" | cut -d':' -f2)
-            if [ "$integration_name" = "$skip_name" ] && [ "$version" = "$skip_version" ]; then
-              return 0
-            fi
-          done
-          return 1
-        }
-
-        deploy_integration() {
-          local integration_name="$1"
-          local force_flag="$2"
-          
-          echo "Deploying integration: $integration_name"
-          cd "$integration_name"
-          
-          if [ "$force_flag" = "true" ]; then
-            npx @botpress/cli deploy --force --public --confirm
-          else
-            npx @botpress/cli deploy --public --confirm
-          fi
-          
-          cd ..
-        }
-
-        # Main deployment logic
-        cd integrations
-
-        for integration_dir in */; do
-          if [ ! -d "$integration_dir" ]; then
-            continue
-          fi
-          
-          integration_name=${integration_dir%/}
-          
-          # Check if integration is completely excluded
-          if is_in_array "$integration_name" "${EXCLUDE_INTEGRATIONS[@]}"; then
-            echo "Integration $integration_name is in exclude list, skipping deployment completely"
-            continue
-          fi
-          
-          # Get current version
-          cd ..
-          integration_def=$(pnpm bp read --work-dir "integrations/$integration_name" --json)
-          current_version=$(echo "$integration_def" | jq -r ".version")
-          cd integrations
-          
-          # Check if this specific version should be skipped
-          if is_version_skipped "$integration_name" "$current_version"; then
-            echo "Integration $integration_name version $current_version is in skip list, skipping deployment"
-            continue
-          fi
-          
-          # Check if integration already exists
-          cd ..
-          exists=$(bash ./.github/scripts/integration-exists.sh "$integration_name")
-          echo "Integration $integration_name exists check result: $exists"
-          cd integrations
-          
-          # Deploy if needed
-          if [ "$exists" = "0" ] || [ "${{ inputs.force }}" = "true" ]; then
-            deploy_integration "$integration_name" "${{ inputs.force }}"
-          else
-            echo "Integration $integration_name already exists, skipping deployment (use force=true to override)"
-          fi
-        done
-
-        echo "Deployment completed successfully"
+        
+        # Run the main deployment script
+        bash ./.github/scripts/deploy-all-integrations.sh \
+          "${{ inputs.force }}" \
+          "${{ inputs.token_pat }}" \
+          "${{ inputs.plus_workspace_id }}" \
+          "${{ inputs.botpress_workspace_id }}"
