@@ -1,12 +1,11 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
-import { integrationName } from './package.json'
 import hitl from './bp_modules/hitl'
 import { events, configuration, states, channels, user } from './src/definitions'
 
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'plus/hubspot-help-desk-hitl',
   title: 'HubSpot Help Desk HITL',
-  version: '3.0.0',
+  version: '3.0.1',
   icon: 'icon.svg',
   description:
     'This integration allows your bot to use HubSpot as a HITL provider. Messages will appear in HubSpot Help Desk.',

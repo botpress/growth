@@ -1,6 +1,5 @@
 {
   "name": "@bp-templates/mailerlite",
-  "integrationName": "mailerlite",
   "scripts": {
     "build": "bp add -y && bp build",
     "check:type": "tsc --noEmit",

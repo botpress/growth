@@ -1,13 +1,12 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
-import { integrationName } from './package.json'
 import hitl from './bp_modules/hitl'
 import { events, configuration, states, channels, user } from './src/definitions'
 
 export default new IntegrationDefinition({
-  name: integrationName,
-  title: "HubSpot Inbox HITL",
-  version: "5.0.4",
-  icon: "icon.svg",
+  name: 'plus/hubspot-hitl',
+  title: 'HubSpot Inbox HITL',
+  version: '5.0.4',
+  icon: 'icon.svg',
   description:
     'This integration allows your bot to use HubSpot as a HITL provider. Messages will appear in HubSpot Inbox.',
   readme: 'hub.md',

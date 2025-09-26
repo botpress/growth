@@ -42,14 +42,9 @@ jobs:
             exit 1
           fi
 
-          # Get the version from the definition file
+          # Get the version and name from the definition file
           version=$(grep -o "version: ['\"].*['\"]" "$definition_file" | head -1 | sed "s/version: ['\"]//g" | sed "s/['\"]//g")
-          name=$(grep -o "name: ['\"].*['\"]" "$definition_file" | head -1 | sed "s/name: ['\"]//g" | sed "s/['\"]//g" | sed "s/.*\\///g")
-
-          # If no name found or using package.json reference, try to get from package.json
-          if [[ "$name" == *integrationName* ]] || [ -z "$name" ]; then
-            name=$(grep -o "\"integrationName\": ['\"].*['\"]" "$integration_path/package.json" | head -1 | sed "s/\"integrationName\": ['\"]//g" | sed "s/['\"]//g")
-          fi
+          name=$(grep -o "name: ['\"].*['\"]" "$definition_file" | head -1 | sed "s/name: ['\"]//g" | sed "s/['\"]//g")
 
           # Check if this version already exists in production
           if [ -n "$version" ] && [ -n "$name" ]; then
