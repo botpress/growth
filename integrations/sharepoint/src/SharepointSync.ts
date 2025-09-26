@@ -4,7 +4,10 @@ import path from 'path'
 import { getFormatedCurrTime } from './utils'
 import * as sdk from '@botpress/sdk'
 
-const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx']
+const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
+
+// Regex to extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+const SHAREPOINT_PATH_REGEX = /^\/sites\/[^/]+\/(.+)$/
 
 export class SharepointSync {
   private sharepointClient: SharepointClient
@@ -51,60 +54,105 @@ export class SharepointSync {
     return this.kbInstances.get(kbId)!
   }
 
-  async loadAllDocumentsIntoBotpressKB(): Promise<void> {
-    // 1 - Fetch all files in this doclib
-    const items = await this.sharepointClient.listItems()
-    const docs = items.filter((i) => i.FileSystemObjectType === 0)
+  async loadAllDocumentsIntoBotpressKB(clearedKbIds?: Set<string>): Promise<void> {
+    const docs = await this.fetchAllDocuments()
+    const kbIdsToClear = await this.determineKbsToClear(docs)
+    await this.clearRemainingKbs(kbIdsToClear, clearedKbIds)
+    await this.processAllDocuments(docs)
+  }
 
-    // 2 - Determine which KBs those files map to
+  private async fetchAllDocuments() {
+    const items = await this.sharepointClient.listItems()
+    return items.filter((i) => i.FileSystemObjectType === 0)
+  }
+
+  private async determineKbsToClear(docs: any[]): Promise<Set<string>> {
     const kbIdsToClear = new Set<string>()
+
     for (const doc of docs) {
       const spPathOrNull = await this.sharepointClient.getFilePath(doc.Id)
       if (!spPathOrNull) {
         continue
       }
-      // now TS knows spPath is string
       const spPath = spPathOrNull
 
-      // skip unsupported extensions early
       if (!this.isFileSupported(spPath)) {
         continue
       }
 
-      const relPath = decodeURIComponent(spPath.replace(/^\/sites\/[^/]+\//, ''))
+      const relPath = this.extractRelativePath(spPath)
       const targetKbs = this.sharepointClient.getKbForPath(relPath)
       for (const kb of targetKbs) {
         kbIdsToClear.add(kb)
       }
     }
 
-    // 3 - Clear only those KBs
-    await Promise.all(Array.from(kbIdsToClear).map((kbId) => this.getOrCreateKB(kbId).deleteAllFiles()))
+    return kbIdsToClear
+  }
 
-    // 4 - Download & re‑add each file
-    await Promise.all(
-      docs.map(async (doc) => {
-        const spPathOrNull = await this.sharepointClient.getFilePath(doc.Id)
-        if (!spPathOrNull) {
-          return
-        }
-        const spPath = spPathOrNull
+  private async clearRemainingKbs(kbIdsToClear: Set<string>, clearedKbIds?: Set<string>): Promise<void> {
+    const remainingKbsToClear = Array.from(kbIdsToClear).filter((kbId) => !clearedKbIds || !clearedKbIds.has(kbId))
 
-        if (!this.isFileSupported(spPath)) {
-          return
-        }
+    if (remainingKbsToClear.length > 0) {
+      await Promise.all(
+        remainingKbsToClear.map((kbId) => {
+          if (clearedKbIds) {
+            clearedKbIds.add(kbId) // Mark this KB as cleared
+          }
+          return this.getOrCreateKB(kbId).deleteAllFiles()
+        })
+      )
+    }
+  }
 
-        const relPath = decodeURIComponent(spPath.replace(/^\/sites\/[^/]+\//, ''))
+  private async processAllDocuments(docs: any[]): Promise<void> {
+    const results = await Promise.allSettled(docs.map(async (doc) => this.processDocument(doc)))
 
-        const kbIds = this.sharepointClient.getKbForPath(relPath)
-        if (kbIds.length === 0) {
-          return
-        }
+    const successful = results.filter((r) => r.status === 'fulfilled').length
+    const failed = results.filter((r) => r.status === 'rejected').length
+    this.log(`File processing complete: ${successful} successful, ${failed} failed`)
+  }
 
-        const content = await this.sharepointClient.downloadFile(spPath)
-        await Promise.all(kbIds.map((kbId) => this.getOrCreateKB(kbId).addFile(doc.Id.toString(), relPath, content)))
-      })
-    )
+  private async processDocument(doc: any): Promise<void> {
+    try {
+      const spPathOrNull = await this.sharepointClient.getFilePath(doc.Id)
+      if (!spPathOrNull) {
+        this.log(`Skipping document ${doc.Id}: No file path found`)
+        return
+      }
+      const spPath = spPathOrNull
+
+      if (!this.isFileSupported(spPath)) {
+        this.log(`Skipping document ${doc.Id}: Unsupported file type ${path.extname(spPath)}`)
+        return
+      }
+
+      const relPath = this.extractRelativePath(spPath)
+      const kbIds = this.sharepointClient.getKbForPath(relPath)
+      if (kbIds.length === 0) {
+        this.log(`Skipping document ${doc.Id}: No KB mapping found for path ${relPath}`)
+        return
+      }
+
+      const content = await this.sharepointClient.downloadFile(spPath)
+      await Promise.all(kbIds.map((kbId) => this.getOrCreateKB(kbId).addFile(doc.Id.toString(), relPath, content)))
+      this.log(`Successfully processed document ${doc.Id}: ${relPath}`)
+    } catch (error) {
+      this.logWarning(`Failed to process document ${doc.Id}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  private extractRelativePath(spPath: string): string {
+    // Extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+    // Example: "/sites/mySite/Documents/folder/file.txt" → "Documents/folder/file.txt"
+    const sitePrefixMatch = spPath.match(SHAREPOINT_PATH_REGEX)
+    const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
+
+    if (!sitePrefixMatch) {
+      this.logWarning(`Unexpected SharePoint path format: ${spPath} - using as-is`)
+    }
+
+    return relPath
   }
 
   async syncSharepointDocumentLibraryAndBotpressKB(oldToken: string): Promise<string> {
@@ -123,34 +171,68 @@ export class SharepointSync {
         )
 
       switch (ch.ChangeType) {
-        /* 1 = Add */
+        /* 1 = Add */
         case 1: {
-          const spPath = await this.sharepointClient.getFilePath(ch.ItemId)
-          if (!spPath || !this.isFileSupported(spPath)) break
+          try {
+            const spPath = await this.sharepointClient.getFilePath(ch.ItemId)
+            if (!spPath || !this.isFileSupported(spPath)) {
+              this.log(`Skipping add for item ${ch.ItemId}: ${!spPath ? 'No file path' : 'Unsupported file type'}`)
+              break
+            }
 
-          const relPath = decodeURIComponent(spPath.replace(/^\/sites\/[^/]+\//, ''))
-          const kbIds = this.sharepointClient.getKbForPath(relPath)
-          if (kbIds.length === 0) break
+            // Extract the relative path after the site name, handling URL-encoded characters
+            // Extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+            // Example: "/sites/mySite/Documents/folder/file.txt" → "Documents/folder/file.txt"
+            const sitePrefixMatch = spPath.match(SHAREPOINT_PATH_REGEX)
+            const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
+            const kbIds = this.sharepointClient.getKbForPath(relPath)
+            if (kbIds.length === 0) {
+              this.log(`Skipping add for item ${ch.ItemId}: No KB mapping found for path ${relPath}`)
+              break
+            }
 
-          const content = await this.sharepointClient.downloadFile(spPath)
-          for (const kbId of kbIds) {
-            await this.getOrCreateKB(kbId).addFile(ch.ItemId.toString(), relPath, content)
+            const content = await this.sharepointClient.downloadFile(spPath)
+            for (const kbId of kbIds) {
+              await this.getOrCreateKB(kbId).addFile(ch.ItemId.toString(), relPath, content)
+            }
+            this.log(`Successfully added item ${ch.ItemId}: ${relPath}`)
+          } catch (error) {
+            this.logWarning(
+              `Failed to add item ${ch.ItemId}: ${error instanceof Error ? error.message : String(error)}`
+            )
           }
           break
         }
 
-        /* 2 = Update */
+        /* 2 = Update */
         case 2: {
-          const spPath = await this.sharepointClient.getFilePath(ch.ItemId)
-          if (!spPath || !this.isFileSupported(spPath)) break
+          try {
+            const spPath = await this.sharepointClient.getFilePath(ch.ItemId)
+            if (!spPath || !this.isFileSupported(spPath)) {
+              this.log(`Skipping update for item ${ch.ItemId}: ${!spPath ? 'No file path' : 'Unsupported file type'}`)
+              break
+            }
 
-          const relPath = decodeURIComponent(spPath.replace(/^\/sites\/[^/]+\//, ''))
-          const kbIds = this.sharepointClient.getKbForPath(relPath)
-          if (kbIds.length === 0) break
+            // Extract the relative path after the site name, handling URL-encoded characters
+            // Extract relative path from SharePoint URL: "/sites/siteName/restOfPath" → "restOfPath"
+            // Example: "/sites/mySite/Documents/folder/file.txt" → "Documents/folder/file.txt"
+            const sitePrefixMatch = spPath.match(SHAREPOINT_PATH_REGEX)
+            const relPath = sitePrefixMatch?.[1] ? decodeURIComponent(sitePrefixMatch[1]) : spPath
+            const kbIds = this.sharepointClient.getKbForPath(relPath)
+            if (kbIds.length === 0) {
+              this.log(`Skipping update for item ${ch.ItemId}: No KB mapping found for path ${relPath}`)
+              break
+            }
 
-          const content = await this.sharepointClient.downloadFile(spPath)
-          for (const kbId of kbIds) {
-            await this.getOrCreateKB(kbId).updateFile(ch.ItemId.toString(), relPath, content)
+            const content = await this.sharepointClient.downloadFile(spPath)
+            for (const kbId of kbIds) {
+              await this.getOrCreateKB(kbId).updateFile(ch.ItemId.toString(), relPath, content)
+            }
+            this.log(`Successfully updated item ${ch.ItemId}: ${relPath}`)
+          } catch (error) {
+            this.logWarning(
+              `Failed to update item ${ch.ItemId}: ${error instanceof Error ? error.message : String(error)}`
+            )
           }
           break
         }
