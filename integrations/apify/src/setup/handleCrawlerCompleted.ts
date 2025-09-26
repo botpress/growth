@@ -11,53 +11,104 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
   logger: bp.Logger, 
   ctx: bp.Context 
 }) {
+  const startTime = Date.now()
+  const startTimeISO = new Date().toISOString()
+  const runId = webhookPayload.resource.id
+  
   try {
-    const runId = webhookPayload.resource.id
 
     if (!runId) {
       logger.forBot().error('No run ID found in webhook payload')
       return
     }
 
+    logger.forBot().info(`[TIMING] Webhook started at ${startTimeISO} for run ${runId}`)
     logger.forBot().info(`Crawler run ${runId} completed successfully, processing results...`)
 
     const apifyClient = getClient(
       ctx.configuration.apiToken,
       client,
-      logger
+      logger,
+      ctx.integrationId,
+      ctx
     )
 
-    const mapping = await client.getState({ type: 'integration', id: ctx.integrationId, name: 'apifyRunMappings' })
-    const mapPayload = mapping?.state?.payload
-    const kbId = mapPayload?.[runId]
-    
-    if (!kbId) {
-      logger.forBot().error(`No kbId mapping found for run ${runId}. This should not happen.`)
-      return
+    // check if this is a continuation sync
+    let continuationState
+    try {
+      continuationState = await client.getState({ 
+        type: 'integration', 
+        id: ctx.integrationId, 
+        name: 'syncContinuation' 
+      })
+    } catch (error) {
+      logger.forBot().warn(`syncContinuation state not available, treating as new sync: ${error}`)
+      continuationState = null
     }
     
-    logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
+    let kbId: string
+    let startOffset = 0
+    
+    if (continuationState?.state?.payload?.runId === runId) {
+      const continuation = continuationState.state.payload
+      kbId = continuation.kbId
+      startOffset = continuation.nextOffset
+      logger.forBot().info(`[CONTINUATION] Continuing sync for run ${runId} from offset ${startOffset}`)
+      
+      try {
+        await client.setState({
+          type: 'integration',
+          id: ctx.integrationId,
+          name: 'syncContinuation',
+          payload: null
+        })
+      } catch (error) {
+        logger.forBot().warn(`Could not clear syncContinuation state: ${error}`)
+      }
+    } else {
+      const mapping = await client.getState({ type: 'integration', id: ctx.integrationId, name: 'apifyRunMappings' })
+      const mapPayload = mapping?.state?.payload
+      const mappedKbId = mapPayload?.[runId]
+      
+      if (!mappedKbId) {
+        logger.forBot().error(`No kbId mapping found for run ${runId}. This should not happen.`)
+        return
+      }
+      
+      kbId = mappedKbId
+      logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
+    }
 
     logger.forBot().info(`Will index results directly into KB: ${kbId}`)
   
     const runDetails = await apifyClient.getRun(runId)
-    const items = await apifyClient.fetchDatasetItems(runDetails.datasetId!)
-    const filesCreated = await apifyClient.syncContentToBotpress(items, kbId)
+    
+    // fetch and sync items one by one with time limit (50 seconds) and start offset
+    const streamingResult = await apifyClient.fetchAndSyncStreaming(runDetails.datasetId!, kbId, 50000, startOffset)
 
     const resultsResult = {
       success: true,
-      message: `Run results synced successfully. Items: ${items.length}, Files created: ${filesCreated}`,
+      message: `Run results synced successfully. Items: ${streamingResult.itemsProcessed}, Files created: ${streamingResult.filesCreated}`,
       data: {
         runId: runDetails.runId,
         datasetId: runDetails.datasetId,
-        itemsCount: items.length,
-        filesCreated,
+        itemsCount: streamingResult.itemsProcessed,
+        filesCreated: streamingResult.filesCreated,
+        hasMore: streamingResult.hasMore,
+        nextOffset: streamingResult.nextOffset,
       },
     }
 
     if (resultsResult.success) {
       logger.forBot().info(`Successfully processed results for run ${runId}. Items: ${resultsResult.data?.itemsCount}, Files created: ${resultsResult.data?.filesCreated}`)
-      logger.forBot().debug(`Full results data:`, resultsResult.data)
+      
+      // more data to sync, trigger continuation webhook
+      if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
+        logger.forBot().info(`[CONTINUATION] More data available, triggering continuation webhook for run ${runId}`)
+        await apifyClient.triggerContinuationWebhook(runId, kbId, streamingResult.nextOffset)
+      } else {
+        logger.forBot().info(`[SYNC] All data synced for run ${runId} - NOT triggering webhook (hasMore: ${streamingResult.hasMore}, nextOffset: ${streamingResult.nextOffset})`)
+      }
       
       await client.createEvent({
         type: 'crawlerCompleted',
@@ -68,7 +119,7 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
           runId: runId,
           itemsCount: resultsResult.data?.itemsCount,
           filesCreated: resultsResult.data?.filesCreated,
-          syncTargetPath: undefined,
+          hasMore: streamingResult.hasMore,
         },
       })
       
@@ -79,9 +130,19 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       logger.forBot().error(`Error details:`, resultsResult.data)
     }
 
+    const endTime = Date.now()
+    const duration = endTime - startTime
+    const endTimeISO = new Date().toISOString()
+    logger.forBot().info(`[TIMING] Webhook completed at ${endTimeISO} for run ${runId} - Duration: ${duration}ms (${(duration/1000).toFixed(2)}s)`)
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     logger.forBot().error(`Crawler completion handler error: ${errorMessage}`)
     logger.forBot().error(`Full error:`, error)
+    
+    const endTime = Date.now()
+    const duration = endTime - startTime
+    const endTimeISO = new Date().toISOString()
+    logger.forBot().error(`[TIMING] Webhook failed at ${endTimeISO} for run ${runId} - Duration: ${duration}ms (${(duration/1000).toFixed(2)}s)`)
   }
 }

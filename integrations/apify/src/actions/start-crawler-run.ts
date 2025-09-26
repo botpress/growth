@@ -48,7 +48,9 @@ export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) 
     const apifyClient = getClient(
       ctx.configuration.apiToken,
       client,
-      logger
+      logger,
+      ctx.integrationId,
+      ctx
     );
     const result = await apifyClient.startCrawlerRun(crawlerInput);
 

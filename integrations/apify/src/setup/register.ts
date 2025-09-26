@@ -4,7 +4,7 @@ import type { RegisterFunction } from '../misc/types'
 
 export const register: RegisterFunction = async ({ ctx, client, logger }) => {
   try {
-    const apifyClient = getClient(ctx.configuration.apiToken, client, logger);
+    const apifyClient = getClient(ctx.configuration.apiToken, client, logger, ctx.integrationId, ctx);
 
     // Test the Apify connection by trying to list actors
     // This will verify that the API token is valid

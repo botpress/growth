@@ -24,7 +24,9 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
     const apifyClient = getClient(
       ctx.configuration.apiToken,
       client,
-      logger
+      logger,
+      ctx.integrationId,
+      ctx
     );
 
     const runDetails = await apifyClient.getRun(runId);
@@ -45,20 +47,28 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
       throw new RuntimeError('No dataset ID found for completed run');
     }
 
-    const items = await apifyClient.fetchDatasetItems(runDetails.datasetId);
-    
-    const filesCreated = await apifyClient.syncContentToBotpress(items, kbId);
+    const streamingResult = await apifyClient.fetchAndSyncStreaming(runDetails.datasetId, kbId, 50000, 0);
 
-    logger.forBot().info(`Sync completed. Items: ${items.length}, Files created: ${filesCreated}`);
+    logger.forBot().info(`Sync completed. Items: ${streamingResult.itemsProcessed}, Files created: ${streamingResult.filesCreated}`);
+
+    // more data to sync, trigger continuation webhook
+    if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
+      logger.forBot().info(`[CONTINUATION] More data available, triggering continuation webhook for run ${runDetails.runId}`);
+      await apifyClient.triggerContinuationWebhook(runDetails.runId, kbId, streamingResult.nextOffset);
+    } else {
+      logger.forBot().info(`[SYNC] All data synced for run ${runDetails.runId} - NOT triggering webhook (hasMore: ${streamingResult.hasMore}, nextOffset: ${streamingResult.nextOffset})`);
+    }
 
     return {
       success: true,
-      message: `Run results synced successfully. Items: ${items.length}, Files created: ${filesCreated}`,
+      message: `Run results synced successfully. Items: ${streamingResult.itemsProcessed}, Files created: ${streamingResult.filesCreated}`,
       data: {
         runId: runDetails.runId,
         datasetId: runDetails.datasetId,
-        itemsCount: items.length,
-        filesCreated,
+        itemsCount: streamingResult.itemsProcessed,
+        filesCreated: streamingResult.filesCreated,
+        hasMore: streamingResult.hasMore,
+        nextOffset: streamingResult.nextOffset,
       },
     };
   } catch (error) {

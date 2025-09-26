@@ -12,7 +12,9 @@ export const getRunStatus = async (props: bp.ActionProps['getRunStatus']) => {
     const apifyClient = getClient(
       ctx.configuration.apiToken,
       client,
-      logger
+      logger,
+      ctx.integrationId,
+      ctx
     );
 
     const result = await apifyClient.getRun(runId);

@@ -42,6 +42,7 @@ export default new IntegrationDefinition({
         itemsCount: z.number().optional().describe('Number of items crawled'),
         filesCreated: z.number().optional().describe('Number of files created in Botpress'),
         syncTargetPath: z.string().optional().describe('Path where results were synced'),
+        hasMore: z.boolean().optional().describe('Whether there are more items to sync in subsequent batches'),
       }),
     },
   },
@@ -56,6 +57,15 @@ export default new IntegrationDefinition({
     apifyRunMappings: {
       type: 'integration',
       schema: z.record(z.string(), z.string()).describe('Mapping from Apify runId to kbId for routing results storage'),
+    },
+    syncContinuation: {
+      type: 'integration',
+      schema: z.object({
+        runId: z.string(),
+        kbId: z.string(),
+        nextOffset: z.number(),
+        timestamp: z.number(),
+      }).describe('State for tracking sync continuation when large datasets need multiple passes'),
     },
   },
   channels: {},

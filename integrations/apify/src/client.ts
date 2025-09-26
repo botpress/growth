@@ -8,8 +8,10 @@ export class ApifyApi {
   private bpClient: bp.Client;
   private logger: bp.Logger;
   private utils: Utils;
+  private integrationId: string;
+  private ctx: bp.Context;
 
-  constructor(apiToken: string, bpClient: bp.Client, logger: bp.Logger) {
+  constructor(apiToken: string, bpClient: bp.Client, logger: bp.Logger, integrationId: string, ctx: bp.Context) {
     this.client = new ApifyClient({
       token: apiToken,
       maxRetries: 8,
@@ -18,6 +20,8 @@ export class ApifyApi {
     });
     this.bpClient = bpClient;
     this.logger = logger;
+    this.integrationId = integrationId;
+    this.ctx = ctx;
     this.utils = new Utils(bpClient, logger);
   }
 
@@ -56,14 +60,15 @@ export class ApifyApi {
     }
   }
 
-  async fetchDatasetItems(datasetId: string): Promise<DatasetItem[]> {
-    this.logger.forBot().info(`Fetching items from dataset: ${datasetId}`);
+
+  async fetchAndSyncStreaming(datasetId: string, kbId: string, timeLimitMs: number = 50000, startOffset: number = 0): Promise<{ itemsProcessed: number; hasMore: boolean; nextOffset: number; total: number; filesCreated: number }> {
+    this.logger.forBot().info(`Starting streaming fetch & sync for dataset: ${datasetId} to KB: ${kbId} with time limit: ${timeLimitMs}ms, start offset: ${startOffset}`);
 
     const dataset = this.client.dataset(datasetId);
-    const allItems = await this.utils.fetchAllDatasetItems(dataset);
+    const result = await this.utils.fetchAndSyncStreaming(dataset, kbId, this.syncContentToBotpress.bind(this), timeLimitMs, startOffset);
     
-    this.logger.forBot().info(`Retrieved ${allItems.length} total items from dataset`);
-    return allItems;
+    this.logger.forBot().info(`Streaming completed: ${result.itemsProcessed} items processed, ${result.filesCreated} files created. Has more: ${result.hasMore}`);
+    return result;
   }
 
   async syncContentToBotpress(items: DatasetItem[], kbId: string): Promise<number> {
@@ -92,12 +97,65 @@ export class ApifyApi {
     return filesCreated;
   }
 
+  async triggerContinuationWebhook(runId: string, kbId: string, nextOffset: number): Promise<void> {
+    this.logger.forBot().info(`[CONTINUATION] Triggering webhook to continue sync for run ${runId} from offset ${nextOffset}`);
+    
+    // webhook payload to trigger continuation
+    const webhookPayload = {
+      userId: 'synthetic-user',
+      createdAt: new Date().toISOString(),
+      eventType: 'ACTOR.RUN.SUCCEEDED',
+      eventData: {
+        actorId: 'apify/website-content-crawler',
+        actorRunId: runId
+      },
+      resource: {
+        id: runId,
+        actId: 'apify/website-content-crawler',
+        userId: 'synthetic-user',
+        status: 'SUCCEEDED',
+        startedAt: new Date().toISOString(),
+        finishedAt: new Date().toISOString()
+      }
+    };
+
+    // store continuation state
+    try {
+      await this.bpClient.setState({
+        type: 'integration',
+        id: this.integrationId,
+        name: 'syncContinuation',
+        payload: {
+          runId,
+          kbId,
+          nextOffset,
+          timestamp: Date.now()
+        }
+      })
+    } catch (error) {
+      this.logger.forBot().warn(`Could not store syncContinuation state: ${error}`)
+    };
+
+    // trigger the webhook handler
+    const { handleApifyWebhook } = await import('./setup/handleApifyWebhook');
+    await handleApifyWebhook({
+      webhookPayload: webhookPayload,
+      client: this.bpClient,
+      logger: this.logger,
+      ctx: this.ctx
+    });
+
+    this.logger.forBot().info(`[CONTINUATION] Webhook triggered for run ${runId}`);
+  }
+
 }
 
 export const getClient = (
   apiToken: string,
   bpClient: bp.Client,
-  logger: bp.Logger
+  logger: bp.Logger,
+  integrationId: string,
+  ctx: bp.Context
 ) => {
-  return new ApifyApi(apiToken, bpClient, logger);
+  return new ApifyApi(apiToken, bpClient, logger, integrationId, ctx);
 };
