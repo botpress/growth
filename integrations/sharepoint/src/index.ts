@@ -25,7 +25,7 @@ export default new bp.Integration({
     const libs = getLibraryNames(ctx.configuration.documentLibraryNames)
     const subscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
 
-    const clearedKBs = new Set<string>()
+    const clearedKbIds = new Set<string>()
 
     for (const lib of libs) {
       try {
@@ -36,7 +36,7 @@ export default new bp.Integration({
         const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
         logger.forBot().info(`[Registration] (${lib}) Performing initial full sync…`)
-        await spSync.loadAllDocumentsIntoBotpressKB(clearedKBs)
+        await spSync.loadAllDocumentsIntoBotpressKB(clearedKbIds)
 
         const changeToken = await spClient.getLatestChangeToken()
         const tokenToUse = changeToken || 'initial-sync-token'

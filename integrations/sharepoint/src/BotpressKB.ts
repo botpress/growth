@@ -53,10 +53,10 @@ export class BotpressKB {
         dsType: 'document',
       },
     }
-// Only add modalities tag when vision is enabled
-if (this.enableVision) {
-  uploadParams.tags.modalities = "[\"text\",\"image\"]"
-}
+    // Only add modalities tag when vision is enabled
+    if (this.enableVision) {
+      uploadParams.tags.modalities = '[\"text\",\"image\"]'
+    }
 
     if (this.enableVision) {
       uploadParams.indexing = {
