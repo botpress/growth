@@ -20,6 +20,7 @@ jobs:
             'klaviyo',
             'mailerlite',
             'pipedrive',
+            'apollo',
           ];
 
           const NAME_REGEX = /name:\s*['"]([^'"]+)['"]/;
