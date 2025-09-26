@@ -1,5 +1,4 @@
 import { z, IntegrationDefinition } from '@botpress/sdk'
-import { integrationName } from './package.json'
 
 export default new IntegrationDefinition({
   name: 'plus/sharepoint',
