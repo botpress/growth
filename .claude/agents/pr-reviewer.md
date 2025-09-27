@@ -92,9 +92,12 @@ For each changed file, check against the patterns below.
 ### 🔴 Critical Issues (Must Fix)
 
 #### Using console.log for debugging or logging
-- **Check for:** Any `console.log`, `console.error`, `console.warn` statements
-- **Fix:** Use `logger` from SDK instead
-- **Example:** Replace `console.log('Success')` with `logger.info('Success')`
+- **Check for:** Any `console.log`, `console.error`, `console.warn` statements in Botpress integrations
+- **Fix:** Use `logger.forBot()` for bot-level logs (visible to bot builders) or `logger` for integration-level logs (visible to integration builders)
+- **Example:** 
+  - Bot-level: `logger.forBot().info('User action completed')` 
+  - Integration-level: `logger.info('API connection established')`
+- **Note:** Choose based on who needs to see the logs
 - **Most likely reviewer:** AudricPnd
 
 #### Passing user input directly to API without validation
@@ -129,10 +132,11 @@ For each changed file, check against the patterns below.
 - **Note:** Input is already validated by SDK when it reaches your action
 - **Most likely reviewer:** ermek-botpress
 
-#### Optional fields that should have defaults
-- **Check for:** Optional fields that are always needed
-- **Fix:** Use Zod defaults instead
-- **Example:** `field: z.boolean().default(false)` instead of `field?: z.boolean()`
+#### Optional fields without clear purpose
+- **Check for:** Optional fields (`?`) when the field is actually always used in the code
+- **Fix:** If always needed, make required with a default: `field: z.boolean().default(false)`
+- **Example:** `historicalImport?: z.boolean()` → `historicalImport: z.boolean().default(false)` 
+- **Question to answer:** "Why is this field optional if it's always used?"
 - **Most likely reviewer:** ermek-botpress
 
 #### Validation logic in action code
@@ -143,8 +147,9 @@ For each changed file, check against the patterns below.
 
 #### Using .passthrough() on output schemas
 - **Check for:** `.passthrough()` in output definitions
-- **Fix:** Return strict schemas matching API response types
-- **Example:** Define exact schema instead of using passthrough
+- **Fix:** Define explicit schema matching API response types (unless you specifically need to preserve unknown fields from the API)
+- **Example:** Instead of `z.object({}).passthrough()`, define the actual fields
+- **Note:** Sometimes passthrough is valid if you're proxying API responses unchanged
 - **Most likely reviewer:** ermek-botpress
 
 #### Unused imports or variables
@@ -208,10 +213,10 @@ For each changed file, check against the patterns below.
 - **Example:** Don't state "You need an account to get an API key"
 - **Most likely reviewer:** AudricPnd
 
-#### Hub.md has too much detail
-- **Check for:** Setup instructions in hub.md
-- **Fix:** Keep hub.md minimal - just overview
-- **Note:** Hub.md should contain only marketing information
+#### Hub.md contains setup instructions
+- **Check for:** Technical setup steps, configuration details, or installation instructions in hub.md
+- **Fix:** Hub.md should only contain: integration overview, key features, use cases
+- **Move to README:** Setup instructions, configuration steps, technical details
 - **Most likely reviewer:** ermek-botpress
 
 #### Non-standard fields without examples
@@ -310,10 +315,10 @@ For each changed file, check against the patterns below.
 - **Example:** `customProperties` not just `properties`
 - **Most likely reviewer:** ermek-botpress
 
-#### Confusing naming
-- **Check for:** Names that don't reveal intent
-- **Fix:** Use clear names
-- **Example:** `clearedKbIds` not just `kbIds`
+#### Variable names not specific enough
+- **Check for:** Generic names that don't describe the content or state
+- **Fix:** Use specific, descriptive names
+- **Example:** `kbIds` → `clearedKbIds` or `remainingKbsToClear` (specify the state/purpose)
 - **Most likely reviewer:** ptrckbp
 
 ### 📦 Package Configuration
