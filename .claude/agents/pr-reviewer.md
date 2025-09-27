@@ -60,6 +60,28 @@ This shows all changes except:
 
 Note: Lockfiles like package-lock.json, yarn.lock, pnpm-lock.yaml, Cargo.lock, etc. are automatically excluded as they're managed by package managers and don't require manual review.
 
+### Step 2.5: Check Build and Formatting
+Run automated checks for build errors and formatting:
+
+```bash
+# Check if TypeScript compiles without errors
+echo "Checking TypeScript compilation..."
+npx tsc --noEmit 2>&1 | grep "error TS" > /tmp/ts_errors.txt
+if [ -s /tmp/ts_errors.txt ]; then
+  echo "❌ TypeScript compilation errors found:"
+  cat /tmp/ts_errors.txt | head -5
+fi
+
+# Check if code is properly formatted
+echo "Checking code formatting..."
+npx prettier --check . --ignore-path .gitignore 2>/dev/null
+if [ $? -ne 0 ]; then
+  echo "❌ Code is not formatted - needs 'npm run fix:format'"
+fi
+```
+
+Include any build errors or formatting issues in your review output.
+
 ### Step 3: Systematic Review
 For each changed file, check against the patterns below.
 
