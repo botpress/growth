@@ -1,0 +1,35 @@
+name: Test Deployment
+description: Test the deployment workflow without actually deploying
+
+inputs:
+  force:
+    description: "Force re-deploying integrations"
+    required: false
+    default: "false"
+  token_pat:
+    description: "Botpress token for plus account"
+    required: true
+  plus_workspace_id:
+    description: "Growth workspace ID for plus"
+    required: true
+  botpress_workspace_id:
+    description: "Botpress workspace ID"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Test deployment workflow
+      shell: bash
+      run: |
+        # Make scripts executable
+        chmod +x ./.github/scripts/test-deployment.sh
+        chmod +x ./.github/scripts/deploy-helpers.sh
+        chmod +x ./.github/scripts/integration-exists.sh
+        
+        # Run the test deployment script
+        bash ./.github/scripts/test-deployment.sh \
+          "${{ inputs.force }}" \
+          "${{ inputs.token_pat }}" \
+          "${{ inputs.plus_workspace_id }}" \
+          "${{ inputs.botpress_workspace_id }}"

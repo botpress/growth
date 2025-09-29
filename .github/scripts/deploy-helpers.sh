@@ -47,15 +47,15 @@ get_integration_definition() {
   # Login with the appropriate workspace ID
   pnpm bp login -y --token "$TOKEN_PAT" --workspace-id "$workspace_id"
   
-  # Now read the definition with authentication
-  pnpm bp read --work-dir "integrations/$integration_dir" --json
+  # Return the package.json content as JSON (we don't need bp read anymore)
+  cat "$package_file"
 }
 
 # Get actual integration name from definition
 get_integration_name() {
   local integration_dir="$1"
-  local integration_def=$(get_integration_definition "$integration_dir")
-  echo "$integration_def" | jq -r ".name"
+  local package_file="integrations/$integration_dir/package.json"
+  jq -r '.integrationName // .name' "$package_file"
 }
 
 
