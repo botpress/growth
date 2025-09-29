@@ -9,14 +9,21 @@ if [ -z "$1" ]; then
 fi
 integration=$1
 
-# Get the actual integration name from the definition file
+# Get the actual integration name from package.json
 cd ..
-integration_path="integrations/$integration"
-integration_def=$(pnpm bp read --work-dir $integration_path --json)
-cd integrations
+package_file="integrations/$integration/package.json"
+if [ -f "$package_file" ]; then
+  name=$(jq -r '.integrationName // .name' "$package_file")
+  echo "Debug: Found integration name from package.json: $name" >&2
+else
+  echo "Error: Package.json file not found: $package_file" >&2
+  exit 1
+fi
 
-name=$(echo $integration_def | jq -r ".name")
-version=$(echo $integration_def | jq -r ".version")
+# Get version from package.json
+version=$(jq -r '.version' "$package_file")
+echo "Debug: Found version: $version" >&2
+cd integrations
 
 # Get the appropriate workspace ID for this integration
 WORKSPACE_ID=$(get_workspace_id "$name")
