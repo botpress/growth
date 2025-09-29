@@ -1,5 +1,6 @@
 import { RuntimeError } from "@botpress/sdk";
 import { getClient } from "../client";
+import { persistRunMapping } from "../helpers/runMapping";
 import * as bp from '.botpress';
 
 export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) => {
@@ -29,6 +30,7 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
       ctx
     );
 
+    // verify the run exists and is also completed
     const runDetails = await apifyClient.getRun(runId);
     
     if (runDetails.status === 'UNKNOWN' && runDetails.runId === runId) {
@@ -47,28 +49,22 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
       throw new RuntimeError('No dataset ID found for completed run');
     }
 
-    const streamingResult = await apifyClient.fetchAndSyncStreaming(runDetails.datasetId, kbId, 50000, 0);
+    // store run mapping so the webhook handler can find it
+    await persistRunMapping(client, ctx.integrationId, runId, kbId);
+    logger.forBot().info(`Persisted kbId mapping for run ${runId}`);
+    
+    logger.forBot().info(`Triggering webhook to start sync for run ${runId} with continuations`);
+    await apifyClient.triggerContinuationWebhook(runId, kbId, 0);
 
-    logger.forBot().info(`Sync completed. Items: ${streamingResult.itemsProcessed}, Files created: ${streamingResult.filesCreated}`);
-
-    // more data to sync, trigger continuation webhook
-    if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
-      logger.forBot().info(`[CONTINUATION] More data available, triggering continuation webhook for run ${runDetails.runId}`);
-      await apifyClient.triggerContinuationWebhook(runDetails.runId, kbId, streamingResult.nextOffset);
-    } else {
-      logger.forBot().info(`[SYNC] All data synced for run ${runDetails.runId} - NOT triggering webhook (hasMore: ${streamingResult.hasMore}, nextOffset: ${streamingResult.nextOffset})`);
-    }
+    logger.forBot().info(`Webhook triggered for run ${runId} - sync will be processed with continuations`);
 
     return {
       success: true,
-      message: `Run results synced successfully. Items: ${streamingResult.itemsProcessed}, Files created: ${streamingResult.filesCreated}`,
+      message: `Run results sync initiated successfully. The webhook handler will process all data with continuations.`,
       data: {
         runId: runDetails.runId,
         datasetId: runDetails.datasetId,
-        itemsCount: streamingResult.itemsProcessed,
-        filesCreated: streamingResult.filesCreated,
-        hasMore: streamingResult.hasMore,
-        nextOffset: streamingResult.nextOffset,
+        kbId: kbId,
       },
     };
   } catch (error) {

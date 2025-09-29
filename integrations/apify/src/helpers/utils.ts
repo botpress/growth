@@ -55,8 +55,6 @@ export class Utils {
     const safeFilename = filename.substring(0, 100).replace(/[^a-zA-Z0-9_-]/g, '_');
     const fullFilename = `${safeFilename}.${extension}`;
 
-    this.logger.forBot().info(`[FILE SYNC] Uploading asset: ${fullFilename}`);
-
     const uploadResult = await this.bpClient.uploadFile({
       key: fullFilename,
       tags: {
@@ -68,8 +66,6 @@ export class Utils {
       contentType: this.getContentType(extension),
       index: true
     });
-
-    this.logger.forBot().info(`[FILE SYNC] Upload successful: ${fullFilename}`);
   }
 
   private getContentType(extension: string): string {
@@ -82,87 +78,62 @@ export class Utils {
   }     
 
 
-  async fetchAndSyncStreaming(dataset: ApifyDataset, kbId: string, syncFunction: (items: DatasetItem[], kbId: string) => Promise<number>, timeLimitMs: number = 50000, startOffset: number = 0): Promise<{ itemsProcessed: number; hasMore: boolean; nextOffset: number; total: number; filesCreated: number }> {
-    return new Promise((resolve) => {
-      const streamStartTime = Date.now()
-      let offset = startOffset;
-      let isTimedOut = false;
-      let isResolved = false;
-      let total = 0;
-      let itemsProcessed = 0;
-      let filesCreated = 0;
+  async fetchAndSyncStreaming(dataset: ApifyDataset, kbId: string, syncFunction: (items: DatasetItem[], kbId: string) => Promise<number>, _timeLimitMs: number = 0, startOffset: number = 0): Promise<{ itemsProcessed: number; hasMore: boolean; nextOffset: number; total: number; filesCreated: number }> {
+    const streamStartTime = Date.now()
+    let offset = startOffset;
+    let total = 0;
+    let itemsProcessed = 0;
+    let filesCreated = 0;
 
-      this.logger.forBot().info(`[STREAMING] Starting streaming fetch & sync: 1 item per fetch, ${timeLimitMs}ms timeout, offset: ${startOffset} at ${new Date().toISOString()}`);
+    this.logger.forBot().info(`[STREAMING] Starting continuous fetch & sync: 1 item per fetch, offset: ${startOffset} at ${new Date().toISOString()}`);
 
-      // timeout function to stop fetching items when time limit is reached
-      const timeoutId = setTimeout(() => {
-        isTimedOut = true;
-        isResolved = true;
-        const timeoutTime = Date.now()
-        const actualDuration = timeoutTime - streamStartTime
-        this.logger.forBot().warn(`[STREAMING] Time limit reached after ${timeLimitMs}ms (actual: ${actualDuration}ms), stopping at ${itemsProcessed} items. More data may be available.`);
-        resolve({ itemsProcessed, hasMore: true, nextOffset: offset, total, filesCreated });
-      }, timeLimitMs);
-
-      // recursive function to fetch and sync items one by one
-      const fetchAndSyncItems = async (): Promise<void> => {
-        if (isTimedOut || isResolved) {
-          return;
+    // process files one at a time with 100 seconds timeout detection
+    const MAX_EXECUTION_TIME = 100000;
+    
+    while (true) {
+      try {
+        const elapsed = Date.now() - streamStartTime;
+        if (elapsed > MAX_EXECUTION_TIME) {
+          this.logger.forBot().warn(`[STREAMING] Approaching 120s limit (${elapsed}ms), stopping at offset ${offset}`);
+          return { itemsProcessed, hasMore: true, nextOffset: offset, total, filesCreated };
         }
 
-        try {
-          const { items, total: currentTotal } = await dataset.listItems({ limit: 1, offset });
+        const { items, total: currentTotal } = await dataset.listItems({ limit: 1, offset });
+        
+        if (currentTotal !== undefined) {
+          total = currentTotal;
+        }
+        
+        if (items.length > 0) {
+          this.logger.forBot().info(`[STREAMING] Fetched 1 item (offset: ${offset}, total: ${total})`);
           
-          if (currentTotal !== undefined) {
-            total = currentTotal;
-          }
+          // sync single item
+          const syncResult = await syncFunction(items, kbId);
+          filesCreated += syncResult;
+          itemsProcessed++;
           
-          if (items.length > 0) {
-            this.logger.forBot().info(`[STREAMING] Fetched 1 item (offset: ${offset}, total: ${total})`);
-            
-            // sync single item immediately
-            const syncResult = await syncFunction(items, kbId);
-            filesCreated += syncResult;
-            itemsProcessed++;
-            
-            this.logger.forBot().info(`[STREAMING] Synced item ${itemsProcessed}, files created: ${syncResult}`);
-            
-            offset++;
-            
-            // Check if we've processed all available items
-            if (total > 0 && offset >= total) {
-              clearTimeout(timeoutId);
-              isResolved = true;
-              this.logger.forBot().info(`[STREAMING] All items processed naturally: ${itemsProcessed} items processed, ${filesCreated} files created (total: ${total})`);
-              resolve({ itemsProcessed, hasMore: false, nextOffset: 0, total, filesCreated });
-              return;
-            }
-            
-            if (!isTimedOut && !isResolved) {
-              // to avoid blocking the event loop
-              setImmediate(fetchAndSyncItems);
-            } else {
-              // Timeout has fired or resolved, stop processing
-              this.logger.forBot().info(`[STREAMING] Timeout/resolved detected, stopping processing at item ${itemsProcessed}`);
-              return;
-            }
-          } else {
-            clearTimeout(timeoutId);
-            isResolved = true;
+          this.logger.forBot().info(`[STREAMING] Synced item ${itemsProcessed}, files created: ${syncResult}`);
+          
+          offset++;
+          
+          // check if all items have been processed
+          if (total > 0 && offset >= total) {
             const completionTime = Date.now()
             const actualDuration = completionTime - streamStartTime
-            this.logger.forBot().info(`[STREAMING] Dataset completed: ${itemsProcessed} items processed, ${filesCreated} files created in ${actualDuration}ms (${(actualDuration/1000).toFixed(2)}s)`);
-            resolve({ itemsProcessed, hasMore: false, nextOffset: 0, total, filesCreated });
-            return;
+            this.logger.forBot().info(`[STREAMING] All items processed: ${itemsProcessed} items processed, ${filesCreated} files created in ${actualDuration}ms (${(actualDuration/1000).toFixed(2)}s)`);
+            return { itemsProcessed, hasMore: false, nextOffset: 0, total, filesCreated };
           }
-        } catch (error) {
-          clearTimeout(timeoutId);
-          this.logger.forBot().error(`[STREAMING] Error fetching/syncing dataset items:`, error);
-          resolve({ itemsProcessed, hasMore: true, nextOffset: offset, total, filesCreated });
+        } else {
+          const completionTime = Date.now()
+          const actualDuration = completionTime - streamStartTime
+          this.logger.forBot().info(`[STREAMING] Dataset completed: ${itemsProcessed} items processed, ${filesCreated} files created in ${actualDuration}ms (${(actualDuration/1000).toFixed(2)}s)`);
+          return { itemsProcessed, hasMore: false, nextOffset: 0, total, filesCreated };
         }
-      };
-      fetchAndSyncItems();
-    });
+      } catch (error) {
+        this.logger.forBot().error(`[STREAMING] Error fetching/syncing dataset items:`, error);
+        return { itemsProcessed, hasMore: true, nextOffset: offset, total, filesCreated };
+      }
+    }
   }
 }
 

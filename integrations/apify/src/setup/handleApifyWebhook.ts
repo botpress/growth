@@ -1,26 +1,18 @@
 import { apifyWebhookSchema } from '../misc/schemas'
+import type { z } from 'zod'
 import { handleCrawlerCompleted } from './handleCrawlerCompleted'
 import * as bp from '.botpress'
 
+type ApifyWebhook = z.infer<typeof apifyWebhookSchema>
+
 export async function handleApifyWebhook({ webhookPayload, client, logger, ctx }: { 
-  webhookPayload: any, 
+  webhookPayload: ApifyWebhook, 
   client: bp.Client, 
   logger: bp.Logger, 
   ctx: bp.Context 
 }) {
-  logger.forBot().debug('Received webhook payload:', webhookPayload)
-
-  const validationResult = apifyWebhookSchema.safeParse(webhookPayload)
-  
-  if (!validationResult.success) {
-    logger.forBot().debug('Webhook payload does not match expected schema, ignoring')
-    return {}
-  }
-
-  const validatedPayload = validationResult.data
-
-  const eventType = validatedPayload.eventType
-  const runId = validatedPayload.resource.id
+  const eventType = webhookPayload.eventType
+  const runId = webhookPayload.resource.id
 
   if (!eventType) {
     logger.forBot().debug('Webhook payload missing eventType, ignoring')
@@ -30,7 +22,7 @@ export async function handleApifyWebhook({ webhookPayload, client, logger, ctx }
   switch (eventType) {
     case 'ACTOR.RUN.SUCCEEDED':
       logger.forBot().info(`Processing Apify webhook event: ${eventType}`)
-      await handleCrawlerCompleted({ webhookPayload: validatedPayload, client, logger, ctx })
+      await handleCrawlerCompleted({ webhookPayload, client, logger, ctx })
       break
     
     case 'ACTOR.RUN.FAILED':

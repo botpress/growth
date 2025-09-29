@@ -1,32 +1,8 @@
 import * as bp from '.botpress';
-import { getClient } from 'src/client';
+import { getClient } from '../client';
 import { buildCrawlerInput } from '../helpers/utils';
+import { persistRunMapping } from '../helpers/runMapping';
 import { RuntimeError } from '@botpress/sdk'
-
-async function persistRunMapping(
-  client: bp.Client, 
-  integrationId: string,
-  runId: string, 
-  kbId: string
-) {
-  const existingMapping = await client.getState({
-    type: 'integration',
-    id: integrationId,
-    name: 'apifyRunMappings',
-  });
-
-  const payload = existingMapping.state.payload;
-  const currentMap = {...payload};
-
-  currentMap[runId] = kbId;
-
-  await client.setState({
-    type: 'integration',
-    id: integrationId,
-    name: 'apifyRunMappings',
-    payload: currentMap,
-  });
-}
 
 export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) => {
   const { input, logger, ctx, client } = props;
@@ -55,7 +31,6 @@ export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) 
     const result = await apifyClient.startCrawlerRun(crawlerInput);
 
     logger.forBot().info(`Crawler run started successfully. Run ID: ${result.runId}`);
-    logger.forBot().debug(`Start result: ${JSON.stringify(result)}`);
 
     const runId = result.runId;
 

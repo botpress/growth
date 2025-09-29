@@ -11,8 +11,6 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
   logger: bp.Logger, 
   ctx: bp.Context 
 }) {
-  const startTime = Date.now()
-  const startTimeISO = new Date().toISOString()
   const runId = webhookPayload.resource.id
   
   try {
@@ -21,8 +19,6 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       logger.forBot().error('No run ID found in webhook payload')
       return
     }
-
-    logger.forBot().info(`[TIMING] Webhook started at ${startTimeISO} for run ${runId}`)
     logger.forBot().info(`Crawler run ${runId} completed successfully, processing results...`)
 
     const apifyClient = getClient(
@@ -83,8 +79,8 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
   
     const runDetails = await apifyClient.getRun(runId)
     
-    // fetch and sync items one by one with time limit (50 seconds) and start offset
-    const streamingResult = await apifyClient.fetchAndSyncStreaming(runDetails.datasetId!, kbId, 50000, startOffset)
+    // fetch and sync items one by one without timeout for testing
+    const streamingResult = await apifyClient.fetchAndSyncStreaming(runDetails.datasetId!, kbId, 0, startOffset)
 
     const resultsResult = {
       success: true,
@@ -102,13 +98,17 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
     if (resultsResult.success) {
       logger.forBot().info(`Successfully processed results for run ${runId}. Items: ${resultsResult.data?.itemsCount}, Files created: ${resultsResult.data?.filesCreated}`)
       
-      // more data to sync, trigger continuation webhook
-      if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
-        logger.forBot().info(`[CONTINUATION] More data available, triggering continuation webhook for run ${runId}`)
+    // more data to sync, trigger continuation webhook
+    if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
+      logger.forBot().info(`[CONTINUATION] More data available, triggering continuation webhook for run ${runId}`)
+      try {
         await apifyClient.triggerContinuationWebhook(runId, kbId, streamingResult.nextOffset)
-      } else {
-        logger.forBot().info(`[SYNC] All data synced for run ${runId} - NOT triggering webhook (hasMore: ${streamingResult.hasMore}, nextOffset: ${streamingResult.nextOffset})`)
+      } catch (error) {
+        logger.forBot().error(`[CONTINUATION] Failed to trigger webhook for run ${runId}: ${error}`)
       }
+    } else {
+      logger.forBot().info(`[SYNC] All data synced for run ${runId} - NOT triggering webhook (hasMore: ${streamingResult.hasMore}, nextOffset: ${streamingResult.nextOffset})`)
+    }
       
       await client.createEvent({
         type: 'crawlerCompleted',
@@ -129,20 +129,9 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       logger.forBot().error(`Failed to get results for run ${runId}: ${resultsResult.message}`)
       logger.forBot().error(`Error details:`, resultsResult.data)
     }
-
-    const endTime = Date.now()
-    const duration = endTime - startTime
-    const endTimeISO = new Date().toISOString()
-    logger.forBot().info(`[TIMING] Webhook completed at ${endTimeISO} for run ${runId} - Duration: ${duration}ms (${(duration/1000).toFixed(2)}s)`)
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     logger.forBot().error(`Crawler completion handler error: ${errorMessage}`)
     logger.forBot().error(`Full error:`, error)
-    
-    const endTime = Date.now()
-    const duration = endTime - startTime
-    const endTimeISO = new Date().toISOString()
-    logger.forBot().error(`[TIMING] Webhook failed at ${endTimeISO} for run ${runId} - Duration: ${duration}ms (${(duration/1000).toFixed(2)}s)`)
   }
 }

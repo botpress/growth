@@ -2,7 +2,7 @@ import { ApifyClient, ApifyApiError } from 'apify-client';
 import * as bp from '.botpress';
 import { CrawlerRunInput, DatasetItem, ApifyDataset } from './misc/types';
 import { Utils } from './helpers/utils';
-
+import { RuntimeError } from '@botpress/sdk';
 export class ApifyApi {
   private client: ApifyClient;
   private bpClient: bp.Client;
@@ -60,9 +60,8 @@ export class ApifyApi {
     }
   }
 
-
-  async fetchAndSyncStreaming(datasetId: string, kbId: string, timeLimitMs: number = 50000, startOffset: number = 0): Promise<{ itemsProcessed: number; hasMore: boolean; nextOffset: number; total: number; filesCreated: number }> {
-    this.logger.forBot().info(`Starting streaming fetch & sync for dataset: ${datasetId} to KB: ${kbId} with time limit: ${timeLimitMs}ms, start offset: ${startOffset}`);
+  async fetchAndSyncStreaming(datasetId: string, kbId: string, timeLimitMs: number = 0, startOffset: number = 0): Promise<{ itemsProcessed: number; hasMore: boolean; nextOffset: number; total: number; filesCreated: number }> {
+    this.logger.forBot().info(`Starting continuous fetch & sync for dataset: ${datasetId} to KB: ${kbId}, start offset: ${startOffset}`);
 
     const dataset = this.client.dataset(datasetId);
     const result = await this.utils.fetchAndSyncStreaming(dataset, kbId, this.syncContentToBotpress.bind(this), timeLimitMs, startOffset);
@@ -72,7 +71,6 @@ export class ApifyApi {
   }
 
   async syncContentToBotpress(items: DatasetItem[], kbId: string): Promise<number> {
-    this.logger.forBot().info(`[FILE SYNC] Starting sync for ${items.length} items to KB ${kbId}`);
     let filesCreated = 0;
 
     for (const item of items) {
@@ -92,8 +90,6 @@ export class ApifyApi {
         this.logger.forBot().error(`[FILE SYNC] Error processing item:`, error);
       }
     }
-
-    this.logger.forBot().info(`[FILE SYNC] File sync completed. Total files created: ${filesCreated}/${items.length}`);
     return filesCreated;
   }
 
@@ -119,7 +115,6 @@ export class ApifyApi {
       }
     };
 
-    // store continuation state
     try {
       await this.bpClient.setState({
         type: 'integration',
@@ -136,16 +131,28 @@ export class ApifyApi {
       this.logger.forBot().warn(`Could not store syncContinuation state: ${error}`)
     };
 
-    // trigger the webhook handler
-    const { handleApifyWebhook } = await import('./setup/handleApifyWebhook');
-    await handleApifyWebhook({
-      webhookPayload: webhookPayload,
-      client: this.bpClient,
-      logger: this.logger,
-      ctx: this.ctx
-    });
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const webhookUrl = `https://webhook.botpress.cloud/${this.ctx.webhookId}`;
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(webhookPayload)
+      });
 
-    this.logger.forBot().info(`[CONTINUATION] Webhook triggered for run ${runId}`);
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw new RuntimeError(`HTTP ${response.status}: ${response.statusText} - ${responseText}`);
+      }
+
+      this.logger.forBot().info(`[CONTINUATION] Webhook triggered for run ${runId} - will be processed in new lambda`);
+    } catch (error) {
+      this.logger.forBot().error(`[CONTINUATION] Failed to trigger webhook: ${error}`);
+      this.logger.forBot().error(`[CONTINUATION] No fallback - webhook must be fixed for continuations to work`);
+      throw error;
+    }
   }
 
 }
