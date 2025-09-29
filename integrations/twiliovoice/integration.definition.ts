@@ -1,12 +1,11 @@
 import { IntegrationDefinition, messages, z } from '@botpress/sdk';
-import { integrationName } from './package.json';
 
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'plus/twiliovoice',
   title: 'Twilio Voice',
   description:
     'The Twilio Voice integration facilitates seamless voice communication between your AI-powered chatbot and Twilio',
-  version: '0.2.2',
+  version: '0.2.3',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {

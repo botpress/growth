@@ -10,7 +10,6 @@ export const handleOperatorAssignedUpdate = async ({
   client: bp.Client
   hubSpotClient: HubSpotApi
 }) => {
-
   let threadInfo = await hubSpotClient.getThreadInfo(hubspotEvent.objectId)
   let recipientActorPhoneNumber = await hubSpotClient.getActorPhoneNumber(threadInfo.associatedContactId)
 

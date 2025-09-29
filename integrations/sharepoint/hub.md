@@ -8,27 +8,28 @@ The sharepoint library connector integration allows you to setup a connector bet
 
 Add the following keys to the integration’s `configuration` block:
 
-- **clientId** (required) — Application (client) ID of your Microsoft Entra (Azure AD) app registration.  
-- **tenantId** (required) — Directory (tenant) ID of the same app registration.  
-- **thumbprint** (required) — Thumbprint of the certificate uploaded to the app registration.  
-- **privateKey** (required) — PEM-formatted private key that matches the certificate (everything between `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`).  
+- **clientId** (required) — Application (client) ID of your Microsoft Entra (Azure AD) app registration.
+- **tenantId** (required) — Directory (tenant) ID of the same app registration.
+- **thumbprint** (required) — Thumbprint of the certificate uploaded to the app registration.
+- **privateKey** (required) — PEM-formatted private key that matches the certificate (everything between `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`).
 - **primaryDomain** (required) — SharePoint primary domain (the part before `.sharepoint.com`).  
-  *Example*: `contoso`  
-- **siteName** (required) — Name of the SharePoint site that owns the document libraries you want to sync.  
+  _Example_: `contoso`
+- **siteName** (required) — Name of the SharePoint site that owns the document libraries you want to sync.
 - **documentLibraryNames** (optional) — Comma-separated list **or** JSON array of document libraries to sync.  
-  *Examples*:  
+  _Examples_:  
   `Policies,Procedures`  
-  `["Policies","Procedures"]`  
+  `["Policies","Procedures"]`
 - **folderKbMap** (optional) — JSON object that maps `kbId` ⇒ array of folder prefixes for routing files to specific KBs.  
-  *Example*:  
-  `{"kb-marketing":["Campaigns"],"kb-policies":["HR","Legal"]}`  
+  _Example_:  
+  `{"kb-marketing":["Campaigns"],"kb-policies":["HR","Legal"]}`
 
-**Tip:**  
-- If you omit `documentLibraryNames`, **all** document libraries in the specified site will be synced.  
+**Tip:**
+
+- If you omit `documentLibraryNames`, **all** document libraries in the specified site will be synced.
 - If you omit `folderKbMap`, every file is routed to the default KB configured for its library.
 
 > [!IMPORTANT]  
-> Due to reliability issues, **Moves** and **Copies** are not supported. Those events from sharepoint will not reflect in the knowledge bases. If you wish to move/copy a file to another location, **Upload** or **Create** the file instead. 
+> Due to reliability issues, **Moves** and **Copies** are not supported. Those events from sharepoint will not reflect in the knowledge bases. If you wish to move/copy a file to another location, **Upload** or **Create** the file instead.
 
 ## How to's
 
@@ -60,12 +61,12 @@ Add the following keys to the integration’s `configuration` block:
 - Click “Add a permissions”
 - click on "Microsoft Graph".
 - Select “Application permissions” as the type of permission.
-- Check `Sites.FullControl.All`  , `Sites.Manage.All` , `Sites.Read.All` , `Sites.ReadWrite.All`, `Sites.Selected.All`, `Files.Read.All` and `Files.ReadWriteAll`
+- Check `Sites.FullControl.All` , `Sites.Manage.All` , `Sites.Read.All` , `Sites.ReadWrite.All`, `Sites.Selected.All`, `Files.Read.All` and `Files.ReadWriteAll`
 - Click “Add a permissions again.”
 - Click the “Add a permission” button again
 - Scroll till you find Sharepoint and click on it.
 - Select “Application permissions” as the type of permission.
-- Check `Sites.FullControl.All`  , `Sites.Manage.All` , `Sites.Read.All` , `Sites.ReadWrite.All` and `Sites.Selected.All`
+- Check `Sites.FullControl.All` , `Sites.Manage.All` , `Sites.Read.All` , `Sites.ReadWrite.All` and `Sites.Selected.All`
 - Click “Add permissions.”
 - You should see All the permissions you added in the permissions list.
 - Click on “Grant admin consent for <your_org_name>”
@@ -74,19 +75,22 @@ Add the following keys to the integration’s `configuration` block:
 
 ## Folder‑to‑KB Mapping (`folderKbMap`)
 
-*This is an **optional** advanced feature. If you skip it, every file in the document library will go to the single KB you specified above.*
+_This is an **optional** advanced feature. If you skip it, every file in the document library will go to the single KB you specified above._
 
 ### Why use it?
+
 Sometimes one SharePoint document library contains several distinct collections of content—HR procedures, Legal policies, Marketing campaigns, etc.—but you want each collection to live in its **own** Botpress KB for cleaner search results and permissions.  
 `folderKbMap` lets you do exactly that.
 
 ### How it works
-* `folderKbMap` is a **JSON object** whose keys are **KB IDs** and whose values are **arrays of folder prefixes** (relative paths) to watch.  
-* During sync, the integration checks each file’s server‑relative path.  
-  * If the path **starts with** one of the prefixes you listed, that file is routed to the corresponding KB.  
-  * If no prefix matches, the file falls back to the default KB for the library.
+
+- `folderKbMap` is a **JSON object** whose keys are **KB IDs** and whose values are **arrays of folder prefixes** (relative paths) to watch.
+- During sync, the integration checks each file’s server‑relative path.
+  - If the path **starts with** one of the prefixes you listed, that file is routed to the corresponding KB.
+  - If no prefix matches, the file falls back to the default KB for the library.
 
 ### Configuration syntax
+
 ```jsonc
 // Example: route folders within the libraries
 "folderKbMap": {
@@ -94,20 +98,23 @@ Sometimes one SharePoint document library contains several distinct collections 
   "kb-id-2":  ["doclib2/HR","doclib2/ExampleFolder"]
 }
 ```
-*Prefixes are **case‑insensitive** and may include simple wildcards (`*`).*
+
+_Prefixes are **case‑insensitive** and may include simple wildcards (`_`).\*
 
 ### Rules & limitations
-1. **No KB sharing across libraries.** A single KB **cannot** receive content from two different libraries—even via folder mapping.  
+
+1. **No KB sharing across libraries.** A single KB **cannot** receive content from two different libraries—even via folder mapping.
 2. **Create KBs first.** All KB IDs used in `folderKbMap` must already exist in Botpress before you save the configuration.
 3. **Recursive files** Every file within a document library, regardles whether it is in a nested folder - will be recursively copied.
 
 ### Quick checklist
-| ✔ | Step |
-|---|------|
-| Create a **separate KB** for each content group you want. |
-| Identify folder (or folder‑prefix) boundaries inside the SharePoint library. |
-| Build a `folderKbMap` JSON object mapping **kbId → [prefixes]**. |
-| Add the JSON to your integration configuration. |
+
+| ✔                                                                                          | Step |
+| ------------------------------------------------------------------------------------------- | ---- |
+| Create a **separate KB** for each content group you want.                                   |
+| Identify folder (or folder‑prefix) boundaries inside the SharePoint library.                |
+| Build a `folderKbMap` JSON object mapping **kbId → [prefixes]**.                            |
+| Add the JSON to your integration configuration.                                             |
 | Save & verify: upload a test file in each folder and confirm it appears in the expected KB. |
 
 ---

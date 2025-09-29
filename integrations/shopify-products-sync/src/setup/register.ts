@@ -36,11 +36,17 @@ async function setupWebhooks(ctx: IntegrationContext, logger: IntegrationLogger,
           webhookUrl,
           topicReadable: topic.replace('/', ' '),
           botId: ctx.botId,
-          logger
+          logger,
         })
-        logger.forBot().info(`Webhook for topic "${topic}" created for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}`)
+        logger
+          .forBot()
+          .info(`Webhook for topic "${topic}" created for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}`)
       } catch (e) {
-        logger.forBot().error(`Error creating webhook for topic "${topic}" on shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}: ${JSON.stringify(e)}`)
+        logger
+          .forBot()
+          .error(
+            `Error creating webhook for topic "${topic}" on shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}: ${JSON.stringify(e)}`
+          )
       }
     })
   )
@@ -51,8 +57,14 @@ export const register: RegisterFunction = async ({ ctx, logger, webhookUrl, clie
   try {
     await syncKb(ctx, client, logger)
     await setupWebhooks(ctx, logger, webhookUrl)
-    logger.forBot().info(`Shopify integration registered and products synced successfully for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}`)
+    logger
+      .forBot()
+      .info(
+        `Shopify integration registered and products synced successfully for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}`
+      )
   } catch (error) {
-    throw new RuntimeError(`Error during registration for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}: ${JSON.stringify(error)}`)
+    throw new RuntimeError(
+      `Error during registration for shop: ${ctx.configuration.shopDomain}, bot: ${ctx.botId}: ${JSON.stringify(error)}`
+    )
   }
 }

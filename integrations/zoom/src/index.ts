@@ -17,18 +17,17 @@ const integration = new bp.Integration({
 
     const config = ctx.configuration as unknown as ZoomConfig
 
-  let body: any
+    let body: any
 
-  try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-  } catch {
-    return { status: 400, body: 'Invalid JSON in request body' }
-  }
+    try {
+      body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    } catch {
+      return { status: 400, body: 'Invalid JSON in request body' }
+    }
 
-  if (!body || typeof body !== 'object') {
-    return { status: 400, body: 'Invalid request body format' }
-  }
-
+    if (!body || typeof body !== 'object') {
+      return { status: 400, body: 'Invalid request body format' }
+    }
 
     // Handle Zoom URL Validation handshake
     if (body?.event === 'endpoint.url_validation') {
@@ -39,10 +38,7 @@ const integration = new bp.Integration({
         return { status: 400, body: 'Missing plainToken or verificationToken' }
       }
 
-      const encryptedToken = crypto
-        .createHmac('sha256', secret)
-        .update(plainToken)
-        .digest('hex')
+      const encryptedToken = crypto.createHmac('sha256', secret).update(plainToken).digest('hex')
 
       return {
         status: 200,
@@ -58,12 +54,10 @@ const integration = new bp.Integration({
         const allowedUserIds = config.allowedZoomUserIds
         const hostId = body?.payload?.object?.host_id
 
-        if (
-          Array.isArray(allowedUserIds) &&
-          allowedUserIds.length > 0 &&
-          !allowedUserIds.includes(hostId)
-        ) {
-         logger.forBot().info(`Ignoring event: host_id (${hostId}) is not in allowed list (${allowedUserIds.join(', ')})`)
+        if (Array.isArray(allowedUserIds) && allowedUserIds.length > 0 && !allowedUserIds.includes(hostId)) {
+          logger
+            .forBot()
+            .info(`Ignoring event: host_id (${hostId}) is not in allowed list (${allowedUserIds.join(', ')})`)
 
           return { status: 200, body: 'Event ignored: userId not allowed' }
         }

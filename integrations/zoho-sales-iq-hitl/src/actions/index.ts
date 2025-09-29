@@ -4,5 +4,5 @@ import * as bp from '.botpress'
 export default {
   startHitl,
   stopHitl,
-  createUser
+  createUser,
 } satisfies bp.IntegrationProps['actions']

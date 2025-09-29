@@ -1,5 +1,4 @@
 import { IntegrationDefinition, IntegrationDefinitionProps, z } from '@botpress/sdk'
-import { integrationName } from './package.json'
 import hitl from './bp_modules/hitl'
 import { configuration, channels, states, events, actions } from './src/definitions'
 
@@ -12,7 +11,7 @@ export const user = {
 } satisfies IntegrationDefinitionProps['user']
 
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'hitl-salesforce',
   title: 'SalesForce Messaging (Alpha)',
   version: '1.1.0',
   icon: 'icon.svg',
@@ -47,20 +46,20 @@ export default new IntegrationDefinition({
     hitlTicket: {
       schema: z.object({
         routingAttributes: z
-            .string()
-            .title('Routing Attributes')
-            .displayAs<any>({
-              id: 'text',
-              params: {
-                allowDynamicVariable: true,
-                growVertically: true,
-                multiLine: true,
-              },
-            })
-            .placeholder('{ "myAttribute": "myAttributeValue" }')
-            .default('{}')
-            .optional()
-            .describe('Custom properties to be used as routing attributes, use JSON format'),
+          .string()
+          .title('Routing Attributes')
+          .displayAs<any>({
+            id: 'text',
+            params: {
+              allowDynamicVariable: true,
+              growVertically: true,
+              multiLine: true,
+            },
+          })
+          .placeholder('{ "myAttribute": "myAttributeValue" }')
+          .default('{}')
+          .optional()
+          .describe('Custom properties to be used as routing attributes, use JSON format'),
       }),
     },
   },

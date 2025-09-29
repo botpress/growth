@@ -1,6 +1,5 @@
 {
   "name": "klaviyo",
-  "integrationName": "plus/klaviyo",
   "scripts": {
     "check:type": "tsc --noEmit"
   },

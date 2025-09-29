@@ -39,20 +39,20 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
   try {
     const googleClient = getClient(ctx)
     const spaceId = event.space.name.replace('spaces/', '')
-    
+
     // Get or create conversation
     const { conversation } = await client.getOrCreateConversation({
       channel: 'text',
       tags: {
-        spaceId: event.space.name
-      }
+        spaceId: event.space.name,
+      },
     })
 
     // Get or create user
     const { user } = await client.getOrCreateUser({
       tags: {
-        id: event.message.sender.name
-      }
+        id: event.message.sender.name,
+      },
     })
 
     // Create message in Botpress
@@ -61,9 +61,9 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
       conversationId: conversation.id,
       userId: user.id,
       payload: {
-        text: event.message.text
+        text: event.message.text,
       },
-      tags: {}
+      tags: {},
     })
 
     logger.forBot().info(`Processed message in space ${spaceId}`)

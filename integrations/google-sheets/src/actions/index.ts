@@ -1,1 +1,1 @@
-export * from "./sync-kb";
+export * from './sync-kb'

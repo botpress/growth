@@ -1,5 +1,4 @@
-import { IntegrationDefinition, z } from '@botpress/sdk';
-import { integrationName } from './package.json';
+import { IntegrationDefinition, z } from '@botpress/sdk'
 
 import {
   createContactInputSchema,
@@ -41,12 +40,12 @@ import {
   getContactsByBusinessIdInputSchema,
   getContactsByBusinessIdOutputSchema,
   makeApiCallInputSchema,
-  makeApiCallOutputSchema
-} from './src/misc/custom-schemas';
+  makeApiCallOutputSchema,
+} from './src/misc/custom-schemas'
 
 export default new IntegrationDefinition({
-  name: integrationName ?? 'go-high-level',
-  version: '1.0.3',
+  name: 'plus/go-high-level',
+  version: '1.0.4',
   title: 'GoHighLevel',
   readme: 'hub.md',
   icon: 'icon.svg',
@@ -71,7 +70,7 @@ export default new IntegrationDefinition({
   channels: {},
   states: {
     credentials: {
-      type: "integration",
+      type: 'integration',
       schema: z.object({
         accessToken: z.string(),
         refreshToken: z.string(),
@@ -180,4 +179,4 @@ export default new IntegrationDefinition({
       output: { schema: makeApiCallOutputSchema },
     },
   },
-});
+})

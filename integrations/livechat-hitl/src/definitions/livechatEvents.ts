@@ -1,11 +1,11 @@
-import { z } from "@botpress/sdk";
+import { z } from '@botpress/sdk'
 
 export const liveChatTransferSchema = z
   .object({
     group_ids: z.array(z.number()).optional(),
     agent_ids: z.array(z.string()),
   })
-  .strict();
+  .strict()
 
 export const liveChatIncomingEventPayloadSchema = z.object({
   chat_id: z.string(),
@@ -18,13 +18,13 @@ export const liveChatIncomingEventPayloadSchema = z.object({
     created_at: z.string().optional(),
     visibility: z.string().optional(),
   }),
-});
+})
 
 export const liveChatDeactivatedPayloadSchema = z.object({
   chat_id: z.string(),
   thread_id: z.string(),
   user_id: z.string().optional(),
-});
+})
 
 export const liveChatTransferredPayloadSchema = z
   .object({
@@ -34,7 +34,7 @@ export const liveChatTransferredPayloadSchema = z
     reason: z.string().optional(),
     transferred_to: liveChatTransferSchema,
   })
-  .strict();
+  .strict()
 
 const commonWebhookFields = {
   webhook_id: z.string(),
@@ -46,13 +46,13 @@ const commonWebhookFields = {
       chat_presence_user_ids: z.array(z.string()).optional(),
     })
     .optional(),
-};
+}
 
-export const liveChatWebhookPayloadSchema = z.discriminatedUnion("action", [
+export const liveChatWebhookPayloadSchema = z.discriminatedUnion('action', [
   z
     .object({
       ...commonWebhookFields,
-      action: z.literal("incoming_event"),
+      action: z.literal('incoming_event'),
       payload: liveChatIncomingEventPayloadSchema,
     })
     .strict(),
@@ -60,7 +60,7 @@ export const liveChatWebhookPayloadSchema = z.discriminatedUnion("action", [
   z
     .object({
       ...commonWebhookFields,
-      action: z.literal("chat_deactivated"),
+      action: z.literal('chat_deactivated'),
       payload: liveChatDeactivatedPayloadSchema,
     })
     .strict(),
@@ -68,16 +68,12 @@ export const liveChatWebhookPayloadSchema = z.discriminatedUnion("action", [
   z
     .object({
       ...commonWebhookFields,
-      action: z.literal("chat_transferred"),
+      action: z.literal('chat_transferred'),
       payload: liveChatTransferredPayloadSchema,
     })
     .strict(),
-]);
+])
 
-export type LiveChatWebhookPayload = z.infer<
-  typeof liveChatWebhookPayloadSchema
->;
-export type LiveChatTransfer = z.infer<typeof liveChatTransferSchema>;
-export type LiveChatTransferred = z.infer<
-  typeof liveChatTransferredPayloadSchema
->;
+export type LiveChatWebhookPayload = z.infer<typeof liveChatWebhookPayloadSchema>
+export type LiveChatTransfer = z.infer<typeof liveChatTransferSchema>
+export type LiveChatTransferred = z.infer<typeof liveChatTransferredPayloadSchema>

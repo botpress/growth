@@ -1,5 +1,5 @@
 import * as bp from '.botpress'
-import { ShopifyProduct, StoredProduct } from "../schemas/products"
+import { ShopifyProduct, StoredProduct } from '../schemas/products'
 import { stripHtmlTags } from './utils'
 
 export const deleteKbArticles = async (kbId: string, client: bp.Client): Promise<void> => {
@@ -29,7 +29,15 @@ export const deleteKbArticleById = async (kbId: string, id: string, client: bp.C
   }
 }
 
-export const getUploadArticlePayload = ({ kbId, product, shopDomain }: { kbId: string; product: ShopifyProduct; shopDomain: string }) => {
+export const getUploadArticlePayload = ({
+  kbId,
+  product,
+  shopDomain,
+}: {
+  kbId: string
+  product: ShopifyProduct
+  shopDomain: string
+}) => {
   const storedProduct: StoredProduct = {
     id: product.id,
     title: product.title,
@@ -37,12 +45,12 @@ export const getUploadArticlePayload = ({ kbId, product, shopDomain }: { kbId: s
     vendor: product.vendor || 'N/A',
     tags: product.tags || 'N/A',
     productType: product.product_type || 'N/A',
-    price: product.variants && product.variants[0].price || 'N/A',
-    weight: product.variants && product.variants[0].weight || 0,
-    weightUnit: product.variants && product.variants[0].weight_unit || 'N/A',
-    images: product.images && product.images.map(image => image.src) || [],
+    price: (product.variants && product.variants[0].price) || 'N/A',
+    weight: (product.variants && product.variants[0].weight) || 0,
+    weightUnit: (product.variants && product.variants[0].weight_unit) || 'N/A',
+    images: (product.images && product.images.map((image) => image.src)) || [],
     options: product.options || [],
-    url: `https://${shopDomain}/products/${product.handle}`
+    url: `https://${shopDomain}/products/${product.handle}`,
   }
 
   return {
