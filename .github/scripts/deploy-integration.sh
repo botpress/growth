@@ -21,7 +21,7 @@ fi
 echo "Deploying integration: $INTEGRATION_DIR"
 
 # Source the helper functions
-source ./.github/scripts/deploy-helpers.sh
+source ../.github/scripts/deploy-helpers.sh
 
 # Get the actual integration name from the definition file
 cd ..

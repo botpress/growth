@@ -49,5 +49,5 @@ is_integration_excluded() {
 # Check if integration already exists
 check_integration_exists() {
   local integration_dir="$1"
-  bash ./.github/scripts/integration-exists.sh "$integration_dir"
+  bash ../.github/scripts/integration-exists.sh "$integration_dir"
 }
