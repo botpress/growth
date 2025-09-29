@@ -4,10 +4,13 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       force:
-        description: "Force re-deploying integrations"
+        description: 'Force re-deploying integrations'
         type: boolean
         required: false
         default: false
