@@ -25,7 +25,7 @@ export BOTPRESS_WORKSPACE_ID
 source ./.github/scripts/deploy-helpers.sh
 
 # Configuration
-EXCLUDE_INTEGRATIONS=("hitl-salesforce")
+EXCLUDE_INTEGRATIONS=("hitl-salesforce" "hitl-api")
 
 # Make the integration-exists script executable
 chmod +x ./.github/scripts/integration-exists.sh
