@@ -2,7 +2,7 @@ import { z, IntegrationDefinition } from '@botpress/sdk'
 
 export default new IntegrationDefinition({
   name: 'plus/magento2',
-  version: '2.0.3',
+  version: '2.0.4',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration: {
