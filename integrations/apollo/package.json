@@ -1,6 +1,5 @@
 {
   "name": "apollo",
-  "integrationName": "apollo",
   "scripts": {
     "check:type": "tsc --noEmit",
     "dev": "nodemon --watch \"./src/*\" --ext \"ts\" --exec \"bp deploy -y\""

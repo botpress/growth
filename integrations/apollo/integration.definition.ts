@@ -1,10 +1,9 @@
 import { IntegrationDefinition } from '@botpress/sdk'
-import { integrationName } from './package.json'
 import { actions } from './src/definitions/actions'
 import { configuration } from './src/definitions/index'
 
 export default new IntegrationDefinition({
-  name: integrationName,
+  name: 'apollo',
   title: 'Apollo.io',
   version: '3.0.0',
   readme: 'hub.md',

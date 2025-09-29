@@ -56,6 +56,38 @@ for integration_dir in */; do
   # Get actual integration name for logging
   cd ..
   actual_integration_name=$(get_integration_name "$integration_name")
+  echo "Actual integration name: $actual_integration_name"
+  
+  # Get current version from code
+  current_version=$(echo "$(get_integration_definition "$integration_name")" | jq -r ".version")
+  echo "Current version in code: $current_version"
+  
+  # Get workspace ID for this integration
+  workspace_id=$(get_workspace_id "$actual_integration_name")
+  echo "Workspace ID: $workspace_id"
+  
+  # Login to get deployed version info
+  echo "Logging in to check deployed version..."
+  pnpm bp login -y --token "$TOKEN_PAT" --workspace-id "$workspace_id" > /dev/null 2>&1
+  
+  # Get deployed version (if exists)
+  deployed_version=$(pnpm bp integrations ls --name "$actual_integration_name" --json 2>/dev/null | jq -r '.[0].version // "not found"' 2>/dev/null || echo "not found")
+  echo "Deployed version: $deployed_version"
+  
+  # Compare versions
+  if [ "$deployed_version" = "not found" ]; then
+    echo "Integration not deployed yet"
+    version_status="NEW"
+  elif [ "$deployed_version" = "$current_version" ]; then
+    echo "Versions match - no deployment needed"
+    version_status="SAME"
+  else
+    echo "Version mismatch - deployment needed"
+    echo "   Deployed: $deployed_version"
+    echo "   Current:  $current_version"
+    version_status="DIFFERENT"
+  fi
+  
   cd integrations
   
   # Check if integration already exists
@@ -65,11 +97,23 @@ for integration_dir in */; do
   cd integrations
   
   # Deploy if needed
-  if [ "$exists" = "0" ] || [ "$FORCE_FLAG" = "true" ]; then
+  if [ "$exists" = "0" ] || [ "$FORCE_FLAG" = "true" ] || [ "$version_status" = "DIFFERENT" ] || [ "$version_status" = "NEW" ]; then
     echo "Deploying integration: $integration_name"
+    
+    # Show deployment reason
+    if [ "$version_status" = "NEW" ]; then
+      echo "REASON: New integration (not deployed yet)"
+    elif [ "$version_status" = "DIFFERENT" ]; then
+      echo "REASON: Version mismatch (deployed: $deployed_version, current: $current_version)"
+    elif [ "$FORCE_FLAG" = "true" ]; then
+      echo "REASON: Force flag enabled"
+    else
+      echo "REASON: Integration doesn't exist"
+    fi
+    
     bash ./.github/scripts/deploy-integration.sh "$integration_name" "$FORCE_FLAG"
   else
-    echo "Integration $integration_name already exists, skipping deployment (use force=true to override)"
+    echo "Integration $integration_name already exists with same version, skipping deployment (use force=true to override)"
   fi
   
   echo "---"
