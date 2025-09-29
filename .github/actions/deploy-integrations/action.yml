@@ -1,0 +1,36 @@
+name: Deploy Integrations
+description: Deploy integrations to Botpress
+
+inputs:
+  force:
+    description: "Force re-deploying integrations"
+    required: false
+    default: "false"
+  token_pat:
+    description: "Botpress token for plus account"
+    required: true
+  plus_workspace_id:
+    description: "Growth workspace ID for plus"
+    required: true
+  botpress_workspace_id:
+    description: "Botpress workspace ID"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Deploy integrations
+      shell: bash
+      run: |
+        # Make scripts executable
+        chmod +x ./.github/scripts/deploy-all-integrations.sh
+        chmod +x ./.github/scripts/deploy-integration.sh
+        chmod +x ./.github/scripts/deploy-helpers.sh
+        chmod +x ./.github/scripts/integration-exists.sh
+        
+        # Run the main deployment script
+        bash ./.github/scripts/deploy-all-integrations.sh \
+          "${{ inputs.force }}" \
+          "${{ inputs.token_pat }}" \
+          "${{ inputs.plus_workspace_id }}" \
+          "${{ inputs.botpress_workspace_id }}"

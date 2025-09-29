@@ -1,5 +1,10 @@
-import { IntegrationDefinition } from '@botpress/sdk'
-import { configuration, states, actions, events } from './src/definitions/index'
+import { IntegrationDefinition } from "@botpress/sdk";
+import {
+  configuration,
+  states,
+  actions,
+  events,
+} from "./src/definitions/index";
 
 export default new IntegrationDefinition({
   name: 'plus/shopify-products-sync',
@@ -12,4 +17,4 @@ export default new IntegrationDefinition({
   actions,
   states,
   events,
-})
+});
