@@ -29,6 +29,17 @@ get_workspace_id() {
 # Get integration definition data
 get_integration_definition() {
   local integration_dir="$1"
+  # First get the basic definition without authentication
+  local temp_def=$(pnpm bp read --work-dir "integrations/$integration_dir" --json)
+  local actual_name=$(echo "$temp_def" | jq -r ".name")
+  
+  # Get the appropriate workspace ID for this integration
+  local workspace_id=$(get_workspace_id "$actual_name")
+  
+  # Login with the appropriate workspace ID
+  pnpm bp login -y --token "$TOKEN_PAT" --workspace-id "$workspace_id"
+  
+  # Now read the definition with authentication
   pnpm bp read --work-dir "integrations/$integration_dir" --json
 }
 

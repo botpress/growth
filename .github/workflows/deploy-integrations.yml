@@ -1,7 +1,10 @@
-name: Deploy Integrations Production
+name: Deploy Integrations
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
   workflow_dispatch:
@@ -20,7 +23,7 @@ jobs:
   deploy-production:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: github.event_name == 'workflow_dispatch' || contains(toJSON(github.event.head_commit.modified), 'integrations/') || contains(toJSON(github.event.head_commit.added), 'integrations/')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (contains(toJSON(github.event.head_commit.modified), 'integrations/') || contains(toJSON(github.event.head_commit.added), 'integrations/'))) || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
 
