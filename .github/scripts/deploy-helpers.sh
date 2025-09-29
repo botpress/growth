@@ -31,7 +31,18 @@ get_integration_definition() {
   local integration_dir="$1"
   
   # Read the integration name from package.json
-  local package_file="integrations/$integration_dir/package.json"
+  # Handle both cases: running from project root or from integrations directory
+  local package_file
+  if [ -f "integrations/$integration_dir/package.json" ]; then
+    package_file="integrations/$integration_dir/package.json"
+  elif [ -f "$integration_dir/package.json" ]; then
+    package_file="$integration_dir/package.json"
+  else
+    echo "Error: Package.json file not found for integration: $integration_dir" >&2
+    echo "Tried paths: integrations/$integration_dir/package.json and $integration_dir/package.json" >&2
+    exit 1
+  fi
+  
   if [ -f "$package_file" ]; then
     local actual_name=$(jq -r '.integrationName // .name' "$package_file")
     echo "Debug: Found integration name from package.json: $actual_name" >&2
@@ -54,7 +65,18 @@ get_integration_definition() {
 # Get actual integration name from definition
 get_integration_name() {
   local integration_dir="$1"
-  local package_file="integrations/$integration_dir/package.json"
+  
+  # Handle both cases: running from project root or from integrations directory
+  local package_file
+  if [ -f "integrations/$integration_dir/package.json" ]; then
+    package_file="integrations/$integration_dir/package.json"
+  elif [ -f "$integration_dir/package.json" ]; then
+    package_file="$integration_dir/package.json"
+  else
+    echo "Error: Package.json file not found for integration: $integration_dir" >&2
+    exit 1
+  fi
+  
   jq -r '.integrationName // .name' "$package_file"
 }
 
