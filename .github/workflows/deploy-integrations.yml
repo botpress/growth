@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'integrations/**'
   workflow_dispatch:
     inputs:
       force:
@@ -20,7 +22,6 @@ jobs:
   deploy-production:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: github.event_name == 'workflow_dispatch' || contains(toJSON(github.event.head_commit.modified), 'integrations/') || contains(toJSON(github.event.head_commit.added), 'integrations/')
     steps:
       - uses: actions/checkout@v4
 
