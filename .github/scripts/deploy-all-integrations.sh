@@ -111,7 +111,7 @@ for integration_dir in */; do
       echo "REASON: Integration doesn't exist"
     fi
     
-    bash ./.github/scripts/deploy-integration.sh "$integration_name" "$FORCE_FLAG"
+    bash ../.github/scripts/deploy-integration.sh "$integration_name" "$FORCE_FLAG"
   else
     echo "Integration $integration_name already exists with same version, skipping deployment (use force=true to override)"
   fi
