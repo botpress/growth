@@ -1,5 +1,4 @@
-import { getSalesforceClient } from './client'
-import { SFMessagingConfig } from './definitions/schemas'
+import { getSalesforceClientWithBotpress } from './client'
 import { closeConversation, executeOnConversationClose, isConversationClosed } from './events/conversation-close'
 import { executeOnConversationMessage } from './events/conversation-message'
 import { executeOnParticipantChanged } from './events/participant-changed'
@@ -98,25 +97,7 @@ export const handler: IntegrationProps['handler'] = async (props) => {
     case 'TRANSPORT_RESTORED':
       if (isConversationClosed(conversation)) {
         // Restored transport from a conversation that is already closed, ending transport
-        const {
-          state: {
-            payload: { accessToken },
-          },
-        } = await client.getState({
-          type: 'conversation',
-          id: conversation.id,
-          name: 'messaging',
-        })
-
-        const salesforceClient = getSalesforceClient(
-          logger,
-          { ...(ctx.configuration as SFMessagingConfig) },
-          {
-            accessToken,
-            sseKey: conversation.tags.transportKey,
-            conversationId: conversation.tags.id,
-          },
-        )
+        const salesforceClient = await getSalesforceClientWithBotpress({ client, ctx, conversation, logger })
 
         await salesforceClient.stopSSE(conversation.tags.transportKey as string)
       }

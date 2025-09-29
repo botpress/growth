@@ -15,7 +15,7 @@ export type TriggerPayload = {
 // https://developer.salesforce.com/docs/service/messaging-api/references/about/server-sent-events-structure.html
 
 export type RawMessagingTrigger = {
-  raw: String
+  raw: string
 }
 
 export type UndefinedMessagingTrigger = {
@@ -101,10 +101,38 @@ export type AttachmentsStaticContent = {
   }[]
 }
 
+export type RichLinkStaticContent = {
+  formatType: 'RichLink'
+  text: string | null
+  image?: {
+    assetType: string
+    description: string | null
+    id: string
+    mimeType: string
+    assetUrl: string
+    referenceId: string | null
+  }
+  video?: any
+  linkItem: {
+    itemType: string
+    titleItem: {
+      itemType: string
+      secondarySubTitle: string | null
+      title: string
+      subTitle: string | null
+      tertiarySubTitle: string | null
+      referenceId: string | null
+      imageSubTitle: string | null
+      imageId: string
+    }
+    url: string
+  }
+}
+
 export type MessageDataPayload = {
   entryType: 'Message'
   id: string
-  abstractMessage: AbstractMessageBase & { staticContent: TextStaticContent | AttachmentsStaticContent | any }
+  abstractMessage: AbstractMessageBase & { staticContent: TextStaticContent | AttachmentsStaticContent | RichLinkStaticContent | any }
   messageReason: string | null
 }
 

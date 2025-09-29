@@ -11,7 +11,15 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     const { user } = await client.getUser({ id: userId })
 
-    const salesforceClient = getSalesforceClient(logger, { ...(ctx.configuration as SFMessagingConfig) })
+    // Use DeveloperName from hitlSession if provided and not empty, otherwise fall back to configuration
+    const developerName = (input.hitlSession?.DeveloperName && input.hitlSession.DeveloperName.trim() !== '') 
+      ? input.hitlSession.DeveloperName 
+      : (ctx.configuration as SFMessagingConfig).DeveloperName
+
+    const salesforceClient = getSalesforceClient(logger, { 
+      ...(ctx.configuration as SFMessagingConfig),
+      DeveloperName: developerName
+    })
 
     const unauthenticatedData = await salesforceClient.createTokenForUnauthenticatedUser()
 
@@ -49,6 +57,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       name: 'messaging',
       payload: {
         accessToken: unauthenticatedData.accessToken,
+        developerName: developerName,
       },
     })
 
@@ -87,7 +96,6 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     return { conversationId: conversation.id }
   } catch (error: any) {
-    logger.forBot().error('Failed to start HITL Session: ' + error.message)
     throw new RuntimeError('Failed to start HITL Session: ' + error.message)
   }
 }

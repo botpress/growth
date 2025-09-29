@@ -1,4 +1,4 @@
-import { MessageMessagingTrigger, MessageDataPayload } from '../triggers'
+import { MessageMessagingTrigger, MessageDataPayload, RichLinkStaticContent } from '../triggers'
 import * as bp from '.botpress'
 
 export const executeOnConversationMessage = async ({
@@ -92,6 +92,17 @@ export const executeOnConversationMessage = async ({
           })
         }
       }
+      break
+    case 'RichLink':
+      const richLinkContent = entryPayload.abstractMessage.staticContent as RichLinkStaticContent
+      // Send just the link item as text content
+      const linkText = `${richLinkContent.linkItem.titleItem.title}: ${richLinkContent.linkItem.url}`
+      await createMessage({
+        type: 'text',
+        payload: {
+          text: `${(ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${linkText}`,
+        },
+      })
       break
     default:
       logger

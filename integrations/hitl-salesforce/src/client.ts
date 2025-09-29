@@ -45,13 +45,13 @@ class MessagingApi {
   }
 
   public async createConversation(conversationId: string, attributes: any): Promise<void> {
-    try {
-      const createConversationData = {
-        conversationId,
-        routingAttributes: attributes,
-        esDeveloperName: this._config.DeveloperName,
-      }
+    const createConversationData = {
+      conversationId,
+      routingAttributes: attributes,
+      esDeveloperName: this._config.DeveloperName,
+    }
 
+    try {
       this._logger.forBot().debug('Creating conversation on Salesforce with data: ', {
         urlBase: this._client.defaults.baseURL,
         headers: {
@@ -65,30 +65,40 @@ class MessagingApi {
       return data
     } catch (thrown: unknown) {
       const error = thrown instanceof Error ? thrown : new Error(String(thrown))
-      this._logger.forBot().error('Failed to create conversation on Salesforce: ' + error.message)
-      throw new RuntimeError('Failed to create conversation on Salesforce: ' + error.message)
+      const axiosError = thrown as any
+      this._logger.forBot().info('Tried to create conversation on Salesforce: ' + JSON.stringify({
+        createConversationData,
+      }, null, 2))
+      const responseDataString = axiosError?.response?.data ? JSON.stringify(axiosError.response.data) : 'No response data'
+      throw new RuntimeError('Failed to create conversation on Salesforce: ' + error.message + ' | Response: ' + responseDataString + ' | Request Body: ' + JSON.stringify(createConversationData))
     }
   }
 
   public async createTokenForUnauthenticatedUser(): Promise<CreateTokenResponse> {
+    const createTokenData = {
+      orgId: this._config.organizationId,
+      esDeveloperName: this._config.DeveloperName,
+      capabilitiesVersion: '1',
+      platform: 'Web',
+      context: {
+        appName: 'botpressHITL',
+        clientVersion: '1.2.3',
+      },
+    }
+
     try {
-      const { data } = await this._client.post<CreateTokenResponse>('/authorization/unauthenticated/access-token', {
-        orgId: this._config.organizationId,
-        esDeveloperName: this._config.DeveloperName,
-        capabilitiesVersion: '1',
-        platform: 'Web',
-        context: {
-          appName: 'botpressHITL',
-          clientVersion: '1.2.3',
-        },
-      })
+      const { data } = await this._client.post<CreateTokenResponse>('/authorization/unauthenticated/access-token', createTokenData)
 
       this._session = { ...this._session, accessToken: data.accessToken }
       return data
     } catch (thrown: unknown) {
       const error = thrown instanceof Error ? thrown : new Error(String(thrown))
-      this._logger.forBot().error('Failed to create conversation on Salesforce: ' + error.message)
-      throw new RuntimeError('Failed to create conversation on Salesforce: ' + error.message)
+      const axiosError = thrown as any
+      this._logger.forBot().info('Tried to create token for user on Salesforce: ' + JSON.stringify({
+        createTokenData
+      }, null, 2))
+      const responseDataString = axiosError?.response?.data ? JSON.stringify(axiosError.response.data) : 'No response data'
+      throw new RuntimeError('Failed to create token for user on Salesforce: ' + error.message + ' | Response: ' + responseDataString)
     }
   }
 
@@ -175,7 +185,7 @@ class MessagingApi {
       throw new RuntimeError('Tried to send message to a session that is not initialized yet')
     }
 
-    await this._client.post(`/conversation/${this._session.conversationId}/message`, {
+    const sendMessageData = {
       message: {
         id: v4(),
         messageType: 'StaticContentMessage',
@@ -186,7 +196,19 @@ class MessagingApi {
       },
       esDeveloperName: this._config.DeveloperName,
       isNewMessagingSession: false,
-    })
+    }
+
+    try {
+      await this._client.post(`/conversation/${this._session.conversationId}/message`, sendMessageData)
+    } catch (thrown: unknown) {
+      const error = thrown instanceof Error ? thrown : new Error(String(thrown))
+      const axiosError = thrown as any
+      this._logger.forBot().info('Tried to send message to Salesforce: ' + JSON.stringify({
+        sendMessageData
+      }, null, 2))
+      const responseDataString = axiosError?.response?.data ? JSON.stringify(axiosError.response.data) : 'No response data'
+      throw new RuntimeError('Failed to send message: ' + error.message + ' | Response: ' + responseDataString)
+    }
   }
 
   // https://developer.salesforce.com/docs/service/messaging-api/references/miaw-api-reference?meta=sendFile
@@ -324,3 +346,33 @@ class MessagingApi {
 
 export const getSalesforceClient = (logger: Logger, config: SFMessagingConfig, session: LiveAgentSession = {}) =>
   new MessagingApi(logger, config, session)
+
+export const getSalesforceClientWithBotpress = async (
+  props: { client: any; ctx: any; conversation: any; logger: any }
+) => {
+  const { client, ctx, conversation, logger } = props
+  const {
+    state: {
+      payload: { accessToken, developerName },
+    },
+  } = await client.getState({
+    type: 'conversation',
+    id: conversation.id,
+    name: 'messaging',
+  })
+
+  return getSalesforceClient(
+    logger,
+    { 
+      ...(ctx.configuration as SFMessagingConfig),
+      DeveloperName: (developerName && developerName.trim() !== '') 
+        ? developerName 
+        : (ctx.configuration as SFMessagingConfig).DeveloperName
+    },
+    {
+      accessToken,
+      sseKey: conversation.tags.transportKey,
+      conversationId: conversation.tags.id,
+    },
+  )
+}

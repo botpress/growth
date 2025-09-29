@@ -1,6 +1,6 @@
 import { ParticipantChangedDataPayload, ParticipantChangedMessagingTrigger } from '../triggers'
 import { closeConversation } from './conversation-close'
-import { getSalesforceClient } from '../client'
+import { getSalesforceClientWithBotpress } from '../client'
 import { SFMessagingConfig } from '../definitions/schemas'
 import { ROUTING_STATUS } from '../const'
 import * as bp from '.botpress'
@@ -57,17 +57,7 @@ export const executeOnParticipantChanged = async ({
             return
           }
 
-          const { accessToken } = conversationState.state.payload
-
-          const salesforceClient = getSalesforceClient(
-            logger,
-            { ...(ctx.configuration as SFMessagingConfig) },
-            {
-              accessToken,
-              sseKey: conversation.tags.transportKey,
-              conversationId: conversation.tags.id,
-            },
-          )
+          const salesforceClient = await getSalesforceClientWithBotpress({ client, ctx, conversation, logger })
 
           const routingStatus = await salesforceClient.getConversationRoutingStatus()
 

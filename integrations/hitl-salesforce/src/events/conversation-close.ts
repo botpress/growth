@@ -1,7 +1,6 @@
 import { Conversation } from '@botpress/client'
 import * as bp from '../../.botpress'
-import { getSalesforceClient } from '../client'
-import { SFMessagingConfig } from '../definitions/schemas'
+import { getSalesforceClientWithBotpress } from '../client'
 import { CloseConversationMessagingTrigger } from '../triggers'
 
 export const executeOnConversationClose = async ({
@@ -71,25 +70,7 @@ export const closeConversation = async ({
     },
   })
 
-  const {
-    state: {
-      payload: { accessToken },
-    },
-  } = await client.getState({
-    type: 'conversation',
-    id: conversation.id,
-    name: 'messaging',
-  })
-
-  const salesforceClient = getSalesforceClient(
-    logger,
-    { ...(ctx.configuration as SFMessagingConfig) },
-    {
-      accessToken,
-      sseKey: conversation.tags.transportKey,
-      conversationId: conversation.tags.id,
-    },
-  )
+  const salesforceClient = await getSalesforceClientWithBotpress({ client, ctx, conversation, logger })
 
   // Conversation could already be closed on Salesforce, ignore errors
   try {

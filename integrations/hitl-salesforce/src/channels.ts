@@ -1,30 +1,8 @@
 import { AxiosError } from 'axios'
 import * as bp from '../.botpress'
-import { getSalesforceClient } from './client'
-import { SFMessagingConfig } from './definitions/schemas'
+import { getSalesforceClientWithBotpress } from './client'
 import { closeConversation, isConversationClosed } from './events/conversation-close'
 
-const getSalesforceClientFromMessage = async (props: bp.AnyMessageProps) => {
-  const { client, ctx, conversation, logger } = props
-  const {
-    state: {
-      payload: { accessToken },
-    },
-  } = await client.getState({
-    type: 'conversation',
-    id: conversation.id,
-    name: 'messaging',
-  })
-  return getSalesforceClient(
-    logger,
-    { ...(ctx.configuration as SFMessagingConfig) },
-    {
-      accessToken,
-      sseKey: conversation.tags.transportKey,
-      conversationId: conversation.tags.id,
-    },
-  )
-}
 
 export const channels = {
   hitl: {
@@ -62,7 +40,7 @@ export const channels = {
           return
         }
 
-        const salesforceClient = await getSalesforceClientFromMessage(props)
+        const salesforceClient = await getSalesforceClientWithBotpress(props)
 
         try {
           await salesforceClient.sendMessage(payload.text)
@@ -84,28 +62,28 @@ export const channels = {
       },
       audio: async (props: bp.MessageProps['hitl']['audio']) => {
         const { payload } = props
-        const salesforceClient = await getSalesforceClientFromMessage(props)
+        const salesforceClient = await getSalesforceClientWithBotpress(props)
         await salesforceClient.sendMessage(payload.audioUrl)
       },
       image: async (props: bp.MessageProps['hitl']['image']) => {
         const { payload } = props
-        const salesforceClient = await getSalesforceClientFromMessage(props)
+        const salesforceClient = await getSalesforceClientWithBotpress(props)
         await salesforceClient.sendFile({ fileUrl: payload.imageUrl })
       },
       video: async (props: bp.MessageProps['hitl']['video']) => {
         const { payload } = props
-        const salesforceClient = await getSalesforceClientFromMessage(props)
+        const salesforceClient = await getSalesforceClientWithBotpress(props)
         await salesforceClient.sendMessage(payload.videoUrl)
       },
       file: async (props: bp.MessageProps['hitl']['file']) => {
         const {
           payload: { title, fileUrl },
         } = props
-        const salesforceClient = await getSalesforceClientFromMessage(props)
+        const salesforceClient = await getSalesforceClientWithBotpress(props)
         await salesforceClient.sendFile({ fileUrl, title })
       },
       bloc: async (props: bp.MessageProps['hitl']['bloc']) => {
-        const salesforceClient = await getSalesforceClientFromMessage(props)
+        const salesforceClient = await getSalesforceClientWithBotpress(props)
         for (const item of props.payload.items) {
           switch (item.type) {
             case 'text':

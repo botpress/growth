@@ -13,7 +13,7 @@ export const user = {
 export default new IntegrationDefinition({
   name: 'hitl-salesforce',
   title: 'SalesForce Messaging (Alpha)',
-  version: '1.1.0',
+  version: '1.2.0',
   icon: 'icon.svg',
   description:
     'This integration allows your bot to interact with Salesforce Messaging, this version uses the HITL Interface',
@@ -60,6 +60,11 @@ export default new IntegrationDefinition({
           .default('{}')
           .optional()
           .describe('Custom properties to be used as routing attributes, use JSON format'),
+        DeveloperName: z
+          .string()
+          .title('Developer Name')
+          .optional()
+          .describe('Salesforce Developer Name to use for this HITL session. If not set, will use the configuration default.'),
       }),
     },
   },

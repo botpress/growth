@@ -37,6 +37,7 @@ export type SFMessagingConfig = z.infer<typeof SFMessagingConfigSchema>
 export const MessagingSessionSchema = z.object({
   accessToken: z.string().optional(),
   conversationId: z.string().optional(),
+  developerName: z.string().optional(),
 })
 
 export type Messaging = z.infer<typeof MessagingSessionSchema>
