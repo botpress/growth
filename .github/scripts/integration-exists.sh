@@ -11,7 +11,18 @@ integration=$1
 
 # Get the actual integration name from package.json
 cd ..
-package_file="integrations/$integration/package.json"
+# Handle both cases: running from project root or from integrations directory
+local package_file
+if [ -f "integrations/$integration/package.json" ]; then
+  package_file="integrations/$integration/package.json"
+elif [ -f "$integration/package.json" ]; then
+  package_file="$integration/package.json"
+else
+  echo "Error: Package.json file not found for integration: $integration" >&2
+  echo "Tried paths: integrations/$integration/package.json and $integration/package.json" >&2
+  exit 1
+fi
+
 if [ -f "$package_file" ]; then
   name=$(jq -r '.integrationName // .name' "$package_file")
   echo "Debug: Found integration name from package.json: $name" >&2
