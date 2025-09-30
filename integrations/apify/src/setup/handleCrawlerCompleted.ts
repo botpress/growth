@@ -2,6 +2,7 @@ import { getClient } from '../client'
 import { apifyWebhookSchema } from '../misc/schemas'
 import * as bp from '.botpress'
 import type { z } from 'zod'
+import { RuntimeError } from '@botpress/sdk'
 
 type ApifyWebhook = z.infer<typeof apifyWebhookSchema>
 
@@ -19,7 +20,7 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       logger.forBot().error('No run ID found in webhook payload')
       return
     }
-    logger.forBot().info(`Crawler run ${runId} completed successfully, processing results...`)
+    // webhook received for completed run
 
     const apifyClient = getClient(
       ctx.configuration.apiToken,
@@ -38,7 +39,6 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
         name: 'syncContinuation' 
       })
     } catch (error) {
-      logger.forBot().warn(`syncContinuation state not available, treating as new sync: ${error}`)
       continuationState = null
     }
     
@@ -49,7 +49,7 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       const continuation = continuationState.state.payload
       kbId = continuation.kbId
       startOffset = continuation.nextOffset
-      logger.forBot().info(`[CONTINUATION] Continuing sync for run ${runId} from offset ${startOffset}`)
+      logger.forBot().info(`▶ Continuation from offset ${startOffset}`)
       
       try {
         await client.setState({
@@ -59,10 +59,23 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
           payload: null
         })
       } catch (error) {
-        logger.forBot().warn(`Could not clear syncContinuation state: ${error}`)
+        // Ignore state clear errors
       }
     } else {
-      const mapping = await client.getState({ type: 'integration', id: ctx.integrationId, name: 'apifyRunMappings' })
+      // Fetch run mapping with timeout handling
+      let mapping
+      try {
+        mapping = await client.getState({ 
+          type: 'integration', 
+          id: ctx.integrationId, 
+          name: 'apifyRunMappings' 
+        })
+      } catch (error) {
+        logger.forBot().error(`Failed to fetch run mapping for ${runId}: ${error}`)
+        logger.forBot().error(`Webhook will be retried by Apify`)
+        throw new RuntimeError('Failed to fetch run mapping') 
+      }
+      
       const mapPayload = mapping?.state?.payload
       const mappedKbId = mapPayload?.[runId]
       
@@ -72,10 +85,8 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       }
       
       kbId = mappedKbId
-      logger.forBot().info(`Found kbId mapping for run ${runId}: ${kbId}`)
+      logger.forBot().info(`▶ Starting sync: ${runId}`)
     }
-
-    logger.forBot().info(`Will index results directly into KB: ${kbId}`)
   
     const runDetails = await apifyClient.getRun(runId)
     
@@ -96,19 +107,19 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
     }
 
     if (resultsResult.success) {
-      logger.forBot().info(`Successfully processed results for run ${runId}. Items: ${resultsResult.data?.itemsCount}, Files created: ${resultsResult.data?.filesCreated}`)
+      const total = streamingResult.total || 0;
+      const progress = streamingResult.nextOffset || total;
       
-    // more data to sync, trigger continuation webhook
-    if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
-      logger.forBot().info(`[CONTINUATION] More data available, triggering continuation webhook for run ${runId}`)
-      try {
-        await apifyClient.triggerContinuationWebhook(runId, kbId, streamingResult.nextOffset)
-      } catch (error) {
-        logger.forBot().error(`[CONTINUATION] Failed to trigger webhook for run ${runId}: ${error}`)
+      if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
+        logger.forBot().info(`✓ Batch: ${resultsResult.data?.itemsCount} items → ${resultsResult.data?.filesCreated} files (${progress}/${total})`);
+        try {
+          await apifyClient.triggerSyncWebhook(runId, kbId, streamingResult.nextOffset)
+        } catch (error) {
+          logger.forBot().error(`Failed to trigger continuation: ${error}`)
+        }
+      } else {
+        logger.forBot().info(`✓ Complete: ${total} items → ${resultsResult.data?.filesCreated} files`);
       }
-    } else {
-      logger.forBot().info(`[SYNC] All data synced for run ${runId} - NOT triggering webhook (hasMore: ${streamingResult.hasMore}, nextOffset: ${streamingResult.nextOffset})`)
-    }
       
       await client.createEvent({
         type: 'crawlerCompleted',
@@ -122,8 +133,6 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
           hasMore: streamingResult.hasMore,
         },
       })
-      
-      logger.forBot().info(`Emitted crawlerCompleted event for run ${runId}`)
       
     } else {
       logger.forBot().error(`Failed to get results for run ${runId}: ${resultsResult.message}`)

@@ -7,8 +7,6 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
   const { input, logger, ctx, client } = props;
   const { runId, kbId } = input;
 
-  logger.forBot().info(`Syncing results for run ID: ${runId} to KB: ${kbId}`);
-
   if (!runId || runId === '') {
     const errorMessage = 'Run ID is required';
     logger.forBot().error(errorMessage);
@@ -51,12 +49,9 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
 
     // store run mapping so the webhook handler can find it
     await persistRunMapping(client, ctx.integrationId, runId, kbId);
-    logger.forBot().info(`Persisted kbId mapping for run ${runId}`);
     
-    logger.forBot().info(`Triggering webhook to start sync for run ${runId} with continuations`);
-    await apifyClient.triggerContinuationWebhook(runId, kbId, 0);
-
-    logger.forBot().info(`Webhook triggered for run ${runId} - sync will be processed with continuations`);
+    logger.forBot().info(`Starting sync: ${runId} → KB ${kbId}`);
+    await apifyClient.triggerSyncWebhook(runId, kbId, 0);
 
     return {
       success: true,

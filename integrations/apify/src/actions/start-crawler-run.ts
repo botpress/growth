@@ -1,6 +1,6 @@
 import * as bp from '.botpress';
 import { getClient } from '../client';
-import { buildCrawlerInput } from '../helpers/utils';
+import { buildCrawlerInput } from '../helpers/data-transformer';
 import { persistRunMapping } from '../helpers/runMapping';
 import { RuntimeError } from '@botpress/sdk'
 
