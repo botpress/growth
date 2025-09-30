@@ -6,14 +6,18 @@ export async function persistRunMapping(
   runId: string, 
   kbId: string
 ) {
-  const existingMapping = await client.getState({
-    type: 'integration',
-    id: integrationId,
-    name: 'apifyRunMappings',
-  });
-
-  const payload = existingMapping.state.payload;
-  const currentMap = {...payload};
+  let currentMap: Record<string, string> = {}
+  try {
+    const existingMapping = await client.getState({
+      type: 'integration',
+      id: integrationId,
+      name: 'apifyRunMappings',
+    });
+    const payload = existingMapping.state.payload
+      currentMap = { ...payload }
+  } catch {
+    currentMap = {}
+  }
 
   currentMap[runId] = kbId;
 

@@ -137,7 +137,8 @@ export class ApifyApi {
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Botpress-Webhook-Secret': this.ctx.configuration.webhookSecret || ''
         },
         body: JSON.stringify(webhookPayload)
       });

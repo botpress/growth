@@ -85,8 +85,6 @@ export class Utils {
     let itemsProcessed = 0;
     let filesCreated = 0;
 
-    this.logger.forBot().info(`[STREAMING] Starting continuous fetch & sync: 1 item per fetch, offset: ${startOffset} at ${new Date().toISOString()}`);
-
     // process files one at a time with 100 seconds timeout detection
     const MAX_EXECUTION_TIME = 100000;
     
@@ -94,7 +92,7 @@ export class Utils {
       try {
         const elapsed = Date.now() - streamStartTime;
         if (elapsed > MAX_EXECUTION_TIME) {
-          this.logger.forBot().warn(`[STREAMING] Approaching 120s limit (${elapsed}ms), stopping at offset ${offset}`);
+          this.logger.forBot().warn(`[STREAMING] Approaching 100s limit (${elapsed}ms), stopping at offset ${offset}`);
           return { itemsProcessed, hasMore: true, nextOffset: offset, total, filesCreated };
         }
 
@@ -118,15 +116,11 @@ export class Utils {
           
           // check if all items have been processed
           if (total > 0 && offset >= total) {
-            const completionTime = Date.now()
-            const actualDuration = completionTime - streamStartTime
-            this.logger.forBot().info(`[STREAMING] All items processed: ${itemsProcessed} items processed, ${filesCreated} files created in ${actualDuration}ms (${(actualDuration/1000).toFixed(2)}s)`);
+            this.logger.forBot().info(`[STREAMING] All items processed: ${itemsProcessed} items processed, ${filesCreated} files created`);
             return { itemsProcessed, hasMore: false, nextOffset: 0, total, filesCreated };
           }
         } else {
-          const completionTime = Date.now()
-          const actualDuration = completionTime - streamStartTime
-          this.logger.forBot().info(`[STREAMING] Dataset completed: ${itemsProcessed} items processed, ${filesCreated} files created in ${actualDuration}ms (${(actualDuration/1000).toFixed(2)}s)`);
+          this.logger.forBot().info(`[STREAMING] Dataset completed: ${itemsProcessed} items processed, ${filesCreated} files created`);
           return { itemsProcessed, hasMore: false, nextOffset: 0, total, filesCreated };
         }
       } catch (error) {
