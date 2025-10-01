@@ -6,7 +6,7 @@ import { RuntimeError } from '@botpress/sdk'
 
 export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) => {
   const { input, logger, ctx, client } = props;
-  logger.forBot().info(`Starting crawler run with input: ${JSON.stringify(input)}`);
+  logger.forBot().info(`Starting crawler run`);
 
   try {
     const { kbId, ...apifyParams } = input;

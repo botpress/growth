@@ -76,9 +76,7 @@ export class SyncOrchestrator {
         }
 
         const filename = this.dataTransformer.generateFilename(item);
-        const fullFilename = `${filename}.${processedItem.extension}`;
-
-        await this.botpressHelper.uploadFile(fullFilename, processedItem.content, processedItem.extension, kbId);
+        await this.botpressHelper.uploadFile(filename, processedItem.content, processedItem.extension, kbId);
         filesCreated++;
       } catch (error) {
         this.logger.forBot().error(`Error processing item:`, error);

@@ -1,8 +1,8 @@
 import { getClient } from '../client'
 import { apifyWebhookSchema } from '../misc/schemas'
+import { RuntimeError } from '@botpress/sdk'
 import * as bp from '.botpress'
 import type { z } from 'zod'
-import { RuntimeError } from '@botpress/sdk'
 
 type ApifyWebhook = z.infer<typeof apifyWebhookSchema>
 
@@ -80,8 +80,9 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
       const mappedKbId = mapPayload?.[runId]
       
       if (!mappedKbId) {
-        logger.forBot().error(`No kbId mapping found for run ${runId}. This should not happen.`)
-        return
+        const errorMsg = `No kbId mapping found for run ${runId}. Run may not have been started through this integration.`
+        logger.forBot().error(errorMsg)
+        throw new RuntimeError(errorMsg)
       }
       
       kbId = mappedKbId
@@ -108,17 +109,17 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
 
     if (resultsResult.success) {
       const total = streamingResult.total || 0;
-      const progress = streamingResult.nextOffset || total;
+      const nextOffset = streamingResult.nextOffset || total;
       
       if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
-        logger.forBot().info(`✓ Batch: ${resultsResult.data?.itemsCount} items → ${resultsResult.data?.filesCreated} files (${progress}/${total})`);
+        logger.forBot().info(`✓ Batch: processed ${resultsResult.data?.itemsCount} items, created ${resultsResult.data?.filesCreated} files. Next offset: ${nextOffset}/${total}`);
         try {
           await apifyClient.triggerSyncWebhook(runId, kbId, streamingResult.nextOffset)
         } catch (error) {
           logger.forBot().error(`Failed to trigger continuation: ${error}`)
         }
       } else {
-        logger.forBot().info(`✓ Complete: ${total} items → ${resultsResult.data?.filesCreated} files`);
+        logger.forBot().info(`✓ Complete: Total ${total} items in dataset, created ${resultsResult.data?.filesCreated} files in this batch`);
       }
       
       await client.createEvent({
@@ -141,6 +142,6 @@ export async function handleCrawlerCompleted({ webhookPayload, client, logger, c
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     logger.forBot().error(`Crawler completion handler error: ${errorMessage}`)
-    logger.forBot().error(`Full error:`, error)
+    throw new RuntimeError(errorMessage)
   }
 }

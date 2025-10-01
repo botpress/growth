@@ -26,22 +26,30 @@ export class DataTransformer {
     if (!url) {
       return `page-${Date.now()}`;
     }
-
+  
     try {
       const urlObj = new URL(url);
-      let pathname = urlObj.pathname.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
       
-      // Remove leading underscore if present
-      pathname = pathname.replace(/^_+/, '');
+      // extract hostname
+      const hostname = urlObj.hostname
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .replace(/_+/g, '_');
       
-      // Handle root URLs and empty pathnames
-      if (!pathname || pathname === '_' || pathname === '') {
-        return 'index';
+      // extract pathname
+      let pathname = urlObj.pathname
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+/, '');
+      
+      if (!pathname) {
+        pathname = 'index';
       }
       
-      return pathname;
+      // combine hostname and pathname
+      return `${hostname}_${pathname}`;
+      
     } catch (urlError) {
-      this.logger.forBot().warn(`Invalid URL, using timestamp-based fallback: ${url}`, urlError);
+      this.logger.forBot().warn(`Invalid URL, using timestamp: ${url}`, urlError);
       return `page-${Date.now()}`;
     }
   }

@@ -14,7 +14,7 @@ export async function persistRunMapping(
       name: 'apifyRunMappings',
     });
     const payload = existingMapping.state.payload
-      currentMap = { ...payload }
+    currentMap = { ...payload }
   } catch {
     currentMap = {}
   }
