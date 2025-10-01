@@ -29,13 +29,13 @@ These actions are backed by the Mixpanel Analytics API, utilizing a write key to
 
 ## Setup Instructions
 
-#### Mixpanel Analytics Setup
+### Mixpanel Analytics Setup
 
 1. Log into your Mixpanel Analytics dashboard.
 2. Create a Mixpanel project.
-3. Find your a token using the instructions above.
+3. Find your token using the instructions above.
 
-#### Botpress Setup
+### Botpress Setup
 
 1. Click `Install` on the top right and select your bot.
 2. Follow the popup instructions to configure your integration.
