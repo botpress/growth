@@ -5,7 +5,7 @@ export default new IntegrationDefinition({
   title: 'Google Analytics',
   description: 'Track Botpress Analytics events in Google Analytics',
   icon: 'icon.svg',
-  version: '1.0.0',
+  version: '0.2.4',
   readme: 'hub.md',
   configuration: {
     schema: z.object({

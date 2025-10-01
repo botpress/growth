@@ -4,7 +4,7 @@ export default new IntegrationDefinition({
   name: 'plus/segment',
   icon: 'icon.svg',
   title: 'Segment',
-  version: '1.0.0',
+  version: '0.2.4',
   description: 'Track Botpress Analytics events in Segment',
   readme: 'hub.md',
   channels: {},
