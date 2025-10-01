@@ -13,7 +13,7 @@ export default new botpress.Integration({
 
     if (!ctx.configuration.writeKey) {
       throw new bpclient.RuntimeError(
-        'Configuration Error! The Segment write key is not set. Please set it in your bot integration configuration.',
+        'Configuration Error! The Segment write key is not set. Please set it in your bot integration configuration.'
       )
     }
 
@@ -36,7 +36,7 @@ export default new botpress.Integration({
       })
     } catch (error) {
       throw new bpclient.RuntimeError(
-        'Configuration Error! The Segment write key is not set. Please set it in your bot integration configuration.',
+        'Configuration Error! The Segment write key is not set. Please set it in your bot integration configuration.'
       )
     }
   },
@@ -102,7 +102,7 @@ export default new botpress.Integration({
               } else {
                 resolve({})
               }
-            },
+            }
           )
         })
       } catch (error) {
@@ -123,9 +123,7 @@ export default new botpress.Integration({
           eventPayload = JSON.parse(args.input.eventPayload)
         }
       } catch (error) {
-        args.logger
-          .forBot()
-          .error('Invalid JSON as eventPayload. Must be JSON stringifiable', error)
+        args.logger.forBot().error('Invalid JSON as eventPayload. Must be JSON stringifiable', error)
         return {
           success: false,
           log: 'Invalid JSON as eventPayload. Must be JSON stringifiable',
@@ -147,7 +145,7 @@ export default new botpress.Integration({
               } else {
                 resolve({})
               }
-            },
+            }
           )
         })
       } catch (error) {

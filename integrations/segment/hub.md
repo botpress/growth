@@ -38,7 +38,7 @@ These actions are backed by the Segment Analytics API, utilizing a write key to 
 
 1. Log into your Segment Analytics dashboard.
 2. Create a new Source to receive your Botpress Events
-3. Generate a new Write Key using the instructions above. 
+3. Generate a new Write Key using the instructions above.
 
 #### Botpress Setup
 

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [ "es2022" ],
+    "lib": ["es2022"],
     "module": "commonjs",
     "target": "es2017",
     "strict": true,
@@ -12,7 +12,7 @@
     "outDir": "dist",
     "incremental": true,
     "resolveJsonModule": true,
-    "typeRoots": [ "./node_modules/@types", "./src/types" ],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "noFallthroughCasesInSwitch": true,
@@ -25,10 +25,5 @@
     "noPropertyAccessFromIndexSignature": false,
     "noUnusedLocals": false
   },
-  "include": [
-    ".botpress/**/*",
-    "src/**/*",
-    "./*.ts",
-    "./*.json"
-  ]
+  "include": [".botpress/**/*", "src/**/*", "./*.ts", "./*.json"]
 }

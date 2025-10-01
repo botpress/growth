@@ -1,7 +1,7 @@
 {
-    "git.openRepositoryInParentFolders": "never",
-    "prettier.printWidth": 100,
-    "prettier.semi": false,
-    "prettier.singleQuote": true,
-    "prettier.trailingComma": "all"
+  "git.openRepositoryInParentFolders": "never",
+  "prettier.printWidth": 100,
+  "prettier.semi": false,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "all"
 }
