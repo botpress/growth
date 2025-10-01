@@ -10,7 +10,7 @@ The integration works by using actions to interact with Google Analytics via the
 2. **Track Node**: Tracks when a specific node within your bot is triggered, sending event data to Google Analytics.
 3. **Track Event**: Sends custom event data to Google Analytics, including optional properties defined in the payload.
 
-These actions utilize Google Analytics Measurement ID and optionally an API Secret for secure data transmission.
+These actions utilize Google Analytics Measurement ID and an API Secret for secure data transmission.
 
 ## Integration Features
 
@@ -35,13 +35,13 @@ These actions utilize Google Analytics Measurement ID and optionally an API Secr
 
 ## Setup Instructions
 
-#### Google Analytics Setup
+### Google Analytics Setup
 
 1. Log into your Google Analytics dashboard.
 2. Create or select an existing GA4 property.
 3. Configure or check your data stream to obtain the Measurement ID and API Secret.
 
-#### Botpress Setup
+### Botpress Setup
 
 1. Click `Install` on the top right and select your bot.
 2. Follow the popup instructions to configure your integration.
