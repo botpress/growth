@@ -1,6 +1,5 @@
 {
   "name": "segment",
-  "integrationName": "plus/segment",
   "scripts": {
     "type:check": "tsc --noEmit",
     "version": "bp --version",

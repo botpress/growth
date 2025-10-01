@@ -1,9 +1,8 @@
 import { IntegrationDefinition } from '@botpress/sdk'
-import { name, integrationName } from './package.json'
 import z from 'zod'
 
 export default new IntegrationDefinition({
-  name: integrationName ?? name,
+  name: 'plus/segment',
   icon: 'icon.svg',
   title: 'Segment',
   version: '0.2.4',
