@@ -5,7 +5,7 @@ export default new IntegrationDefinition({
   title: 'Mixpanel',
   description: 'Track Botpress Analytics events in Mixpanel',
   icon: 'logo.svg',
-  version: '0.2.4',
+  version: '1.0.0',
   readme: 'hub.md',
   configuration: {
     schema: z.object({
