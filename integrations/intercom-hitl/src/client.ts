@@ -111,14 +111,22 @@ export class IntercomApi {
     return this.makeRequest('POST', `/conversations/${conversationId}/parts`, closeData);
   }
 
-  public async replyToConversation(conversationId: string, intercomUserId: string, body: string): Promise<any> {
+  public async replyToConversation(
+    conversationId: string,
+    intercomUserId: string,
+    body: string,
+    attachmentUrls?: string[],
+    attachmentFiles?: { name: string; content_type: string; data: string }[]
+  ): Promise<any> {
     validateRequiredParams({ conversationId, intercomUserId, body }, 'replyToConversation');
     
-    const replyData = {
+    const replyData: Record<string, any> = {
       message_type: "comment",
       type: "user",
       intercom_user_id: intercomUserId,
-      body: body
+      body: body,
+      ...(attachmentUrls && attachmentUrls.length ? { attachment_urls: attachmentUrls } : {}),
+      ...(attachmentFiles && attachmentFiles.length ? { attachment_files: attachmentFiles } : {})
     };
     
     return this.makeRequest('POST', `/conversations/${conversationId}/reply`, replyData);
@@ -127,7 +135,7 @@ export class IntercomApi {
   private async makeRequest(method: string, endpoint: string, data?: any): Promise<any> {
     const headers = {
       Authorization: `Bearer ${this.accessToken}`,
-      'Intercom-Version': '2.13',
+      'Intercom-Version': '2.14',
       "Content-Type": "application/json",
     };
     
