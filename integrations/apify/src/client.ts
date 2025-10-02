@@ -28,7 +28,7 @@ export class ApifyApi {
    */
   async startCrawlerRun(input: CrawlerRunInput): Promise<{ runId: string; status: string }> {
     const run = await this.client.actor('apify/website-content-crawler').call(input, { waitSecs: 0 });
-    this.logger.forBot().info(`Crawler run started: ${run.id}`);
+    this.logger.forBot().debug(`Crawler run started with ID: ${run.id}, status: ${run.status}`);
 
     return {
       runId: run.id,

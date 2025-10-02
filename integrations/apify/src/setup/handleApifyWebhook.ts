@@ -24,29 +24,59 @@ export async function handleApifyWebhook({ webhookPayload, client, logger, ctx }
       logger.forBot().info(`Processing Apify webhook event: ${eventType}`)
       await handleCrawlerCompleted({ webhookPayload, client, logger, ctx })
       break
-    
+
     case 'ACTOR.RUN.FAILED':
       logger.forBot().warn(`Received webhook for failed crawler run: ${runId}`)
+      await client.createEvent({
+        type: 'crawlerFailed',
+        payload: {
+          actorId: webhookPayload.eventData.actorId,
+          actorRunId: webhookPayload.eventData.actorRunId,
+          runId: runId,
+          eventType: eventType,
+          reason: 'FAILED',
+        },
+      })
       break
-    
+
     case 'ACTOR.RUN.ABORTED':
       logger.forBot().warn(`Received webhook for aborted crawler run: ${runId}`)
+      await client.createEvent({
+        type: 'crawlerFailed',
+        payload: {
+          actorId: webhookPayload.eventData.actorId,
+          actorRunId: webhookPayload.eventData.actorRunId,
+          runId: runId,
+          eventType: eventType,
+          reason: 'ABORTED',
+        },
+      })
       break
-    
+
     case 'ACTOR.RUN.TIMED_OUT':
       logger.forBot().warn(`Received webhook for timed out crawler run: ${runId}`)
+      await client.createEvent({
+        type: 'crawlerFailed',
+        payload: {
+          actorId: webhookPayload.eventData.actorId,
+          actorRunId: webhookPayload.eventData.actorRunId,
+          runId: runId,
+          eventType: eventType,
+          reason: 'TIMED_OUT',
+        },
+      })
       break
-    
+
     case 'ACTOR.RUN.CREATED':
-      logger.forBot().info(`Received webhook for created crawler run: ${runId}`)
+      logger.forBot().debug(`Received webhook for created crawler run: ${runId}`)
       break
-    
+
     case 'ACTOR.RUN.RESURRECTED':
-      logger.forBot().info(`Received webhook for resurrected crawler run: ${runId}`)
+      logger.forBot().debug(`Received webhook for resurrected crawler run: ${runId}`)
       break
-    
+
     default:
-      logger.forBot().info(`Received webhook for unhandled event type: ${eventType}`)
+      logger.forBot().debug(`Received webhook for unhandled event type: ${eventType}`)
   }
 
   return {}

@@ -48,7 +48,7 @@ export const syncRunResults = async (props: bp.ActionProps['syncRunResults']) =>
     }
 
     // store run mapping so the webhook handler can find it
-    await persistRunMapping(client, ctx.integrationId, runId, kbId);
+    await persistRunMapping(client, ctx.integrationId, runId, kbId, logger);
     
     logger.forBot().info(`Starting sync: ${runId} → KB ${kbId}`);
     await apifyClient.triggerSyncWebhook(runId, kbId, 0);

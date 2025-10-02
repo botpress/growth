@@ -14,7 +14,6 @@
     "@botpress/client": "0.41.0",
     "@botpress/sdk": "4.9.0",
     "apify-client": "^2.12.5",
-    "axios": "^1.7.9",
     "zod": "^3.24.1"
   },
   "devDependencies": {

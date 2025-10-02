@@ -12,8 +12,8 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     const { items } = await actorCollectionClient.list({ limit: 1 });
 
     logger.forBot().info("Successfully connected to Apify API");
-    logger.forBot().info(`Found ${items.length} actors in your account`);
-    
+    logger.forBot().debug(`Found ${items.length} actors in your account`);
+
     logger.forBot().info("Apify integration registered successfully");
   } catch (error) {
     logger.forBot().error("Failed to connect to Apify API: Check your API token", error);

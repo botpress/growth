@@ -10,13 +10,13 @@ export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) 
 
   try {
     const { kbId, ...apifyParams } = input;
-    
+
     if (!kbId || kbId === '') {
       throw new RuntimeError('kbId is required to start a crawler run. Please provide a valid Knowledge Base ID.');
     }
-    
-    const crawlerInput = buildCrawlerInput(apifyParams);   
-    
+
+    const crawlerInput = buildCrawlerInput(apifyParams);
+
     if (apifyParams.headers) {
       crawlerInput.headers = apifyParams.headers;
     }
@@ -34,9 +34,9 @@ export const startCrawlerRun = async (props: bp.ActionProps['startCrawlerRun']) 
 
     const runId = result.runId;
 
-    await persistRunMapping(client, ctx.integrationId, runId, input.kbId);
+    await persistRunMapping(client, ctx.integrationId, runId, input.kbId, logger);
 
-    logger.forBot().info(`Persisted kbId mapping for run ${runId}`);
+    logger.forBot().debug(`Persisted kbId mapping for run ${runId}`);
 
     return {
       success: true,

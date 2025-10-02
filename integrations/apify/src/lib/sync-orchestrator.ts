@@ -2,6 +2,7 @@ import { DatasetItem, ApifyDataset } from '../misc/types';
 import { DataTransformer } from '../helpers/data-transformer';
 import { BotpressHelper } from '../helpers/botpress-helper';
 import * as bp from '.botpress';
+import { RuntimeError } from '@botpress/sdk';
 
 export class SyncOrchestrator {
   private dataTransformer: DataTransformer;
@@ -67,21 +68,55 @@ export class SyncOrchestrator {
 
   async syncContentToBotpress(items: DatasetItem[], kbId: string): Promise<number> {
     let filesCreated = 0;
+    let filesSkipped = 0;
+    let filesFailed = 0;
 
     for (const item of items) {
+      const url = item.url || item.metadata?.url || 'unknown';
+
       try {
         const processedItem = this.dataTransformer.processItemContent(item);
         if (!processedItem) {
+          filesSkipped++;
+          this.logger.forBot().warn(`⏭️  Skipped (no content): ${url}`);
           continue;
         }
 
         const filename = this.dataTransformer.generateFilename(item);
-        await this.botpressHelper.uploadFile(filename, processedItem.content, processedItem.extension, kbId);
-        filesCreated++;
+
+        // retry on 409
+        let retries = 5;
+        let lastError;
+
+        while (retries > 0) {
+          try {
+            await this.botpressHelper.uploadFile(filename, processedItem.content, processedItem.extension, kbId);
+            filesCreated++;
+            this.logger.forBot().debug(`✓ Uploaded: ${filename} (${url})`);
+            break;
+          } catch (uploadError: any) {
+            lastError = uploadError;
+            if (uploadError?.code === 409 && retries > 1) {
+              this.logger.forBot().warn(`⏳ File ${filename} locked, retrying in 3s... (${retries - 1} retries left)`);
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              retries--;
+            } else {
+              const errorMsg = uploadError instanceof Error ? uploadError.message : String(uploadError);
+              this.logger.forBot().error(`Failed to upload ${filename} after retries: ${errorMsg}`);
+              throw new RuntimeError(`Failed to upload file: ${errorMsg}`);
+            }
+          }
+        }
       } catch (error) {
-        this.logger.forBot().error(`Error processing item:`, error);
+        filesFailed++;
+        this.logger.forBot().error(`❌ Failed to process: ${url}`, error);
       }
     }
+
+    if (filesSkipped > 0 || filesFailed > 0) {
+      this.logger.forBot().info(`📊 Batch summary: ${filesCreated} created, ${filesSkipped} skipped (no content), ${filesFailed} failed`);
+    }
+
     return filesCreated;
   }
 }

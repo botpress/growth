@@ -7,7 +7,7 @@ export const startCrawlerRunInputSchema = z.object({
   includeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to include in crawling'),
   maxCrawlPages: z.number().min(1).max(10000).describe('Maximum number of pages to crawl'),
   saveMarkdown: z.boolean().describe('Save content as Markdown format'),
-  htmlTransformer: z.enum(['readableTextIfPossible', 'readableText', 'minimal', 'none']).describe('HTML processing method'),
+  htmlTransformer: z.enum(['readableTextIfPossible', 'readableText', 'extractus', 'none']).describe('HTML processing method'),
   removeElementsCssSelector: z.string().optional().describe('CSS selectors for elements to remove'),
   crawlerType: z.enum(['playwright:adaptive', 'playwright:firefox', 'cheerio', 'jsdom', 'playwright:chrome']).describe('Browser type for crawling'),
   expandClickableElements: z.boolean().describe('Expand clickable elements for better content extraction'),
@@ -45,6 +45,17 @@ export default new IntegrationDefinition({
         hasMore: z.boolean().optional().describe('Whether there are more items to sync in subsequent batches'),
       }),
     },
+    crawlerFailed: {
+      title: 'Crawler Failed',
+      description: 'Triggered when an Apify crawler run fails, times out, or is aborted',
+      schema: z.object({
+        actorId: z.string().describe('ID of the triggering Actor'),
+        actorRunId: z.string().describe('ID of the triggering Actor run'),
+        runId: z.string().describe('Alias for actorRunId for easier access'),
+        eventType: z.string().describe('Type of webhook event (e.g., ACTOR.RUN.FAILED, ACTOR.RUN.TIMED_OUT, ACTOR.RUN.ABORTED)'),
+        reason: z.string().describe('Reason for failure (FAILED, TIMED_OUT, or ABORTED)'),
+      }),
+    },
   },
   user: {
     tags: {
@@ -66,6 +77,14 @@ export default new IntegrationDefinition({
         nextOffset: z.number(),
         timestamp: z.number(),
       }).describe('State for tracking sync continuation when large datasets need multiple passes'),
+    },
+    activeSyncLock: {
+      type: 'integration',
+      schema: z.object({
+        runId: z.string(),
+        timestamp: z.number(),
+        offset: z.number(),
+      }).describe('Lock to prevent parallel sync executions from duplicate webhooks'),
     },
   },
   channels: {},
