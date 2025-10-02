@@ -88,6 +88,9 @@ export class SyncOrchestrator {
         let retries = 5
         let lastError
 
+        // 3 seconds
+        const SLEEP_TIME = 3000
+
         while (retries > 0) {
           try {
             await this.botpressHelper.uploadFile(filename, processedItem.content, processedItem.extension, kbId)
@@ -98,7 +101,7 @@ export class SyncOrchestrator {
             lastError = uploadError
             if (uploadError?.code === 409 && retries > 1) {
               this.logger.forBot().warn(`⏳ File ${filename} locked, retrying in 3s... (${retries - 1} retries left)`)
-              await new Promise((resolve) => setTimeout(resolve, 3000))
+              await new Promise((resolve) => setTimeout(resolve, SLEEP_TIME))
               retries--
             } else {
               const errorMsg = uploadError instanceof Error ? uploadError.message : String(uploadError)

@@ -106,8 +106,11 @@ export async function handleCrawlerCompleted({
       const lockPayload = syncLock?.state?.payload as { runId: string; timestamp: number; offset: number } | undefined
       const now = Date.now()
 
+      // 5 minute sync lock timeout
+      const SYNC_LOCK_TIMEOUT = 5 * 60 * 1000
+
       // if another sync is active for this run within the last 5 minutes, skip this duplicate
-      if (lockPayload?.runId === runId && now - lockPayload.timestamp < 300000) {
+      if (lockPayload?.runId === runId && now - lockPayload.timestamp < SYNC_LOCK_TIMEOUT) {
         logger
           .forBot()
           .info(`⏭️ Sync already in progress for ${runId} at offset ${lockPayload.offset}, skipping duplicate webhook`)
