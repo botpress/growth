@@ -5,11 +5,16 @@ import * as bp from '.botpress'
 
 type ApifyWebhook = z.infer<typeof apifyWebhookSchema>
 
-export async function handleApifyWebhook({ webhookPayload, client, logger, ctx }: { 
-  webhookPayload: ApifyWebhook, 
-  client: bp.Client, 
-  logger: bp.Logger, 
-  ctx: bp.Context 
+export async function handleApifyWebhook({
+  webhookPayload,
+  client,
+  logger,
+  ctx,
+}: {
+  webhookPayload: ApifyWebhook
+  client: bp.Client
+  logger: bp.Logger
+  ctx: bp.Context
 }) {
   const eventType = webhookPayload.eventType
   const runId = webhookPayload.resource.id

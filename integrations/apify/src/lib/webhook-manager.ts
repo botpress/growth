@@ -1,5 +1,5 @@
-import { RuntimeError } from '@botpress/sdk';
-import * as bp from '.botpress';
+import { RuntimeError } from '@botpress/sdk'
+import * as bp from '.botpress'
 
 export class WebhookManager {
   constructor(
@@ -20,7 +20,7 @@ export class WebhookManager {
       eventType: 'ACTOR.RUN.SUCCEEDED',
       eventData: {
         actorId: 'apify/website-content-crawler',
-        actorRunId: runId
+        actorRunId: runId,
       },
       resource: {
         id: runId,
@@ -28,9 +28,9 @@ export class WebhookManager {
         userId: 'synthetic-user',
         status: 'SUCCEEDED',
         startedAt: new Date().toISOString(),
-        finishedAt: new Date().toISOString()
-      }
-    };
+        finishedAt: new Date().toISOString(),
+      },
+    }
 
     try {
       await this.bpClient.setState({
@@ -41,32 +41,32 @@ export class WebhookManager {
           runId,
           kbId,
           nextOffset: offset,
-          timestamp: Date.now()
-        }
+          timestamp: Date.now(),
+        },
       })
     } catch (error) {
       this.logger.forBot().warn(`Could not store syncContinuation state: ${error}`)
-    };
+    }
 
     try {
-      const webhookUrl = `https://webhook.botpress.cloud/${this.ctx.webhookId}`;
+      const webhookUrl = `https://webhook.botpress.cloud/${this.ctx.webhookId}`
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Botpress-Webhook-Secret': this.ctx.configuration.webhookSecret || ''
+          'X-Botpress-Webhook-Secret': this.ctx.configuration.webhookSecret || '',
         },
-        body: JSON.stringify(webhookPayload)
-      });
+        body: JSON.stringify(webhookPayload),
+      })
 
       if (!response.ok && response.status !== 502) {
-        const responseText = await response.text();
-        throw new RuntimeError(`HTTP ${response.status}: ${response.statusText} - ${responseText}`);
+        const responseText = await response.text()
+        throw new RuntimeError(`HTTP ${response.status}: ${response.statusText} - ${responseText}`)
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = error instanceof Error ? error.message : String(error)
       if (!errorMsg.includes('502')) {
-        throw new RuntimeError(`Failed to trigger webhook: ${error}`);
+        throw new RuntimeError(`Failed to trigger webhook: ${error}`)
       }
     }
   }

@@ -5,5 +5,5 @@ import { syncRunResults } from './sync-run-results'
 export default {
   startCrawlerRun,
   getRunStatus,
-  syncRunResults
+  syncRunResults,
 }
