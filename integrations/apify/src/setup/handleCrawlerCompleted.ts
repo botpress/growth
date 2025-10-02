@@ -58,7 +58,11 @@ export async function handleCrawlerCompleted({
           name: 'syncContinuation',
           payload: null,
         })
-      } catch (error) {}
+      } catch (error) {
+        logger.forBot().error(`Failed to clear sync continuation state: ${error}`)
+        logger.forBot().error(`Webhook will be retried by Apify`)
+        throw new RuntimeError('Failed to clear sync continuation state')
+      }
     } else {
       let mapping
       try {
@@ -147,7 +151,7 @@ export async function handleCrawlerCompleted({
 
     if (resultsResult.success) {
       const total = streamingResult.total || 0
-      const nextOffset = streamingResult.nextOffset || total
+      const nextOffset = streamingResult.nextOffset ?? total
 
       if (streamingResult.hasMore === true && streamingResult.nextOffset > 0) {
         logger

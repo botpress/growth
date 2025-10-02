@@ -24,6 +24,7 @@ export const handler: Handler = async ({ req, client, logger, ctx }) => {
     const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
     const validation = apifyWebhookSchema.safeParse(parsed)
     if (!validation.success) {
+      logger.forBot().error(`Webhook handler error: ${validation.error.message}`)
       return {}
     }
     const webhookPayload = validation.data
