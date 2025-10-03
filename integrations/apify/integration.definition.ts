@@ -1,5 +1,4 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
-import { integrationName } from './package.json'
 
 export const startCrawlerRunInputSchema = z.object({
   startUrls: z.array(z.string().url()).describe('URLs to start crawling from'),
@@ -25,7 +24,7 @@ export const startCrawlerRunInputSchema = z.object({
 })
 
 export default new IntegrationDefinition({
-  name: integrationName ?? 'apify',
+  name: 'plus/apify',
   version: '1.0.1',
   title: 'Apify Website Content Crawler',
   readme: 'hub.md',
