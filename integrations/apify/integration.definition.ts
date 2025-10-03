@@ -25,8 +25,8 @@ export const startCrawlerRunInputSchema = z.object({
 
 export default new IntegrationDefinition({
   name: 'plus/apify',
-  version: '1.0.1',
-  title: 'Apify Website Content Crawler',
+  version: '1.0.2',
+  title: 'Advanced Website Crawler',
   readme: 'hub.md',
   icon: 'icon.svg',
   description:
