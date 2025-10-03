@@ -22,7 +22,15 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
 
     const header = "This is a notification from your Botpress bot.";
     const updateLinkUrl = `https://studio.botpress.cloud/${ctx.botId}`;
-    const htmlBody = `<div>
+
+    const htmlBody = input.isHtml
+      ? `<div>
+    <p>${header}</p>
+    ${input.body || ""}
+    <p><a href="${updateLinkUrl}">Update the notification here</a></p>
+    <p><a href="{{amazonSESUnsubscribeUrl}}">Unsubscribe</a></p>
+    </div>`
+      : `<div>
     <p>${header}</p>
     ${input.body ? `<p>${input.body}</p>` : ""}
     <p><a href="${updateLinkUrl}">Update the notification here</a></p>
