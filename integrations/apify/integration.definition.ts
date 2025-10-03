@@ -1,5 +1,5 @@
-import { IntegrationDefinition, z } from '@botpress/sdk';
-import { integrationName } from './package.json';
+import { IntegrationDefinition, z } from '@botpress/sdk'
+import { integrationName } from './package.json'
 
 export const startCrawlerRunInputSchema = z.object({
   startUrls: z.array(z.string().url()).describe('URLs to start crawling from'),
@@ -7,13 +7,22 @@ export const startCrawlerRunInputSchema = z.object({
   includeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to include in crawling'),
   maxCrawlPages: z.number().min(1).max(10000).describe('Maximum number of pages to crawl'),
   saveMarkdown: z.boolean().describe('Save content as Markdown format'),
-  htmlTransformer: z.enum(['readableTextIfPossible', 'readableText', 'extractus', 'none']).describe('HTML processing method'),
+  htmlTransformer: z
+    .enum(['readableTextIfPossible', 'readableText', 'extractus', 'none'])
+    .describe('HTML processing method'),
   removeElementsCssSelector: z.string().optional().describe('CSS selectors for elements to remove'),
-  crawlerType: z.enum(['playwright:adaptive', 'playwright:firefox', 'cheerio', 'jsdom', 'playwright:chrome']).describe('Browser type for crawling'),
+  crawlerType: z
+    .enum(['playwright:adaptive', 'playwright:firefox', 'cheerio', 'jsdom', 'playwright:chrome'])
+    .describe('Browser type for crawling'),
   expandClickableElements: z.boolean().describe('Expand clickable elements for better content extraction'),
   headers: z.string().optional().describe('Custom HTTP headers for authentication/requests'),
-  rawInputJsonOverride: z.string().optional().describe('JSON string to override any crawler parameters, please refer to https://console.apify.com/actors/<actor-id>/input and select JSON format for the available parameters'),
-});
+  rawInputJsonOverride: z
+    .string()
+    .optional()
+    .describe(
+      'JSON string to override any crawler parameters, please refer to https://console.apify.com/actors/<actor-id>/input and select JSON format for the available parameters'
+    ),
+})
 
 export default new IntegrationDefinition({
   name: integrationName ?? 'apify',
@@ -52,7 +61,9 @@ export default new IntegrationDefinition({
         actorId: z.string().describe('ID of the triggering Actor'),
         actorRunId: z.string().describe('ID of the triggering Actor run'),
         runId: z.string().describe('Alias for actorRunId for easier access'),
-        eventType: z.string().describe('Type of webhook event (e.g., ACTOR.RUN.FAILED, ACTOR.RUN.TIMED_OUT, ACTOR.RUN.ABORTED)'),
+        eventType: z
+          .string()
+          .describe('Type of webhook event (e.g., ACTOR.RUN.FAILED, ACTOR.RUN.TIMED_OUT, ACTOR.RUN.ABORTED)'),
         reason: z.string().describe('Reason for failure (FAILED, TIMED_OUT, or ABORTED)'),
       }),
     },
@@ -71,31 +82,36 @@ export default new IntegrationDefinition({
     },
     syncContinuation: {
       type: 'integration',
-      schema: z.object({
-        runId: z.string(),
-        kbId: z.string(),
-        nextOffset: z.number(),
-        timestamp: z.number(),
-      }).describe('State for tracking sync continuation when large datasets need multiple passes'),
+      schema: z
+        .object({
+          runId: z.string(),
+          kbId: z.string(),
+          nextOffset: z.number(),
+          timestamp: z.number(),
+        })
+        .describe('State for tracking sync continuation when large datasets need multiple passes'),
     },
     activeSyncLock: {
       type: 'integration',
-      schema: z.object({
-        runId: z.string(),
-        timestamp: z.number(),
-        offset: z.number(),
-      }).describe('Lock to prevent parallel sync executions from duplicate webhooks'),
+      schema: z
+        .object({
+          runId: z.string(),
+          timestamp: z.number(),
+          offset: z.number(),
+        })
+        .describe('Lock to prevent parallel sync executions from duplicate webhooks'),
     },
   },
   channels: {},
   actions: {
     startCrawlerRun: {
       title: 'Start Crawler Run',
-      description: 'Start a crawler run asynchronously. Use with webhooks for production crawling. You can either use individual parameters for simple cases, or provide rawInputJsonOverride for full control.',
+      description:
+        'Start a crawler run asynchronously. Use with webhooks for production crawling. You can either use individual parameters for simple cases, or provide rawInputJsonOverride for full control.',
       input: {
         schema: startCrawlerRunInputSchema.extend({
           kbId: z.string().describe('Knowledge Base ID to save the crawled content to'),
-        })
+        }),
       },
       output: {
         schema: z.object({
@@ -122,8 +138,8 @@ export default new IntegrationDefinition({
           message: z.string(),
           data: z.object({
             runId: z.string(),
-            status: z.string()
-          })
+            status: z.string(),
+          }),
         }),
       },
     },
@@ -142,11 +158,10 @@ export default new IntegrationDefinition({
           message: z.string(),
           data: z.object({
             runId: z.string(),
-            datasetId: z.string()
-          })
+            datasetId: z.string(),
+          }),
         }),
       },
     },
-
   },
-});
+})

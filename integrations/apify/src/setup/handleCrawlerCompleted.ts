@@ -4,6 +4,7 @@ import { RuntimeError } from '@botpress/sdk'
 import * as bp from '.botpress'
 import type { z } from 'zod'
 import { cleanupRunMapping } from '../helpers/runMapping'
+import { checkAndAcquireSyncLock, updateSyncLock, releaseSyncLock } from '../helpers/syncLock'
 
 type ApifyWebhook = z.infer<typeof apifyWebhookSchema>
 
@@ -90,48 +91,19 @@ export async function handleCrawlerCompleted({
       logger.forBot().info(`▶ Starting sync: ${runId}`)
     }
 
-    // check for duplicate webhooks
+    // check for duplicate webhooks and acquire lock
     if (!isContinuation) {
-      let syncLock
-      try {
-        syncLock = await client.getState({
-          type: 'integration',
-          id: ctx.integrationId,
-          name: 'activeSyncLock',
-        })
-      } catch (error) {
-        syncLock = null
-      }
+      const lockAcquired = await checkAndAcquireSyncLock({
+        client,
+        integrationId: ctx.integrationId,
+        runId,
+        offset: startOffset,
+        logger,
+      })
 
-      const lockPayload = syncLock?.state?.payload as { runId: string; timestamp: number; offset: number } | undefined
-      const now = Date.now()
-
-      // 5 minute sync lock timeout
-      const SYNC_LOCK_TIMEOUT = 5 * 60 * 1000
-
-      // if another sync is active for this run within the last 5 minutes, skip this duplicate
-      if (lockPayload?.runId === runId && now - lockPayload.timestamp < SYNC_LOCK_TIMEOUT) {
-        logger
-          .forBot()
-          .info(`⏭️ Sync already in progress for ${runId} at offset ${lockPayload.offset}, skipping duplicate webhook`)
+      if (!lockAcquired) {
         return
       }
-    }
-
-    // acquire lock before processing to prevent parallel execution
-    try {
-      await client.setState({
-        type: 'integration',
-        id: ctx.integrationId,
-        name: 'activeSyncLock',
-        payload: {
-          runId,
-          timestamp: Date.now(),
-          offset: startOffset,
-        },
-      })
-    } catch (error) {
-      logger.forBot().warn(`Failed to set sync lock: ${error}`)
     }
 
     const runDetails = await apifyClient.getRun(runId)
@@ -164,20 +136,13 @@ export async function handleCrawlerCompleted({
           )
 
         // update lock with new offset
-        try {
-          await client.setState({
-            type: 'integration',
-            id: ctx.integrationId,
-            name: 'activeSyncLock',
-            payload: {
-              runId,
-              timestamp: Date.now(),
-              offset: streamingResult.nextOffset,
-            },
-          })
-        } catch (error) {
-          logger.forBot().warn(`Failed to update sync lock: ${error}`)
-        }
+        await updateSyncLock({
+          client,
+          integrationId: ctx.integrationId,
+          runId,
+          offset: streamingResult.nextOffset,
+          logger,
+        })
 
         try {
           await apifyClient.triggerSyncWebhook(runId, kbId, streamingResult.nextOffset)
@@ -192,16 +157,11 @@ export async function handleCrawlerCompleted({
           )
 
         // clear lock when sync is complete
-        try {
-          await client.setState({
-            type: 'integration',
-            id: ctx.integrationId,
-            name: 'activeSyncLock',
-            payload: null,
-          })
-        } catch (error) {
-          logger.forBot().warn(`Failed to clear sync lock: ${error}`)
-        }
+        await releaseSyncLock({
+          client,
+          integrationId: ctx.integrationId,
+          logger,
+        })
 
         // clean up run mapping
         await cleanupRunMapping(client, ctx.integrationId, runId, logger)
