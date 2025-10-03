@@ -26,7 +26,9 @@
     "check": "pnpm check:sherif && pnpm check:dep && pnpm check:format && pnpm check:lint && pnpm check:type",
     "fix": "pnpm fix:sherif && pnpm fix:dep && pnpm fix:oxlint && pnpm fix:format && pnpm fix:lint",
     "postinstall": "node ./scripts/setup-integrations.js",
-    "update:deps": "ncu -u && pnpm install"
+    "update:deps": "ncu -u && pnpm install",
+    "reviewer:update": "echo 'Updating PR patterns from recent GitHub comments...' && claude subagent pr-guide-updater",
+    "reviewer:check": "echo 'Reviewing your changes...' && claude subagent pr-reviewer"
   },
   "lint-staged": {
     "**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}": [
