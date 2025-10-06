@@ -10,6 +10,7 @@ Transform your bot into a smart business communication system that can:
 - Deliver critical alerts and system notifications
 - Forward form submissions to the right departments
 - Route customer inquiries to appropriate email addresses
+- Send beautifully formatted HTML emails with custom styling
 
 ## How it works
 
@@ -18,7 +19,8 @@ Simply add the "Send Mail" action to your bot conversation flow. When triggered,
 ## Getting Started
 1. Add the "Send Mail" action anywhere in your bot flow
 2. Configure your ticket inbox or team email addresses
-3. Optionally use the delivery confirmation event for follow-up automation
+3. Choose between plain text or HTML formatting
+4. Optionally use the delivery confirmation event for follow-up automation
 
 ## What you'll need
 - Your destination email addresses
