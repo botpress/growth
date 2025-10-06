@@ -328,7 +328,3 @@ An effective AI PR reviewer should:
 6. Be constructive and educational
 
 Remember: The goal is to improve code quality while maintaining a positive, collaborative environment. Always assume good intentions and provide feedback that helps developers grow.
-
-```
-
-```
