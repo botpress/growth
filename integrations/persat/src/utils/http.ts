@@ -25,6 +25,6 @@ export const getAxiosClient = async ({
     config.headers = config.headers ?? {}
     return config
   })
- 
+
   return instance
 }

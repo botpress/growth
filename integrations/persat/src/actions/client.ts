@@ -2,7 +2,7 @@ import { RuntimeError } from '@botpress/client'
 import { ClientResponseSchema, ClientSchema, SearchSchema, UpdateClientResponseSchema } from 'definitions/schemas'
 import * as bp from '.botpress'
 import { extractError } from 'misc/utils/errorUtils'
-import { getAxiosClient } from 'src/http'
+import { getAxiosClient } from 'src/utils/http'
 
 export const getClient: bp.Integration['actions']['getClient'] = async ({ client, ctx, input, logger }) => {
   try {
@@ -19,11 +19,24 @@ export const getClient: bp.Integration['actions']['getClient'] = async ({ client
 
 export const updateClient: bp.Integration['actions']['updateClient'] = async ({ client, ctx, input, logger }) => {
   try {
-    const { uid_client, ...rest } = ClientSchema.parse(input)
+    const { uid_client, custom_fields, wt, type_id, group_id, ...rest } = ClientSchema.parse(input)
+
+    if (wt && wt.length !== 0 && wt.length !== 2) {
+      throw new RuntimeError(`wt must contain either 0 or 2 elements, got ${wt.length}`)
+    }
+
+    const payload = {
+      ...rest,
+      ...(custom_fields && { custom_fields: JSON.parse(custom_fields) }),
+      ...(wt && wt.length === 2 && { wt }),
+      ...(type_id && type_id !== 0 && { type_id }),
+      ...(group_id && group_id !== 0 && { group_id }),
+    }
+
     const http = await getAxiosClient({ ctx, client })
     const extension = `clients/${uid_client}`
-    logger.forBot().debug(`PUT ${extension} payload=${JSON.stringify(rest)}`)
-    const response = await http.put(extension, rest)
+    logger.forBot().debug(`PUT ${extension} payload=${JSON.stringify(payload)}`)
+    const response = await http.put(extension, payload)
     return UpdateClientResponseSchema.parse(response.data)
   } catch (error) {
     throw new RuntimeError(extractError(error, logger))
@@ -32,7 +45,20 @@ export const updateClient: bp.Integration['actions']['updateClient'] = async ({ 
 
 export const createClient: bp.Integration['actions']['createClient'] = async ({ client, ctx, input, logger }) => {
   try {
-    const payload = ClientSchema.parse(input)
+    const { custom_fields, wt, type_id, group_id, ...rest } = ClientSchema.parse(input)
+
+    if (wt && wt.length !== 0 && wt.length !== 2) {
+      throw new RuntimeError(`wt must contain either 0 or 2 elements, got ${wt.length}`)
+    }
+
+    const payload = {
+      ...rest,
+      ...(custom_fields && { custom_fields: JSON.parse(custom_fields) }),
+      ...(wt && wt.length === 2 && { wt }),
+      ...(type_id && type_id !== 0 && { type_id }),
+      ...(group_id && group_id !== 0 && { group_id }),
+    }
+
     const http = await getAxiosClient({ ctx, client })
     logger.forBot().debug(`POST clients payload=${JSON.stringify(payload)}`)
     const response = await http.post('clients', payload)

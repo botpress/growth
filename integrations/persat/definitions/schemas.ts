@@ -12,9 +12,12 @@ export const ClientSchema = z.object({
   longitude: z.number().optional().describe('Customer location, longitude.'),
   service_time: z.number().optional().describe('Service time. Used by the routing algorithm.'),
   wt: z
-    .tuple([z.number(), z.number()])
+    .array(z.number())
+    .title('Opening and closing time')
     .optional()
-    .describe('Opening and closing times of the establishment (in minutes). Used by the routing algorithm.'),
+    .describe(
+      'Opening and closing times of the establishment. Should contain exactly 2 numbers: [open, close] times in minutes.'
+    ),
   street: z.string().optional().describe('Street where the client is located (exclude number).'),
   street_nbr: z.string().optional().describe('Street number.'),
   neighborhood: z.string().optional().describe("Neighborhood, e.g. 'Devoto'."),
@@ -22,9 +25,19 @@ export const ClientSchema = z.object({
   country: z.string().optional().describe("Country, e.g. 'Argentina'."),
   last_updated: z.string().optional().describe('Last update timestamp (ISO 8601).'),
   custom_fields: z
-    .record(z.object({ name: z.string(), value: z.string().nullable().optional() }).passthrough())
-    .optional()
-    .describe('Custom fields on the customer record (may include required fields).'),
+    .string()
+    .displayAs<any>({
+      id: 'text',
+      params: {
+        allowDynamicVariable: true,
+        growVertically: true,
+        multiLine: true,
+        resizable: true,
+      },
+    })
+    .title('Custom Fields (JSON)')
+    .describe('JSON string containing key, value pairs of custom fields')
+    .optional(),
   type_id: z
     .number()
     .optional()
@@ -39,12 +52,93 @@ export const CreateClientInputSchema = ClientSchema.extend({
   company_name: z.string(),
 })
 
+export const ClientResponseDataSchema = ClientSchema.extend({
+  custom_fields: z.object({}).passthrough().optional(),
+}).passthrough()
+
 export const ClientResponseSchema = z.object({
   success: z.literal(true),
-  data: CreateClientInputSchema.passthrough(),
+  data: ClientResponseDataSchema,
 })
 
 export const UpdateClientResponseSchema = z.object({
   success: z.literal(true),
-  data: ClientSchema.partial().passthrough(),
+  data: ClientResponseDataSchema.partial().passthrough(),
+})
+
+export const SubmitFormInputSchema = z
+  .object({
+    uid_client: z.string().min(1).title('Customer identifier'),
+    df_data: z
+      .object({
+        schema_id: z.number().title('Form template identifier'),
+        formvalues: z
+          .string()
+          .displayAs<any>({
+            id: 'text',
+            params: {
+              allowDynamicVariable: true,
+              growVertically: true,
+              multiLine: true,
+              resizable: true,
+            },
+          })
+          .title('Form Values (JSON)')
+          .describe('JSON string containing key, value pairs of form entries')
+          .optional(),
+      })
+      .required(),
+  })
+  .required()
+
+export const SubmitFormResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    _id: z.string(),
+    created: z.string(),
+    created_by_user_name: z.string(),
+    created_by_user_id: z.number(),
+    client: z.object({
+      id: z.number(),
+      name: z.string(),
+      uid_client: z.string(),
+    }),
+    df_data: z.object({
+      schema_id: z.number(),
+      results: z.object({
+        last_updated: z.string(),
+        formvalues: z.object({}).passthrough().title('Form values').describe('Key-value pairs of form field answers.'),
+      }),
+    }),
+    state: z.object({
+      color: z.string(),
+      deleted: z.boolean(),
+      id: z.number(),
+      name: z.string(),
+    }),
+  }),
+})
+
+export const FormWidgetSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  subtitle: z.string().optional(),
+  widget_type: z.string(),
+  description: z.object({}).passthrough().optional(),
+})
+
+export const FormTemplateResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    form_group: z.number(),
+    schema_id: z.number(),
+    production: z.boolean(),
+    version: z.number(),
+    draft: z.boolean(),
+    description: z.object({
+      title: z.string(),
+      color: z.string(),
+      widgets: z.array(FormWidgetSchema),
+    }),
+  }),
 })
