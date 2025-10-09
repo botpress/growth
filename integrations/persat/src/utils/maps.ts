@@ -14,7 +14,7 @@ type CustomFieldsDefinition = z.infer<typeof CustomFieldsDefinitionResponseSchem
 export function filterEmptyValues(data: Record<string, any>): Record<string, any> {
   const filtered: Record<string, any> = {}
   for (const [key, value] of Object.entries(data)) {
-    if (value !== undefined && value !== null && value !== '' && !(typeof value === 'number' && value === 0)) {
+    if (value !== undefined && value !== null && value !== '') {
       filtered[key] = value
     }
   }
