@@ -1,8 +1,15 @@
 import { RuntimeError } from '@botpress/client'
-import { ClientResponseSchema, ClientSchema, SearchSchema, UpdateClientResponseSchema } from 'definitions/schemas'
+import {
+  ClientResponseSchema,
+  ClientSchema,
+  CustomFieldsDefinitionResponseSchema,
+  SearchSchema,
+  UpdateClientResponseSchema,
+} from 'definitions/schemas'
 import * as bp from '.botpress'
 import { extractError } from 'misc/utils/errorUtils'
 import { getAxiosClient } from 'src/utils/http'
+import { mapCustomFieldsByName } from 'src/utils/maps'
 
 export const getClient: bp.Integration['actions']['getClient'] = async ({ client, ctx, input, logger }) => {
   try {
@@ -25,15 +32,34 @@ export const updateClient: bp.Integration['actions']['updateClient'] = async ({ 
       throw new RuntimeError(`wt must contain either 0 or 2 elements, got ${wt.length}`)
     }
 
+    const http = await getAxiosClient({ ctx, client })
+
+    let mappedCustomFields
+    if (custom_fields && custom_fields.trim() !== '') {
+      const getExtension = 'client-custom-fields'
+      const getResponse = await http.get(getExtension)
+      mappedCustomFields = mapCustomFieldsByName(
+        CustomFieldsDefinitionResponseSchema.parse(getResponse.data),
+        custom_fields,
+        logger
+      )
+    }
+
+    const filteredRest: Record<string, any> = {}
+    for (const [key, value] of Object.entries(rest)) {
+      if (value !== undefined && value !== null && value !== '' && !(typeof value === 'number' && value === 0)) {
+        filteredRest[key] = value
+      }
+    }
+
     const payload = {
-      ...rest,
-      ...(custom_fields && { custom_fields: JSON.parse(custom_fields) }),
+      ...filteredRest,
+      ...(mappedCustomFields && { custom_fields: mappedCustomFields }),
       ...(wt && wt.length === 2 && { wt }),
       ...(type_id && type_id !== 0 && { type_id }),
       ...(group_id && group_id !== 0 && { group_id }),
     }
 
-    const http = await getAxiosClient({ ctx, client })
     const extension = `clients/${uid_client}`
     logger.forBot().debug(`PUT ${extension} payload=${JSON.stringify(payload)}`)
     const response = await http.put(extension, payload)
@@ -51,15 +77,34 @@ export const createClient: bp.Integration['actions']['createClient'] = async ({ 
       throw new RuntimeError(`wt must contain either 0 or 2 elements, got ${wt.length}`)
     }
 
+    const http = await getAxiosClient({ ctx, client })
+
+    let mappedCustomFields
+    if (custom_fields && custom_fields.trim() !== '') {
+      const getExtension = 'client-custom-fields'
+      const getResponse = await http.get(getExtension)
+      mappedCustomFields = mapCustomFieldsByName(
+        CustomFieldsDefinitionResponseSchema.parse(getResponse.data),
+        custom_fields,
+        logger
+      )
+    }
+
+    const filteredRest: Record<string, any> = {}
+    for (const [key, value] of Object.entries(rest)) {
+      if (value !== undefined && value !== null && value !== '' && !(typeof value === 'number' && value === 0)) {
+        filteredRest[key] = value
+      }
+    }
+
     const payload = {
-      ...rest,
-      ...(custom_fields && { custom_fields: JSON.parse(custom_fields) }),
+      ...filteredRest,
+      ...(mappedCustomFields && { custom_fields: mappedCustomFields }),
       ...(wt && wt.length === 2 && { wt }),
       ...(type_id && type_id !== 0 && { type_id }),
       ...(group_id && group_id !== 0 && { group_id }),
     }
 
-    const http = await getAxiosClient({ ctx, client })
     logger.forBot().debug(`POST clients payload=${JSON.stringify(payload)}`)
     const response = await http.post('clients', payload)
     return ClientResponseSchema.parse(response.data)
