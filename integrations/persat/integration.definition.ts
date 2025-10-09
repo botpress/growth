@@ -2,10 +2,10 @@ import { IntegrationDefinition, z } from '@botpress/sdk'
 import { actions } from 'definitions'
 
 export default new IntegrationDefinition({
-  name: 'max/persat',
+  name: 'plus/persat',
   title: 'Persat',
   description: 'Connect with Persat to manage clients and form creation',
-  version: '0.0.2',
+  version: '1.0.0',
   readme: 'hub.md',
   icon: 'icon.svg',
 
