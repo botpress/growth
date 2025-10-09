@@ -11,6 +11,16 @@ type FormTemplate = z.infer<typeof FormTemplateResponseSchema>
 type SubmitFormInput = z.infer<typeof SubmitFormInputSchema>
 type CustomFieldsDefinition = z.infer<typeof CustomFieldsDefinitionResponseSchema>
 
+export function filterEmptyValues(data: Record<string, any>): Record<string, any> {
+  const filtered: Record<string, any> = {}
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined && value !== null && value !== '' && !(typeof value === 'number' && value === 0)) {
+      filtered[key] = value
+    }
+  }
+  return filtered
+}
+
 export function mapCustomFieldsByName(
   customFieldsDefinition: CustomFieldsDefinition,
   customFieldsInput: string,

@@ -9,7 +9,7 @@ import {
 import * as bp from '.botpress'
 import { extractError } from 'misc/utils/errorUtils'
 import { getAxiosClient } from 'src/utils/http'
-import { mapCustomFieldsByName } from 'src/utils/maps'
+import { filterEmptyValues, mapCustomFieldsByName } from 'src/utils/maps'
 
 export const getClient: bp.Integration['actions']['getClient'] = async ({ client, ctx, input, logger }) => {
   try {
@@ -45,15 +45,8 @@ export const updateClient: bp.Integration['actions']['updateClient'] = async ({ 
       )
     }
 
-    const filteredRest: Record<string, any> = {}
-    for (const [key, value] of Object.entries(rest)) {
-      if (value !== undefined && value !== null && value !== '' && !(typeof value === 'number' && value === 0)) {
-        filteredRest[key] = value
-      }
-    }
-
     const payload = {
-      ...filteredRest,
+      ...filterEmptyValues(rest),
       ...(mappedCustomFields && { custom_fields: mappedCustomFields }),
       ...(wt && wt.length === 2 && { wt }),
       ...(type_id && type_id !== 0 && { type_id }),
@@ -90,15 +83,8 @@ export const createClient: bp.Integration['actions']['createClient'] = async ({ 
       )
     }
 
-    const filteredRest: Record<string, any> = {}
-    for (const [key, value] of Object.entries(rest)) {
-      if (value !== undefined && value !== null && value !== '' && !(typeof value === 'number' && value === 0)) {
-        filteredRest[key] = value
-      }
-    }
-
     const payload = {
-      ...filteredRest,
+      ...filterEmptyValues(rest),
       ...(mappedCustomFields && { custom_fields: mappedCustomFields }),
       ...(wt && wt.length === 2 && { wt }),
       ...(type_id && type_id !== 0 && { type_id }),
