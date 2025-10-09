@@ -156,21 +156,3 @@ export const CustomFieldsDefinitionResponseSchema = z.object({
   success: z.literal(true),
   data: z.array(CustomFieldDefinitionSchema),
 })
-
-export const FormSchemaItemSchema = z.object({
-  form_group: z.number(),
-  schema_id: z.number(),
-  production: z.boolean(),
-  version: z.number(),
-  draft: z.boolean(),
-  description: z.object({
-    title: z.string(),
-    color: z.string(),
-    widgets: z.array(FormWidgetSchema),
-  }),
-})
-
-export const FormsListResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.array(FormSchemaItemSchema),
-})

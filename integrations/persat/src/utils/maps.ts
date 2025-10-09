@@ -3,7 +3,6 @@ import {
   FormTemplateResponseSchema,
   SubmitFormInputSchema,
   CustomFieldsDefinitionResponseSchema,
-  FormsListResponseSchema,
 } from 'definitions/schemas'
 import { extractError } from 'misc/utils/errorUtils'
 import * as bp from '.botpress'
@@ -11,7 +10,6 @@ import * as bp from '.botpress'
 type FormTemplate = z.infer<typeof FormTemplateResponseSchema>
 type SubmitFormInput = z.infer<typeof SubmitFormInputSchema>
 type CustomFieldsDefinition = z.infer<typeof CustomFieldsDefinitionResponseSchema>
-type FormsListResponse = z.infer<typeof FormsListResponseSchema>
 
 export function mapCustomFieldsByName(
   customFieldsDefinition: CustomFieldsDefinition,
@@ -39,28 +37,6 @@ export function mapCustomFieldsByName(
     }
 
     return mappedFields
-  } catch (error) {
-    throw new RuntimeError(extractError(error, logger))
-  }
-}
-
-export function mapFormNamesById(formsListResponse: FormsListResponse, formName: string, logger: bp.Logger): number {
-  try {
-    // create map of form title -> schema_id
-    const titleToIdMap = new Map<string, number>()
-    for (const formSchema of formsListResponse.data) {
-      titleToIdMap.set(formSchema.description.title, formSchema.schema_id)
-    }
-
-    // get the schema_id for the given form name
-    const schemaId = titleToIdMap.get(formName)
-    if (schemaId !== undefined) {
-      return schemaId
-    } else {
-      throw new RuntimeError(
-        `Invalid form name provided "${formName}", must be one of the following: ${Array.from(titleToIdMap.keys()).join(', ')}`
-      )
-    }
   } catch (error) {
     throw new RuntimeError(extractError(error, logger))
   }
