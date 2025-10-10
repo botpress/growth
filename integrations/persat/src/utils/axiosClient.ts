@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, Method } from 'axios'
+import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import * as bp from '.botpress'
 import { getAccessToken } from './auth'
 
@@ -8,8 +8,6 @@ export const getAxiosClient = async ({
 }: {
   ctx: bp.Context
   client: bp.Client
-  method?: Method
-  extension?: string
 }): Promise<AxiosInstance> => {
   const token = await getAccessToken({ ctx, client })
   const baseURL = 'https://api.persat.com.ar/v1/'

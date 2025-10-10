@@ -2,6 +2,7 @@ import { RuntimeError, z } from '@botpress/sdk'
 import {
   FormTemplateResponseSchema,
   SubmitFormInputSchema,
+  SubmitFormMappedSchema,
   CustomFieldsDefinitionResponseSchema,
 } from 'definitions/schemas'
 import { extractError } from 'misc/utils/errorUtils'
@@ -9,17 +10,8 @@ import * as bp from '.botpress'
 
 type FormTemplate = z.infer<typeof FormTemplateResponseSchema>
 type SubmitFormInput = z.infer<typeof SubmitFormInputSchema>
+type SubmitFormMapped = z.infer<typeof SubmitFormMappedSchema>
 type CustomFieldsDefinition = z.infer<typeof CustomFieldsDefinitionResponseSchema>
-
-export function filterEmptyValues(data: Record<string, any>): Record<string, any> {
-  const filtered: Record<string, any> = {}
-  for (const [key, value] of Object.entries(data)) {
-    if (value !== undefined && value !== null && value !== '') {
-      filtered[key] = value
-    }
-  }
-  return filtered
-}
 
 export function mapCustomFieldsByName(
   customFieldsDefinition: CustomFieldsDefinition,
@@ -56,7 +48,7 @@ export function mapFormValuesByTitle(
   formTemplate: FormTemplate,
   formInput: SubmitFormInput,
   logger: bp.Logger
-): { uid_client: string; df_data: { schema_id: number; formvalues: Record<string, any> } } {
+): SubmitFormMapped {
   try {
     const formValues = formInput.df_data.formvalues ? JSON.parse(formInput.df_data.formvalues) : {}
 
