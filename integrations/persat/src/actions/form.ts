@@ -2,8 +2,8 @@ import { RuntimeError } from '@botpress/client'
 import { FormTemplateResponseSchema, SubmitFormInputSchema, SubmitFormResponseSchema } from 'definitions/schemas'
 import * as bp from '.botpress'
 import { extractError } from 'misc/utils/errorUtils'
-import { getAxiosClient } from 'src/utils/http'
-import { mapFormValuesByTitle } from 'src/utils/maps'
+import { getAxiosClient } from 'src/utils/axiosClient'
+import { mapFormValuesByTitle } from 'src/utils/mappers'
 
 export const submitForm: bp.Integration['actions']['submitForm'] = async ({ client, ctx, input, logger }) => {
   try {

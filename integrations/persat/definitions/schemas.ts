@@ -91,6 +91,16 @@ export const SubmitFormInputSchema = z
   })
   .required()
 
+export const SubmitFormMappedSchema = z.object({
+  uid_client: z.string(),
+  df_data: z.object({
+    schema_id: z.number(),
+    formvalues: z.object({}).passthrough(),
+  }),
+})
+
+export const FilterableClientDataSchema = ClientSchema.partial().passthrough()
+
 export const SubmitFormResponseSchema = z.object({
   success: z.literal(true),
   data: z.object({
