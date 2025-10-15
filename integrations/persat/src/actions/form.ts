@@ -1,22 +1,34 @@
 import { RuntimeError } from '@botpress/client'
-import { FormTemplateResponseSchema, SubmitFormInputSchema, SubmitFormResponseSchema } from 'definitions/schemas'
+import { SubmitFormInputSchema, SubmitFormResponseSchema } from 'definitions/schemas'
 import * as bp from '.botpress'
 import { extractError } from 'misc/utils/errorUtils'
 import { getAxiosClient } from 'src/utils/axiosClient'
-import { mapFormValuesByTitle } from 'src/utils/mappers'
+// removed mapping; use formvalues as provided
 
 export const submitForm: bp.Integration['actions']['submitForm'] = async ({ client, ctx, input, logger }) => {
   try {
     const parsed = SubmitFormInputSchema.parse(input)
     const http = await getAxiosClient({ ctx, client })
 
-    // get form schema with widgets
-    const extension = `digital-forms-schemas/${parsed.df_data.schema_id}`
-    logger.forBot().debug(`GET ${extension}`)
-    const response = await http.get(extension)
+    const { uid_client, df_data } = parsed
+    const { schema_id, formvalues } = df_data
 
-    // map widget titles to widget IDs
-    const payload = mapFormValuesByTitle(FormTemplateResponseSchema.parse(response.data), parsed, logger)
+    const parsedFormvalues = (() => {
+      if (!formvalues || formvalues.trim() === '') return undefined
+      try {
+        return JSON.parse(formvalues)
+      } catch (error) {
+        throw new RuntimeError(extractError(error, logger))
+      }
+    })()
+
+    const payload = {
+      uid_client,
+      df_data: {
+        schema_id,
+        ...(parsedFormvalues && { formvalues: parsedFormvalues }),
+      },
+    }
 
     // submit the form
     const submitExtension = 'digital-forms'
