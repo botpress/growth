@@ -36,7 +36,7 @@ export const ClientSchema = z.object({
       },
     })
     .title('Custom Fields (JSON)')
-    .describe('JSON string containing key, value pairs of custom fields')
+    .describe('JSON string containing fieldId:value pairs, e.g. {"123":"Retail"}')
     .optional(),
   type_id: z
     .number()
@@ -84,20 +84,14 @@ export const SubmitFormInputSchema = z
             },
           })
           .title('Form Values (JSON)')
-          .describe('JSON string containing key, value pairs of form entries')
+          .describe('JSON string containing widgetId:value pairs, e.g. {"widget-1":"Yes"}')
           .optional(),
       })
       .required(),
   })
   .required()
 
-export const SubmitFormMappedSchema = z.object({
-  uid_client: z.string(),
-  df_data: z.object({
-    schema_id: z.number(),
-    formvalues: z.object({}).passthrough(),
-  }),
-})
+// SubmitFormMappedSchema removed: direct form submission uses provided values
 
 export const FilterableClientDataSchema = ClientSchema.partial().passthrough()
 
@@ -127,42 +121,4 @@ export const SubmitFormResponseSchema = z.object({
       name: z.string(),
     }),
   }),
-})
-
-export const FormWidgetSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  subtitle: z.string().optional(),
-  widget_type: z.string(),
-  description: z.object({}).passthrough().optional(),
-})
-
-export const FormTemplateResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.object({
-    form_group: z.number(),
-    schema_id: z.number(),
-    production: z.boolean(),
-    version: z.number(),
-    draft: z.boolean(),
-    description: z.object({
-      title: z.string(),
-      color: z.string(),
-      widgets: z.array(FormWidgetSchema),
-    }),
-  }),
-})
-
-export const CustomFieldDefinitionSchema = z
-  .object({
-    id: z.number(),
-    name: z.string(),
-    field_type: z.string(),
-    required: z.boolean(),
-  })
-  .passthrough()
-
-export const CustomFieldsDefinitionResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.array(CustomFieldDefinitionSchema),
 })
