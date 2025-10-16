@@ -1,5 +1,5 @@
 import { IntegrationDefinition } from '@botpress/sdk'
-import { configuration, states } from './src/definitions/index'
+import { configuration, states } from './definitions/index'
 
 export default new IntegrationDefinition({
   name: 'plus/sharepoint',

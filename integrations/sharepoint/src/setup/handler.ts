@@ -1,6 +1,6 @@
 import * as bp from '.botpress'
-import { SharepointClient } from './SharepointClient'
-import { SharepointSync } from './SharepointSync'
+import { SharepointClient } from '../SharepointClient'
+import { SharepointSync } from '../SharepointSync'
 
 export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, client, logger }) => {
   if (req.query.includes('validationtoken')) {

@@ -1,21 +1,7 @@
 import * as bp from '.botpress'
-import { SharepointClient } from './SharepointClient'
-import { SharepointSync } from './SharepointSync'
-
-const getLibraryNames = (documentLibraryNames: string): string[] => {
-  try {
-    const parsed = JSON.parse(documentLibraryNames)
-    if (Array.isArray(parsed)) {
-      return parsed
-    }
-    return [parsed]
-  } catch {
-    return documentLibraryNames
-      .split(',')
-      .map((s: string) => s.trim())
-      .filter(Boolean)
-  }
-}
+import { SharepointClient } from '../SharepointClient'
+import { SharepointSync } from '../SharepointSync'
+import { getLibraryNames } from './utils'
 
 export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUrl, client, logger }) => {
   const libs = getLibraryNames(ctx.configuration.documentLibraryNames)
@@ -56,28 +42,4 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
     id: ctx.integrationId,
     payload: { subscriptions },
   })
-}
-
-export const unregister: bp.IntegrationProps['unregister'] = async ({ client, ctx, logger }) => {
-  const { state } = await client.getState({
-    type: 'integration',
-    name: 'configuration',
-    id: ctx.integrationId,
-  })
-
-  for (const [lib, { webhookSubscriptionId }] of Object.entries(state.payload.subscriptions as Record<string, any>)) {
-    try {
-      logger.forBot().info(`[Unregister] (${lib}) Deleting webhook ${webhookSubscriptionId}`)
-      const spClient = new SharepointClient({ ...ctx.configuration }, lib)
-      await spClient.unregisterWebhook(webhookSubscriptionId)
-      logger.forBot().info(`[Unregister] (${lib}) Successfully unregistered.`)
-    } catch (error) {
-      logger
-        .forBot()
-        .error(
-          `[Unregister] (${lib}) Failed to unregister: ${error instanceof Error ? error.message : String(error)}. Continuing with other libraries.`
-        )
-      continue
-    }
-  }
 }
