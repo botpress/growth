@@ -2,8 +2,8 @@ import axios from 'axios'
 import * as msal from '@azure/msal-node'
 import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
-import { formatPrivateKey, handleAxiosError } from './utils'
-import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from './SharepointTypes'
+import { formatPrivateKey, handleAxiosError } from './misc/utils'
+import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from './misc/SharepointTypes'
 
 export class SharepointClient {
   private cca: msal.ConfidentialClientApplication

@@ -1,6 +1,6 @@
 import * as bp from '.botpress'
 import { SharepointClient } from '../SharepointClient'
-import { SharepointSync } from '../SharepointSync'
+import { SharepointSync } from '../services/sync/SharepointSync'
 import { getLibraryNames } from './utils'
 
 export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUrl, client, logger }) => {

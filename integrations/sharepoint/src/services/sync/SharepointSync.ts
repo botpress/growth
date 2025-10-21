@@ -1,7 +1,7 @@
-import { BotpressKB } from './BotpressKB'
-import { SharepointClient } from './SharepointClient'
+import { BotpressKB } from '../../BotpressKB'
+import { SharepointClient } from '../../SharepointClient'
 import path from 'path'
-import { getFormatedCurrTime } from './utils'
+import { getFormatedCurrTime } from '../../misc/utils'
 import * as sdk from '@botpress/sdk'
 
 const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
@@ -165,9 +165,7 @@ export class SharepointSync {
       this.logger
         .forBot()
         .debug(
-          `[${getFormatedCurrTime()} - SP Sync] ChangeType=${ch.ChangeType} (${
-            ch.ChangeType ?? 'Unknown'
-          })  ItemId=${ch.ItemId}`
+          `[${getFormatedCurrTime()} - SP Sync] ChangeType=${ch.ChangeType} (${ch.ChangeType ?? 'Unknown'})  ItemId=${ch.ItemId}`
         )
 
       switch (ch.ChangeType) {

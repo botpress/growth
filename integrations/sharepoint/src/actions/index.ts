@@ -1,5 +1,5 @@
-import * as bp from '.botpress'
+import * as syncActions from './sync'
 
-const actions: bp.IntegrationProps['actions'] = {}
-
-export default actions
+export default {
+  ...syncActions,
+}
