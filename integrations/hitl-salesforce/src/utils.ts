@@ -7,7 +7,7 @@ export const getIdForSubject = (subject: string, conversation: bp.AnyMessageProp
 
 export const forceCloseConversation = async (
   ctx: bp.AnyMessageProps['ctx'],
-  conversation: bp.AnyMessageProps['conversation'],
+  conversation: bp.AnyMessageProps['conversation']
 ) => {
   void axios.post(process.env.BP_WEBHOOK_URL + '/' + ctx.webhookId, {
     type: 'INTERNAL_FORCE_CLOSE_CONVERSATION',

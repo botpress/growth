@@ -28,7 +28,7 @@ export const SFMessagingConfigSchema = z.object({
     .string()
     .optional()
     .describe(
-      'Message that will be sent to the user when the conversation is being transferred. Leave empty to disable transfer messages.',
+      'Message that will be sent to the user when the conversation is being transferred. Leave empty to disable transfer messages.'
     ),
 })
 
