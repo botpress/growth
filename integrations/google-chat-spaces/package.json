@@ -1,6 +1,7 @@
 {
   "name": "@bp-templates/google-chat-spaces",
   "scripts": {
+    "check:type": "tsc --noEmit",
     "version": "bp --version",
     "login": "bp login",
     "gen": "bp gen",

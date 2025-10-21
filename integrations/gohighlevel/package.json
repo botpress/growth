@@ -6,7 +6,7 @@
     "dev": "bp dev",
     "gen": "bp gen",
     "deploy": "bp deploy",
-    "type:check": "tsc --noEmit"
+    "check:type": "tsc --noEmit"
   },
   "private": true
 }
