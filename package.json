@@ -36,16 +36,22 @@
     "**/*.{json,yaml,yml,md}": "prettier --write",
     "**/*.test.ts": "vitest --run"
   },
+  "dependencies": {
+    "@botpress/client": "1.24.1",
+    "@botpress/sdk": "4.15.7",
+    "axios": "^1.12.2",
+    "zod": "^3.25.76"
+  },
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.840.0",
     "@botpress/api": "1.25.0",
-    "@botpress/cli": "4.10.2",
-    "@botpress/client": "1.16.1",
-    "@botpress/sdk": "4.13.0",
+    "@botpress/cli": "4.17.2",
     "@bpinternal/depsynky": "0.2.2",
     "@bpinternal/readiness": "^0.0.16",
     "@stylistic/eslint-plugin": "^5.1.0",
     "@types/node": "^24.0.10",
+    "dotenv": "^17.2.1",
+    "nodemon": "^3.1.10",
     "@typescript-eslint/eslint-plugin": "^8.35.1",
     "@typescript-eslint/parser": "^8.35.1",
     "eslint": "^9.30.1",
