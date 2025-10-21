@@ -5,17 +5,17 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "turbo run generate",
+    "build": "pnpm -r run generate",
     "bump": "depsynky bump --ignore-dev && pnpm -w install",
     "test": "vitest --run",
-    "check:bplint": "turbo check:bplint",
+    "check:bplint": "pnpm -r run check:bplint",
     "check:dep": "depsynky check --ignore-dev",
     "check:sherif": "sherif -i zod -i axios -i query-string -i googleapis",
     "check:format": "prettier --check .",
     "check:eslint": "eslint ./",
     "check:oxlint": "oxlint -c .oxlintrc.json",
     "check:lint": "pnpm check:bplint && pnpm check:oxlint && pnpm check:eslint",
-    "check:type": "turbo check:type",
+    "check:type": "pnpm -r run check:type",
     "check:updates": "ncu",
     "check:updates:json": "ncu --format json",
     "fix:dep": "depsynky sync --ignore-dev",
@@ -70,7 +70,6 @@
     "semver": "^7.7.2",
     "sherif": "1.6.1",
     "ts-node": "^10.9.2",
-    "turbo": "^2.5.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.35.1",
     "vitest": "^3.2.4"
