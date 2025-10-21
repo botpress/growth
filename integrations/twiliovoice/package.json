@@ -6,8 +6,6 @@
   },
   "private": true,
   "dependencies": {
-    "@botpress/client": "1.9.0",
-    "@botpress/sdk": "4.13.0",
     "query-string": "^9.0.0",
     "twilio": "^5.1.0"
   },

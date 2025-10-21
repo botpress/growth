@@ -1,5 +1,5 @@
 {
-  "name": "@bp-templates/empty-integration",
+  "name": "@bp-templates/hubspot-hitl",
   "type": "module",
   "scripts": {
     "check:type": "tsc --noEmit",
@@ -13,12 +13,6 @@
     "test:e2e": "vitest --run --config vitest.e2e.config.ts"
   },
   "private": true,
-  "dependencies": {
-    "@botpress/client": "1.22.0",
-    "@botpress/sdk": "4.15.2",
-    "axios": "^1.8.1",
-    "zod": "^3.24.2"
-  },
   "devDependencies": {
     "@botpress/cli": "^4.17.2",
     "@types/node": "^20.19.0",

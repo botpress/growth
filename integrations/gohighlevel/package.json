@@ -8,17 +8,5 @@
     "deploy": "bp deploy",
     "type:check": "tsc --noEmit"
   },
-  "private": true,
-  "dependencies": {
-    "@botpress/client": "0.41.0",
-    "@botpress/sdk": "2.5.0",
-    "axios": "^1.7.9",
-    "zod": "^3.24.1"
-  },
-  "devDependencies": {
-    "@botpress/cli": "^2.2.5",
-    "@types/node": "^18.19.74",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
-  }
+  "private": true
 }

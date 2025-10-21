@@ -1,5 +1,5 @@
 {
-  "name": "@bp-templates/empty-integration",
+  "name": "@bp-templates/zoho-sales-iq-hitl",
   "scripts": {
     "check:type": "tsc --noEmit",
     "version": "bp --version",
@@ -9,17 +9,7 @@
   },
   "private": true,
   "dependencies": {
-    "@botpress/client": "0.45.0",
-    "@botpress/sdk": "3.3.0",
-    "axios": "^1.8.1",
-    "form-data": "^4.0.0",
-    "zod": "^3.24.2"
-  },
-  "devDependencies": {
-    "@botpress/cli": "^3.3.0",
-    "@types/node": "^18.19.76",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
+    "form-data": "^4.0.0"
   },
   "bpDependencies": {
     "hitl": "interface:hitl@0.4.0"
