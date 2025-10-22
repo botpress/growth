@@ -13,7 +13,7 @@ importers:
         version: 1.26.0
       '@botpress/sdk':
         specifier: 4.16.0
-        version: 4.16.0(@bpinternal/zui@0.22.3(react@18.3.1))(esbuild@0.25.11)
+        version: 4.16.0(@bpinternal/zui@1.1.1)(esbuild@0.16.17)
       axios:
         specifier: ^1.12.2
         version: 1.12.2
@@ -26,13 +26,16 @@ importers:
         version: 3.913.0
       '@botpress/cli':
         specifier: 4.19.0
-        version: 4.19.0(@bpinternal/zui@0.22.3(react@18.3.1))
+        version: 4.19.0(@bpinternal/zui@1.1.1)
       '@bpinternal/depsynky':
         specifier: 0.2.2
         version: 0.2.2
       '@bpinternal/readiness':
         specifier: ^0.0.16
         version: 0.0.16
+      '@bpinternal/zui':
+        specifier: ^1.0.1
+        version: 1.1.1
       '@stylistic/eslint-plugin':
         specifier: ^5.1.0
         version: 5.5.0(eslint@9.38.0)
@@ -48,6 +51,9 @@ importers:
       dotenv:
         specifier: ^17.2.1
         version: 17.2.3
+      esbuild:
+        specifier: 0.16.17
+        version: 0.16.17
       eslint:
         specifier: ^9.30.1
         version: 9.38.0
@@ -277,13 +283,16 @@ importers:
     dependencies:
       '@botpress/sdk':
         specifier: 3.5.1
-        version: 3.5.1(@bpinternal/zui@0.22.3(react@18.3.1))(esbuild@0.16.17)
+        version: 3.5.1(@bpinternal/zui@1.1.1)(esbuild@0.16.17)
       '@botpress/zai':
         specifier: ^2.0.1
-        version: 2.1.16(@bpinternal/thicktoken@1.0.6)(@bpinternal/zui@0.22.3(react@18.3.1))
+        version: 2.1.16(@bpinternal/thicktoken@1.0.6)(@bpinternal/zui@1.1.1)
       '@bpinternal/zui':
-        specifier: 0.22.3
-        version: 0.22.3(react@18.3.1)
+        specifier: ^1.0.1
+        version: 1.1.1
+      esbuild:
+        specifier: 0.16.17
+        version: 0.16.17
       zod:
         specifier: ^3.24.4
         version: 3.25.76
@@ -582,20 +591,15 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
-  '@bpinternal/zui@0.22.3':
-    resolution: {integrity: sha512-vDAFFY+TKjwUn/ii9HPbVrpS4luJHd90TN9VddVL/iRX4JSzx2P7AN0h2Z2Ed/3rM+JLvyly7i8fTudL2PLfCA==}
-    engines: {node: '>=16.0.0', pnpm: 8.6.2}
-    peerDependencies:
-      react: ^18.2.0
-    peerDependenciesMeta:
-      react:
-        optional: true
-
   '@bpinternal/zui@0.9.3':
     resolution: {integrity: sha512-aTJ2Lptet3/0MFoMFgMEj268ilE33DZwaMAvy0wf1LjweP9bfCddEMMO3bvJtAWYkuLCFMT4ZLAmKPyKvEnfBg==}
     engines: {node: '>=16.0.0', pnpm: 9.1.0}
     peerDependencies:
       react: ^18.2.0
+
+  '@bpinternal/zui@1.1.1':
+    resolution: {integrity: sha512-Q8OqlVWaGUkdH3xd6tFLEBCXDfVYuI1gPPsa9DF/oIzkqqAYQQH6vMNIsqFTJZasysLNb6cuvzKe2WVqd8pwTg==}
+    engines: {node: '>=16.0.0', pnpm: 8.6.2}
 
   '@crawlee/types@3.15.1':
     resolution: {integrity: sha512-1wopGiPnSnY9zvGbTfsDtvkSssFaMMai5kCdxDO6FjvxOrzcATc2otOfGlGG7P4cWDuB+FdCe95jFjXJraFJjA==}
@@ -5091,12 +5095,12 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@botpress/cli@4.19.0(@bpinternal/zui@0.22.3(react@18.3.1))':
+  '@botpress/cli@4.19.0(@bpinternal/zui@1.1.1)':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.9.3
       '@botpress/chat': 0.5.2
       '@botpress/client': 1.26.0
-      '@botpress/sdk': 4.16.0(@bpinternal/zui@0.22.3(react@18.3.1))(esbuild@0.25.11)
+      '@botpress/sdk': 4.16.0(@bpinternal/zui@1.1.1)(esbuild@0.25.11)
       '@bpinternal/const': 0.1.2
       '@bpinternal/tunnel': 0.1.25
       '@bpinternal/yargs-extra': 0.0.3
@@ -5186,31 +5190,41 @@ snapshots:
       - debug
       - react
 
-  '@botpress/sdk@3.5.1(@bpinternal/zui@0.22.3(react@18.3.1))(esbuild@0.16.17)':
+  '@botpress/sdk@3.5.1(@bpinternal/zui@1.1.1)(esbuild@0.16.17)':
     dependencies:
       '@botpress/client': 0.48.0
-      '@bpinternal/zui': 0.22.3(react@18.3.1)
+      '@bpinternal/zui': 1.1.1
       browser-or-node: 2.1.1
     optionalDependencies:
       esbuild: 0.16.17
     transitivePeerDependencies:
       - debug
 
-  '@botpress/sdk@4.16.0(@bpinternal/zui@0.22.3(react@18.3.1))(esbuild@0.25.11)':
+  '@botpress/sdk@4.16.0(@bpinternal/zui@1.1.1)(esbuild@0.16.17)':
     dependencies:
       '@botpress/client': 1.26.0
-      '@bpinternal/zui': 0.22.3(react@18.3.1)
+      '@bpinternal/zui': 1.1.1
+      browser-or-node: 2.1.1
+    optionalDependencies:
+      esbuild: 0.16.17
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/sdk@4.16.0(@bpinternal/zui@1.1.1)(esbuild@0.25.11)':
+    dependencies:
+      '@botpress/client': 1.26.0
+      '@bpinternal/zui': 1.1.1
       browser-or-node: 2.1.1
     optionalDependencies:
       esbuild: 0.25.11
     transitivePeerDependencies:
       - debug
 
-  '@botpress/zai@2.1.16(@bpinternal/thicktoken@1.0.6)(@bpinternal/zui@0.22.3(react@18.3.1))':
+  '@botpress/zai@2.1.16(@bpinternal/thicktoken@1.0.6)(@bpinternal/zui@1.1.1)':
     dependencies:
       '@botpress/cognitive': 0.1.47
       '@bpinternal/thicktoken': 1.0.6
-      '@bpinternal/zui': 0.22.3(react@18.3.1)
+      '@bpinternal/zui': 1.1.1
       json5: 2.2.3
       jsonrepair: 3.13.1
       lodash-es: 4.17.21
@@ -5285,13 +5299,11 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  '@bpinternal/zui@0.22.3(react@18.3.1)':
-    optionalDependencies:
-      react: 18.3.1
-
   '@bpinternal/zui@0.9.3(react@18.3.1)':
     dependencies:
       react: 18.3.1
+
+  '@bpinternal/zui@1.1.1': {}
 
   '@crawlee/types@3.15.1':
     dependencies:
@@ -7103,7 +7115,6 @@ snapshots:
       '@esbuild/win32-arm64': 0.16.17
       '@esbuild/win32-ia32': 0.16.17
       '@esbuild/win32-x64': 0.16.17
-    optional: true
 
   esbuild@0.25.11:
     optionalDependencies:
