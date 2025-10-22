@@ -40,6 +40,6 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
     type: 'integration',
     name: 'configuration',
     id: ctx.integrationId,
-    payload: { subscriptions },
+    payload: { subscriptions, folderKbMap: ctx.configuration.folderKbMap },
   })
 }

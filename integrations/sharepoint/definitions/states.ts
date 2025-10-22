@@ -11,6 +11,12 @@ export const states = {
           changeToken: z.string().min(1),
         })
       ),
+      folderKbMap: z
+        .string()
+        .min(1)
+        .describe(
+          'JSON map of kbId to array of folder prefixes for routing files to specific KBs. Example: {"kb-marketing":["Campaigns"],"kb-policies":["HR","Legal"]}'
+        ),
     }),
   },
 } satisfies IntegrationDefinitionProps['states']

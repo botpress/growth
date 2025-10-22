@@ -1,4 +1,5 @@
 import * as bp from '.botpress'
+import { mergeKBMapping } from 'src/misc/utils'
 import { SharepointSync } from 'src/services/sync/SharepointSync'
 import { getLibraryNames } from 'src/setup/utils'
 import { SharepointClient } from 'src/SharepointClient'
@@ -14,23 +15,22 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
     id: ctx.integrationId,
   })
 
-  const subscriptions = (state.payload?.subscriptions ?? {}) as Record<
-    string,
-    { webhookSubscriptionId: string; changeToken: string }
-  >
+  const subscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> =
+    state.payload.subscriptions
   const libs = getLibraryNames(input.documentLibraryNames)
 
   const clearedKbIds = new Set<string>()
 
   // filter to not repeat existing webhooks
-  const nonExistingLibs = libs.filter((lib) => !subscriptions[lib])
+  const nonExistingLibs = libs.filter((lib) => !Object.hasOwn(subscriptions, lib))
+  logger.forBot().debug(`LIBRARIES\n\n${JSON.stringify(subscriptions)} \n\n${JSON.stringify(nonExistingLibs)}`)
 
   const newSubscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
 
   // create webhooks for each of the new document libraries
   for (const newLib of nonExistingLibs) {
     try {
-      const spClient = new SharepointClient({ ...ctx.configuration }, newLib)
+      const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: input.folderKbMap }, newLib)
       const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
 
       logger.forBot().info(`[Action] (${newLib}) Creating webhook → ${webhookUrl}`)
@@ -55,17 +55,21 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
     }
   }
 
-  // conbine and set all subscriptioins to state for cleanup
+  // combine and set all subscriptioins to state for cleanup
   const mergedSubscriptions = {
     ...subscriptions,
     ...newSubscriptions,
   }
 
+  const mergedKBmap = mergeKBMapping(state.payload.folderKbMap, input.folderKbMap)
+
+  const nextPayload = { ...state.payload, subscriptions: mergedSubscriptions, folderKbMap: mergedKBmap }
+
   await client.setState({
     type: 'integration',
     name: 'configuration',
     id: ctx.integrationId,
-    payload: { subscriptions: mergedSubscriptions },
+    payload: nextPayload,
   })
 
   return {

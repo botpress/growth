@@ -24,7 +24,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, client
   /* 2 - Iterate through each library, perform incremental sync */
   for (const [lib, { changeToken }] of Object.entries(oldSubs)) {
     try {
-      const spClient = new SharepointClient({ ...ctx.configuration }, lib)
+      const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: payload.folderKbMap }, lib)
       const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
 
       logger.forBot().info(`[Webhook] (${lib}) Running incremental sync…`)
@@ -46,7 +46,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, client
     type: 'integration',
     name: 'configuration',
     id: ctx.integrationId,
-    payload: { subscriptions: newSubs },
+    payload: { subscriptions: newSubs, folderKbMap: payload.folderKbMap },
   })
 
   return { status: 200, body: 'OK' }

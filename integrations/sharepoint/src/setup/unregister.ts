@@ -11,7 +11,7 @@ export const unregister: bp.IntegrationProps['unregister'] = async ({ client, ct
   for (const [lib, { webhookSubscriptionId }] of Object.entries(state.payload.subscriptions as Record<string, any>)) {
     try {
       logger.forBot().info(`[Unregister] (${lib}) Deleting webhook ${webhookSubscriptionId}`)
-      const spClient = new SharepointClient({ ...ctx.configuration }, lib)
+      const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: state.payload.folderKbMap }, lib)
       await spClient.unregisterWebhook(webhookSubscriptionId)
       logger.forBot().info(`[Unregister] (${lib}) Successfully unregistered.`)
     } catch (error) {
