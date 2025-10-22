@@ -1,8 +1,8 @@
 import { z, ActionDefinition } from '@botpress/sdk'
 
 export const addToSync: ActionDefinition = {
-  title: 'Manual Sync',
-  description: 'Manually sync new data',
+  title: 'Add To Sync',
+  description: 'Add new data to the sync list',
   input: {
     schema: z.object({
       documentLibraryNames: z
@@ -19,7 +19,7 @@ export const addToSync: ActionDefinition = {
         ),
     }),
   },
-  output: { schema: z.object({}) },
+  output: { schema: z.object({ success: z.boolean() }) },
 }
 
 export const actions = {
