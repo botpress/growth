@@ -106,7 +106,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async () => 
 /**
  * Creates a user in Botpress and tags them with an email, which Brevo will use as the \`visitorId\`.
  */
-export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, ctx, input, logger }) => {
+export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, logger }) => {
   try {
     const { name, email, pictureUrl } = input
 

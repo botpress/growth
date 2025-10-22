@@ -21,7 +21,7 @@ class MessagingApi {
   public constructor(
     private _logger: Logger,
     private _config: SFMessagingConfig,
-    _session?: LiveAgentSession,
+    _session?: LiveAgentSession
   ) {
     this._apiBaseUrl = _config.endpoint + '/iamessage/api/v2'
 
@@ -144,7 +144,7 @@ class MessagingApi {
           headers: {
             secret: secrets.TT_SK,
           },
-        },
+        }
       )
 
       this._session.sseKey = data.data.key
@@ -264,7 +264,7 @@ class MessagingApi {
     }
 
     await this._client.delete(
-      `/conversation/${this._session.conversationId}?esDeveloperName=${this._config.DeveloperName}`,
+      `/conversation/${this._session.conversationId}?esDeveloperName=${this._config.DeveloperName}`
     )
   }
 

@@ -66,7 +66,7 @@ export const executeOnParticipantChanged = async ({
               accessToken,
               sseKey: conversation.tags.transportKey,
               conversationId: conversation.tags.id,
-            },
+            }
           )
 
           const routingStatus = await salesforceClient.getConversationRoutingStatus()

@@ -4,9 +4,5 @@
     "check:type": "tsc --noEmit",
     "build": "bp add -y && bp build"
   },
-  "private": true,
-  "dependencies": {
-    "@botpress/cli": "^4.11.0",
-    "axios": "^1.7.2"
-  }
+  "private": true
 }

@@ -9,7 +9,8 @@
     "@botpress/sdk": "3.5.1",
     "@botpress/zai": "^2.0.1",
     "zod": "^3.24.4",
-    "@bpinternal/zui": "0.22.3"
+    "@bpinternal/zui": "^1.0.1",
+    "esbuild": "0.16.17"
   },
   "devDependencies": {
     "@types/node": "^18.19.67",

@@ -97,7 +97,7 @@ export const executeOnConversationMessage = async ({
       logger
         .forBot()
         .warn(
-          `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`,
+          `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
         )
       return
   }

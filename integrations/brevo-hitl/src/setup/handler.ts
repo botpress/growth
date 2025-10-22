@@ -3,7 +3,7 @@ import { handleConversationCompleted } from 'src/events/handleConversationComple
 import { handleOperatorReplied } from 'src/events/handleOperatorReplied'
 import { brevoEventSchema } from 'src/definitions/brevo-schemas'
 
-export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger, client }) => {
+export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, client }) => {
   if (!req.body) {
     logger.forBot().warn('Handler received a request with no body.')
     return

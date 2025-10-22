@@ -41,53 +41,53 @@ export const CloseRemoteTicketPayload = z
 export const CreateRemoteUserPayload = z
   .object({
     type: z.literal('createRemoteUser'),
-    payload: z.record(z.unknown()).describe('whatever user payload sent from Botpress'),
+    payload: z.record(z.string(), z.unknown()).describe('whatever user payload sent from Botpress'),
   })
-  .openapi('CreateRemoteUserPayload')
+  .openapi({ title: 'CreateRemoteUserPayload' })
 
 export const BotSendsMessagePayload = z
   .object({
     type: z.literal('botSendsMessage'),
     remoteConversationId: z.string().describe('The ID of the conversation on the live agent platform'),
     remoteUserId: z.string().describe('The ID of the chat-user on the live agent platform'),
-    payload: z.record(z.unknown()).describe('The message payload in the botpress format'),
+    payload: z.record(z.string(), z.unknown()).describe('The message payload in the botpress format'),
   })
-  .openapi('BotSendsMessagePayload')
+  .openapi({ title: 'BotSendsMessagePayload' })
 
 export const AgentMessagePayload = z
   .object({
     remoteConversationId: z.string().describe('The ID of the conversation on the live agent platform'),
     remoteUserId: z.string().describe('The ID of the chat-user on the live agent platform'),
     messageType: z.string(),
-    payload: z.record(z.unknown()).describe('The message payload in the botpress format'),
+    payload: z.record(z.string(), z.unknown()).describe('The message payload in the botpress format'),
   })
-  .openapi('AgentMessagePayload')
+  .openapi({ title: 'AgentMessagePayload' })
 
 export const AgentAssignedPayload = z
   .object({
     remoteConversationId: z.string().describe('The ID of the conversation on the live agent platform'),
     remoteUserId: z.string().describe('The ID of the chat-user on the live agent platform'),
   })
-  .openapi('AgentAssignedPayload')
+  .openapi({ title: 'AgentAssignedPayload' })
 
 export const StopHitlPayload = z
   .object({
     remoteConversationId: z.string().describe('The ID of the conversation on the live agent platform'),
   })
-  .openapi('StopHitlPayload')
+  .openapi({ title: 'StopHitlPayload' })
 
 // Define conversation and user tags
 export const ConversationTags = z
   .object({
     externalId: z.string(),
   })
-  .openapi('ConversationTags')
+  .openapi({ title: 'ConversationTags' })
 
 export const UserTags = z
   .object({
     externalId: z.string(),
   })
-  .openapi('UserTags')
+  .openapi({ title: 'UserTags' })
 
 // Define the handler input types
 export const HandlerInput = z

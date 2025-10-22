@@ -1,4 +1,4 @@
-import { IntegrationDefinition, messages, z } from '@botpress/sdk';
+import { IntegrationDefinition, messages, z } from '@botpress/sdk'
 
 export default new IntegrationDefinition({
   name: 'plus/twiliovoice',
@@ -33,4 +33,4 @@ export default new IntegrationDefinition({
       accountSid: {},
     },
   },
-});
+})

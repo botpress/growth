@@ -22,7 +22,7 @@ const getSalesforceClientFromMessage = async (props: bp.AnyMessageProps) => {
       accessToken,
       sseKey: conversation.tags.transportKey,
       conversationId: conversation.tags.id,
-    },
+    }
   )
 }
 
@@ -37,7 +37,7 @@ export const channels = {
             .forBot()
             .error(
               'Tried to send a message from a conversation that is already closed: ' +
-                JSON.stringify({ conversation }, null, 2),
+                JSON.stringify({ conversation }, null, 2)
             )
           return
         }

@@ -88,7 +88,7 @@ export const closeConversation = async ({
       accessToken,
       sseKey: conversation.tags.transportKey,
       conversationId: conversation.tags.id,
-    },
+    }
   )
 
   // Conversation could already be closed on Salesforce, ignore errors
