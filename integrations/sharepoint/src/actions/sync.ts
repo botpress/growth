@@ -24,8 +24,8 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
 
   // filter to not repeat existing webhooks
   const [nonExistingLibs, existingLibs] = partition(libs, (lib) => !Object.hasOwn(subscriptions, lib))
-
-  logger.forBot().info(`[Action] - Skipping the following libs since they already exist: ${existingLibs}`)
+  logger.forBot().info(`[Action] - Attempting to create webhooks for the following libs: ${libs}`)
+  if (existingLibs.length > 0) logger.forBot().info(`[Action] - Skipping the following libs since they already exist: ${existingLibs}`)
 
   const newSubscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
 
