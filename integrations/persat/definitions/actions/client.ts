@@ -1,8 +1,8 @@
 import { ActionDefinition } from '@botpress/sdk'
 import {
   ClientResponseSchema,
-  ClientSchema,
   CreateClientInputSchema,
+  UpdateClientInputSchema,
   SearchSchema,
   UpdateClientResponseSchema,
 } from 'definitions/schemas'
@@ -17,7 +17,7 @@ const getClient: ActionDefinition = {
 const updateClient: ActionDefinition = {
   title: 'Update Client',
   description: 'Update client information',
-  input: { schema: ClientSchema },
+  input: { schema: UpdateClientInputSchema },
   output: { schema: UpdateClientResponseSchema },
 }
 

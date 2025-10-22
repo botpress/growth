@@ -48,9 +48,11 @@ export const ClientSchema = z.object({
     .describe('Client group identifier. Must be valid; otherwise, a 409 CONFLICT will be returned.'),
 })
 
-export const CreateClientInputSchema = ClientSchema.extend({
+export const CreateClientInputSchema = ClientSchema.omit({ last_updated: true }).extend({
   company_name: z.string(),
 })
+
+export const UpdateClientInputSchema = ClientSchema.omit({ last_updated: true })
 
 export const ClientResponseDataSchema = ClientSchema.extend({
   custom_fields: z.object({}).passthrough().optional(),
