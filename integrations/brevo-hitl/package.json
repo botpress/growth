@@ -9,7 +9,8 @@
   },
   "private": true,
   "dependencies": {
-    "form-data": "^4.0.0"
+    "form-data": "^4.0.0",
+    "zod": "3.24.2"
   },
   "bpDependencies": {
     "hitl": "../../interfaces/hitl"
