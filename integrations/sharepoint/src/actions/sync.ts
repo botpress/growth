@@ -1,4 +1,5 @@
 import * as bp from '.botpress'
+import { partition } from 'lodash'
 import { mergeKBMapping } from 'src/misc/utils'
 import { SharepointSync } from 'src/services/sync/SharepointSync'
 import { getLibraryNames } from 'src/setup/utils'
@@ -22,8 +23,9 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
   const clearedKbIds = new Set<string>()
 
   // filter to not repeat existing webhooks
-  const nonExistingLibs = libs.filter((lib) => !Object.hasOwn(subscriptions, lib))
-  logger.forBot().debug(`LIBRARIES\n\n${JSON.stringify(subscriptions)} \n\n${JSON.stringify(nonExistingLibs)}`)
+  const [nonExistingLibs, existingLibs] = partition(libs, (lib) => !Object.hasOwn(subscriptions, lib))
+
+  logger.forBot().info(`[Action] - Skipping the following libs since they already exist: ${existingLibs}`)
 
   const newSubscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
 
