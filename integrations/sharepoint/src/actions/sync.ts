@@ -57,7 +57,7 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
     }
   }
 
-  // combine and set all subscriptioins to state for cleanup
+  // combine and set all subscriptions to state for cleanup
   const mergedSubscriptions = {
     ...subscriptions,
     ...newSubscriptions,
