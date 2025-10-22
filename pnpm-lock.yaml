@@ -152,13 +152,19 @@ importers:
     dependencies:
       '@asteasolutions/zod-to-openapi':
         specifier: ^7.1.1
-        version: 7.3.4(zod@4.1.12)
+        version: 7.3.4(zod@3.20.2)
+      '@botpress/sdk':
+        specifier: 0.11.1
+        version: 0.11.1(react@18.3.1)
       '@types/swagger-jsdoc':
         specifier: ^6.0.4
         version: 6.0.4
       swagger-jsdoc:
         specifier: ^6.2.8
         version: 6.2.8(openapi-types@12.1.3)
+      zod:
+        specifier: 3.20.2
+        version: 3.20.2
 
   integrations/hitl-salesforce:
     dependencies:
@@ -489,6 +495,9 @@ packages:
   '@botpress/client@0.26.5':
     resolution: {integrity: sha512-mpzG+awEJkjUyP1fZGOe71hDqVkzsrB0ZIM43SvyQP9xEs8UQYD83Sw/HkmwG1eJn7giezhYGED/iFnXb5RWGA==}
 
+  '@botpress/client@0.29.4':
+    resolution: {integrity: sha512-eK5zPMc+8oE0KIjodArf8Cj9DSE2by3LmbUliisuFMoLudbh0HQU9PsktHSilbjeGEnh843RyvXexw3hKjnfsw==}
+
   '@botpress/client@0.48.0':
     resolution: {integrity: sha512-VjXjIoPF26nK2DJFQkilTIirXP1D+t9AX1XL2P72pFRqyX5ADfuIz3fayU/VWNW86EKmXanhcPvZu1tuliyOpA==}
     engines: {node: '>=18.0.0'}
@@ -503,6 +512,9 @@ packages:
 
   '@botpress/sdk@0.10.6':
     resolution: {integrity: sha512-1xEma95YfjBhpuNvrNMPbFLWziid9qfVKqTMxrYWZ3R//9xCEWDEqf4teB651RJ1xnCHmJ2d2MnXpOsA5YqOLg==}
+
+  '@botpress/sdk@0.11.1':
+    resolution: {integrity: sha512-84XndgcqfiiGbeh+m3KDV1A0C63t7lg3wmiEv9imEmYn4Dw1hINFKHz1FvpIK+F2ijyI3EkYcChQNBqJy4Cvrg==}
 
   '@botpress/sdk@3.5.1':
     resolution: {integrity: sha512-H6R0ZsxakXQuD3XQKmFQKQIwTFtgvjOPYM1cirYnhzOvtcEkYA/EgiTrtWAiqhNIWJi4awE2HSw5WlCt18K3/Q==}
@@ -563,6 +575,12 @@ packages:
 
   '@bpinternal/yargs-extra@0.0.3':
     resolution: {integrity: sha512-e/unlq0LX4CJUv1jGOv1UgwB/h2M0NCXnwD4lEw496GpkQikO668RS+BBlRhkqdGfZmvKDkXZZ96xJCn+i6Ymg==}
+
+  '@bpinternal/zui@0.10.0':
+    resolution: {integrity: sha512-iltVlwY3izpGCe995JFRmLemh6bAdg3BojpFTocXxS3P6K5XpzfBJUoPfeg3CMBgn6hRIEWxBF5rCqhnMKad9w==}
+    engines: {node: '>=16.0.0', pnpm: 9.1.0}
+    peerDependencies:
+      react: ^18.2.0
 
   '@bpinternal/zui@0.22.3':
     resolution: {integrity: sha512-vDAFFY+TKjwUn/ii9HPbVrpS4luJHd90TN9VddVL/iRX4JSzx2P7AN0h2Z2Ed/3rM+JLvyly7i8fTudL2PLfCA==}
@@ -4540,6 +4558,9 @@ packages:
     engines: {node: '>=8.0.0'}
     hasBin: true
 
+  zod@3.20.2:
+    resolution: {integrity: sha512-1MzNQdAvO+54H+EaK5YpyEy0T+Ejo/7YLHS93G3RnYWh5gaotGHwGeN/ZO687qEDU2y4CdStQYXVHIgrUl5UVQ==}
+
   zod@3.24.2:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
@@ -4590,10 +4611,10 @@ snapshots:
       '@apify/consts': 2.47.0
       '@apify/log': 2.5.26
 
-  '@asteasolutions/zod-to-openapi@7.3.4(zod@4.1.12)':
+  '@asteasolutions/zod-to-openapi@7.3.4(zod@3.20.2)':
     dependencies:
       openapi3-ts: 4.5.0
-      zod: 4.1.12
+      zod: 3.20.2
 
   '@aws-crypto/sha256-browser@5.2.0':
     dependencies:
@@ -5116,6 +5137,16 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  '@botpress/client@0.29.4':
+    dependencies:
+      axios: 1.12.2
+      axios-retry: 4.5.0(axios@1.12.2)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+      type-fest: 3.13.1
+    transitivePeerDependencies:
+      - debug
+
   '@botpress/client@0.48.0':
     dependencies:
       axios: 1.12.2
@@ -5143,6 +5174,14 @@ snapshots:
     dependencies:
       '@botpress/client': 0.26.5
       '@bpinternal/zui': 0.9.3(react@18.3.1)
+    transitivePeerDependencies:
+      - debug
+      - react
+
+  '@botpress/sdk@0.11.1(react@18.3.1)':
+    dependencies:
+      '@botpress/client': 0.29.4
+      '@bpinternal/zui': 0.10.0(react@18.3.1)
     transitivePeerDependencies:
       - debug
       - react
@@ -5241,6 +5280,10 @@ snapshots:
       lodash: 4.17.21
       yargs: 17.7.2
       yn: 4.0.0
+
+  '@bpinternal/zui@0.10.0(react@18.3.1)':
+    dependencies:
+      react: 18.3.1
 
   '@bpinternal/zui@0.22.3(react@18.3.1)':
     optionalDependencies:
@@ -9455,6 +9498,8 @@ snapshots:
       validator: 13.15.15
     optionalDependencies:
       commander: 9.5.0
+
+  zod@3.20.2: {}
 
   zod@3.24.2: {}
 
