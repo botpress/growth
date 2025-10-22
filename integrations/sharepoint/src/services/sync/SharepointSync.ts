@@ -54,10 +54,17 @@ export class SharepointSync {
     return this.kbInstances.get(kbId)!
   }
 
-  async loadAllDocumentsIntoBotpressKB(clearedKbIds?: Set<string>): Promise<void> {
+  async loadAllDocumentsIntoBotpressKB(options?: {
+    clearedKbIds?: Set<string>
+    skipCleaning?: boolean
+  }): Promise<void> {
     const docs = await this.fetchAllDocuments()
-    const kbIdsToClear = await this.determineKbsToClear(docs)
-    await this.clearRemainingKbs(kbIdsToClear, clearedKbIds)
+    const skipCleaning = options?.skipCleaning
+    const clearedKbIds = options?.clearedKbIds
+    if (!skipCleaning) {
+      const kbIdsToClear = await this.determineKbsToClear(docs)
+      await this.clearRemainingKbs(kbIdsToClear, clearedKbIds)
+    }
     await this.processAllDocuments(docs)
   }
 

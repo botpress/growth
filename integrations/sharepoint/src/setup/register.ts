@@ -18,7 +18,7 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
       const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
       logger.forBot().info(`[Registration] (${lib}) Performing initial full sync…`)
-      await spSync.loadAllDocumentsIntoBotpressKB(clearedKbIds)
+      await spSync.loadAllDocumentsIntoBotpressKB({ clearedKbIds })
 
       const changeToken = await spClient.getLatestChangeToken()
       const tokenToUse = changeToken || 'initial-sync-token'

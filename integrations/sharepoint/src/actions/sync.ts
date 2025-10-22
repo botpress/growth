@@ -20,12 +20,12 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
     state.payload.subscriptions
   const libs = getLibraryNames(input.documentLibraryNames)
 
-  const clearedKbIds = new Set<string>()
-
   // filter to not repeat existing webhooks
   const [nonExistingLibs, existingLibs] = partition(libs, (lib) => !Object.hasOwn(subscriptions, lib))
+
   logger.forBot().info(`[Action] - Attempting to create webhooks for the following libs: ${libs}`)
-  if (existingLibs.length > 0) logger.forBot().info(`[Action] - Skipping the following libs since they already exist: ${existingLibs}`)
+  if (existingLibs.length > 0)
+    logger.forBot().info(`[Action] - Skipping the following libs since they already exist: ${existingLibs}`)
 
   const newSubscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
 
@@ -39,7 +39,7 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
       const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
       logger.forBot().info(`[Action] (${newLib}) Performing initial full sync…`)
-      await spSync.loadAllDocumentsIntoBotpressKB(clearedKbIds)
+      await spSync.loadAllDocumentsIntoBotpressKB({ skipCleaning: true })
 
       const changeToken = await spClient.getLatestChangeToken()
       const tokenToUse = changeToken || 'initial-sync-token'
