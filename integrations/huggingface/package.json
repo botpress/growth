@@ -6,8 +6,8 @@
   },
   "private": true,
   "dependencies": {
-    "@huggingface/inference": "^2.8.0",
-    "@botpress/sdk": "0.10.6"
+    "@botpress/sdk": "0.10.6",
+    "@huggingface/inference": "^2.8.0"
   },
   "type": "module"
 }
