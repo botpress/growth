@@ -409,14 +409,14 @@ export default new bp.Integration({
                         // Ensure the updated schema includes the newly added columns before inserting rows
                         if (columnsToAdd.length > 0) {
                           try {
-                            const maxAttempts = 10
+                            const maxAttempts = 6
                             let attempt = 0
                             // Helper to check if all new columns are present
                             const allNewColumnsPresent = () =>
                               columnsToAdd.every((c) => !!tableSchema?.properties?.[c])
 
                             while (!allNewColumnsPresent() && attempt < maxAttempts) {
-                              await new Promise((resolve) => setTimeout(resolve, 300))
+                              await new Promise((resolve) => setTimeout(resolve, 1000))
                               const refreshed = await axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders })
                               tableSchema = refreshed.data.table?.schema
                               attempt++
