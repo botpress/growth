@@ -70,9 +70,9 @@ for integration_dir in */; do
   echo "Logging in to check deployed version..."
   pnpm bp login -y --token "$TOKEN_PAT" --workspace-id "$workspace_id" > /dev/null 2>&1
   
-  # Get deployed version (if exists)
-  deployed_version=$(pnpm bp integrations ls --name "$actual_integration_name" --json 2>/dev/null | jq -r '.[0].version // "not found"' 2>/dev/null || echo "not found")
-  echo "Deployed version: $deployed_version"
+  # Get deployed version (if exists) - only check public deployments
+  deployed_version=$(pnpm bp integrations ls --name "$actual_integration_name" --json 2>/dev/null | jq -r '[ .[] | select(.public) ] | .[0].version // "not found"' 2>/dev/null || echo "not found")
+  echo "Deployed version (public only): $deployed_version"
   
   # Compare versions
   if [ "$deployed_version" = "not found" ]; then
