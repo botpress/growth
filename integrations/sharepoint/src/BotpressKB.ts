@@ -1,5 +1,5 @@
 import * as sdk from '@botpress/sdk'
-import { getFormatedCurrTime, guessMimeType } from './utils'
+import { getFormatedCurrTime, guessMimeType } from './misc/utils'
 
 export class BotpressKB {
   private bpClient: sdk.IntegrationSpecificClient<any>

@@ -1,4 +1,7 @@
+import { RuntimeError } from '@botpress/sdk'
 import axios, { AxiosError } from 'axios'
+import { merge } from 'lodash'
+
 export const handleAxiosError = (error: AxiosError) => {
   // Handle the error
   if (error.response) {
@@ -14,7 +17,7 @@ export const handleAxiosError = (error: AxiosError) => {
   }
 }
 
-export const stringToArrayBuffer = (str: string): ArrayBuffer => {
+export const stringToArrayBuffer = (str: string): ArrayBufferLike => {
   const encoder = new TextEncoder()
   return encoder.encode(str).buffer
 }
@@ -54,5 +57,18 @@ export const guessMimeType = (filename: string): string => {
       return 'text/markdown'
     default:
       return 'application/octet-stream'
+  }
+}
+
+export const mergeKBMapping = (mapping1: string, mapping2: string): string => {
+  try {
+    const map1 = JSON.parse(mapping1)
+    const map2 = JSON.parse(mapping2)
+
+    const merged = merge({}, map1, map2)
+
+    return JSON.stringify(merged)
+  } catch (error) {
+    throw new RuntimeError(`Error parsing KB maps: ${error}`)
   }
 }
