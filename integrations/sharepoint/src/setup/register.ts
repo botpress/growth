@@ -1,7 +1,7 @@
 import * as bp from '.botpress'
 import { SharepointClient } from '../SharepointClient'
 import { SharepointSync } from '../services/sync/SharepointSync'
-import { getLibraryNames } from './utils'
+import { cleanupWebhook, getLibraryNames } from './utils'
 
 export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUrl, client, logger }) => {
   const libs = getLibraryNames(ctx.configuration.documentLibraryNames)
@@ -10,12 +10,13 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
   const clearedKbIds = new Set<string>()
 
   for (const lib of libs) {
+    let webhookSubscriptionId: string | undefined
     try {
       const spClient = new SharepointClient({ ...ctx.configuration }, lib)
       const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
 
       logger.forBot().info(`[Registration] (${lib}) Creating webhook → ${webhookUrl}`)
-      const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
+      webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
       logger.forBot().info(`[Registration] (${lib}) Performing initial full sync…`)
       await spSync.loadAllDocumentsIntoBotpressKB({ clearedKbIds })
@@ -27,6 +28,7 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
 
       logger.forBot().info(`[Registration] (${lib}) Successfully registered and synced.`)
     } catch (error) {
+      cleanupWebhook(webhookSubscriptionId, ctx, lib, logger)
       logger
         .forBot()
         .error(

@@ -2,7 +2,7 @@ import * as bp from '.botpress'
 import { partition } from 'lodash'
 import { mergeKBMapping } from 'src/misc/utils'
 import { SharepointSync } from 'src/services/sync/SharepointSync'
-import { getLibraryNames } from 'src/setup/utils'
+import { cleanupWebhook, getLibraryNames } from 'src/setup/utils'
 import { SharepointClient } from 'src/SharepointClient'
 
 export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client, ctx, input, logger }) => {
@@ -49,7 +49,7 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
 
       logger.forBot().info(`[Action] (${newLib}) Successfully registered and synced.`)
     } catch (error) {
-      cleanupWebhook(webhookSubscriptionId, input, ctx, newLib, logger)
+      cleanupWebhook(webhookSubscriptionId, ctx, newLib, logger, input.folderKbMap)
       logger
         .forBot()
         .error(
@@ -78,30 +78,5 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
 
   return {
     success: true,
-  }
-}
-
-const cleanupWebhook = async (
-  webhookSubscriptionId: string | undefined,
-  input: { folderKbMap: string },
-  ctx: bp.Context,
-  newLib: string,
-  logger: bp.Logger
-) => {
-  // clean up webhook
-  if (webhookSubscriptionId) {
-    try {
-      const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: input.folderKbMap }, newLib)
-      await spClient.unregisterWebhook(webhookSubscriptionId)
-      logger.forBot().info(`[Action] (${newLib}) Cleaned up orphaned webhook`)
-    } catch (cleanupError) {
-      logger
-        .forBot()
-        .error(
-          `[Action] (${newLib}) Failed to clean up webhook: ${
-            cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
-          }`
-        )
-    }
   }
 }
