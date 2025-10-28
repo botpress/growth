@@ -28,7 +28,7 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
 
       logger.forBot().info(`[Registration] (${lib}) Successfully registered and synced.`)
     } catch (error) {
-      cleanupWebhook(webhookSubscriptionId, ctx, lib, logger)
+      await cleanupWebhook(webhookSubscriptionId, ctx, lib, logger)
       logger
         .forBot()
         .error(
