@@ -7,8 +7,8 @@ import {
 } from "./src/definitions/index";
 
 export default new IntegrationDefinition({
-  name: 'plus/shopify-products-sync',
-  title: 'Shopify products sync',
+  name: 'dc-shopify-products-sync-new',
+  title: 'Shopify products sync Duplicate',
   version: '3.0.1',
   readme: 'hub.md',
   icon: 'icon.svg',
