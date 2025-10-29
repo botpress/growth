@@ -113,7 +113,7 @@ export class SharepointSync {
       }).catch((error) => {
         this.logger.forBot().error('Failed to send background processing webhook:', error)
       })
-      this.logger.forBot().info('Background processing webhook sent successfully')
+      this.logger.forBot().info('Background processing webhook triggered (async)')
     }
   }
 
