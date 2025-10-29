@@ -28,8 +28,52 @@ Add the following keys to the integration’s `configuration` block:
 - If you omit `documentLibraryNames`, **all** document libraries in the specified site will be synced.
 - If you omit `folderKbMap`, every file is routed to the default KB configured for its library.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > Due to reliability issues, **Moves** and **Copies** are not supported. Those events from sharepoint will not reflect in the knowledge bases. If you wish to move/copy a file to another location, **Upload** or **Create** the file instead.
+
+## Actions
+
+### Add To Sync
+
+The **Add To Sync** action allows you to dynamically add new document libraries to your existing SharePoint integration without re-registering or disrupting current syncs.
+
+#### When to use it
+
+- You want to sync additional document libraries after the integration is already configured
+- You need to expand the scope of your sync to include new content collections
+- You want to add or update folder-to-KB mappings for new libraries
+
+#### Parameters
+
+- **documentLibraryNames** (required) — Document libraries to add to the sync. Supports the same formats as the configuration:
+  - Single library: `NewDL`
+  - Comma-separated: `Policies,Procedures`
+  - JSON array: `["Policies","Procedures"]`
+- **folderKbMap** (required) — JSON object mapping KB IDs to folder prefixes for routing files in the new libraries. Same format as the configuration parameter.
+  _Example:_ `{"kb-marketing":["Campaigns"],"kb-policies":["HR","Legal"]}`
+
+#### How it works
+
+1. The action checks which document libraries are already registered
+2. For each new library (libraries not already synced):
+   - Creates a webhook subscription to monitor changes
+   - Performs an initial full sync of all documents in the library
+   - Stores the webhook ID and change token for future updates
+3. Skips libraries that are already registered (no duplicate syncs)
+4. Merges the new `folderKbMap` with any existing mappings
+5. Updates the integration state with the combined configuration
+
+#### Example
+
+```json
+{
+  "documentLibraryNames": "Marketing,Sales",
+  "folderKbMap": "{\"kb-marketing\":[\"Marketing\"],\"kb-sales\":[\"Sales\"]}"
+}
+```
+
+> [!NOTE]
+> This action **does not** remove or modify existing syncs. It only adds new ones. Existing webhooks and synced content remain unchanged.
 
 ## How to's
 
