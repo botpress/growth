@@ -17,26 +17,24 @@ export const getLibraryNames = (documentLibraryNames: string): string[] => {
 }
 
 export const cleanupWebhook = async (
-  webhookSubscriptionId: string | undefined,
+  webhookSubscriptionId: string,
   ctx: bp.Context,
   newLib: string,
   logger: bp.Logger,
   folderKbMap?: string
 ) => {
   // clean up webhook
-  if (webhookSubscriptionId) {
-    try {
-      const spClient = new SharepointClient({ ...ctx.configuration, ...(folderKbMap ? { folderKbMap } : {}) }, newLib)
-      await spClient.unregisterWebhook(webhookSubscriptionId)
-      logger.forBot().info(`[Action] (${newLib}) Cleaned up orphaned webhook`)
-    } catch (cleanupError) {
-      logger
-        .forBot()
-        .error(
-          `[Action] (${newLib}) Failed to clean up webhook: ${
-            cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
-          }`
-        )
-    }
+  try {
+    const spClient = new SharepointClient({ ...ctx.configuration, ...(folderKbMap ? { folderKbMap } : {}) }, newLib)
+    await spClient.unregisterWebhook(webhookSubscriptionId)
+    logger.forBot().info(`[Action] (${newLib}) Cleaned up orphaned webhook`)
+  } catch (cleanupError) {
+    logger
+      .forBot()
+      .error(
+        `[Action] (${newLib}) Failed to clean up webhook: ${
+          cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
+        }`
+      )
   }
 }
