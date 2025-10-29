@@ -1,0 +1,63 @@
+name: Prettier Check
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  prettier-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for proper diff calculation
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,json,yaml,yml,md}
+          files_ignore: |
+            **/node_modules/**
+            **/dist/**
+            **/build/**
+            **/*.min.js
+            **/*.bundle.js
+
+      - name: Check Prettier formatting
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "Changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
+          # Check if any of the changed files are not properly formatted
+          if ! pnpm prettier --check ${{ steps.changed-files.outputs.all_changed_files }}; then
+            echo "Some files are not properly formatted with Prettier"
+            echo "To fix formatting issues for specific files, run:"
+            echo "pnpm prettier --write ${{ steps.changed-files.outputs.all_changed_files }}"
+            exit 1 # This will fail the job
+          else
+            echo "All changed files are properly formatted with Prettier"
+          fi
+
+      - name: No files to check
+        if: steps.changed-files.outputs.any_changed == 'false'
+        run: echo "No files matching Prettier patterns were changed in this PR"
