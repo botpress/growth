@@ -53,8 +53,14 @@ export const getUploadArticlePayload = ({
     url: `https://${shopDomain}/products/${product.handle}`,
   }
 
+  // Sanitize product title for use as filename
+  const sanitizedTitle = product.title
+    .replace(/[/\\?%*:|"<>]/g, '-') // Replace invalid filename characters with hyphens
+    .replace(/\s+/g, '_') // Replace spaces with underscores
+    .trim()
+
   return {
-    key: `${kbId}/${product.id}.txt`,
+    key: `${sanitizedTitle}.txt`,
     accessPolicies: [],
     content: stripHtmlTags(JSON.stringify(storedProduct)),
     index: true,
