@@ -104,17 +104,15 @@ export class SharepointSync {
         },
       }
 
-      try {
-        fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        })
-      } catch (error) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      }).catch((error) => {
         this.logger.forBot().error('Failed to send background processing webhook:', error)
-      }
+      })
       this.logger.forBot().info('Background processing webhook sent successfully')
     }
   }
