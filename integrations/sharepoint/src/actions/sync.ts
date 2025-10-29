@@ -49,7 +49,9 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
 
       logger.forBot().info(`[Action] (${newLib}) Successfully registered and synced.`)
     } catch (error) {
-      await cleanupWebhook(webhookSubscriptionId, ctx, newLib, logger, input.folderKbMap)
+      if (webhookSubscriptionId) {
+        await cleanupWebhook(webhookSubscriptionId, ctx, newLib, logger, input.folderKbMap)
+      }
       logger
         .forBot()
         .error(
