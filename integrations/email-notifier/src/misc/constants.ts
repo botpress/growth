@@ -1,5 +1,5 @@
-export const FROM_EMAIL_ADDRESS = "noreply@bp-mailer.com";
-export const CONTACT_LIST = "default";
+export const FROM_EMAIL_ADDRESS = 'noreply@bp-mailer.com'
+export const CONTACT_LIST = 'default'
 
 export const EMAIL_SIGNATURE = `
 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
@@ -16,4 +16,4 @@ export const EMAIL_SIGNATURE = `
     </div>
   </div>
 </div>
-`;
+`

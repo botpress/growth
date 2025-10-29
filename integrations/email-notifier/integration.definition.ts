@@ -1,25 +1,25 @@
-import { IntegrationDefinition } from "@botpress/sdk";
-import { actions, events, states } from "src/definitions/index";
+import { IntegrationDefinition } from '@botpress/sdk'
+import { actions, events, states } from 'src/definitions/index'
 
 export default new IntegrationDefinition({
   name: 'plus/email-notifier',
-  version: "1.0.3",
-  title: "Email Notifier",
-  description: "Send emails to your Botpress bot in minutes",
-  readme: "hub.md",
-  icon: "icon.svg",
+  version: '1.0.3',
+  title: 'Email Notifier',
+  description: 'Send emails to your Botpress bot in minutes',
+  readme: 'hub.md',
+  icon: 'icon.svg',
   secrets: {
     AWS_REGION: {
-      description: "AWS Region",
+      description: 'AWS Region',
     },
     AWS_ACCESS_KEY_ID: {
-      description: "AWS Access Key ID",
+      description: 'AWS Access Key ID',
     },
     AWS_SECRET_ACCESS_KEY: {
-      description: "AWS Secret Access Key",
+      description: 'AWS Secret Access Key',
     },
   },
   actions,
   states,
   events,
-});
+})

@@ -21,18 +21,18 @@ export const actions = {
   },
 } satisfies IntegrationDefinitionProps['actions']
 
-export const states = {} satisfies IntegrationDefinitionProps["states"];
+export const states = {} satisfies IntegrationDefinitionProps['states']
 
 export const events = {
   emailSent: {
-    title: "Email Sent",
-    description: "Triggered when an email is successfully sent via AWS SES",
+    title: 'Email Sent',
+    description: 'Triggered when an email is successfully sent via AWS SES',
     schema: z.object({
-      messageId: z.string().describe("AWS SES Message ID"),
-      to: z.array(z.string().email()).describe("Recipient email addresses"),
-      subject: z.string().describe("Email subject"),
-      fromEmail: z.string().email().describe("Sender email address"),
-      timestamp: z.string().describe("ISO timestamp when email was sent"),
+      messageId: z.string().describe('AWS SES Message ID'),
+      to: z.array(z.string().email()).describe('Recipient email addresses'),
+      subject: z.string().describe('Email subject'),
+      fromEmail: z.string().email().describe('Sender email address'),
+      timestamp: z.string().describe('ISO timestamp when email was sent'),
     }),
   },
-} satisfies IntegrationDefinitionProps["events"];
+} satisfies IntegrationDefinitionProps['events']
