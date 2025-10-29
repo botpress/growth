@@ -21,6 +21,21 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, client
   const oldSubs = payload.subscriptions as Record<string, { webhookSubscriptionId: string; changeToken: string }>
   const newSubs = { ...oldSubs }
 
+  // Handle background processing
+  try {
+    const webhookData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    if (webhookData?.event === 'background-sync-triggered') {
+      logger.forBot().info('Processing internal background sync webhook')
+
+      await executeBackgroundSync(ctx, client, logger, payload, webhookData)
+
+      // Return early - background sync doesn't need incremental sync loop
+      return { status: 200, body: 'Background sync processing' }
+    }
+  } catch (error) {
+    logger.forBot().error(`[Webhook Handler] Failed to parse req JSON body ${JSON.stringify(req.body)} ${error}`)
+  }
+
   /* 2 - Iterate through each library, perform incremental sync */
   for (const [lib, { changeToken }] of Object.entries(oldSubs)) {
     try {
@@ -50,4 +65,29 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, client
   })
 
   return { status: 200, body: 'OK' }
+}
+
+const executeBackgroundSync = async (
+  ctx: bp.Context,
+  client: bp.Client,
+  logger: bp.Logger,
+  payload: { folderKbMap: string },
+  webhookData: {
+    event: 'background-sync-triggered'
+    data: {
+      nextUrl: string
+      lib: string
+    }
+  }
+) => {
+  try {
+    const { nextUrl, lib } = webhookData.data
+    const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: payload.folderKbMap }, lib)
+    const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
+
+    await spSync.loadAllDocumentsIntoBotpressKB({ startUrl: nextUrl })
+    logger.forBot().info(`[Webhook Handling] Successfully loaded all documents into KB`)
+  } catch (error) {
+    logger.forBot().error(`[Webhook Handling] Failed to finish background processing ${error}`)
+  }
 }

@@ -3,6 +3,7 @@ import { SharepointClient } from '../../SharepointClient'
 import path from 'path'
 import { getFormatedCurrTime } from '../../misc/utils'
 import * as sdk from '@botpress/sdk'
+import * as bp from '.botpress'
 
 const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
 
@@ -15,17 +16,20 @@ export class SharepointSync {
   private logger: sdk.IntegrationLogger
   private enableVision: boolean
   private kbInstances = new Map<string, BotpressKB>()
+  private ctx?: bp.Context
 
   constructor(
     sharepointClient: SharepointClient,
     bpClient: sdk.IntegrationSpecificClient<any>,
     logger: sdk.IntegrationLogger,
-    enableVision: boolean = false
+    enableVision: boolean = false,
+    ctx?: bp.Context
   ) {
     this.sharepointClient = sharepointClient
     this.bpClient = bpClient
     this.logger = logger
     this.enableVision = enableVision
+    this.ctx = ctx ?? undefined
   }
 
   private log(msg: string) {
@@ -57,20 +61,74 @@ export class SharepointSync {
   async loadAllDocumentsIntoBotpressKB(options?: {
     clearedKbIds?: Set<string>
     skipCleaning?: boolean
-  }): Promise<void> {
-    const docs = await this.fetchAllDocuments()
-    const skipCleaning = options?.skipCleaning
+    startUrl?: string
+  }): Promise<{ filesProcessed: number; hasMore: boolean }> {
+    const { docs, nextUrl } = await this.fetchAllDocuments(options?.startUrl)
+
+    // Auto-skip cleaning if startUrl is provided (background processing)
+    const skipCleaning = options?.skipCleaning || options?.startUrl != null
     const clearedKbIds = options?.clearedKbIds
+
     if (!skipCleaning) {
       const kbIdsToClear = await this.determineKbsToClear(docs)
       await this.clearRemainingKbs(kbIdsToClear, clearedKbIds)
     }
+
     await this.processAllDocuments(docs)
+
+    // Only trigger background processing if this is first-page sync (no startUrl)
+    if (!options?.startUrl) {
+      this.triggerBackgroundProcessing(nextUrl)
+    }
+
+    return {
+      filesProcessed: docs.length,
+      hasMore: nextUrl != null && !options?.startUrl,
+    }
   }
 
-  private async fetchAllDocuments() {
-    const items = await this.sharepointClient.listItems()
-    return items.filter((i) => i.FileSystemObjectType === 0)
+  private triggerBackgroundProcessing(nextUrl: string | undefined) {
+    // If there are remaining pages, trigger asynchronous processing
+    if (nextUrl) {
+      this.logger.forBot().info('First Page processed. Sending webhook to trigger background processing...')
+      if (!this.ctx) {
+        throw new sdk.RuntimeError('[Registration] Missing required context to trigger background processing')
+      }
+      const webhookUrl = `https://webhook.botpress.cloud/${this.ctx?.webhookId}`
+
+      const payload = {
+        event: 'background-sync-triggered',
+        data: {
+          nextUrl,
+          lib: this.sharepointClient.getDocumentLibraryName(),
+        },
+      }
+
+      try {
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        })
+      } catch (error) {
+        this.logger.forBot().error('Failed to send background processing webhook:', error)
+      }
+      this.logger.forBot().info('Background processing webhook sent successfully')
+    }
+  }
+
+  private async fetchAllDocuments(startUrl?: string): Promise<{ docs: any[]; nextUrl?: string }> {
+    if (startUrl) {
+      // Background processing: fetch all remaining pages starting from startUrl
+      const items = await this.sharepointClient.listAll(startUrl, this.logger)
+      return { docs: items.filter((i) => i.FileSystemObjectType === 0) }
+    } else {
+      // First page only: for quick user feedback
+      const { items, nextUrl } = await this.sharepointClient.listItems()
+      return { docs: items.filter((i) => i.FileSystemObjectType === 0), nextUrl }
+    }
   }
 
   private async determineKbsToClear(docs: any[]): Promise<Set<string>> {
