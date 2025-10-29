@@ -28,8 +28,58 @@ Add the following keys to the integration’s `configuration` block:
 - If you omit `documentLibraryNames`, **all** document libraries in the specified site will be synced.
 - If you omit `folderKbMap`, every file is routed to the default KB configured for its library.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > Due to reliability issues, **Moves** and **Copies** are not supported. Those events from sharepoint will not reflect in the knowledge bases. If you wish to move/copy a file to another location, **Upload** or **Create** the file instead.
+
+## Actions
+
+### Add To Sync
+
+Use this action to dynamically add new document libraries to your existing sync configuration without having to update the integration configuration.
+
+**When to use:**
+- Adding new document libraries after initial setup
+- Expanding sync coverage to additional SharePoint libraries
+- Dynamically managing which libraries are synced based on runtime conditions
+
+**Input Parameters:**
+
+- **documentLibraryNames** (required) — Document Libraries to add to sync. Supports multiple formats:
+  - Single library: `NewDL`
+  - Comma-separated: `Policies,Procedures`
+  - JSON array: `["Policies","Procedures"]`
+  - Single item JSON array: `["NewDL"]`
+
+- **folderKbMap** (required) — JSON map of `kbId` ⇒ array of folder prefixes for routing files to specific KBs.
+  _Example_:
+  `{"kb-marketing":["Campaigns"],"kb-policies":["HR","Legal"]}`
+
+**Output:**
+
+Returns a success status: `{ success: true }` if the libraries were added successfully.
+
+**Example usage:**
+
+```json
+{
+  "documentLibraryNames": "NewDocumentLibrary",
+  "folderKbMap": "{\"kb-id-1\":[\"NewDocumentLibrary\"]}"
+}
+```
+
+or with multiple libraries:
+
+```json
+{
+  "documentLibraryNames": "[\"Library1\",\"Library2\"]",
+  "folderKbMap": "{\"kb-id-1\":[\"Library1\"],\"kb-id-2\":[\"Library2\"]}"
+}
+```
+
+**Notes:**
+- The newly added document libraries will be appended to your existing sync configuration
+- Make sure the KB IDs in `folderKbMap` already exist in Botpress
+- The same folder-to-KB mapping rules apply (see section below)
 
 ## How to's
 
