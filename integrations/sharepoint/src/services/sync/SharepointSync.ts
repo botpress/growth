@@ -1,7 +1,7 @@
-import { BotpressKB } from './BotpressKB'
-import { SharepointClient } from './SharepointClient'
+import { BotpressKB } from '../../BotpressKB'
+import { SharepointClient } from '../../SharepointClient'
 import path from 'path'
-import { getFormatedCurrTime } from './utils'
+import { getFormatedCurrTime } from '../../misc/utils'
 import * as sdk from '@botpress/sdk'
 
 const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
@@ -54,10 +54,17 @@ export class SharepointSync {
     return this.kbInstances.get(kbId)!
   }
 
-  async loadAllDocumentsIntoBotpressKB(clearedKbIds?: Set<string>): Promise<void> {
+  async loadAllDocumentsIntoBotpressKB(options?: {
+    clearedKbIds?: Set<string>
+    skipCleaning?: boolean
+  }): Promise<void> {
     const docs = await this.fetchAllDocuments()
-    const kbIdsToClear = await this.determineKbsToClear(docs)
-    await this.clearRemainingKbs(kbIdsToClear, clearedKbIds)
+    const skipCleaning = options?.skipCleaning
+    const clearedKbIds = options?.clearedKbIds
+    if (!skipCleaning) {
+      const kbIdsToClear = await this.determineKbsToClear(docs)
+      await this.clearRemainingKbs(kbIdsToClear, clearedKbIds)
+    }
     await this.processAllDocuments(docs)
   }
 
@@ -165,9 +172,7 @@ export class SharepointSync {
       this.logger
         .forBot()
         .debug(
-          `[${getFormatedCurrTime()} - SP Sync] ChangeType=${ch.ChangeType} (${
-            ch.ChangeType ?? 'Unknown'
-          })  ItemId=${ch.ItemId}`
+          `[${getFormatedCurrTime()} - SP Sync] ChangeType=${ch.ChangeType} (${ch.ChangeType ?? 'Unknown'})  ItemId=${ch.ItemId}`
         )
 
       switch (ch.ChangeType) {
