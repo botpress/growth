@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-sesv2";
 import * as sdk from "@botpress/sdk";
 import { getSesClient } from "../misc/client";
-import { CONTACT_LIST, FROM_EMAIL_ADDRESS } from "../misc/constants";
+import { CONTACT_LIST, FROM_EMAIL_ADDRESS, EMAIL_SIGNATURE } from "../misc/constants";
 import { getErrorMessage } from "../misc/error-handler";
 import { Output } from ".botpress/implementation/typings/actions/sendMail/output";
 
@@ -21,19 +21,18 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
     const SESClient = getSesClient();
 
     const header = "This is a notification from your Botpress bot.";
-    const updateLinkUrl = `https://studio.botpress.cloud/${ctx.botId}`;
 
     const htmlBody = input.isHtml
       ? `<div>
     <p>${header}</p>
     ${input.body || ""}
-    <p><a href="${updateLinkUrl}">Update the notification here</a></p>
+    ${EMAIL_SIGNATURE}
     <p><a href="{{amazonSESUnsubscribeUrl}}">Unsubscribe</a></p>
     </div>`
       : `<div>
     <p>${header}</p>
     ${input.body ? `<p>${input.body}</p>` : ""}
-    <p><a href="${updateLinkUrl}">Update the notification here</a></p>
+    ${EMAIL_SIGNATURE}
     <p><a href="{{amazonSESUnsubscribeUrl}}">Unsubscribe</a></p>
     </div>`;
 
@@ -80,7 +79,7 @@ export const sendMail: bp.IntegrationProps["actions"]["sendMail"] = async ({
         logger
           .forBot()
           .info(
-            `Email sent successfully to ${email}. Message ID: ${result.MessageId}`,
+            `Email sent successfully to ${email}. Message ID: ${result.MessageId}, botId: ${ctx.botId}`,
           );
 
         await client.createEvent({
