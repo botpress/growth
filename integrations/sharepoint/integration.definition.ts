@@ -3,7 +3,7 @@ import { actions, configuration, states } from './definitions/index'
 
 export default new IntegrationDefinition({
   name: 'plus/sharepoint',
-  version: '3.2.0',
+  version: '3.2.1',
   title: 'SharePoint',
   description: 'Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.',
   readme: 'hub.md',
