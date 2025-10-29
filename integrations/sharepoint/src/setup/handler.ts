@@ -85,9 +85,9 @@ const executeBackgroundSync = async (
     const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: payload.folderKbMap }, lib)
     const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
 
-    await spSync.loadAllDocumentsIntoBotpressKB({ startUrl: nextUrl })
-    logger.forBot().info(`[Webhook Handling] Successfully loaded all documents into KB`)
+    const result = await spSync.loadAllDocumentsIntoBotpressKB({ startUrl: nextUrl })
+    logger.forBot().info(`[Background Sync] (${lib}) Complete: ${result.filesProcessed} files processed`)
   } catch (error) {
-    logger.forBot().error(`[Webhook Handling] Failed to finish background processing ${error}`)
+    logger.forBot().error(`[Background Sync] Failed to finish background processing ${error}`)
   }
 }

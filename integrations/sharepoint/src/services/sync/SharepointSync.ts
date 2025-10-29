@@ -92,7 +92,13 @@ export class SharepointSync {
     if (nextUrl) {
       this.logger.forBot().info('First Page processed. Sending webhook to trigger background processing...')
       if (!this.ctx) {
-        throw new sdk.RuntimeError('[Registration] Missing required context to trigger background processing')
+        this.logger
+          .forBot()
+          .warn(
+            '[Registration] Missing context - cannot trigger background processing. ' +
+              'First page synced successfully, but remaining pages will not be processed automatically.'
+          )
+        return
       }
       const webhookUrl = `https://webhook.botpress.cloud/${this.ctx?.webhookId}`
 
