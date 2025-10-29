@@ -34,7 +34,7 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
     let webhookSubscriptionId: string | undefined
     try {
       const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: input.folderKbMap }, newLib)
-      const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision, ctx)
+      const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision, ctx.webhookId)
 
       logger.forBot().info(`[Action] (${newLib}) Creating webhook → ${webhookUrl}`)
       webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)

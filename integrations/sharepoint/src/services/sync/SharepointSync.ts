@@ -16,20 +16,20 @@ export class SharepointSync {
   private logger: sdk.IntegrationLogger
   private enableVision: boolean
   private kbInstances = new Map<string, BotpressKB>()
-  private ctx?: bp.Context
+  private webhookId?: string
 
   constructor(
     sharepointClient: SharepointClient,
     bpClient: sdk.IntegrationSpecificClient<any>,
     logger: sdk.IntegrationLogger,
     enableVision: boolean = false,
-    ctx?: bp.Context
+    webhookId: string
   ) {
     this.sharepointClient = sharepointClient
     this.bpClient = bpClient
     this.logger = logger
     this.enableVision = enableVision
-    this.ctx = ctx ?? undefined
+    this.webhookId = webhookId ?? undefined
   }
 
   private log(msg: string) {
@@ -91,16 +91,16 @@ export class SharepointSync {
     // If there are remaining pages, trigger asynchronous processing
     if (nextUrl) {
       this.logger.forBot().info('First Page processed. Sending webhook to trigger background processing...')
-      if (!this.ctx) {
+      if (!this.webhookId) {
         this.logger
           .forBot()
           .warn(
-            '[Registration] Missing context - cannot trigger background processing. ' +
+            '[Registration] Missing WebhookId - cannot trigger background processing. ' +
               'First page synced successfully, but remaining pages will not be processed automatically.'
           )
         return
       }
-      const webhookUrl = `https://webhook.botpress.cloud/${this.ctx?.webhookId}`
+      const webhookUrl = `https://webhook.botpress.cloud/${this.webhookId}`
 
       const payload = {
         event: 'background-sync-triggered',
