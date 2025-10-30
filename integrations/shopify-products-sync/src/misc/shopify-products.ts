@@ -10,7 +10,7 @@ export async function fetchAllProducts(shopifyClient: ShopifyClient, logger: bp.
   let sinceId: number | undefined = undefined
 
   while (hasMore) {
-    const params: Record<string, any> = { limit }
+    const params: Record<string, any> = { limit, published_status: 'published' }
     if (sinceId) params.since_id = sinceId
     const products = await shopifyClient.getProducts(logger, params)
     allProducts.push(...products)
