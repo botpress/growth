@@ -41,7 +41,13 @@ export default new IntegrationDefinition({
           sheetTableMapping: z
             .string()
             .describe(
-              'Map sheets to tables. Format: \'Sheet1:table1,Sheet2:table2\' or JSON: \'{"Sheet1":"table1","Sheet2":"table2"}\''
+              'Map sheets to tables. Format: \'Sheet1:productsTable,Sheet2:ordersTable\' or JSON: \'{"Sheet1":"productsTable","Sheet2":"ordersTable"}\'. Table names must end with \'Table\'.'
+            ),
+          processAllSheets: z
+            .boolean()
+            .optional()
+            .describe(
+              'If true, continue processing other sheets even if one fails. If false or omitted, stop on first error. Default: false'
             ),
         }),
       },

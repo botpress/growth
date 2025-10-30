@@ -73,7 +73,7 @@ export default new bp.Integration({
     syncExcelFile: async ({ ctx, input, logger }) => {
       logger.forBot().info(`Starting Excel file sync for bot: ${ctx.botId}`)
 
-      const { sharepointFileUrl, sheetName, processAllSheets, sheetTableMapping } = input as any
+      const { sharepointFileUrl, sheetTableMapping, processAllSheets } = input
       logger.forBot().info(`Syncing Excel file: "${sharepointFileUrl}"`)
       logger.forBot().info(`Using sheetTableMapping: ${sheetTableMapping}`)
 
@@ -186,6 +186,22 @@ export default new bp.Integration({
             continue
           }
 
+          // Check for duplicate headers
+          const cleanHeaders = excelHeaders.map((h) => String(h).trim()).filter((h) => h !== '')
+          const headerCounts = new Map<string, number>()
+          cleanHeaders.forEach((header) => {
+            headerCounts.set(header, (headerCounts.get(header) || 0) + 1)
+          })
+          const duplicates = Array.from(headerCounts.entries())
+            .filter(([_, count]) => count > 1)
+            .map(([header, count]) => `"${header}" (${count}x)`)
+          
+          if (duplicates.length > 0) {
+            const errorMsg = `Sheet "${currentSheetName}" has duplicate column headers: ${duplicates.join(', ')}. Each column must have a unique name.`
+            logger.forBot().error(errorMsg)
+            throw new sdk.RuntimeError(errorMsg)
+          }
+
           const rowsData = jsonData.slice(1) as any[][]
           logger.forBot().info(`Found ${rowsData.length} data rows in sheet "${currentSheetName}"`)
 
@@ -265,6 +281,9 @@ export default new bp.Integration({
               }
               tableId = createTableResponse.data.table.id
               logger.forBot().info(`Table "${tableNameForSheet}" created successfully with ID: ${tableId}.`)
+              
+              // Mark as found so schema is fetched below
+              foundTable = createTableResponse.data.table
             }
 
             if (rowsData.length > 0 && tableId) {
@@ -297,7 +316,7 @@ export default new bp.Integration({
               // Get the schema to know the column types
               let tableSchema: any = null
               if (foundTable) {
-                // If we found an existing table, get its schema
+                // If we found an existing table or just created one, get its schema
                 try {
                   const tableDetailsResponse = await axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders })
                   tableSchema = tableDetailsResponse.data.table?.schema
