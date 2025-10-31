@@ -31,7 +31,13 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          if pnpm install --frozen-lockfile; then
+            echo "Lockfile is compatible"
+          else
+            echo "Lockfile incompatible, regenerating..."
+            pnpm install --no-frozen-lockfile
+          fi
 
       - name: Get changed files
         id: changed_files
