@@ -41,8 +41,9 @@ jobs:
 
       - name: Ensure PR refs are fetched
         run: |
-          # Make sure we have both base & head and their ancestors
-          git fetch --no-tags --prune --depth=0 origin +refs/heads/*:refs/remotes/origin/*
+          # Make sure we have both base & head refs available for comparison
+          git fetch origin ${{ github.event.pull_request.base.ref }} || true
+          git fetch origin ${{ github.event.pull_request.head.ref }} || true
 
       - name: Get changed files
         id: changed_files
