@@ -40,7 +40,7 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
       webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
       logger.forBot().info(`[Action] (${newLib}) Performing initial full sync…`)
-      await spSync.loadAllDocumentsIntoBotpressKB({ skipCleaning: true })
+      await spSync.syncDocumentsWithoutCleaning()
 
       const changeToken = await spClient.getLatestChangeToken()
       const tokenToUse = changeToken || 'initial-sync-token'

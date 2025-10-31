@@ -58,32 +58,58 @@ export class SharepointSync {
     return this.kbInstances.get(kbId)!
   }
 
-  async loadAllDocumentsIntoBotpressKB(options?: {
-    clearedKbIds?: Set<string>
-    skipCleaning?: boolean
-    startUrl?: string
-  }): Promise<{ filesProcessed: number; hasMore: boolean }> {
-    const { docs, nextUrl } = await this.fetchAllDocuments(options?.startUrl)
+  /**
+   * Initial full sync: Fetches first page, clears KBs, processes documents, and triggers background processing
+   * Used during registration/setup to perform the initial complete sync
+   */
+  async syncInitialDocuments(): Promise<{ filesProcessed: number; hasMore: boolean }> {
+    const { docs, nextUrl } = await this.fetchAllDocuments()
 
-    // Auto-skip cleaning if startUrl is provided (background processing)
-    const skipCleaning = options?.skipCleaning || options?.startUrl != null
-    const clearedKbIds = options?.clearedKbIds
-
-    if (!skipCleaning) {
-      const kbIdsToClear = await this.determineKbsToClear(docs)
-      await this.clearRemainingKbs(kbIdsToClear, clearedKbIds)
-    }
+    const kbIdsToClear = await this.determineKbsToClear(docs)
+    await this.clearKbs(kbIdsToClear)
 
     await this.processAllDocuments(docs)
 
-    // Only trigger background processing if this is first-page sync (no startUrl)
-    if (!options?.startUrl) {
-      this.triggerBackgroundProcessing(nextUrl)
-    }
+    this.triggerBackgroundProcessing(nextUrl)
 
     return {
       filesProcessed: docs.length,
-      hasMore: nextUrl != null && !options?.startUrl,
+      hasMore: nextUrl != null,
+    }
+  }
+
+  /**
+   * Incremental sync: Fetches and processes documents without clearing KBs
+   * Used for syncing new documents without disrupting existing KB content
+   */
+  async syncDocumentsWithoutCleaning(): Promise<{ filesProcessed: number; hasMore: boolean }> {
+    const { docs, nextUrl } = await this.fetchAllDocuments()
+
+    await this.processAllDocuments(docs)
+
+    this.triggerBackgroundProcessing(nextUrl)
+
+    return {
+      filesProcessed: docs.length,
+      hasMore: nextUrl != null,
+    }
+  }
+
+  /**
+   * Background pagination sync: Processes remaining pages from a specific URL
+   * Used for webhook-triggered background processing of remaining documents
+   */
+  async syncRemainingDocuments(startUrl: string): Promise<{ filesProcessed: number; hasMore: boolean }> {
+    const { docs } = await this.fetchAllDocuments(startUrl)
+
+    await this.processAllDocuments(docs)
+
+    // No background processing trigger - this IS the background processing
+    // No hasMore - background processing fetches all remaining pages at once
+
+    return {
+      filesProcessed: docs.length,
+      hasMore: false,
     }
   }
 
@@ -159,18 +185,9 @@ export class SharepointSync {
     return kbIdsToClear
   }
 
-  private async clearRemainingKbs(kbIdsToClear: Set<string>, clearedKbIds?: Set<string>): Promise<void> {
-    const remainingKbsToClear = Array.from(kbIdsToClear).filter((kbId) => !clearedKbIds || !clearedKbIds.has(kbId))
-
-    if (remainingKbsToClear.length > 0) {
-      await Promise.all(
-        remainingKbsToClear.map((kbId) => {
-          if (clearedKbIds) {
-            clearedKbIds.add(kbId) // Mark this KB as cleared
-          }
-          return this.getOrCreateKB(kbId).deleteAllFiles()
-        })
-      )
+  private async clearKbs(kbIdsToClear: Set<string>): Promise<void> {
+    if (kbIdsToClear.size > 0) {
+      await Promise.all(Array.from(kbIdsToClear).map((kbId) => this.getOrCreateKB(kbId).deleteAllFiles()))
     }
   }
 

@@ -7,8 +7,6 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
   const libs = getLibraryNames(ctx.configuration.documentLibraryNames)
   const subscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
 
-  const clearedKbIds = new Set<string>()
-
   for (const lib of libs) {
     let webhookSubscriptionId: string | undefined
     try {
@@ -19,7 +17,7 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
       webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
       logger.forBot().info(`[Registration] (${lib}) Performing initial full sync…`)
-      await spSync.loadAllDocumentsIntoBotpressKB({ clearedKbIds })
+      await spSync.syncInitialDocuments()
 
       const changeToken = await spClient.getLatestChangeToken()
       const tokenToUse = changeToken || 'initial-sync-token'
