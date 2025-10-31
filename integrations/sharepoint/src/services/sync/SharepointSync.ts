@@ -4,6 +4,7 @@ import path from 'path'
 import { getFormatedCurrTime } from '../../misc/utils'
 import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
+import { RuntimeError } from '@botpress/client'
 
 const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
 
@@ -114,15 +115,6 @@ export class SharepointSync {
     // If there are remaining pages, trigger asynchronous processing
     if (nextUrl) {
       this.logger.forBot().info('First Page processed. Sending webhook to trigger background processing...')
-      if (!webhookId) {
-        this.logger
-          .forBot()
-          .warn(
-            '[Registration] Missing WebhookId - cannot trigger background processing. ' +
-              'First page synced successfully, but remaining pages will not be processed automatically.'
-          )
-        return
-      }
       const webhookUrl = `https://webhook.botpress.cloud/${webhookId}`
 
       const payload = {
@@ -141,6 +133,10 @@ export class SharepointSync {
         body: JSON.stringify(payload),
       }).catch((error) => {
         this.logger.forBot().error('Failed to send background processing webhook:', error)
+        throw new RuntimeError(
+          '[Trigger Background Processing] Failed to send webhook to continue background processing',
+          error
+        )
       })
       this.logger.forBot().info('Background processing webhook triggered (async)')
     }
