@@ -2,7 +2,7 @@ import { z, IntegrationDefinition } from '@botpress/sdk'
 
 export default new IntegrationDefinition({
   name: 'plus/sharepoint-excel',
-  version: '2.2.1',
+  version: '2.3.1',
   title: 'SharePoint Excel',
   description: 'Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.',
   readme: 'hub.md',
@@ -19,7 +19,6 @@ export default new IntegrationDefinition({
       privateKey: z.string().min(1).describe('PEM‑formatted certificate private key'),
       primaryDomain: z.string().min(1).describe('SharePoint primary domain (e.g. contoso)'),
       siteName: z.string().min(1).describe('SharePoint site name'),
-      personalAccessToken: z.string().min(1).describe('Botpress Personal Access Token (PAT) for Tables API access'),
     }),
   },
 
@@ -41,7 +40,13 @@ export default new IntegrationDefinition({
           sheetTableMapping: z
             .string()
             .describe(
-              'Map sheets to tables. Format: \'Sheet1:table1,Sheet2:table2\' or JSON: \'{"Sheet1":"table1","Sheet2":"table2"}\''
+              'Map sheets to tables. Format: \'Sheet1:productsTable,Sheet2:ordersTable\' or JSON: \'{"Sheet1":"productsTable","Sheet2":"ordersTable"}\'. Table names must end with \'Table\'.'
+            ),
+          processAllSheets: z
+            .boolean()
+            .optional()
+            .describe(
+              'If true, continue processing other sheets even if one fails. If false or omitted, stop on first error. Default: false'
             ),
         }),
       },
