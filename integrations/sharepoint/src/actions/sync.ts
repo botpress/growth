@@ -27,39 +27,47 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
   if (existingLibs.length > 0)
     logger.forBot().info(`[Action] - Skipping the following libs since they already exist: ${existingLibs}`)
 
-  const newSubscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
-
   // create webhooks for each of the new document libraries
-  for (const newLib of nonExistingLibs) {
-    let webhookSubscriptionId: string | undefined
-    try {
-      const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: input.folderKbMap }, newLib)
-      const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision, ctx.webhookId)
+  const results = await Promise.allSettled(
+    nonExistingLibs.map(async (newLib) => {
+      let webhookSubscriptionId: string | undefined
+      try {
+        const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: input.folderKbMap }, newLib)
+        const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision, ctx.webhookId)
 
-      logger.forBot().info(`[Action] (${newLib}) Creating webhook → ${webhookUrl}`)
-      webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
+        logger.forBot().info(`[Action] (${newLib}) Creating webhook → ${webhookUrl}`)
+        webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
-      logger.forBot().info(`[Action] (${newLib}) Performing initial full sync…`)
-      await spSync.syncDocumentsWithoutCleaning()
+        logger.forBot().info(`[Action] (${newLib}) Performing initial full sync…`)
+        await spSync.syncDocumentsWithoutCleaning()
 
-      const changeToken = await spClient.getLatestChangeToken()
-      const tokenToUse = changeToken || 'initial-sync-token'
+        const changeToken = await spClient.getLatestChangeToken()
+        const tokenToUse = changeToken || 'initial-sync-token'
 
-      newSubscriptions[newLib] = { webhookSubscriptionId, changeToken: tokenToUse }
+        logger.forBot().info(`[Action] (${newLib}) Successfully registered and synced.`)
 
-      logger.forBot().info(`[Action] (${newLib}) Successfully registered and synced.`)
-    } catch (error) {
-      if (webhookSubscriptionId) {
-        await cleanupWebhook(webhookSubscriptionId, ctx, newLib, logger, input.folderKbMap)
+        return { lib: newLib, webhookSubscriptionId, changeToken: tokenToUse }
+      } catch (error) {
+        if (webhookSubscriptionId) {
+          await cleanupWebhook(webhookSubscriptionId, ctx, newLib, logger, input.folderKbMap)
+        }
+        logger
+          .forBot()
+          .error(
+            `[Action] (${newLib}) Failed to register: ${error instanceof Error ? error.message : String(error)}. Skipping this library.`
+          )
+        throw error
       }
-      logger
-        .forBot()
-        .error(
-          `[Action] (${newLib}) Failed to register: ${error instanceof Error ? error.message : String(error)}. Skipping this library.`
-        )
-      continue
+    })
+  )
+
+  const newSubscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
+  results.forEach((result) => {
+    if (result.status === 'fulfilled') {
+      const { lib, webhookSubscriptionId, changeToken } = result.value
+      newSubscriptions[lib] = { webhookSubscriptionId, changeToken }
     }
-  }
+  })
 
   // combine and set all subscriptions to state for cleanup
   const mergedSubscriptions = {
