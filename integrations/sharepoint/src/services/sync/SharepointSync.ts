@@ -5,6 +5,7 @@ import { getFormatedCurrTime } from '../../misc/utils'
 import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/client'
+import axios from 'axios'
 
 const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
 
@@ -125,19 +126,19 @@ export class SharepointSync {
         },
       }
 
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      }).catch((error) => {
-        this.logger.forBot().error('Failed to send background processing webhook:', error)
-        throw new RuntimeError(
-          '[Trigger Background Processing] Failed to send webhook to continue background processing',
-          error
-        )
-      })
+      axios
+        .post(webhookUrl, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        .catch((error) => {
+          this.logger.forBot().error('Failed to send background processing webhook:', error)
+          throw new RuntimeError(
+            '[Trigger Background Processing] Failed to send webhook to continue background processing',
+            error
+          )
+        })
       this.logger.forBot().info('Background processing webhook triggered (async)')
     }
   }
@@ -154,8 +155,8 @@ export class SharepointSync {
     }
   }
 
-  private async determineKbsToClear(docs: any[]): Promise<Set<string>> {
-    const kbIdsToClear = new Set<string>()
+  private async determineKbsToClear(docs: any[]): Promise<string[]> {
+    const kbIds: string[] = []
 
     for (const doc of docs) {
       const spPathOrNull = await this.sharepointClient.getFilePath(doc.Id)
@@ -170,17 +171,16 @@ export class SharepointSync {
 
       const relPath = this.extractRelativePath(spPath)
       const targetKbs = this.sharepointClient.getKbForPath(relPath)
-      for (const kb of targetKbs) {
-        kbIdsToClear.add(kb)
-      }
+      kbIds.push(...targetKbs)
     }
 
-    return kbIdsToClear
+    // Return unique KB IDs
+    return [...new Set(kbIds)]
   }
 
-  private async clearKbs(kbIdsToClear: Set<string>): Promise<void> {
-    if (kbIdsToClear.size > 0) {
-      await Promise.all(Array.from(kbIdsToClear).map((kbId) => this.getOrCreateKB(kbId).deleteAllFiles()))
+  private async clearKbs(kbIdsToClear: string[]): Promise<void> {
+    if (kbIdsToClear.length > 0) {
+      await Promise.all(kbIdsToClear.map((kbId) => this.getOrCreateKB(kbId).deleteAllFiles()))
     }
   }
 
