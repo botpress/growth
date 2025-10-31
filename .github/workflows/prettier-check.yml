@@ -39,37 +39,57 @@ jobs:
             pnpm install --no-frozen-lockfile
           fi
 
+      - name: Ensure PR refs are fetched
+        run: |
+          # Make sure we have both base & head and their ancestors
+          git fetch --no-tags --prune --depth=0 origin +refs/heads/*:refs/remotes/origin/*
+
       - name: Get changed files
         id: changed_files
+        shell: bash
         run: |
+          set -euo pipefail
+
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
 
-          # Get all changed files that match Prettier patterns
-          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" | grep -E '\.(js|mjs|cjs|jsx|ts|mts|cts|tsx|json|yaml|yml|md)$' | grep -v '^node_modules/' | grep -v '/node_modules/' | grep -v '/dist/' | grep -v '^dist/' | grep -v '/bp_modules/' | grep -v '^bp_modules/' | grep -v '\.min\.js$' | grep -v '\.bundle\.js$' || true)
+          MERGE_BASE=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
 
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "has_files=false" >> $GITHUB_OUTPUT
+          # Get all changed files that match Prettier patterns
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR "$MERGE_BASE" "$HEAD_SHA" -- \
+            | grep -E '\.(js|mjs|cjs|jsx|ts|mts|cts|tsx|json|ya?ml|md)$' \
+            | grep -v '^node_modules/' \
+            | grep -v '/node_modules/' \
+            | grep -v '^dist/' \
+            | grep -v '/dist/' \
+            | grep -v '^bp_modules/' \
+            | grep -v '/bp_modules/' \
+            | grep -v '\.min\.js$' \
+            | grep -v '\.bundle\.js$' \
+            || true)
+
+          if [ -z "${CHANGED_FILES}" ]; then
+            echo "has_files=false" >> "$GITHUB_OUTPUT"
             echo "No files matching Prettier patterns were changed"
           else
-            # Convert newlines to spaces for prettier command
-            FILES_STR=$(echo "$CHANGED_FILES" | tr '\n' ' ')
-            echo "files=$FILES_STR" >> $GITHUB_OUTPUT
-            echo "has_files=true" >> $GITHUB_OUTPUT
+            # newline -> space
+            FILES_STR=$(echo "${CHANGED_FILES}" | tr '\n' ' ')
+            echo "files=${FILES_STR}" >> "$GITHUB_OUTPUT"
+            echo "has_files=true" >> "$GITHUB_OUTPUT"
             echo "Changed files:"
-            echo "$CHANGED_FILES"
+            echo "${CHANGED_FILES}"
           fi
 
-      - name: Check Prettier formatting
+      - name: Check Prettier formatting (pnpm)
         if: steps.changed_files.outputs.has_files == 'true'
         run: |
           CHANGED_FILES="${{ steps.changed_files.outputs.files }}"
           echo "Checking formatting for: $CHANGED_FILES"
-
-          if ! npx prettier --check $CHANGED_FILES; then
+          # Use pnpm's resolver; relies on repo's Prettier version
+          if ! pnpm exec prettier --check $CHANGED_FILES; then
             echo "::error::Some of your changed files are not properly formatted with Prettier"
             echo "To fix formatting issues, run: pnpm fix:format"
-            echo "Or format specific files: pnpm prettier --write $CHANGED_FILES"
+            echo "Or format specific files: pnpm exec prettier --write $CHANGED_FILES"
             exit 1
           else
             echo "All changed files are properly formatted with Prettier ✓"
