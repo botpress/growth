@@ -83,7 +83,7 @@ const executeBackgroundSync = async (
   try {
     const { nextUrl, lib } = webhookData.data
     const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: payload.folderKbMap }, lib)
-    const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision, ctx.webhookId)
+    const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
 
     const result = await spSync.syncRemainingDocuments(nextUrl)
     logger.forBot().info(`[Background Sync] (${lib}) Complete: ${result.filesProcessed} files processed`)

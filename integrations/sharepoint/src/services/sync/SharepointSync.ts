@@ -16,20 +16,17 @@ export class SharepointSync {
   private logger: sdk.IntegrationLogger
   private enableVision: boolean
   private kbInstances = new Map<string, BotpressKB>()
-  private webhookId?: string
 
   constructor(
     sharepointClient: SharepointClient,
     bpClient: sdk.IntegrationSpecificClient<any>,
     logger: sdk.IntegrationLogger,
-    enableVision: boolean = false,
-    webhookId: string
+    enableVision: boolean = false
   ) {
     this.sharepointClient = sharepointClient
     this.bpClient = bpClient
     this.logger = logger
     this.enableVision = enableVision
-    this.webhookId = webhookId ?? undefined
   }
 
   private log(msg: string) {
@@ -62,7 +59,7 @@ export class SharepointSync {
    * Initial full sync: Fetches first page, clears KBs, processes documents, and triggers background processing
    * Used during registration/setup to perform the initial complete sync
    */
-  async syncInitialDocuments(): Promise<{ filesProcessed: number; hasMore: boolean }> {
+  async syncInitialDocuments(webhookId: string): Promise<{ filesProcessed: number; hasMore: boolean }> {
     const { docs, nextUrl } = await this.fetchAllDocuments()
 
     const kbIdsToClear = await this.determineKbsToClear(docs)
@@ -70,7 +67,7 @@ export class SharepointSync {
 
     await this.processAllDocuments(docs)
 
-    this.triggerBackgroundProcessing(nextUrl)
+    this.triggerBackgroundProcessing(nextUrl, webhookId)
 
     return {
       filesProcessed: docs.length,
@@ -82,12 +79,12 @@ export class SharepointSync {
    * Incremental sync: Fetches and processes documents without clearing KBs
    * Used for syncing new documents without disrupting existing KB content
    */
-  async syncDocumentsWithoutCleaning(): Promise<{ filesProcessed: number; hasMore: boolean }> {
+  async syncDocumentsWithoutCleaning(webhookId: string): Promise<{ filesProcessed: number; hasMore: boolean }> {
     const { docs, nextUrl } = await this.fetchAllDocuments()
 
     await this.processAllDocuments(docs)
 
-    this.triggerBackgroundProcessing(nextUrl)
+    this.triggerBackgroundProcessing(nextUrl, webhookId)
 
     return {
       filesProcessed: docs.length,
@@ -113,11 +110,11 @@ export class SharepointSync {
     }
   }
 
-  private triggerBackgroundProcessing(nextUrl: string | undefined) {
+  private triggerBackgroundProcessing(nextUrl: string | undefined, webhookId: string) {
     // If there are remaining pages, trigger asynchronous processing
     if (nextUrl) {
       this.logger.forBot().info('First Page processed. Sending webhook to trigger background processing...')
-      if (!this.webhookId) {
+      if (!webhookId) {
         this.logger
           .forBot()
           .warn(
@@ -126,7 +123,7 @@ export class SharepointSync {
           )
         return
       }
-      const webhookUrl = `https://webhook.botpress.cloud/${this.webhookId}`
+      const webhookUrl = `https://webhook.botpress.cloud/${webhookId}`
 
       const payload = {
         event: 'background-sync-triggered',

@@ -11,13 +11,12 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUr
       let webhookSubscriptionId: string | undefined
       try {
         const spClient = new SharepointClient({ ...ctx.configuration }, lib)
-        const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision, ctx.webhookId)
-
         logger.forBot().info(`[Registration] (${lib}) Creating webhook → ${webhookUrl}`)
         webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
+        const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
         logger.forBot().info(`[Registration] (${lib}) Performing initial full sync…`)
-        await spSync.syncInitialDocuments()
+        await spSync.syncInitialDocuments(ctx.webhookId)
 
         const changeToken = await spClient.getLatestChangeToken()
         const tokenToUse = changeToken || 'initial-sync-token'

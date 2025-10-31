@@ -33,13 +33,12 @@ export const addToSync: bp.Integration['actions']['addToSync'] = async ({ client
       let webhookSubscriptionId: string | undefined
       try {
         const spClient = new SharepointClient({ ...ctx.configuration, folderKbMap: input.folderKbMap }, newLib)
-        const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision, ctx.webhookId)
-
         logger.forBot().info(`[Action] (${newLib}) Creating webhook → ${webhookUrl}`)
         webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
+        const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
         logger.forBot().info(`[Action] (${newLib}) Performing initial full sync…`)
-        await spSync.syncDocumentsWithoutCleaning()
+        await spSync.syncDocumentsWithoutCleaning(ctx.webhookId)
 
         const changeToken = await spClient.getLatestChangeToken()
         const tokenToUse = changeToken || 'initial-sync-token'
