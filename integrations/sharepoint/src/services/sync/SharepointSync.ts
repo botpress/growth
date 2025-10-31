@@ -69,7 +69,7 @@ export class SharepointSync {
 
     await this.processAllDocuments(docs)
 
-    this.triggerBackgroundProcessing(nextUrl, webhookId)
+    await this.triggerBackgroundProcessing(nextUrl, webhookId)
 
     return {
       filesProcessed: docs.length,
@@ -86,7 +86,7 @@ export class SharepointSync {
 
     await this.processAllDocuments(docs)
 
-    this.triggerBackgroundProcessing(nextUrl, webhookId)
+    await this.triggerBackgroundProcessing(nextUrl, webhookId)
 
     return {
       filesProcessed: docs.length,
@@ -112,7 +112,7 @@ export class SharepointSync {
     }
   }
 
-  private triggerBackgroundProcessing(nextUrl: string | undefined, webhookId: string) {
+  private async triggerBackgroundProcessing(nextUrl: string | undefined, webhookId: string) {
     // If there are remaining pages, trigger asynchronous processing
     if (nextUrl) {
       this.logger.forBot().info('First Page processed. Sending webhook to trigger background processing...')
@@ -126,20 +126,20 @@ export class SharepointSync {
         },
       }
 
-      axios
-        .post(webhookUrl, payload, {
+      try {
+        await axios.post(webhookUrl, payload, {
           headers: {
             'Content-Type': 'application/json',
           },
         })
-        .catch((error) => {
-          this.logger.forBot().error('Failed to send background processing webhook:', error)
-          throw new RuntimeError(
-            '[Trigger Background Processing] Failed to send webhook to continue background processing',
-            error
-          )
-        })
-      this.logger.forBot().info('Background processing webhook triggered (async)')
+        this.logger.forBot().info('Background processing webhook triggered successfully')
+      } catch (error) {
+        this.logger.forBot().error('Failed to send background processing webhook:', error)
+        throw new RuntimeError(
+          '[Trigger Background Processing] Failed to send webhook to continue background processing',
+          error instanceof Error ? error : undefined
+        )
+      }
     }
   }
 
