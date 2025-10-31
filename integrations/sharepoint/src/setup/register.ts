@@ -5,40 +5,46 @@ import { cleanupWebhook, getLibraryNames } from './utils'
 
 export const register: bp.IntegrationProps['register'] = async ({ ctx, webhookUrl, client, logger }) => {
   const libs = getLibraryNames(ctx.configuration.documentLibraryNames)
-  const subscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
 
-  const clearedKbIds = new Set<string>()
+  const results = await Promise.allSettled(
+    libs.map(async (lib) => {
+      let webhookSubscriptionId: string | undefined
+      try {
+        const spClient = new SharepointClient({ ...ctx.configuration }, lib)
+        logger.forBot().info(`[Registration] (${lib}) Creating webhook → ${webhookUrl}`)
+        webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
 
-  for (const lib of libs) {
-    let webhookSubscriptionId: string | undefined
-    try {
-      const spClient = new SharepointClient({ ...ctx.configuration }, lib)
-      const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
+        const spSync = new SharepointSync(spClient, client, logger, ctx.configuration.enableVision)
+        logger.forBot().info(`[Registration] (${lib}) Performing initial full sync…`)
+        await spSync.syncInitialDocuments(ctx.webhookId)
 
-      logger.forBot().info(`[Registration] (${lib}) Creating webhook → ${webhookUrl}`)
-      webhookSubscriptionId = await spClient.registerWebhook(webhookUrl)
+        const changeToken = await spClient.getLatestChangeToken()
+        const tokenToUse = changeToken || 'initial-sync-token'
 
-      logger.forBot().info(`[Registration] (${lib}) Performing initial full sync…`)
-      await spSync.loadAllDocumentsIntoBotpressKB({ clearedKbIds })
+        logger.forBot().info(`[Registration] (${lib}) Successfully registered and synced.`)
 
-      const changeToken = await spClient.getLatestChangeToken()
-      const tokenToUse = changeToken || 'initial-sync-token'
-
-      subscriptions[lib] = { webhookSubscriptionId, changeToken: tokenToUse }
-
-      logger.forBot().info(`[Registration] (${lib}) Successfully registered and synced.`)
-    } catch (error) {
-      if (webhookSubscriptionId) {
-        await cleanupWebhook(webhookSubscriptionId, ctx, lib, logger)
+        return { lib, webhookSubscriptionId, changeToken: tokenToUse }
+      } catch (error) {
+        if (webhookSubscriptionId) {
+          await cleanupWebhook(webhookSubscriptionId, ctx, lib, logger)
+        }
+        logger
+          .forBot()
+          .error(
+            `[Registration] (${lib}) Failed to register: ${error instanceof Error ? error.message : String(error)}. Skipping this library.`
+          )
+        throw error
       }
-      logger
-        .forBot()
-        .error(
-          `[Registration] (${lib}) Failed to register: ${error instanceof Error ? error.message : String(error)}. Skipping this library.`
-        )
-      continue
+    })
+  )
+
+  const subscriptions: Record<string, { webhookSubscriptionId: string; changeToken: string }> = {}
+  results.forEach((result) => {
+    if (result.status === 'fulfilled') {
+      const { lib, webhookSubscriptionId, changeToken } = result.value
+      subscriptions[lib] = { webhookSubscriptionId, changeToken }
     }
-  }
+  })
 
   await client.setState({
     type: 'integration',
