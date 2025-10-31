@@ -70,8 +70,10 @@ export default new bp.Integration({
   },
 
   actions: {
-    syncExcelFile: async ({ ctx, input, logger }) => {
+    syncExcelFile: async ({ ctx, input, logger, client }) => {
       logger.forBot().info(`Starting Excel file sync for bot: ${ctx.botId}`)
+      const getRealClient = (client: sdk.IntegrationSpecificClient<bp.TIntegration>) => (client as any)._client
+      const realClient = getRealClient(client)
 
       const { sharepointFileUrl, sheetTableMapping, processAllSheets } = input
       logger.forBot().info(`Syncing Excel file: "${sharepointFileUrl}"`)
@@ -148,20 +150,6 @@ export default new bp.Integration({
 
         const processedSheets: any[] = []
 
-        // Tables API requires a Personal Access Token (PAT) from Botpress
-        const token = ctx.configuration.personalAccessToken
-
-        if (!token) {
-          logger
-            .forBot()
-            .error(
-              'BOTPRESS_PAT_TOKEN environment variable is not set. Please create a Personal Access Token in Botpress and set it as an environment variable.'
-            )
-          throw new sdk.RuntimeError(
-            'BOTPRESS_PAT_TOKEN is required for Tables API access. Create a PAT in your Botpress workspace settings.'
-          )
-        }
-
         // Process each sheet
         for (const currentSheetName of sheetsToProcess) {
           logger.forBot().info(`\n--- Processing sheet: "${currentSheetName}" ---`)
@@ -209,21 +197,12 @@ export default new bp.Integration({
           const tableNameForSheet = sheetToTable[currentSheetName]
           logger.forBot().info(`Using mapped table name: "${tableNameForSheet}" for sheet "${currentSheetName}"`)
 
-          logger.forBot().debug('Using direct API calls to Tables API')
-
-          const apiBaseUrl = 'https://api.botpress.cloud/v1/tables'
-          const httpHeaders = {
-            Authorization: `bearer ${token}`,
-            'x-bot-id': ctx.botId,
-            'Content-Type': 'application/json',
-          }
-
           let tableId = ''
 
           try {
             logger.forBot().debug(`Looking for existing table named: "${tableNameForSheet}"`)
-            const listTablesResponse = await axios.get(apiBaseUrl, { headers: httpHeaders })
-            const existingTables = listTablesResponse.data.tables || []
+            const listTablesResponse = await realClient.listTables({})
+            const existingTables = listTablesResponse.tables || []
             let foundTable = existingTables.find((t: { id: string; name: string }) => t.name === tableNameForSheet)
 
             if (foundTable) {
@@ -254,48 +233,45 @@ export default new bp.Integration({
                 throw new sdk.RuntimeError(errorMsg)
               }
 
-              const createTablePayload = {
-                name: tableNameForSheet,
-                schema: {
-                  type: 'object',
-                  properties: properties,
-                },
+              const tableSchema = {
+                type: 'object' as const,
+                properties: properties,
               }
 
               logger
                 .forBot()
                 .debug(
-                  `Attempting to create table "${tableNameForSheet}" with schema: ${JSON.stringify(createTablePayload.schema)}`
+                  `Attempting to create table "${tableNameForSheet}" with schema: ${JSON.stringify(tableSchema)}`
                 )
-              const createTableResponse = await axios.post(apiBaseUrl, createTablePayload, { headers: httpHeaders })
+              const createTableResponse = await realClient.createTable({
+                name: tableNameForSheet,
+                schema: tableSchema,
+              })
 
-              if (!createTableResponse.data || !createTableResponse.data.table || !createTableResponse.data.table.id) {
+              if (!createTableResponse.table || !createTableResponse.table.id) {
                 logger
                   .forBot()
                   .error(
-                    `Failed to create table "${tableNameForSheet}" or extract its ID. Response: ${JSON.stringify(createTableResponse.data)}`
+                    `Failed to create table "${tableNameForSheet}" or extract its ID. Response: ${JSON.stringify(createTableResponse)}`
                   )
                 throw new sdk.RuntimeError(
                   `Failed to create table "${tableNameForSheet}" or extract its ID from Botpress.`
                 )
               }
-              tableId = createTableResponse.data.table.id
+              tableId = createTableResponse.table.id
               logger.forBot().info(`Table "${tableNameForSheet}" created successfully with ID: ${tableId}.`)
-              
+
               // Mark as found so schema is fetched below
-              foundTable = createTableResponse.data.table
+              foundTable = createTableResponse.table
             }
 
             if (rowsData.length > 0 && tableId) {
               logger.forBot().info(`Clearing all existing rows from table "${tableNameForSheet}" (ID: ${tableId}).`)
               try {
-                await axios.post(
-                  `${apiBaseUrl}/${tableId}/rows/delete`,
-                  {
-                    deleteAllRows: true,
-                  },
-                  { headers: httpHeaders }
-                )
+                await realClient.deleteTableRows({
+                  table: tableId,
+                  deleteAllRows: true,
+                })
                 logger
                   .forBot()
                   .info(`Successfully cleared all rows from table "${tableNameForSheet}" (ID: ${tableId}).`)
@@ -318,8 +294,8 @@ export default new bp.Integration({
               if (foundTable) {
                 // If we found an existing table or just created one, get its schema
                 try {
-                  const tableDetailsResponse = await axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders })
-                  tableSchema = tableDetailsResponse.data.table?.schema
+                  const tableDetailsResponse = await realClient.getTable({ table: tableId })
+                  tableSchema = tableDetailsResponse.table?.schema
                 } catch (error: any) {
                   logger
                     .forBot()
@@ -403,18 +379,21 @@ export default new bp.Integration({
                           updateSchemaPayload.schema = schemaWithRemovals
                         }
 
-                        const updateResponse = await axios.put(`${apiBaseUrl}/${tableId}`, updateSchemaPayload, { headers: httpHeaders })
+                        const updateResponse = await realClient.updateTable({
+                          table: tableId,
+                          ...updateSchemaPayload,
+                        })
 
                         logger.forBot().info(`Successfully updated schema for table "${tableNameForSheet}"`)
 
                         // Use the schema from the response
-                        if (updateResponse.data?.table?.schema) {
-                          tableSchema = updateResponse.data.table.schema
+                        if (updateResponse.table?.schema) {
+                          tableSchema = updateResponse.table.schema
                         } else {
                           // Fall back to re-fetching if not in response
                           try {
-                            const updatedTableResponse = await axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders })
-                            tableSchema = updatedTableResponse.data.table?.schema
+                            const updatedTableResponse = await realClient.getTable({ table: tableId })
+                            tableSchema = updatedTableResponse.table?.schema
                           } catch (refetchError: any) {
                             logger
                               .forBot()
@@ -436,8 +415,8 @@ export default new bp.Integration({
 
                             while (!allNewColumnsPresent() && attempt < maxAttempts) {
                               await new Promise((resolve) => setTimeout(resolve, 1000))
-                              const refreshed = await axios.get(`${apiBaseUrl}/${tableId}`, { headers: httpHeaders })
-                              tableSchema = refreshed.data.table?.schema
+                              const refreshed = await realClient.getTable({ table: tableId })
+                              tableSchema = refreshed.table?.schema
                               attempt++
                             }
 
@@ -508,7 +487,7 @@ export default new bp.Integration({
 
                 while (processedRows < totalRows) {
                   const batch = rowsToInsert.slice(processedRows, processedRows + BATCH_SIZE)
-                  await axios.post(`${apiBaseUrl}/${tableId}/rows`, { rows: batch }, { headers: httpHeaders })
+                  await realClient.createTableRows({ table: tableId, rows: batch })
                   processedRows += batch.length
                   logger.forBot().info(`Processed ${processedRows}/${totalRows} rows for table "${tableNameForSheet}"`)
                 }

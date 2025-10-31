@@ -2,7 +2,7 @@ import { z, IntegrationDefinition } from '@botpress/sdk'
 
 export default new IntegrationDefinition({
   name: 'plus/sharepoint-excel',
-  version: '2.3.0',
+  version: '2.3.1',
   title: 'SharePoint Excel',
   description: 'Sync one or many SharePoint document libraries with one or more Botpress knowledge bases.',
   readme: 'hub.md',
@@ -19,7 +19,6 @@ export default new IntegrationDefinition({
       privateKey: z.string().min(1).describe('PEM‑formatted certificate private key'),
       primaryDomain: z.string().min(1).describe('SharePoint primary domain (e.g. contoso)'),
       siteName: z.string().min(1).describe('SharePoint site name'),
-      personalAccessToken: z.string().min(1).describe('Botpress Personal Access Token (PAT) for Tables API access'),
     }),
   },
 
