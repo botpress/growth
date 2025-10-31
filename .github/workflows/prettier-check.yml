@@ -2,6 +2,7 @@ name: Prettier Check
 
 on:
   pull_request:
+    # Runs when PRs to master are opened, re-opened, or new commits are pushed
     types: [opened, synchronize, reopened]
     branches:
       - master
@@ -17,6 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          # Fetch full git history for base vs head comparison
           fetch-depth: 0
 
       - name: Setup pnpm
@@ -30,6 +32,7 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
 
+      # Install dependencies using same method as in the build workflow
       - name: Install dependencies
         run: |
           if pnpm install --frozen-lockfile; then
@@ -39,6 +42,7 @@ jobs:
             pnpm install --no-frozen-lockfile
           fi
 
+      # Ensure both branches involved in the PR are present locally for comparison
       - name: Ensure PR refs are fetched
         run: |
           # Make sure we have both base & head refs available for comparison
@@ -49,11 +53,14 @@ jobs:
         id: changed_files
         shell: bash
         run: |
+          # Strict error handling (stop on errors, error on undefined variables, fail if any command fails)
           set -euo pipefail
 
+          # PR metadata
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
 
+          # Find the common ancestor of the base and head commits
           MERGE_BASE=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
 
           # Get all changed files that match Prettier patterns
