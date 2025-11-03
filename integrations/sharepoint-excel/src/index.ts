@@ -183,7 +183,7 @@ export default new bp.Integration({
           const duplicates = Array.from(headerCounts.entries())
             .filter(([_, count]) => count > 1)
             .map(([header, count]) => `"${header}" (${count}x)`)
-          
+
           if (duplicates.length > 0) {
             const errorMsg = `Sheet "${currentSheetName}" has duplicate column headers: ${duplicates.join(', ')}. Each column must have a unique name.`
             logger.forBot().error(errorMsg)
@@ -240,9 +240,7 @@ export default new bp.Integration({
 
               logger
                 .forBot()
-                .debug(
-                  `Attempting to create table "${tableNameForSheet}" with schema: ${JSON.stringify(tableSchema)}`
-                )
+                .debug(`Attempting to create table "${tableNameForSheet}" with schema: ${JSON.stringify(tableSchema)}`)
               const createTableResponse = await realClient.createTable({
                 name: tableNameForSheet,
                 schema: tableSchema,
@@ -397,10 +395,10 @@ export default new bp.Integration({
                           } catch (refetchError: any) {
                             logger
                               .forBot()
-                              .warn(
-                                `Could not re-fetch updated schema, using local schema: ${refetchError.message}`
-                              )
-                            tableSchema = updateSchemaPayload.schema.properties ? updateSchemaPayload.schema : { properties: updateSchemaPayload.schema.properties }
+                              .warn(`Could not re-fetch updated schema, using local schema: ${refetchError.message}`)
+                            tableSchema = updateSchemaPayload.schema.properties
+                              ? updateSchemaPayload.schema
+                              : { properties: updateSchemaPayload.schema.properties }
                           }
                         }
 
@@ -410,8 +408,7 @@ export default new bp.Integration({
                             const maxAttempts = 6
                             let attempt = 0
                             // Helper to check if all new columns are present
-                            const allNewColumnsPresent = () =>
-                              columnsToAdd.every((c) => !!tableSchema?.properties?.[c])
+                            const allNewColumnsPresent = () => columnsToAdd.every((c) => !!tableSchema?.properties?.[c])
 
                             while (!allNewColumnsPresent() && attempt < maxAttempts) {
                               await new Promise((resolve) => setTimeout(resolve, 1000))
