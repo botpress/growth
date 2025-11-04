@@ -42,13 +42,6 @@ jobs:
             exit 1
           fi
 
-      # Ensure both branches involved in the PR are present locally for comparison
-      - name: Ensure PR refs are fetched
-        run: |
-          # Make sure we have both base & head refs available for comparison
-          git fetch origin ${{ github.event.pull_request.base.ref }} || true
-          git fetch origin ${{ github.event.pull_request.head.ref }} || true
-
       - name: Get changed files
         id: changed_files
         shell: bash
