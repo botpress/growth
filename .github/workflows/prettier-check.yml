@@ -32,14 +32,14 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
 
-      # Install dependencies using same method as in the build workflow
+      # Install dependencies using same method as in the build workflow (directly from package.json, erroring if lockfile is incompatible)
       - name: Install dependencies
         run: |
           if pnpm install --frozen-lockfile; then
             echo "Lockfile is compatible"
           else
-            echo "Lockfile incompatible, regenerating..."
-            pnpm install --no-frozen-lockfile
+            echo "Lockfile incompatible"
+            exit 1
           fi
 
       # Ensure both branches involved in the PR are present locally for comparison
