@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'pnpm'
 
       # Install dependencies using same method as in the build workflow (directly from package.json, erroring if lockfile is incompatible)
