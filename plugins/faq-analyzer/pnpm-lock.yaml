@@ -8,46 +8,65 @@ importers:
 
   .:
     dependencies:
-      '@botpress/client':
-        specifier: 1.18.0
-        version: 1.18.0
       '@botpress/sdk':
-        specifier: 4.15.1
-        version: 4.15.1(@bpinternal/zui@1.2.2)
+        specifier: 3.5.1
+        version: 3.5.1(@bpinternal/zui@0.22.3)
+      '@botpress/zai':
+        specifier: ^2.0.1
+        version: 2.3.0(@bpinternal/thicktoken@1.0.6)(@bpinternal/zui@0.22.3)
+      '@bpinternal/zui':
+        specifier: 0.22.3
+        version: 0.22.3
       zod:
-        specifier: ^4.0.5
-        version: 4.1.12
+        specifier: ^3.24.4
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^18.19.67
         version: 18.19.130
       typescript:
-        specifier: ^5.8.3
+        specifier: ^5.6.3
         version: 5.9.3
 
 packages:
 
-  '@botpress/client@1.18.0':
-    resolution: {integrity: sha512-0rKRgzJNwhSs0VFhftyj5LszS7puhhOngUmQKks2tk7CtVGEE6p0il/rhT8jz6ObIWAnKUFkDJgRNV9YWqJogQ==}
+  '@botpress/client@0.48.0':
+    resolution: {integrity: sha512-VjXjIoPF26nK2DJFQkilTIirXP1D+t9AX1XL2P72pFRqyX5ADfuIz3fayU/VWNW86EKmXanhcPvZu1tuliyOpA==}
     engines: {node: '>=18.0.0'}
 
-  '@botpress/client@1.20.0':
-    resolution: {integrity: sha512-21tDe0mKbrYW1AgPM4nfAEfpML5tZiI1FGHpOjwcFEDZiNgU+YAPdZsAvwXv57bkNxzhI9oISq9qgCZ6YBFR4A==}
+  '@botpress/cognitive@0.1.50':
+    resolution: {integrity: sha512-dvS7qmnOnGeyMK/pRDNJWIXkse7Af7NDUiorXIs8vK0/fHAbKRU48phF/8FMaFWw6/JFBzPg97pVfllOgln4Yw==}
     engines: {node: '>=18.0.0'}
 
-  '@botpress/sdk@4.15.1':
-    resolution: {integrity: sha512-s6b/ayxD5n2wlLxUoe45s4uT29I5rIcfaw7QVH7jFJ/JUoj/39BkPFgSVd5HiXd/fb6zcSrgXHtzHOZBTtOxQg==}
+  '@botpress/sdk@3.5.1':
+    resolution: {integrity: sha512-H6R0ZsxakXQuD3XQKmFQKQIwTFtgvjOPYM1cirYnhzOvtcEkYA/EgiTrtWAiqhNIWJi4awE2HSw5WlCt18K3/Q==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      '@bpinternal/zui': ^1.0.1
+      '@bpinternal/zui': ^0.13.5
       esbuild: ^0.16.12
     peerDependenciesMeta:
       esbuild:
         optional: true
 
-  '@bpinternal/zui@1.2.2':
-    resolution: {integrity: sha512-Ngs3ySRoDTfWAeGYLnKLr4D4nvMh+MGlDt4vEzXnTzIWcvWK+u1CVPt81nr9ZgHzkhJkZEkZVgwbwADp7rQcrQ==}
+  '@botpress/zai@2.3.0':
+    resolution: {integrity: sha512-w3f1ihcceUmoUUSeSX0JmKP814D03iSrOuLgfozn6zkP9ya7ZCsZsmrJPbskNo3Fj8P8mC7jDWXeeYAIq5a2KQ==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@bpinternal/thicktoken': ^1.0.0
+      '@bpinternal/zui': ^1.2.2
+
+  '@bpinternal/thicktoken@1.0.6':
+    resolution: {integrity: sha512-sxatJ0J6NjW8WPUPtxu1VzhYQF1HXyRe3PSVWbct2nAVIJr6TTKx2LxplVk5mpdapJzHmnOKSsISbuWtFuUi0A==}
     engines: {node: '>=16.0.0', pnpm: 8.6.2}
+
+  '@bpinternal/zui@0.22.3':
+    resolution: {integrity: sha512-vDAFFY+TKjwUn/ii9HPbVrpS4luJHd90TN9VddVL/iRX4JSzx2P7AN0h2Z2Ed/3rM+JLvyly7i8fTudL2PLfCA==}
+    engines: {node: '>=16.0.0', pnpm: 8.6.2}
+    peerDependencies:
+      react: ^18.2.0
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   '@types/node@18.19.130':
     resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
@@ -102,6 +121,9 @@ packages:
     resolution: {integrity: sha512-j6vWzfrGVfyXxge+O0x5sh6cvxAog0a/4Rdd2K36zCMV5eJ+/+tOAngRO8cODMNWbVRdVlmGZQL2YS3yR8bIUA==}
     engines: {node: '>= 0.4'}
 
+  exponential-backoff@3.1.3:
+    resolution: {integrity: sha512-ZgEeZXj30q+I0EN+CbSSpIyPaJ5HVQD18Z1m+u1FXbAeT94mr1zw50q4q6jiiC447Nl/YTcIYSAftiGqetwXCA==}
+
   follow-redirects@1.15.11:
     resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
     engines: {node: '>=4.0'}
@@ -146,6 +168,18 @@ packages:
     resolution: {integrity: sha512-XVm7LOeLpTW4jV19QSH38vkswxoLud8sQ57YwJVTPWdiaI9I8keEhGFpBlslyVsgdQy4Opg8QOLb8YRgsyZiQg==}
     engines: {node: '>=10'}
 
+  json5@2.2.3:
+    resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
+    engines: {node: '>=6'}
+    hasBin: true
+
+  jsonrepair@3.13.1:
+    resolution: {integrity: sha512-WJeiE0jGfxYmtLwBTEk8+y/mYcaleyLXWaqp5bJu0/ZTSeG0KQq/wWQ8pmnkKenEdN6pdnn6QtcoSUkbqDHWNw==}
+    hasBin: true
+
+  lodash-es@4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
+
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -158,9 +192,17 @@ packages:
     resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}
     engines: {node: '>= 0.6'}
 
+  nanoevents@9.1.0:
+    resolution: {integrity: sha512-Jd0fILWG44a9luj8v5kED4WI+zfkkgwKyRQKItTtlPfEsh7Lznfi1kr8/iZ+XAIss4Qq5GqRB0qtWbaz9ceO/A==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+
   object-inspect@1.13.4:
     resolution: {integrity: sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==}
     engines: {node: '>= 0.4'}
+
+  p-limit@7.2.0:
+    resolution: {integrity: sha512-ATHLtwoTNDloHRFFxFJdHnG6n2WUeFjaR8XQMFdKIv0xkXjrER8/iG9iu265jOM95zXHAfv9oTkqhrfbIzosrQ==}
+    engines: {node: '>=20'}
 
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
@@ -193,12 +235,16 @@ packages:
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
-  zod@4.1.12:
-    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
+  yocto-queue@1.2.1:
+    resolution: {integrity: sha512-AyeEbWOu/TAXdxlV9wmGcR0+yh2j3vYPGOECcIj2S7MkrLyC7ne+oye2BKTItt0ii2PHk4cDy+95+LshzbXnGg==}
+    engines: {node: '>=12.20'}
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
 
-  '@botpress/client@1.18.0':
+  '@botpress/client@0.48.0':
     dependencies:
       axios: 1.13.2
       axios-retry: 4.5.0(axios@1.13.2)
@@ -207,24 +253,32 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@botpress/client@1.20.0':
+  '@botpress/cognitive@0.1.50':
     dependencies:
-      axios: 1.13.2
-      axios-retry: 4.5.0(axios@1.13.2)
-      browser-or-node: 2.1.1
-      qs: 6.14.0
-    transitivePeerDependencies:
-      - debug
+      exponential-backoff: 3.1.3
+      nanoevents: 9.1.0
 
-  '@botpress/sdk@4.15.1(@bpinternal/zui@1.2.2)':
+  '@botpress/sdk@3.5.1(@bpinternal/zui@0.22.3)':
     dependencies:
-      '@botpress/client': 1.20.0
-      '@bpinternal/zui': 1.2.2
+      '@botpress/client': 0.48.0
+      '@bpinternal/zui': 0.22.3
       browser-or-node: 2.1.1
     transitivePeerDependencies:
       - debug
 
-  '@bpinternal/zui@1.2.2': {}
+  '@botpress/zai@2.3.0(@bpinternal/thicktoken@1.0.6)(@bpinternal/zui@0.22.3)':
+    dependencies:
+      '@botpress/cognitive': 0.1.50
+      '@bpinternal/thicktoken': 1.0.6
+      '@bpinternal/zui': 0.22.3
+      json5: 2.2.3
+      jsonrepair: 3.13.1
+      lodash-es: 4.17.21
+      p-limit: 7.2.0
+
+  '@bpinternal/thicktoken@1.0.6': {}
+
+  '@bpinternal/zui@0.22.3': {}
 
   '@types/node@18.19.130':
     dependencies:
@@ -284,6 +338,8 @@ snapshots:
       has-tostringtag: 1.0.2
       hasown: 2.0.2
 
+  exponential-backoff@3.1.3: {}
+
   follow-redirects@1.15.11: {}
 
   form-data@4.0.4:
@@ -328,6 +384,12 @@ snapshots:
 
   is-retry-allowed@2.2.0: {}
 
+  json5@2.2.3: {}
+
+  jsonrepair@3.13.1: {}
+
+  lodash-es@4.17.21: {}
+
   math-intrinsics@1.1.0: {}
 
   mime-db@1.52.0: {}
@@ -336,7 +398,13 @@ snapshots:
     dependencies:
       mime-db: 1.52.0
 
+  nanoevents@9.1.0: {}
+
   object-inspect@1.13.4: {}
+
+  p-limit@7.2.0:
+    dependencies:
+      yocto-queue: 1.2.1
 
   proxy-from-env@1.1.0: {}
 
@@ -376,4 +444,6 @@ snapshots:
 
   undici-types@5.26.5: {}
 
-  zod@4.1.12: {}
+  yocto-queue@1.2.1: {}
+
+  zod@3.25.76: {}

@@ -3,6 +3,9 @@ import { SharepointClient } from '../../SharepointClient'
 import path from 'path'
 import { getFormatedCurrTime } from '../../misc/utils'
 import * as sdk from '@botpress/sdk'
+import * as bp from '.botpress'
+import { RuntimeError } from '@botpress/client'
+import axios from 'axios'
 
 const SUPPORTED_FILE_EXTENSIONS = ['.txt', '.html', '.pdf', '.doc', '.docx', '.md']
 
@@ -54,27 +57,106 @@ export class SharepointSync {
     return this.kbInstances.get(kbId)!
   }
 
-  async loadAllDocumentsIntoBotpressKB(options?: {
-    clearedKbIds?: Set<string>
-    skipCleaning?: boolean
-  }): Promise<void> {
-    const docs = await this.fetchAllDocuments()
-    const skipCleaning = options?.skipCleaning
-    const clearedKbIds = options?.clearedKbIds
-    if (!skipCleaning) {
-      const kbIdsToClear = await this.determineKbsToClear(docs)
-      await this.clearRemainingKbs(kbIdsToClear, clearedKbIds)
-    }
+  /**
+   * Initial full sync: Fetches first page, clears KBs, processes documents, and triggers background processing
+   * Used during registration/setup to perform the initial complete sync
+   */
+  async syncInitialDocuments(webhookId: string): Promise<{ filesProcessed: number; hasMore: boolean }> {
+    const { docs, nextUrl } = await this.fetchAllDocuments()
+
+    const kbIdsToClear = await this.determineKbsToClear(docs)
+    await this.clearKbs(kbIdsToClear)
+
     await this.processAllDocuments(docs)
+
+    await this.triggerBackgroundProcessing(nextUrl, webhookId)
+
+    return {
+      filesProcessed: docs.length,
+      hasMore: nextUrl != null,
+    }
   }
 
-  private async fetchAllDocuments() {
-    const items = await this.sharepointClient.listItems()
-    return items.filter((i) => i.FileSystemObjectType === 0)
+  /**
+   * Incremental sync: Fetches and processes documents without clearing KBs
+   * Used for syncing new documents without disrupting existing KB content
+   */
+  async syncDocumentsWithoutCleaning(webhookId: string): Promise<{ filesProcessed: number; hasMore: boolean }> {
+    const { docs, nextUrl } = await this.fetchAllDocuments()
+
+    await this.processAllDocuments(docs)
+
+    await this.triggerBackgroundProcessing(nextUrl, webhookId)
+
+    return {
+      filesProcessed: docs.length,
+      hasMore: nextUrl != null,
+    }
   }
 
-  private async determineKbsToClear(docs: any[]): Promise<Set<string>> {
-    const kbIdsToClear = new Set<string>()
+  /**
+   * Background pagination sync: Processes remaining pages from a specific URL
+   * Used for webhook-triggered background processing of remaining documents
+   */
+  async syncRemainingDocuments(startUrl: string): Promise<{ filesProcessed: number; hasMore: boolean }> {
+    const { docs } = await this.fetchAllDocuments(startUrl)
+
+    await this.processAllDocuments(docs)
+
+    // No background processing trigger - this IS the background processing
+    // No hasMore - background processing fetches all remaining pages at once
+
+    return {
+      filesProcessed: docs.length,
+      hasMore: false,
+    }
+  }
+
+  private async triggerBackgroundProcessing(nextUrl: string | undefined, webhookId: string) {
+    // If there are remaining pages, trigger asynchronous processing
+    if (nextUrl) {
+      this.logger.forBot().info('First Page processed. Sending webhook to trigger background processing...')
+      const webhookUrl = `https://webhook.botpress.cloud/${webhookId}`
+
+      const payload = {
+        event: 'background-sync-triggered',
+        data: {
+          nextUrl,
+          lib: this.sharepointClient.getDocumentLibraryName(),
+        },
+      }
+
+      try {
+        await axios.post(webhookUrl, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        this.logger.forBot().info('Background processing webhook triggered successfully')
+      } catch (error) {
+        this.logger.forBot().error('Failed to send background processing webhook:', error)
+        throw new RuntimeError(
+          '[Trigger Background Processing] Failed to send webhook to continue background processing',
+          error instanceof Error ? error : undefined
+        )
+      }
+    }
+  }
+
+  private async fetchAllDocuments(startUrl?: string): Promise<{ docs: any[]; nextUrl?: string }> {
+    if (startUrl) {
+      // Background processing: fetch all remaining pages starting from startUrl
+      const items = await this.sharepointClient.listAll(startUrl, this.logger)
+      return { docs: items.filter((i) => i.FileSystemObjectType === 0) }
+    } else {
+      // First page only: for quick user feedback
+      const { items, nextUrl } = await this.sharepointClient.listItems()
+      return { docs: items.filter((i) => i.FileSystemObjectType === 0), nextUrl }
+    }
+  }
+
+  private async determineKbsToClear(docs: any[]): Promise<string[]> {
+    const kbIds: string[] = []
 
     for (const doc of docs) {
       const spPathOrNull = await this.sharepointClient.getFilePath(doc.Id)
@@ -89,26 +171,16 @@ export class SharepointSync {
 
       const relPath = this.extractRelativePath(spPath)
       const targetKbs = this.sharepointClient.getKbForPath(relPath)
-      for (const kb of targetKbs) {
-        kbIdsToClear.add(kb)
-      }
+      kbIds.push(...targetKbs)
     }
 
-    return kbIdsToClear
+    // Return unique KB IDs
+    return [...new Set(kbIds)]
   }
 
-  private async clearRemainingKbs(kbIdsToClear: Set<string>, clearedKbIds?: Set<string>): Promise<void> {
-    const remainingKbsToClear = Array.from(kbIdsToClear).filter((kbId) => !clearedKbIds || !clearedKbIds.has(kbId))
-
-    if (remainingKbsToClear.length > 0) {
-      await Promise.all(
-        remainingKbsToClear.map((kbId) => {
-          if (clearedKbIds) {
-            clearedKbIds.add(kbId) // Mark this KB as cleared
-          }
-          return this.getOrCreateKB(kbId).deleteAllFiles()
-        })
-      )
+  private async clearKbs(kbIdsToClear: string[]): Promise<void> {
+    if (kbIdsToClear.length > 0) {
+      await Promise.all(kbIdsToClear.map((kbId) => this.getOrCreateKB(kbId).deleteAllFiles()))
     }
   }
 

@@ -1,5 +1,6 @@
 export type SharePointItemsResponse = {
   d: {
+    __next?: string
     results: SharePointItem[]
   }
 }
