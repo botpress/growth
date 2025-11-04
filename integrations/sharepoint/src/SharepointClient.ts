@@ -2,8 +2,8 @@ import axios from 'axios'
 import * as msal from '@azure/msal-node'
 import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
-import { formatPrivateKey, handleAxiosError } from './utils'
-import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from './SharepointTypes'
+import { formatPrivateKey, handleAxiosError } from './misc/utils'
+import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from './misc/SharepointTypes'
 
 export class SharepointClient {
   private cca: msal.ConfidentialClientApplication
@@ -44,6 +44,11 @@ export class SharepointClient {
       console.warn('[SharepointClient] Failed parsing folderKbMap:', err)
       this.folderKbMap = {}
     }
+  }
+
+  /** Expose the configured document library name */
+  public getDocumentLibraryName(): string {
+    return this.documentLibraryName
   }
 
   /**
@@ -284,9 +289,9 @@ export class SharepointClient {
   }
 
   /**
-   * List all items (files + folders) in the doc library
+   * List first 100 items (files + folders) in the doc library
    */
-  async listItems(): Promise<SharePointItem[]> {
+  async listItems(): Promise<{ items: SharePointItem[]; nextUrl: string | undefined }> {
     const token = await this.fetchToken()
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/items`
     const res = await axios.get<SharePointItemsResponse>(url, {
@@ -295,6 +300,48 @@ export class SharepointClient {
         Accept: 'application/json;odata=verbose',
       },
     })
-    return res.data.d.results
+    return { items: res.data.d.results, nextUrl: res.data.d.__next }
+  }
+
+  /**
+   * List ALL remaining items starting from a pagination URL
+   * Used for background processing after first page
+   * @param startUrl - The __next URL from a previous listItems() call
+   * @param logger - Logger instance
+   */
+  async listAll(startUrl: string, logger: bp.Logger): Promise<SharePointItem[]> {
+    const token = await this.fetchToken()
+    let url: string | undefined = startUrl
+    const allItems: SharePointItem[] = []
+    let pageCount = 0
+
+    while (url) {
+      try {
+        const res: { data: SharePointItemsResponse } = await axios.get<SharePointItemsResponse>(url, {
+          headers: {
+            Authorization: `Bearer ${token.accessToken}`,
+            Accept: 'application/json;odata=verbose',
+          },
+        })
+
+        const items = res.data.d.results
+        allItems.push(...items)
+        pageCount++
+
+        logger
+          .forBot()
+          .info(`[SP Client] Background page ${pageCount}, items: ${items.length}, total: ${allItems.length}`)
+
+        url = res.data.d.__next
+      } catch (error) {
+        logger.forBot().error(`[SP Client] Failed at background page ${pageCount + 1}: ${error}`)
+        throw new sdk.RuntimeError(`Error listing items at page ${pageCount + 1}`)
+      }
+    }
+
+    logger
+      .forBot()
+      .info(`[SP Client] Background sync complete. Total items: ${allItems.length} across ${pageCount} pages`)
+    return allItems
   }
 }
