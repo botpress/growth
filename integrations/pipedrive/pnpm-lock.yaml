@@ -11,6 +11,9 @@ importers:
       '@botpress/sdk':
         specifier: 4.15.3
         version: 4.15.3(@bpinternal/zui@1.1.0)
+      axios:
+        specifier: ^1.12.2
+        version: 1.12.2
       pipedrive:
         specifier: ^29.2.2
         version: 29.2.3
