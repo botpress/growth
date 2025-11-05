@@ -159,13 +159,6 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
     // normalize
     const email = rawEmail.trim().toLowerCase()
 
-    // validate
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      logger.forBot().error(`Invalid email format: ${email}`)
-      throw new RuntimeError(`Invalid email format: ${email}`)
-    }
-
     logger.forBot().info(`Creating user with email: ${email}`)
 
     const { user: botpressUser } = await client.getOrCreateUser({
