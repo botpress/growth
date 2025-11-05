@@ -21,7 +21,10 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     if (!userInfoState?.state.payload.email) {
       throw new RuntimeError('No userInfo found in state')
     }
-    const { email, intercomContactId } = userInfoState.state.payload
+    const { email: rawEmail, intercomContactId } = userInfoState.state.payload
+
+    // normalize
+    const email = rawEmail.trim().toLowerCase()
 
     logger
       .forBot()
@@ -146,11 +149,21 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
 
 export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ ctx, client, input, logger }) => {
   try {
-    const { name = 'None', email = 'None', pictureUrl = 'None' } = input
+    const { name = 'None', email: rawEmail = 'None', pictureUrl = 'None' } = input
 
-    if (!email) {
+    if (!rawEmail || rawEmail === 'None') {
       logger.forBot().error('Email necessary for HITL')
       throw new RuntimeError('Email necessary for HITL')
+    }
+
+    // normalize
+    const email = rawEmail.trim().toLowerCase()
+
+    // validate
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      logger.forBot().error(`Invalid email format: ${email}`)
+      throw new RuntimeError(`Invalid email format: ${email}`)
     }
 
     logger.forBot().info(`Creating user with email: ${email}`)
