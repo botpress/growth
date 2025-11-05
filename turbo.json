@@ -1,0 +1,16 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "generate": {
+      "cache": false
+    },
+    "check:bplint": {
+      "cache": true,
+      "inputs": ["src/**", "integration.definition.ts"]
+    },
+    "check:type": {
+      "cache": true,
+      "inputs": ["src/**", "*.ts", "tsconfig.json"]
+    }
+  }
+}
