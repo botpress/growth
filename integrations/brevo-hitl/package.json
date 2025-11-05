@@ -1,6 +1,7 @@
 {
-  "name": "@bp-templates/empty-integration",
+  "name": "brevo-hitl",
   "scripts": {
+    "check:bplint": "bp lint",
     "check:type": "tsc --noEmit",
     "version": "bp --version",
     "login": "bp login",
