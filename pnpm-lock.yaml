@@ -104,6 +104,40 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@24.10.0)(yaml@2.8.1)
+      yaml:
+        specifier: ^2.4.0
+        version: 2.8.1
+
+  integrations/brevo-hitl:
+    dependencies:
+      '@botpress/client':
+        specifier: 0.45.0
+        version: 0.45.0
+      '@botpress/sdk':
+        specifier: 3.3.0
+        version: 3.3.0(@bpinternal/zui@1.2.2)(esbuild@0.16.17)
+      axios:
+        specifier: ^1.8.1
+        version: 1.13.1
+      form-data:
+        specifier: ^4.0.0
+        version: 4.0.4
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      '@botpress/cli':
+        specifier: ^3.3.0
+        version: 3.6.5(@bpinternal/zui@1.2.2)
+      '@types/node':
+        specifier: ^18.19.76
+        version: 18.19.130
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@18.19.130)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
 
 packages:
 
@@ -263,14 +297,49 @@ packages:
   '@botpress/chat@0.5.1':
     resolution: {integrity: sha512-zmxWo1/i1E7yL1rS0smkE1cnrJ0yO4FvPnX/YFD0ICYS2hxbtPZDbz7VOMHN/EynSchqTN9qtJ5aVf/V1tTVOQ==}
 
+  '@botpress/cli@3.6.5':
+    resolution: {integrity: sha512-i6wtkVgupd4hx9tYMd7K6UCS+Gi1E5ks5QlFm0cZ8KkHyHUFvBozk50NcwvSY6j0U/VHE1ciFmZ8eCNyWKnmwQ==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   '@botpress/cli@4.10.2':
     resolution: {integrity: sha512-GwEta116vPMLwqlJjveRqCDtO62xJJ4jW8aDEJeDmOhm/xQ33hptWCHji/PdD7B+ehGJIWvhahpfNad+djeWdQ==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
+  '@botpress/client@0.45.0':
+    resolution: {integrity: sha512-PJ1zRtUFJ/bO6sO9ScRawqDvz1q0MnR8uOqIt9gK6+nRxWFTgrwqKTkBknu7RAEuOHH9y8F97dqTsRP6mX2IbQ==}
+
+  '@botpress/client@0.47.0':
+    resolution: {integrity: sha512-k37fLlHzxo30MuyCePE5Vc92OM3OQTzu7OeY296jNCvOw9UZ7wkng2uaXmnCnqh52qgPHPfi5cWRLpLV/Jyo9w==}
+
+  '@botpress/client@0.48.3':
+    resolution: {integrity: sha512-h5c1ck51rjl8aaHw1a7Fzd6zYzMMWW4AIkYMHhuz0B1it+4NecMhtb9R4QPvV+YZuIZ2AnBOls6r2b5JgRLzGA==}
+    engines: {node: '>=18.0.0'}
+
   '@botpress/client@1.16.1':
     resolution: {integrity: sha512-amkqZKYAZRe7ocQearb6dNJgfrUWrLqUeb06g2KWoJfBCp+a71T7dE/Asleie0TRVqkogZn1Nv0dZ5PAZqcGKg==}
     engines: {node: '>=18.0.0'}
+
+  '@botpress/sdk@3.3.0':
+    resolution: {integrity: sha512-K/n1ioPAiN50j4EOszSUyQ2VQiVaTqqFAIiweODJ6B3EYcGxv0uHq86sX/FOsg0iOopsX+jtq4WIDjgyf+e6fA==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@bpinternal/zui': ^0.13.5
+      esbuild: ^0.16.12
+    peerDependenciesMeta:
+      esbuild:
+        optional: true
+
+  '@botpress/sdk@3.6.3':
+    resolution: {integrity: sha512-8p9rLg3NMxdGPgducjh/OujqoOfs6Lf913/gNRBuCe36U0EFZY0KEz5+0o0KFdp5DtS9yxtUujcY3UOnG+KJMg==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@bpinternal/zui': ^0.13.5
+      esbuild: ^0.16.12
+    peerDependenciesMeta:
+      esbuild:
+        optional: true
 
   '@botpress/sdk@4.13.0':
     resolution: {integrity: sha512-qhw5r/0XvXVk99l461O6vFpKqX3spcp9zNLtiz2/yUiz2ECoMGiT74zv32nMDZH9EIYNIiz/458WRhKQ6AH6dA==}
@@ -1337,6 +1406,9 @@ packages:
   '@types/minimatch@6.0.0':
     resolution: {integrity: sha512-zmPitbQ8+6zNutpwgcQuLcsEpn/Cj54Kbn7L5pX0Os5kdWplB7xPgEh/g+SWOB/qmows2gpuCaPyduq8ZZRnxA==}
     deprecated: This is a stub types definition. minimatch provides its own type definitions, so you do not need this installed.
+
+  '@types/node@18.19.130':
+    resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
 
   '@types/node@24.10.0':
     resolution: {integrity: sha512-qzQZRBqkFsYyaSWXuEHc2WR9c0a0CXwiE5FWUvn7ZM+vdy1uZLfCunD38UzhuB7YN/J11ndbDBcTmOdxJo9Q7A==}
@@ -3961,6 +4033,9 @@ packages:
   unbzip2-stream@1.4.3:
     resolution: {integrity: sha512-mlExGW4w71ebDJviH16lQLtZS32VKqsSfk80GCfUlwT/4/hNRFsoscrF/c++9xinkMzECL1uL9DDwXqFWkruPg==}
 
+  undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
@@ -4633,6 +4708,43 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  '@botpress/cli@3.6.5(@bpinternal/zui@1.2.2)':
+    dependencies:
+      '@apidevtools/json-schema-ref-parser': 11.9.3
+      '@botpress/chat': 0.5.1
+      '@botpress/client': 0.48.3
+      '@botpress/sdk': 3.6.3(@bpinternal/zui@1.2.2)(esbuild@0.16.17)
+      '@bpinternal/const': 0.1.2
+      '@bpinternal/tunnel': 0.1.25
+      '@bpinternal/yargs-extra': 0.0.3
+      '@parcel/watcher': 2.5.1
+      '@stoplight/spectral-core': 1.20.0
+      '@stoplight/spectral-functions': 1.10.1
+      '@stoplight/spectral-parsers': 1.0.5
+      '@types/lodash': 4.17.20
+      '@types/verror': 1.10.11
+      axios: 1.13.1
+      bluebird: 3.7.2
+      boxen: 5.1.2
+      chalk: 4.1.2
+      dotenv: 16.6.1
+      esbuild: 0.16.17
+      handlebars: 4.7.8
+      latest-version: 5.1.0
+      lodash: 4.17.21
+      prettier: 3.6.2
+      prompts: 2.4.2
+      semver: 7.7.3
+      uuid: 9.0.1
+      verror: 1.10.1
+      yn: 4.0.0
+    transitivePeerDependencies:
+      - '@bpinternal/zui'
+      - bufferutil
+      - debug
+      - encoding
+      - utf-8-validate
+
   '@botpress/cli@4.10.2(@bpinternal/zui@1.2.2)':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.9.3
@@ -4670,12 +4782,61 @@ snapshots:
       - encoding
       - utf-8-validate
 
+  '@botpress/client@0.45.0':
+    dependencies:
+      axios: 1.13.1
+      axios-retry: 4.5.0(axios@1.13.1)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+      type-fest: 3.13.1
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/client@0.47.0':
+    dependencies:
+      axios: 1.13.1
+      axios-retry: 4.5.0(axios@1.13.1)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+      type-fest: 3.13.1
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/client@0.48.3':
+    dependencies:
+      axios: 1.13.1
+      axios-retry: 4.5.0(axios@1.13.1)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+
   '@botpress/client@1.16.1':
     dependencies:
       axios: 1.13.1
       axios-retry: 4.5.0(axios@1.13.1)
       browser-or-node: 2.1.1
       qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/sdk@3.3.0(@bpinternal/zui@1.2.2)(esbuild@0.16.17)':
+    dependencies:
+      '@botpress/client': 0.47.0
+      '@bpinternal/zui': 1.2.2
+      browser-or-node: 2.1.1
+    optionalDependencies:
+      esbuild: 0.16.17
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/sdk@3.6.3(@bpinternal/zui@1.2.2)(esbuild@0.16.17)':
+    dependencies:
+      '@botpress/client': 0.48.3
+      '@bpinternal/zui': 1.2.2
+      browser-or-node: 2.1.1
+    optionalDependencies:
+      esbuild: 0.16.17
     transitivePeerDependencies:
       - debug
 
@@ -5747,6 +5908,10 @@ snapshots:
   '@types/minimatch@6.0.0':
     dependencies:
       minimatch: 10.1.1
+
+  '@types/node@18.19.130':
+    dependencies:
+      undici-types: 5.26.5
 
   '@types/node@24.10.0':
     dependencies:
@@ -8499,6 +8664,24 @@ snapshots:
 
   ts-deepmerge@4.0.0: {}
 
+  ts-node@10.9.2(@types/node@18.19.130)(typescript@5.9.3):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.11
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 18.19.130
+      acorn: 8.15.0
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.9.3
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+
   ts-node@10.9.2(@types/node@24.10.0)(typescript@5.9.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
@@ -8636,6 +8819,8 @@ snapshots:
     dependencies:
       buffer: 5.7.1
       through: 2.3.8
+
+  undici-types@5.26.5: {}
 
   undici-types@7.16.0: {}
 
