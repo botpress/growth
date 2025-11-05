@@ -1,5 +1,5 @@
 {
-  "name": "@bp-templates/empty-integration",
+  "name": "google-chat-spaces",
   "scripts": {
     "version": "bp --version",
     "login": "bp login",

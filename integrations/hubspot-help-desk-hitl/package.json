@@ -1,5 +1,5 @@
 {
-  "name": "@bp-templates/empty-integration",
+  "name": "hubspot-help-desk-hitl",
   "scripts": {
     "check:type": "tsc --noEmit",
     "version": "bp --version",

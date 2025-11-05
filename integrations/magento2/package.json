@@ -1,5 +1,5 @@
 {
-  "name": "@bp-templates/hello-world",
+  "name": "magento2",
   "scripts": {
     "check:type": "tsc --noEmit",
     "version": "bp --version",
