@@ -127,7 +127,7 @@ importers:
         version: 3.25.76
     devDependencies:
       '@botpress/cli':
-        specifier: ^3.3.0
+        specifier: ^3.6.3
         version: 3.6.5(@bpinternal/zui@1.2.2)
       '@types/node':
         specifier: ^18.19.76

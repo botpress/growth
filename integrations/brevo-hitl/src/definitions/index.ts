@@ -12,7 +12,7 @@ export const states = {
   userInfo: {
     type: 'user',
     schema: z.object({
-      email: z.string(),
+      email: z.string().describe('The email of the user').title('User Email'),
     }),
   },
 } satisfies IntegrationDefinitionProps['states']
