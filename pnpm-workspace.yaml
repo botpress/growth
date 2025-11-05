@@ -1,0 +1,4 @@
+packages:
+  - 'integrations/*'
+  - 'bp-integration-runner'
+  - 'plugins/*'
