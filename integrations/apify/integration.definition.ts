@@ -1,23 +1,41 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
 
 export const startCrawlerRunInputSchema = z.object({
-  startUrls: z.array(z.string().url()).describe('URLs to start crawling from'),
-  excludeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to exclude from crawling'),
-  includeUrlGlobs: z.array(z.string()).optional().describe('URL patterns to include in crawling'),
-  maxCrawlPages: z.number().min(1).max(10000).describe('Maximum number of pages to crawl'),
-  saveMarkdown: z.boolean().describe('Save content as Markdown format'),
+  startUrls: z.array(z.string().url()).title('Start URLs').describe('URLs to start crawling from'),
+  excludeUrlGlobs: z
+    .array(z.string())
+    .optional()
+    .title('Exclude URL Globs')
+    .describe('URL patterns to exclude from crawling'),
+  includeUrlGlobs: z
+    .array(z.string())
+    .optional()
+    .title('Include URL Globs')
+    .describe('URL patterns to include in crawling'),
+  maxCrawlPages: z.number().min(1).max(10000).title('Max Crawl Pages').describe('Maximum number of pages to crawl'),
+  saveMarkdown: z.boolean().title('Save Markdown').describe('Save content as Markdown format'),
   htmlTransformer: z
     .enum(['readableTextIfPossible', 'readableText', 'extractus', 'none'])
+    .title('HTML Transformer')
     .describe('HTML processing method'),
-  removeElementsCssSelector: z.string().optional().describe('CSS selectors for elements to remove'),
+  removeElementsCssSelector: z
+    .string()
+    .optional()
+    .title('Remove Elements CSS Selector')
+    .describe('CSS selectors for elements to remove'),
   crawlerType: z
     .enum(['playwright:adaptive', 'playwright:firefox', 'cheerio', 'jsdom', 'playwright:chrome'])
+    .title('Crawler Type')
     .describe('Browser type for crawling'),
-  expandClickableElements: z.boolean().describe('Expand clickable elements for better content extraction'),
-  headers: z.string().optional().describe('Custom HTTP headers for authentication/requests'),
+  expandClickableElements: z
+    .boolean()
+    .title('Expand Clickable Elements')
+    .describe('Expand clickable elements for better content extraction'),
+  headers: z.string().optional().title('Headers').describe('Custom HTTP headers for authentication/requests'),
   rawInputJsonOverride: z
     .string()
     .optional()
+    .title('Raw Input JSON Override')
     .describe(
       'JSON string to override any crawler parameters, please refer to https://console.apify.com/actors/<actor-id>/input and select JSON format for the available parameters'
     ),
@@ -25,7 +43,7 @@ export const startCrawlerRunInputSchema = z.object({
 
 export default new IntegrationDefinition({
   name: 'plus/apify',
-  version: '1.0.2',
+  version: '1.0.3',
   title: 'Advanced Website Crawler',
   readme: 'hub.md',
   icon: 'icon.svg',
@@ -33,8 +51,12 @@ export default new IntegrationDefinition({
     'Integrate your Botpress chatbot with Apify to crawl websites and extract content. Uses webhooks for reliable, asynchronous crawling and automatically syncs content to Botpress files.',
   configuration: {
     schema: z.object({
-      apiToken: z.string().describe('Your Apify API Token (starts with apify_api_)'),
-      webhookSecret: z.string().optional().describe('A secret token to secure your webhook URL (recommended)'),
+      apiToken: z.string().title('API Token').describe('Your Apify API Token (starts with apify_api_)'),
+      webhookSecret: z
+        .string()
+        .optional()
+        .title('Webhook Secret')
+        .describe('A secret token to secure your webhook URL (recommended)'),
     }),
   },
   events: {
@@ -42,28 +64,33 @@ export default new IntegrationDefinition({
       title: 'Crawler Completed',
       description: 'Triggered when an Apify crawler run completes successfully',
       schema: z.object({
-        actorId: z.string().describe('ID of the triggering Actor'),
-        actorTaskId: z.string().optional().describe('If task was used, its ID'),
-        actorRunId: z.string().describe('ID of the triggering Actor run'),
-        eventType: z.string().describe('Type of webhook event (e.g., ACTOR.RUN.SUCCEEDED)'),
-        runId: z.string().describe('Alias for actorRunId for easier access'),
-        itemsCount: z.number().optional().describe('Number of items crawled'),
-        filesCreated: z.number().optional().describe('Number of files created in Botpress'),
-        syncTargetPath: z.string().optional().describe('Path where results were synced'),
-        hasMore: z.boolean().optional().describe('Whether there are more items to sync in subsequent batches'),
+        actorId: z.string().title('Actor ID').describe('ID of the triggering Actor'),
+        actorTaskId: z.string().optional().title('Actor Task ID').describe('If task was used, its ID'),
+        actorRunId: z.string().title('Actor Run ID').describe('ID of the triggering Actor run'),
+        eventType: z.string().title('Event Type').describe('Type of webhook event (e.g., ACTOR.RUN.SUCCEEDED)'),
+        runId: z.string().title('Run ID').describe('Alias for actorRunId for easier access'),
+        itemsCount: z.number().optional().title('Items Count').describe('Number of items crawled'),
+        filesCreated: z.number().optional().title('Files Created').describe('Number of files created in Botpress'),
+        syncTargetPath: z.string().optional().title('Sync Target Path').describe('Path where results were synced'),
+        hasMore: z
+          .boolean()
+          .optional()
+          .title('Has More')
+          .describe('Whether there are more items to sync in subsequent batches'),
       }),
     },
     crawlerFailed: {
       title: 'Crawler Failed',
       description: 'Triggered when an Apify crawler run fails, times out, or is aborted',
       schema: z.object({
-        actorId: z.string().describe('ID of the triggering Actor'),
-        actorRunId: z.string().describe('ID of the triggering Actor run'),
-        runId: z.string().describe('Alias for actorRunId for easier access'),
+        actorId: z.string().title('Actor ID').describe('ID of the triggering Actor'),
+        actorRunId: z.string().title('Actor Run ID').describe('ID of the triggering Actor run'),
+        runId: z.string().title('Run ID').describe('Alias for actorRunId for easier access'),
         eventType: z
           .string()
+          .title('Event Type')
           .describe('Type of webhook event (e.g., ACTOR.RUN.FAILED, ACTOR.RUN.TIMED_OUT, ACTOR.RUN.ABORTED)'),
-        reason: z.string().describe('Reason for failure (FAILED, TIMED_OUT, or ABORTED)'),
+        reason: z.string().title('Reason').describe('Reason for failure (FAILED, TIMED_OUT, or ABORTED)'),
       }),
     },
   },
@@ -71,6 +98,7 @@ export default new IntegrationDefinition({
     tags: {
       id: {
         title: 'Apify API Token',
+        description: 'The Apify API token associated with this user',
       },
     },
   },
@@ -83,10 +111,10 @@ export default new IntegrationDefinition({
       type: 'integration',
       schema: z
         .object({
-          runId: z.string(),
-          kbId: z.string(),
-          nextOffset: z.number(),
-          timestamp: z.number(),
+          runId: z.string().describe('The Apify run ID being synced').title('Run ID'),
+          kbId: z.string().describe('The knowledge base ID where content is being stored').title('Knowledge Base ID'),
+          nextOffset: z.number().describe('The offset for the next batch of results to sync').title('Next Offset'),
+          timestamp: z.number().describe('Unix timestamp when the sync state was last updated').title('Timestamp'),
         })
         .describe('State for tracking sync continuation when large datasets need multiple passes'),
     },
@@ -94,9 +122,9 @@ export default new IntegrationDefinition({
       type: 'integration',
       schema: z
         .object({
-          runId: z.string(),
-          timestamp: z.number(),
-          offset: z.number(),
+          runId: z.string().describe('The Apify run ID that holds the lock').title('Run ID'),
+          timestamp: z.number().describe('Unix timestamp when the lock was acquired').title('Timestamp'),
+          offset: z.number().describe('Current offset being processed in the locked sync').title('Offset'),
         })
         .describe('Lock to prevent parallel sync executions from duplicate webhooks'),
     },
@@ -109,17 +137,20 @@ export default new IntegrationDefinition({
         'Start a crawler run asynchronously. Use with webhooks for production crawling. You can either use individual parameters for simple cases, or provide rawInputJsonOverride for full control.',
       input: {
         schema: startCrawlerRunInputSchema.extend({
-          kbId: z.string().describe('Knowledge Base ID to save the crawled content to'),
+          kbId: z.string().title('Knowledge Base ID').describe('Knowledge Base ID to save the crawled content to'),
         }),
       },
       output: {
         schema: z.object({
-          success: z.boolean(),
-          message: z.string(),
-          data: z.object({
-            runId: z.string(),
-            status: z.string(),
-          }),
+          success: z.boolean().title('Success').describe('Whether the operation completed successfully'),
+          message: z.string().title('Message').describe('Status message describing the result'),
+          data: z
+            .object({
+              runId: z.string(),
+              status: z.string(),
+            })
+            .title('Data')
+            .describe('Run details including run ID and current status'),
         }),
       },
     },
@@ -128,17 +159,20 @@ export default new IntegrationDefinition({
       description: 'Check the status of a crawler run (useful for monitoring)',
       input: {
         schema: z.object({
-          runId: z.string().describe('The run ID to check status for'),
+          runId: z.string().title('Run ID').describe('The run ID to check status for'),
         }),
       },
       output: {
         schema: z.object({
-          success: z.boolean(),
-          message: z.string(),
-          data: z.object({
-            runId: z.string(),
-            status: z.string(),
-          }),
+          success: z.boolean().title('Success').describe('Whether the operation completed successfully'),
+          message: z.string().title('Message').describe('Status message describing the result'),
+          data: z
+            .object({
+              runId: z.string(),
+              status: z.string(),
+            })
+            .title('Data')
+            .describe('Run details including run ID and current status'),
         }),
       },
     },
@@ -147,18 +181,21 @@ export default new IntegrationDefinition({
       description: 'Get the results from a completed crawler run and sync to Botpress KB',
       input: {
         schema: z.object({
-          runId: z.string().describe('The run ID to get results for'),
-          kbId: z.string().describe('Knowledge Base ID to tag the crawled content with'),
+          runId: z.string().title('Run ID').describe('The run ID to get results for'),
+          kbId: z.string().title('Knowledge Base ID').describe('Knowledge Base ID to tag the crawled content with'),
         }),
       },
       output: {
         schema: z.object({
-          success: z.boolean(),
-          message: z.string(),
-          data: z.object({
-            runId: z.string(),
-            datasetId: z.string(),
-          }),
+          success: z.boolean().title('Success').describe('Whether the operation completed successfully'),
+          message: z.string().title('Message').describe('Status message describing the result'),
+          data: z
+            .object({
+              runId: z.string(),
+              datasetId: z.string(),
+            })
+            .title('Data')
+            .describe('Details about the synced run including run ID and dataset ID'),
         }),
       },
     },
