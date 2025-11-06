@@ -1,0 +1,3 @@
+# Add integrations here for them to be managed by pnpm workspace - remove their respective pnpm lock files after adding
+packages:
+  - 'integrations/apify'
