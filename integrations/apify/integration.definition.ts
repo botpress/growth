@@ -111,10 +111,10 @@ export default new IntegrationDefinition({
       type: 'integration',
       schema: z
         .object({
-          runId: z.string().describe('The Apify run ID being synced').title('Run ID'),
-          kbId: z.string().describe('The knowledge base ID where content is being stored').title('Knowledge Base ID'),
-          nextOffset: z.number().describe('The offset for the next batch of results to sync').title('Next Offset'),
-          timestamp: z.number().describe('Unix timestamp when the sync state was last updated').title('Timestamp'),
+          runId: z.string().title('Run ID').describe('The Apify run ID being synced'),
+          kbId: z.string().title('Knowledge Base ID').describe('The knowledge base ID where content is being stored'),
+          nextOffset: z.number().title('Next Offset').describe('The offset for the next batch of results to sync'),
+          timestamp: z.number().title('Timestamp').describe('Unix timestamp when the sync state was last updated'),
         })
         .describe('State for tracking sync continuation when large datasets need multiple passes'),
     },
@@ -122,9 +122,9 @@ export default new IntegrationDefinition({
       type: 'integration',
       schema: z
         .object({
-          runId: z.string().describe('The Apify run ID that holds the lock').title('Run ID'),
-          timestamp: z.number().describe('Unix timestamp when the lock was acquired').title('Timestamp'),
-          offset: z.number().describe('Current offset being processed in the locked sync').title('Offset'),
+          runId: z.string().title('Run ID').describe('The Apify run ID that holds the lock'),
+          timestamp: z.number().title('Timestamp').describe('Unix timestamp when the lock was acquired'),
+          offset: z.number().title('Offset').describe('Current offset being processed in the locked sync'),
         })
         .describe('Lock to prevent parallel sync executions from duplicate webhooks'),
     },
