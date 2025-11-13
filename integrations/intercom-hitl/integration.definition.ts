@@ -3,9 +3,9 @@ import hitl from './bp_modules/hitl'
 import { events, configuration, states, channels, user } from './src/definitions'
 
 export default new IntegrationDefinition({
-  name: 'intercom-hitl',
+  name: 'plus/intercom-hitl',
   title: 'Intercom HITL',
-  version: '2.0.2',
+  version: '2.0.3',
   icon: 'icon.svg',
   description: 'This integration allows your bot to use Intercom as a HITL provider. Messages will appear in Intercom.',
   readme: 'hub.md',
