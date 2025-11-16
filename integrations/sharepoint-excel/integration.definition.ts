@@ -40,7 +40,7 @@ export default new IntegrationDefinition({
           sheetTableMapping: z
             .string()
             .describe(
-              'Map sheets to tables. Format: \'Sheet1:productsTable,Sheet2:ordersTable\' or JSON: \'{"Sheet1":"productsTable","Sheet2":"ordersTable"}\'. Table names must end with \'Table\'.'
+              'Map sheets to tables. Format: \'Sheet1:dataTable,Sheet2:itemsTable\' or JSON: \'{"Sheet1":"dataTable","Sheet2":"itemsTable"}\'. Table names must end with \'Table\'.'
             ),
         }),
       },
@@ -62,7 +62,6 @@ export default new IntegrationDefinition({
                 error: z.string(),
               })
             )
-            .optional()
             .describe('Sheets that failed to process'),
         }),
       },

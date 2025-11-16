@@ -346,6 +346,148 @@ async function insertTableRows(
   return rowsToInsert.length
 }
 
+/**
+ * Parses the sheet-to-table mapping string into an object
+ */
+function parseSheetTableMapping(sheetTableMapping: string, logger: Logger): Record<string, string> {
+  try {
+    if (sheetTableMapping.trim().startsWith('{')) {
+      return JSON.parse(sheetTableMapping)
+    } else {
+      // Parse as comma-separated pairs: Sheet1:table1,Sheet2:table2
+      const sheetToTable: Record<string, string> = {}
+      sheetTableMapping.split(',').forEach((pair: string) => {
+        const [sheet, table] = pair.split(':').map((s: string) => s.trim())
+        if (sheet && table) sheetToTable[sheet] = table
+      })
+      return sheetToTable
+    }
+  } catch (err) {
+    logger.forBot().error(`Failed to parse sheetTableMapping: ${err}`)
+    throw new sdk.RuntimeError('Invalid sheetTableMapping format. Use JSON or comma-separated pairs.')
+  }
+}
+
+/**
+ * Ensures a table exists (creates if necessary) and returns its ID
+ */
+async function ensureTableExists(
+  realClient: RealClient,
+  tableName: string,
+  excelHeaders: string[],
+  rowsData: any[][],
+  logger: Logger
+): Promise<string> {
+  logger.forBot().debug(`Looking for existing table named: "${tableName}"`)
+  const listTablesResponse = await realClient.listTables({})
+  const existingTables = listTablesResponse.tables || []
+  const foundTable = existingTables.find((t: { id: string; name: string }) => t.name === tableName)
+
+  if (foundTable) {
+    logger.forBot().info(`Table "${tableName}" (ID: ${foundTable.id}) found.`)
+    return foundTable.id
+  }
+
+  // Create new table
+  logger.forBot().info(`Table "${tableName}" not found. Creating it now.`)
+  const properties: { [key: string]: { type: string } } = {}
+
+  // Analyze data to determine column types
+  excelHeaders.forEach((header, index) => {
+    const cleanHeader = String(header).trim()
+    if (cleanHeader) {
+      const columnType = detectColumnType(index, rowsData)
+      properties[cleanHeader] = { type: columnType }
+      logger.forBot().debug(`Column "${cleanHeader}" detected as type: ${columnType}`)
+    }
+  })
+
+  if (Object.keys(properties).length === 0) {
+    const errorMsg =
+      excelHeaders.length > 0
+        ? 'Excel headers are present but all were empty or invalid after cleaning. Cannot create table schema.'
+        : 'No headers found in the Excel sheet to create table schema.'
+    logger.forBot().error(errorMsg)
+    throw new sdk.RuntimeError(errorMsg)
+  }
+
+  const tableSchema = {
+    type: 'object' as const,
+    properties: properties,
+  }
+
+  logger.forBot().debug(`Attempting to create table "${tableName}" with schema: ${JSON.stringify(tableSchema)}`)
+  const createTableResponse = await realClient.createTable({
+    name: tableName,
+    schema: tableSchema,
+  })
+
+  if (!createTableResponse.table || !createTableResponse.table.id) {
+    logger
+      .forBot()
+      .error(
+        `Failed to create table "${tableName}" or extract its ID. Response: ${JSON.stringify(createTableResponse)}`
+      )
+    throw new sdk.RuntimeError(`Failed to create table "${tableName}" or extract its ID from Botpress.`)
+  }
+
+  logger.forBot().info(`Table "${tableName}" created successfully with ID: ${createTableResponse.table.id}.`)
+  return createTableResponse.table.id
+}
+
+/**
+ * Processes a single Excel sheet and syncs it to a Botpress table
+ */
+async function processSheet(
+  worksheet: xlsx.WorkSheet,
+  sheetName: string,
+  tableName: string,
+  realClient: RealClient,
+  logger: Logger
+): Promise<{ sheetName: string; tableName: string; rowCount: number }> {
+  logger.forBot().info(`\n--- Processing sheet: "${sheetName}" ---`)
+
+  const jsonArray = xlsx.utils.sheet_to_json(worksheet, { header: 1 })
+  logger.forBot().info(`Sheet "${sheetName}" has ${jsonArray.length} rows (including header)`)
+
+  if (jsonArray.length === 0) {
+    throw new sdk.RuntimeError(`Sheet "${sheetName}" is empty`)
+  }
+
+  const excelHeaders = jsonArray[0] as string[]
+  if (!excelHeaders || excelHeaders.length === 0) {
+    throw new sdk.RuntimeError(`Sheet "${sheetName}" has no header row`)
+  }
+
+  // Validate no duplicate headers
+  validateUniqueHeaders(excelHeaders, sheetName)
+
+  const rowsData = jsonArray.slice(1) as any[][]
+  logger.forBot().info(`Found ${rowsData.length} data rows in sheet "${sheetName}"`)
+
+  // Ensure table exists
+  const tableId = await ensureTableExists(realClient, tableName, excelHeaders, rowsData, logger)
+
+  if (rowsData.length === 0) {
+    logger.forBot().info(`No data rows to populate in sheet "${sheetName}"`)
+    return { sheetName, tableName, rowCount: 0 }
+  }
+
+  // Clear existing data
+  await clearTableRows(realClient, tableId, tableName, logger)
+
+  logger.forBot().info(`Populating table "${tableName}" (ID: ${tableId}) with ${rowsData.length} new rows.`)
+
+  // Fetch and update schema if needed
+  let tableSchema = await fetchTableSchema(realClient, tableId, tableName, logger)
+  tableSchema = await updateTableSchema(realClient, tableId, tableName, excelHeaders, rowsData, tableSchema, logger)
+
+  // Insert rows
+  const rowCount = await insertTableRows(realClient, tableId, tableName, excelHeaders, rowsData, tableSchema, logger)
+
+  return { sheetName, tableName, rowCount }
+}
+
 export const syncExcelFile: bp.IntegrationProps['actions']['syncExcelFile'] = async ({
   ctx,
   input,
@@ -372,36 +514,18 @@ export const syncExcelFile: bp.IntegrationProps['actions']['syncExcelFile'] = as
   try {
     logger.forBot().debug(`Fetching Excel file from URL: ${sharepointFileUrl}`)
 
+    // Fetch and parse Excel file
     const fileContentBuffer = await fetchExcelFile(spClient, sharepointFileUrl, ctx.configuration.siteName, logger)
-
     const workbook = xlsx.read(fileContentBuffer, { type: 'buffer' })
     logger
       .forBot()
       .info(`Excel workbook loaded with ${workbook.SheetNames.length} sheet(s): ${workbook.SheetNames.join(', ')}`)
 
-    // Determine which sheets to process
-    let sheetsToProcess: string[] = []
-    let sheetToTable: Record<string, string> = {}
+    // Parse mapping and validate
+    const sheetToTable = parseSheetTableMapping(sheetTableMapping, logger)
+    const sheetsToProcess = Object.keys(sheetToTable)
+    logger.forBot().info(`Parsed sheetTableMapping: ${JSON.stringify(sheetToTable)}`)
 
-    // Parse sheetTableMapping
-    try {
-      if (sheetTableMapping.trim().startsWith('{')) {
-        sheetToTable = JSON.parse(sheetTableMapping)
-      } else {
-        // Parse as comma-separated pairs: Sheet1:table1,Sheet2:table2
-        sheetTableMapping.split(',').forEach((pair: string) => {
-          const [sheet, table] = pair.split(':').map((s: string) => s.trim())
-          if (sheet && table) sheetToTable[sheet] = table
-        })
-      }
-      sheetsToProcess = Object.keys(sheetToTable)
-      logger.forBot().info(`Parsed sheetTableMapping: ${JSON.stringify(sheetToTable)}`)
-    } catch (err) {
-      logger.forBot().error(`Failed to parse sheetTableMapping: ${err}`)
-      throw new sdk.RuntimeError('Invalid sheetTableMapping format. Use JSON or comma-separated pairs.')
-    }
-
-    // Validate that all sheets in the mapping exist in the workbook
     const missingSheets = sheetsToProcess.filter((sheet) => !workbook.SheetNames.includes(sheet))
     if (missingSheets.length > 0) {
       throw new sdk.RuntimeError(
@@ -409,166 +533,37 @@ export const syncExcelFile: bp.IntegrationProps['actions']['syncExcelFile'] = as
       )
     }
 
-    const processedSheets: any[] = []
-    const failedSheets: any[] = []
-
     // Process each sheet
-    for (const currentSheetName of sheetsToProcess) {
-      logger.forBot().info(`\n--- Processing sheet: "${currentSheetName}" ---`)
+    const processedSheets: Array<{ sheetName: string; tableName: string; rowCount: number }> = []
+    const failedSheets: Array<{ sheetName: string; error: string }> = []
 
-      const worksheet = workbook.Sheets[currentSheetName]
+    for (const sheetName of sheetsToProcess) {
+      const worksheet = workbook.Sheets[sheetName]
       if (!worksheet) {
-        logger.forBot().warn(`Sheet "${currentSheetName}" is undefined, skipping`)
+        logger.forBot().warn(`Sheet "${sheetName}" is undefined, skipping`)
         continue
       }
 
-      const jsonData = xlsx.utils.sheet_to_json(worksheet, { header: 1 })
-      logger.forBot().info(`Sheet "${currentSheetName}" has ${jsonData.length} rows (including header)`)
-
-      if (jsonData.length === 0) {
-        logger.forBot().warn(`Sheet "${currentSheetName}" is empty, skipping`)
+      const tableName = sheetToTable[sheetName]
+      if (!tableName) {
+        logger.forBot().error(`No table mapping found for sheet "${sheetName}", skipping`)
         continue
       }
-
-      const excelHeaders = jsonData[0] as string[]
-      if (!excelHeaders || excelHeaders.length === 0) {
-        logger.forBot().warn(`Sheet "${currentSheetName}" has no header row, skipping`)
-        continue
-      }
-
-      // Validate no duplicate headers
-      validateUniqueHeaders(excelHeaders, currentSheetName)
-
-      const rowsData = jsonData.slice(1) as any[][]
-      logger.forBot().info(`Found ${rowsData.length} data rows in sheet "${currentSheetName}"`)
-
-      // Determine table name for this sheet
-      const tableNameForSheet = sheetToTable[currentSheetName]
-      if (!tableNameForSheet) {
-        logger.forBot().error(`No table mapping found for sheet "${currentSheetName}", skipping`)
-        continue
-      }
-      logger.forBot().info(`Using mapped table name: "${tableNameForSheet}" for sheet "${currentSheetName}"`)
-
-      let tableId = ''
 
       try {
-        logger.forBot().debug(`Looking for existing table named: "${tableNameForSheet}"`)
-        const listTablesResponse = await realClient.listTables({})
-        const existingTables = listTablesResponse.tables || []
-        let foundTable = existingTables.find((t: { id: string; name: string }) => t.name === tableNameForSheet)
-
-        if (foundTable) {
-          tableId = foundTable.id
-          logger.forBot().info(`Table "${tableNameForSheet}" (ID: ${tableId}) found.`)
+        const result = await processSheet(worksheet, sheetName, tableName, realClient, logger)
+        if (result.rowCount > 0) {
+          processedSheets.push(result)
         }
-
-        if (!foundTable) {
-          logger.forBot().info(`Table "${tableNameForSheet}" not found. Creating it now.`)
-          const properties: { [key: string]: { type: string } } = {}
-
-          // Analyze data to determine column types
-          excelHeaders.forEach((header, index) => {
-            const cleanHeader = String(header).trim()
-            if (cleanHeader) {
-              const columnType = detectColumnType(index, rowsData)
-              properties[cleanHeader] = { type: columnType }
-              logger.forBot().debug(`Column "${cleanHeader}" detected as type: ${columnType}`)
-            }
-          })
-
-          if (Object.keys(properties).length === 0) {
-            const errorMsg =
-              excelHeaders.length > 0
-                ? 'Excel headers are present but all were empty or invalid after cleaning. Cannot create table schema.'
-                : 'No headers found in the Excel sheet to create table schema.'
-            logger.forBot().error(errorMsg)
-            throw new sdk.RuntimeError(errorMsg)
-          }
-
-          const tableSchema = {
-            type: 'object' as const,
-            properties: properties,
-          }
-
-          logger
-            .forBot()
-            .debug(`Attempting to create table "${tableNameForSheet}" with schema: ${JSON.stringify(tableSchema)}`)
-          const createTableResponse = await realClient.createTable({
-            name: tableNameForSheet,
-            schema: tableSchema,
-          })
-
-          if (!createTableResponse.table || !createTableResponse.table.id) {
-            logger
-              .forBot()
-              .error(
-                `Failed to create table "${tableNameForSheet}" or extract its ID. Response: ${JSON.stringify(createTableResponse)}`
-              )
-            throw new sdk.RuntimeError(
-              `Failed to create table "${tableNameForSheet}" or extract its ID from Botpress.`
-            )
-          }
-          tableId = createTableResponse.table.id
-          logger.forBot().info(`Table "${tableNameForSheet}" created successfully with ID: ${tableId}.`)
-
-          // Mark as found so schema is fetched below
-          foundTable = createTableResponse.table
-        }
-
-        if (rowsData.length > 0 && tableId) {
-          // Clear existing data
-          await clearTableRows(realClient, tableId, tableNameForSheet, logger)
-
-          logger.forBot().info(`Populating table "${tableNameForSheet}" (ID: ${tableId}) with ${rowsData.length} new rows.`)
-
-          // Fetch and update schema if needed
-          let tableSchema = await fetchTableSchema(realClient, tableId, tableNameForSheet, logger)
-          tableSchema = await updateTableSchema(
-            realClient,
-            tableId,
-            tableNameForSheet,
-            excelHeaders,
-            rowsData,
-            tableSchema,
-            logger
-          )
-
-          // Insert rows
-          const rowCount = await insertTableRows(
-            realClient,
-            tableId,
-            tableNameForSheet,
-            excelHeaders,
-            rowsData,
-            tableSchema,
-            logger
-          )
-
-          if (rowCount > 0) {
-            processedSheets.push({
-              sheetName: currentSheetName,
-              tableName: tableNameForSheet,
-              rowCount,
-            })
-          }
-        } else if (!tableId) {
-          logger.forBot().error('Table ID not available, cannot populate rows')
-        } else {
-          logger.forBot().info(`No data rows to populate in sheet "${currentSheetName}"`)
-        }
-      } catch (apiError: unknown) {
-        const errorMsg = getErrorMessage(apiError)
-        logger.forBot().error(`Failed to process sheet "${currentSheetName}": ${errorMsg}`)
+      } catch (error: unknown) {
+        const errorMsg = getErrorMessage(error)
+        logger.forBot().error(`Failed to process sheet "${sheetName}": ${errorMsg}`)
         logger.forBot().warn(`Continuing with remaining sheets...`)
-        
-        failedSheets.push({
-          sheetName: currentSheetName,
-          error: errorMsg,
-        })
+        failedSheets.push({ sheetName, error: errorMsg })
       }
-    } // End of sheet processing loop
+    }
 
+    // Log summary
     logger.forBot().info(`\n--- Excel file sync completed ---`)
     logger.forBot().info(`Successfully processed: ${processedSheets.length} sheet(s)`)
     if (failedSheets.length > 0) {
@@ -580,7 +575,7 @@ export const syncExcelFile: bp.IntegrationProps['actions']['syncExcelFile'] = as
 
     return {
       processedSheets,
-      ...(failedSheets.length > 0 && { failedSheets }),
+      failedSheets,
     }
   } catch (error: unknown) {
     logger.forBot().error(`Error during Excel file sync for "${sharepointFileUrl}": ${getErrorMessage(error)}`)
