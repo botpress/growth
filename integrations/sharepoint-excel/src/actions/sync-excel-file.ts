@@ -51,13 +51,13 @@ function detectColumnType(columnIndex: number, rowsData: any[][]): 'number' | 's
  */
 function validateUniqueHeaders(headers: string[], sheetName: string): void {
   const cleanHeaders = headers.map((h) => String(h).trim()).filter((h) => h !== '')
-  
+
   // Count occurrences of each header
   const headerCounts = new Map<string, number>()
   cleanHeaders.forEach((header) => {
     headerCounts.set(header, (headerCounts.get(header) || 0) + 1)
   })
-  
+
   // Find duplicates
   const duplicates = Array.from(headerCounts.entries())
     .filter(([_, count]) => count > 1)
@@ -85,11 +85,11 @@ async function fetchExcelFile(
     return fileContentBuffer
   } catch (error: unknown) {
     const errorMsg = getErrorMessage(error)
-    
+
     if (errorMsg.includes('404') || errorMsg.toLowerCase().includes('not found')) {
       await logAvailableLibraries(spClient, siteName, logger)
     }
-    
+
     throw error
   }
 }
@@ -97,13 +97,9 @@ async function fetchExcelFile(
 /**
  * Logs available document libraries for diagnostic purposes
  */
-async function logAvailableLibraries(
-  spClient: SharepointClient,
-  siteName: string,
-  logger: Logger
-): Promise<void> {
+async function logAvailableLibraries(spClient: SharepointClient, siteName: string, logger: Logger): Promise<void> {
   logger.forBot().warn('File not found. Listing available document libraries to help diagnose the issue...')
-  
+
   try {
     const libraries = await spClient.listDocumentLibraries()
     logger.forBot().info(`Available document libraries in site "${siteName}":`)
@@ -126,7 +122,7 @@ async function clearTableRows(
   logger: Logger
 ): Promise<void> {
   logger.forBot().info(`Clearing all existing rows from table "${tableName}" (ID: ${tableId}).`)
-  
+
   try {
     await realClient.deleteTableRows({
       table: tableId,
@@ -134,9 +130,9 @@ async function clearTableRows(
     })
     logger.forBot().info(`Successfully cleared all rows from table "${tableName}" (ID: ${tableId}).`)
   } catch (deleteError: unknown) {
-    logger.forBot().error(
-      `Error clearing rows from table "${tableName}" (ID: ${tableId}): ${getErrorMessage(deleteError)}`
-    )
+    logger
+      .forBot()
+      .error(`Error clearing rows from table "${tableName}" (ID: ${tableId}): ${getErrorMessage(deleteError)}`)
     logger.forBot().warn(`This may result in duplicate data if old rows weren't properly cleared.`)
   }
 }
@@ -152,13 +148,13 @@ async function fetchTableSchema(
 ): Promise<any> {
   const tableDetailsResponse = await realClient.getTable({ table: tableId })
   const schema = tableDetailsResponse.table?.schema
-  
+
   if (!schema) {
     const errorMsg = `Table "${tableName}" (ID: ${tableId}) exists but has no schema. Cannot proceed safely.`
     logger.forBot().error(errorMsg)
     throw new sdk.RuntimeError(errorMsg)
   }
-  
+
   return schema
 }
 
@@ -176,9 +172,8 @@ async function waitForSchemaPropagation(
     const maxAttempts = 6
     let attempt = 0
     let currentSchema = tableSchema
-    
-    const allNewColumnsPresent = (schema: any) => 
-      columnsToAdd.every((c) => !!schema?.properties?.[c])
+
+    const allNewColumnsPresent = (schema: any) => columnsToAdd.every((c) => !!schema?.properties?.[c])
 
     while (!allNewColumnsPresent(currentSchema) && attempt < maxAttempts) {
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -189,11 +184,13 @@ async function waitForSchemaPropagation(
 
     if (!allNewColumnsPresent(currentSchema)) {
       const missingColumns = columnsToAdd.filter((c) => !currentSchema?.properties?.[c])
-      logger.forBot().warn(
-        `New columns may not be propagated yet after schema update: missing [${missingColumns.join(', ')}]. Proceeding with best-effort.`
-      )
+      logger
+        .forBot()
+        .warn(
+          `New columns may not be propagated yet after schema update: missing [${missingColumns.join(', ')}]. Proceeding with best-effort.`
+        )
     }
-    
+
     return currentSchema
   } catch (waitErr: unknown) {
     logger.forBot().warn(`Failed while waiting for schema propagation: ${getErrorMessage(waitErr)}`)
@@ -224,7 +221,9 @@ async function updateTableSchema(
   // Log what's changing
   logger
     .forBot()
-    .info(`Schema changes detected for table "${tableName}": ${columnsToAdd.length} to add, ${columnsToRemove.length} to remove`)
+    .info(
+      `Schema changes detected for table "${tableName}": ${columnsToAdd.length} to add, ${columnsToRemove.length} to remove`
+    )
 
   if (columnsToAdd.length > 0) {
     logger.forBot().info(`Columns to add: [${columnsToAdd.join(', ')}]`)
@@ -279,7 +278,7 @@ async function updateTableSchema(
   logger.forBot().info(`Successfully updated schema for table "${tableName}"`)
 
   // Get the updated schema
-  let updatedSchema = updateResponse.table?.schema || await fetchTableSchema(realClient, tableId, tableName, logger)
+  let updatedSchema = updateResponse.table?.schema || (await fetchTableSchema(realClient, tableId, tableName, logger))
 
   // Wait for new columns to propagate
   if (columnsToAdd.length > 0) {
@@ -582,4 +581,3 @@ export const syncExcelFile: bp.IntegrationProps['actions']['syncExcelFile'] = as
     throw error
   }
 }
-
