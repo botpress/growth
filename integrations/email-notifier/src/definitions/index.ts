@@ -10,6 +10,7 @@ export const actions = {
         subject: z.string().min(1).max(998).describe('Email subject'),
         body: z.string().optional().describe('Email content - supports plain text or HTML'),
         isHtml: z.boolean().optional().default(false).describe('Set to true if body contains HTML content'),
+        replyTo: z.array(z.string().email()).optional().describe('Reply to email addresses'),
       }),
     },
     output: {

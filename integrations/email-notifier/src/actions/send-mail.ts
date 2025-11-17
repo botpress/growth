@@ -58,6 +58,7 @@ export const sendMail: bp.IntegrationProps['actions']['sendMail'] = async ({ inp
             ContactListName: CONTACT_LIST,
           },
           FromEmailAddress: FROM_EMAIL_ADDRESS,
+          ReplyToAddresses: input.replyTo,
         })
 
         const result = await SESClient.send(sendEmailCommand)
