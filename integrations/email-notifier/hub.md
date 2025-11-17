@@ -22,7 +22,8 @@ Simply add the "Send Mail" action to your bot conversation flow. When triggered,
 1. Add the "Send Mail" action anywhere in your bot flow
 2. Configure your ticket inbox or team email addresses
 3. Choose between plain text or HTML formatting
-4. Optionally use the delivery confirmation event for follow-up automation
+4. Set custom reply-to addresses to route responses to specific inboxes
+5. Optionally use the delivery confirmation event for follow-up automation
 
 ## What you'll need
 
