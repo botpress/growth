@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@botpress/client": "1.27.1",
-    "@botpress/sdk": "4.15.3",
+    "@botpress/sdk": "4.15.6",
     "jira.js": "^2.19.1",
     "zod": "^3.24.1"
   },
