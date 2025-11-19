@@ -30,7 +30,7 @@ export class JiraApi {
       issueIdOrKey: comment.issueIdOrKey,
       body: comment.body,
     })
-    return id || ''
+    return id ?? ''
   }
 
   async findUser(accountId: string): Promise<Version3Models.User> {
