@@ -88,13 +88,14 @@ Back in your Zoom OAuth App:
 - Name: `Transcript Received` (Can choose a different name as well)
 - Method: `Webhook`
 - Endpoint URL: use the **Botpress integration URL**
-- Add Events:
-- Under **Recording**:
-  - `All recordings have completed`
-  - `Recording transcript files have completed`
+- Add Event:
+  - Under **Recording**, select **only**:
+    - `Recording transcript files have completed` (`recording.transcript_completed`)
 - Click **Done**
 - Click **Validate** next to the endpoint URL (you should see Validated)
 - Click **Save**
+
+**Important:** Only subscribe to the `recording.transcript_completed` event to avoid unnecessary webhook calls.
 
 ---
 

@@ -1,16 +1,14 @@
 import { z } from '@botpress/sdk'
 
-// Configuration types
-export interface ZoomConfig {
-  zoomClientId: string
-  zoomClientSecret: string
-  zoomAccountId: string
-  secretToken: string
-  allowedZoomUserIds: string[]
-}
-
 // Webhook schemas and types
-export const transcriptCompletedSchema = z.object({
+const urlValidationSchema = z.object({
+  event: z.literal('endpoint.url_validation'),
+  payload: z.object({
+    plainToken: z.string(),
+  }),
+})
+
+const transcriptCompletedSchema = z.object({
   event: z.literal('recording.transcript_completed'),
   payload: z.object({
     object: z.object({
@@ -19,5 +17,7 @@ export const transcriptCompletedSchema = z.object({
     }),
   }),
 })
+
+export const zoomWebhookSchema = z.discriminatedUnion('event', [urlValidationSchema, transcriptCompletedSchema])
 
 export type TranscriptCompletedPayload = z.infer<typeof transcriptCompletedSchema>

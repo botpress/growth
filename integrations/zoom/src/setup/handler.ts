@@ -1,27 +1,21 @@
 import crypto from 'crypto'
 import { RuntimeError } from '@botpress/sdk'
 import * as bp from '.botpress'
-import { getZoomClient } from '../client'
-import { transcriptCompletedSchema, TranscriptCompletedPayload, ZoomConfig } from '../types'
-
-interface ZoomWebhookBody {
-  event: string
-  payload?: Record<string, unknown>
-}
-
-interface TranscriptCompletedArgs {
-  payload: TranscriptCompletedPayload
-  config: ZoomConfig
-  client: bp.Client
-  logger: bp.Logger
-}
+import { ZoomClient } from '../client'
+import { zoomWebhookSchema, TranscriptCompletedPayload } from '../types'
+import { cleanVtt } from '../utils'
 
 const handleTranscriptCompleted = async ({
   payload,
   config,
   client,
   logger,
-}: TranscriptCompletedArgs): Promise<{ status: number; body: string }> => {
+}: {
+  payload: TranscriptCompletedPayload
+  config: bp.configuration.Configuration
+  client: bp.Client
+  logger: bp.Logger
+}): Promise<{ status: number; body: string }> => {
   try {
     // Step 1: Filter by allowed user IDs (host_id)
     const allowedUserIds = config.allowedZoomUserIds
@@ -32,16 +26,13 @@ const handleTranscriptCompleted = async ({
     }
 
     // Step 2: Initialize Zoom API client
-    const zoomClient = getZoomClient(config, logger)
+    const zoomClient = new ZoomClient(config, logger)
 
     // Step 3: Get access token
     const accessToken = await zoomClient.getAccessToken()
 
-    // Step 4: Extract meeting UUID
+    // Step 4: Extract meeting UUID (validated by Zod)
     const meetingUUID = payload.payload.object.uuid
-    if (!meetingUUID) {
-      throw new RuntimeError('Missing meeting UUID from Zoom payload')
-    }
 
     // Step 5: Get transcript file URL (with retry)
     const downloadUrl = await zoomClient.findTranscriptFile(meetingUUID, accessToken)
@@ -51,7 +42,7 @@ const handleTranscriptCompleted = async ({
 
     // Step 6: Download and clean VTT
     const vttText = await zoomClient.fetchVttFile(downloadUrl, accessToken)
-    const plainText = zoomClient.cleanVtt(vttText)
+    const plainText = cleanVtt(vttText)
 
     // Step 7: Emit event to Botpress
     await client.createEvent({
@@ -74,7 +65,7 @@ const handleTranscriptCompleted = async ({
 }
 
 export const handler: bp.IntegrationProps['handler'] = async ({ req, ctx, client, logger }) => {
-  const config = ctx.configuration as ZoomConfig
+  const config = ctx.configuration
 
   let body: unknown
 
@@ -85,23 +76,17 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, ctx, client
     return { status: 400, body: 'Invalid JSON in request body' }
   }
 
-  if (!body || typeof body !== 'object' || Array.isArray(body)) {
-    logger.forBot().error('Invalid request body format')
+  const validation = zoomWebhookSchema.safeParse(body)
+  if (!validation.success) {
+    logger.forBot().error('Invalid webhook body format')
     return { status: 400, body: 'Invalid request body format' }
   }
 
-  const webhookBody = body as ZoomWebhookBody
+  const webhookBody = validation.data
 
   if (webhookBody.event === 'endpoint.url_validation') {
-    const plainToken = webhookBody.payload?.plainToken
-    const secret = config.secretToken
-
-    if (!plainToken || !secret || typeof plainToken !== 'string') {
-      logger.forBot().error('URL validation failed: Missing plainToken or secretToken')
-      return { status: 400, body: 'Missing plainToken or verificationToken' }
-    }
-
-    const encryptedToken = crypto.createHmac('sha256', secret).update(plainToken).digest('hex')
+    const plainToken = webhookBody.payload.plainToken
+    const encryptedToken = crypto.createHmac('sha256', config.secretToken).update(plainToken).digest('hex')
 
     return {
       status: 200,
@@ -111,12 +96,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, ctx, client
   }
 
   if (webhookBody.event === 'recording.transcript_completed') {
-    const validation = transcriptCompletedSchema.safeParse(body)
-    if (!validation.success) {
-      logger.forBot().error(`Transcript event schema error: ${validation.error.message}`)
-      return { status: 400, body: 'Invalid transcript completion payload' }
-    }
-    return await handleTranscriptCompleted({ payload: validation.data, config, client, logger })
+    return await handleTranscriptCompleted({ payload: webhookBody, config, client, logger })
   }
 
   return { status: 200, body: 'Event ignored.' }
