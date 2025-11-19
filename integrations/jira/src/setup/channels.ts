@@ -1,47 +1,48 @@
-import type { Channels } from '../misc/types'
+import * as bp from '../../.botpress'
+import { RuntimeError } from '@botpress/sdk'
 
-class NotImplementedError extends Error {
+class NotImplementedError extends RuntimeError {
   constructor() {
-    super('Not implemented')
+    super('Channel messages are not implemented for Jira integration')
   }
 }
 
-export const channels: Channels = {
+export const channels = {
   channel: {
     messages: {
-      text: async () => {
+      text: async (_props: bp.MessageProps['channel']['text']) => {
         throw new NotImplementedError()
       },
-      image: async () => {
+      image: async (_props: bp.MessageProps['channel']['image']) => {
         throw new NotImplementedError()
       },
-      markdown: async () => {
+      audio: async (_props: bp.MessageProps['channel']['audio']) => {
         throw new NotImplementedError()
       },
-      audio: async () => {
+      video: async (_props: bp.MessageProps['channel']['video']) => {
         throw new NotImplementedError()
       },
-      video: async () => {
+      file: async (_props: bp.MessageProps['channel']['file']) => {
         throw new NotImplementedError()
       },
-      file: async () => {
+      location: async (_props: bp.MessageProps['channel']['location']) => {
         throw new NotImplementedError()
       },
-      location: async () => {
+      carousel: async (_props: bp.MessageProps['channel']['carousel']) => {
         throw new NotImplementedError()
       },
-      carousel: async () => {
+      card: async (_props: bp.MessageProps['channel']['card']) => {
         throw new NotImplementedError()
       },
-      card: async () => {
+      choice: async (_props: bp.MessageProps['channel']['choice']) => {
         throw new NotImplementedError()
       },
-      choice: async () => {
+      dropdown: async (_props: bp.MessageProps['channel']['dropdown']) => {
         throw new NotImplementedError()
       },
-      dropdown: async () => {
+      bloc: async (_props: bp.MessageProps['channel']['bloc']) => {
         throw new NotImplementedError()
       },
     },
   },
-}
+} satisfies bp.IntegrationProps['channels']
