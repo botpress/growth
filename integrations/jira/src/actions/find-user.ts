@@ -1,6 +1,5 @@
 import * as bp from '.botpress'
 import { findUserInputSchema, findUserOutputSchema } from '../misc/custom-schemas'
-
 import { getClient } from '../utils'
 
 export const findUser: bp.IntegrationProps['actions']['findUser'] = async ({ ctx, input, logger }) => {

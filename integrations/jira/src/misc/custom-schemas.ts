@@ -6,15 +6,16 @@ import {
 } from './sub-schemas'
 
 export const newIssueInputSchema = z.object({
+  // All Jira instances require a summary, issue type, project key.
   summary: z.string().describe('The summary of the issue, providing a brief description (e.g. My Issue)'),
+  issueType: z.string().describe('The type of the issue (e.g. "Bug", "Task", "Subtask", "Story" or "Epic")'),
+  projectKey: z.string().describe('The key of the project to which the issue belongs (e.g. TEST)'),
   description: z
     .string()
     .optional()
     .describe(
       'The detailed description of the issue (Optional) (e.g. This is an example issue for demonstration purposes)'
     ),
-  issueType: z.string().describe('The type of the issue (e.g. "Bug", "Task", "Subtask", "Story" or "Epic")'),
-  projectKey: z.string().describe('The key of the project to which the issue belongs (e.g. TEST)'),
   parentKey: z
     .string()
     .optional()
