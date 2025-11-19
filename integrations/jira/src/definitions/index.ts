@@ -6,9 +6,9 @@ export { channels } from './channels'
 
 export const configuration = {
   schema: z.object({
-    host: z.string().describe('Atlassian Host Domain'),
-    email: z.string().describe('Email in Atlassian Account'),
-    apiToken: z.string().describe('API Token'),
+    host: z.string().title('Host').describe('Atlassian Host Domain'),
+    email: z.string().title('Email').describe('Email in Atlassian Account'),
+    apiToken: z.string().title('API Token').describe('API Token'),
   }),
 } satisfies IntegrationDefinitionProps['configuration']
 
