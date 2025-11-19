@@ -1,18 +1,11 @@
+import * as bp from '.botpress'
 import { Version3Models } from 'jira.js'
 
-import {
-  findAllUsersInputSchema,
-  findAllUsersOutputSchema,
-} from '../misc/custom-schemas'
-import type { Implementation } from '../misc/types'
+import { findAllUsersInputSchema, findAllUsersOutputSchema } from '../misc/custom-schemas'
 
 import { getClient } from '../utils'
 
-export const findAllUsers: Implementation['actions']['findAllUsers'] = async ({
-  ctx,
-  input,
-  logger,
-}) => {
+export const findAllUsers: bp.IntegrationProps['actions']['findAllUsers'] = async ({ ctx, input, logger }) => {
   const validatedInput = findAllUsersInputSchema.parse(input)
   const jiraClient = getClient(ctx.configuration)
   const addParams = {
@@ -22,9 +15,7 @@ export const findAllUsers: Implementation['actions']['findAllUsers'] = async ({
   let response
   try {
     response = await jiraClient.findAllUser(addParams)
-    logger
-      .forBot()
-      .info(`Successful - Find All User - Total Users ${response.length}`)
+    logger.forBot().info(`Successful - Find All User - Total Users ${response.length}`)
   } catch (error) {
     logger.forBot().debug(`'Find All User' exception ${JSON.stringify(error)}`)
     response = [] as Version3Models.User[]

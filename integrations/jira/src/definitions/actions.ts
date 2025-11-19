@@ -10,13 +10,7 @@ import {
   findAllUsersInputSchema,
   findAllUsersOutputSchema,
 } from '../misc/custom-schemas'
-import {
-  findUserUi,
-  newIssueUi,
-  updateIssueUi,
-  addCommentToIssueUi,
-  findAllUsersUi,
-} from '../misc/custom-uis'
+import { findUserUi, newIssueUi, updateIssueUi, addCommentToIssueUi, findAllUsersUi } from '../misc/custom-uis'
 
 const findUser = {
   title: 'Find User',
@@ -83,5 +77,5 @@ export const actions = {
   newIssue,
   updateIssue,
   addCommentToIssue,
-  // findAllUsers,
+  findAllUsers,
 }
