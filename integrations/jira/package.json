@@ -18,7 +18,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@botpress/client": "0.41.0",
+    "@botpress/client": "1.27.1",
     "@botpress/sdk": "4.15.3",
     "jira.js": "^2.19.1",
     "zod": "^3.24.1"

@@ -159,8 +159,8 @@ importers:
   integrations/jira:
     dependencies:
       '@botpress/client':
-        specifier: 0.41.0
-        version: 0.41.0
+        specifier: 1.27.1
+        version: 1.27.1
       '@botpress/sdk':
         specifier: 4.15.3
         version: 4.15.3(@bpinternal/zui@1.2.2)(esbuild@0.16.17)
@@ -372,6 +372,10 @@ packages:
     resolution: {integrity: sha512-21tDe0mKbrYW1AgPM4nfAEfpML5tZiI1FGHpOjwcFEDZiNgU+YAPdZsAvwXv57bkNxzhI9oISq9qgCZ6YBFR4A==}
   '@botpress/client@1.22.2':
     resolution: {integrity: sha512-9LXcm3rbnfyHupSr2xpzIXfcaTrSxgPOPFL3SklJ6EiqmmyAgPz+hSnCnPU8q/GNPs6vZ27BtCmJZmkFCK4Lxw==}
+    engines: {node: '>=18.0.0'}
+
+  '@botpress/client@1.27.1':
+    resolution: {integrity: sha512-c6EDjUphVehm6WIZse4qTHaYL0oudObrdGnRg6r2040lNIF+nFl7e24EvbO5fB4pxp1/ApoQMPJaPA5nJVOVLg==}
     engines: {node: '>=18.0.0'}
 
   '@botpress/sdk@4.13.0':
@@ -4922,6 +4926,15 @@ snapshots:
       axios: 1.13.2
       axios-retry: 4.5.0(axios@1.13.2)
   '@botpress/client@1.22.2':
+    dependencies:
+      axios: 1.13.1
+      axios-retry: 4.5.0(axios@1.13.1)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/client@1.27.1':
     dependencies:
       axios: 1.13.1
       axios-retry: 4.5.0(axios@1.13.1)
