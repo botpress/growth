@@ -1,13 +1,9 @@
+import * as bp from '.botpress'
 import { newIssueInputSchema } from '../misc/custom-schemas'
-import type { Implementation } from '../misc/types'
 
 import { getClient } from '../utils'
 
-export const newIssue: Implementation['actions']['newIssue'] = async ({
-  ctx,
-  input,
-  logger,
-}) => {
+export const newIssue: bp.IntegrationProps['actions']['newIssue'] = async ({ ctx, input, logger }) => {
   const validatedInput = newIssueInputSchema.parse(input)
   const jiraClient = getClient(ctx.configuration)
   const issue = {
