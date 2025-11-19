@@ -67,6 +67,9 @@ export class ZoomClient {
   /**
    * Find transcript file URL with retries
    * Zoom may take time to generate the transcript, so we retry up to 3 times
+   *
+   * API: GET /meetings/{meetingId}/recordings
+   * Docs: https://developers.zoom.us/docs/api/meetings/#tag/cloud-recording
    */
   async findTranscriptFile(meetingUUID: string, accessToken: string): Promise<string | null> {
     const encodedUUID = encodeURIComponent(meetingUUID)
@@ -112,6 +115,10 @@ export class ZoomClient {
     }
   }
 
+  /**
+   * Download VTT transcript file from Zoom
+   * The download_url is obtained from the recordings response
+   */
   async fetchVttFile(url: string, accessToken: string): Promise<string> {
     try {
       const { data } = await axios.get<string>(url, {
