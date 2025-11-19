@@ -54,8 +54,9 @@ export const findUserOutputSchema = z.object({
 })
 
 export const updateIssueInputSchema = newIssueInputSchema.partial().extend({
+  // All Jira instances for updating an issue require an issue key.
   issueKey: z.string().describe('The Key for Issue (e.g. TASK-185)'),
-  issueType: z.string().describe('The type of the issue (e.g. "Bug", "Task", "Subtask", "Story" or "Epic")'),
+  issueType: z.string().optional().describe('The type of the issue (e.g. "Bug", "Task", "Subtask", "Story" or "Epic")'),
 })
 
 export const updateIssueOutputSchema = newIssueOutputSchema
