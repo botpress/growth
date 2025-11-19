@@ -1,6 +1,5 @@
 import * as bp from '.botpress'
 import { newIssueInputSchema } from '../misc/custom-schemas'
-
 import { getClient } from '../utils'
 
 export const newIssue: bp.IntegrationProps['actions']['newIssue'] = async ({ ctx, input, logger }) => {
@@ -9,18 +8,18 @@ export const newIssue: bp.IntegrationProps['actions']['newIssue'] = async ({ ctx
   const issue = {
     fields: {
       summary: validatedInput.summary,
-      description: validatedInput.description,
       issuetype: {
         name: validatedInput.issueType,
       },
       project: {
         key: validatedInput.projectKey,
       },
+      description: validatedInput.description,
       parent: {
-        key: validatedInput.parentKey || undefined,
+        key: validatedInput.parentKey,
       },
       assignee: {
-        id: validatedInput.assigneeId || undefined,
+        id: validatedInput.assigneeId,
       },
     },
   }
