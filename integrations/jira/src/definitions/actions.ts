@@ -10,14 +10,12 @@ import {
   findAllUsersInputSchema,
   findAllUsersOutputSchema,
 } from '../misc/custom-schemas'
-import { findUserUi, newIssueUi, updateIssueUi, addCommentToIssueUi, findAllUsersUi } from '../misc/custom-uis'
 
 const findUser = {
   title: 'Find User',
   description: 'Find user by Account ID',
   input: {
     schema: findUserInputSchema,
-    ui: findUserUi,
   },
   output: {
     schema: findUserOutputSchema,
@@ -29,7 +27,11 @@ const newIssue = {
   description: 'Create a new issue in Jira',
   input: {
     schema: newIssueInputSchema,
-    ui: newIssueUi,
+    ui: {
+      issueType: {
+        examples: ['Bug', 'Task', 'Story', 'Subtask', 'Epic'],
+      },
+    },
   },
   output: {
     schema: newIssueOutputSchema,
@@ -41,7 +43,11 @@ const updateIssue = {
   description: 'Update a issue in Jira',
   input: {
     schema: updateIssueInputSchema,
-    ui: updateIssueUi,
+    ui: {
+      issueType: {
+        examples: ['Bug', 'Task', 'Story', 'Subtask', 'Epic'],
+      },
+    },
   },
   output: {
     schema: updateIssueOutputSchema,
@@ -53,7 +59,6 @@ const addCommentToIssue = {
   description: 'Add comment to issue in Jira',
   input: {
     schema: addCommentToIssueInputSchema,
-    ui: addCommentToIssueUi,
   },
   output: {
     schema: addCommentToIssueOutputSchema,
@@ -65,7 +70,6 @@ const findAllUsers = {
   description: 'Find All Users',
   input: {
     schema: findAllUsersInputSchema,
-    ui: findAllUsersUi,
   },
   output: {
     schema: findAllUsersOutputSchema,
