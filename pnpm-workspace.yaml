@@ -3,3 +3,4 @@ packages:
   - 'integrations/apify'
   - 'integrations/zoom'
   - 'integrations/hubspot-help-desk-hitl'
+  - 'integrations/jira'

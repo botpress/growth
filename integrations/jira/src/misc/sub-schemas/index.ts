@@ -1,4 +1,4 @@
-import z from 'zod'
+import { z } from '@botpress/sdk'
 
 const AvatarUrlsSchema = z.object({
   '16x16': z.string().optional(),
