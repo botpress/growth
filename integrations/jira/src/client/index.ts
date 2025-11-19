@@ -25,13 +25,10 @@ export class JiraApi {
     await this.client.issues.editIssue(issueUpdate)
   }
 
-  async addCommentToIssue(
-    comment: Version3Parameters.AddComment
-  ): Promise<string> {
+  async addCommentToIssue(comment: Version3Parameters.AddComment): Promise<string> {
     const { id } = await this.client.issueComments.addComment({
       issueIdOrKey: comment.issueIdOrKey,
       body: comment.body,
-      expand: comment?.expand,
     })
     return id || ''
   }
@@ -42,9 +39,7 @@ export class JiraApi {
     })
   }
 
-  async findAllUser(
-    addParams?: Version3Parameters.GetAllUsers
-  ): Promise<Version3Models.User[]> {
+  async findAllUser(addParams?: Version3Parameters.GetAllUsers): Promise<Version3Models.User[]> {
     return await this.client.users.getAllUsers(addParams)
   }
 }

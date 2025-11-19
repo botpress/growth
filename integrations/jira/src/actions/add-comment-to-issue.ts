@@ -1,6 +1,5 @@
 import * as bp from '.botpress'
 import { addCommentToIssueInputSchema } from '../misc/custom-schemas'
-
 import { getClient } from '../utils'
 
 export const addCommentToIssue: bp.IntegrationProps['actions']['addCommentToIssue'] = async ({
