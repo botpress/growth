@@ -10,15 +10,15 @@ const accessTokenResponseSchema = z.object({
   error_description: z.string().optional(),
 })
 
-interface RecordingFile {
-  file_type: string
-  file_extension: string
-  download_url?: string
-}
+const recordingFileSchema = z.object({
+  file_type: z.string(),
+  file_extension: z.string(),
+  download_url: z.string().optional(),
+})
 
-interface RecordingsResponse {
-  recording_files?: RecordingFile[]
-}
+const recordingsResponseSchema = z.object({
+  recording_files: z.array(recordingFileSchema).optional(),
+})
 
 export class ZoomClient {
   private config: Pick<bp.configuration.Configuration, 'zoomClientId' | 'zoomClientSecret' | 'zoomAccountId'>
@@ -77,15 +77,18 @@ export class ZoomClient {
     try {
       return await backOff(
         async () => {
-          const { data } = await axios.get<RecordingsResponse>(
-            `https://api.zoom.us/v2/meetings/${encodedUUID}/recordings`,
-            {
-              headers: { Authorization: `Bearer ${accessToken}` },
-              timeout: 15000,
-            }
-          )
+          const { data } = await axios.get(`https://api.zoom.us/v2/meetings/${encodedUUID}/recordings`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: 15000,
+          })
 
-          const transcriptFile = data.recording_files?.find(
+          const validation = recordingsResponseSchema.safeParse(data)
+          if (!validation.success) {
+            this.logger.forBot().error('Invalid recordings response format')
+            throw new RuntimeError('Invalid recordings response format')
+          }
+
+          const transcriptFile = validation.data.recording_files?.find(
             (f) => f.file_type === 'TRANSCRIPT' && f.file_extension === 'VTT'
           )
 
