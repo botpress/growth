@@ -1,5 +1,5 @@
 import { JiraApi } from '../client'
-import type { Config } from '../misc/types'
+import type * as bp from '../../.botpress'
 
-export const getClient = (config: Config) =>
+export const getClient = (config: bp.configuration.Configuration) =>
   new JiraApi(config.host, config.email, config.apiToken)
