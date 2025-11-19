@@ -2,7 +2,6 @@ import type { IntegrationDefinitionProps } from '@botpress/sdk'
 import { z } from '@botpress/sdk'
 
 export { actions } from './actions'
-export { channels } from './channels'
 
 export const configuration = {
   schema: z.object({
