@@ -1,6 +1,6 @@
 import { IntegrationDefinition } from '@botpress/sdk'
 
-import { configuration, user, actions } from './src/definitions'
+import { configuration, actions } from './src/definitions'
 
 export default new IntegrationDefinition({
   name: 'plus/jira',
@@ -10,7 +10,6 @@ export default new IntegrationDefinition({
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration,
-  user,
   actions,
   events: {},
 })
