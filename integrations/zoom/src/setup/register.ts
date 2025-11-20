@@ -11,7 +11,8 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, logger })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error'
     logger.forBot().error(`Failed to connect to Zoom API: ${errorMsg}`)
-
-    throw new RuntimeError('Configuration Error! Please check your Zoom Account ID, Client ID, and Client Secret.')
+    throw new RuntimeError(
+      `Configuration Error! Please check your Zoom Account ID, Client ID, and Client Secret. Error: ${errorMsg}`
+    )
   }
 }

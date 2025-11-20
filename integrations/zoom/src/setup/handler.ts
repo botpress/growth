@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import { RuntimeError } from '@botpress/sdk'
+import axios from 'axios'
 import * as bp from '.botpress'
 import { ZoomClient } from '../client'
 import { zoomWebhookSchema, TranscriptCompletedPayload } from '../types'
@@ -17,34 +18,29 @@ const handleTranscriptCompleted = async ({
   logger: bp.Logger
 }): Promise<{ status: number; body: string }> => {
   try {
-    // Step 1: Filter by allowed user IDs (host_id)
     const allowedUserIds = config.allowedZoomUserIds
     const hostId = payload.payload.object.host_id
 
-    if (allowedUserIds.length > 0 && !allowedUserIds.includes(hostId)) {
+    if (!allowedUserIds.includes(hostId)) {
       return { status: 200, body: 'Event ignored: userId not allowed' }
     }
 
-    // Step 2: Initialize Zoom API client
     const zoomClient = new ZoomClient(config, logger)
-
-    // Step 3: Get access token
     const accessToken = await zoomClient.getAccessToken()
-
-    // Step 4: Extract meeting UUID (validated by Zod)
     const meetingUUID = payload.payload.object.uuid
 
-    // Step 5: Get transcript file URL (with retry)
-    const downloadUrl = await zoomClient.findTranscriptFile(meetingUUID, accessToken)
+    const downloadUrl = await zoomClient.fetchTranscriptUrl(meetingUUID, accessToken)
     if (!downloadUrl) {
       throw new RuntimeError('Transcript file not found after retries')
     }
 
-    // Step 6: Download and clean VTT
-    const vttText = await zoomClient.fetchVttFile(downloadUrl, accessToken)
+    const { data: vttText } = await axios.get<string>(downloadUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      responseType: 'text',
+      timeout: 30000,
+    })
     const plainText = cleanVtt(vttText)
 
-    // Step 7: Emit event to Botpress
     await client.createEvent({
       type: 'transcriptReceived',
       payload: {
@@ -67,37 +63,35 @@ const handleTranscriptCompleted = async ({
 export const handler: bp.IntegrationProps['handler'] = async ({ req, ctx, client, logger }) => {
   const config = ctx.configuration
 
-  let body: unknown
-
   try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-  } catch {
-    logger.forBot().error('Invalid JSON in request body')
-    return { status: 400, body: 'Invalid JSON in request body' }
-  }
-
-  const validation = zoomWebhookSchema.safeParse(body)
-  if (!validation.success) {
-    logger.forBot().error('Invalid webhook body format')
-    return { status: 400, body: 'Invalid request body format' }
-  }
-
-  const webhookBody = validation.data
-
-  if (webhookBody.event === 'endpoint.url_validation') {
-    const plainToken = webhookBody.payload.plainToken
-    const encryptedToken = crypto.createHmac('sha256', config.secretToken).update(plainToken).digest('hex')
-
-    return {
-      status: 200,
-      body: JSON.stringify({ plainToken, encryptedToken }),
-      headers: { 'Content-Type': 'application/json' },
+    const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    const validation = zoomWebhookSchema.safeParse(parsed)
+    if (!validation.success) {
+      logger.forBot().error('Invalid webhook body format')
+      return { status: 400, body: 'Invalid request body format' }
     }
-  }
 
-  if (webhookBody.event === 'recording.transcript_completed') {
-    return await handleTranscriptCompleted({ payload: webhookBody, config, client, logger })
-  }
+    const webhookBody = validation.data
 
-  return { status: 200, body: 'Event ignored.' }
+    if (webhookBody.event === 'endpoint.url_validation') {
+      const plainToken = webhookBody.payload.plainToken
+      const encryptedToken = crypto.createHmac('sha256', config.secretToken).update(plainToken).digest('hex')
+
+      return {
+        status: 200,
+        body: JSON.stringify({ plainToken, encryptedToken }),
+        headers: { 'Content-Type': 'application/json' },
+      }
+    }
+
+    if (webhookBody.event === 'recording.transcript_completed') {
+      return await handleTranscriptCompleted({ payload: webhookBody, config, client, logger })
+    }
+
+    return { status: 200, body: 'Event ignored.' }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+    logger.forBot().error(`Webhook handler error: ${errorMsg}`)
+    return { status: 400, body: 'Invalid request' }
+  }
 }

@@ -60,18 +60,19 @@ export class ZoomClient {
         this.logger.forBot().error(errorMsg, errorData)
         throw new RuntimeError(errorMsg)
       }
-      throw error
+      this.logger.forBot().error('Failed to fetch Zoom access token', error)
+      throw new RuntimeError('Failed to fetch Zoom access token')
     }
   }
 
   /**
-   * Find transcript file URL with retries
+   * Fetch transcript file URL with retries
    * Zoom may take time to generate the transcript, so we retry up to 3 times
    *
    * API: GET /meetings/{meetingId}/recordings
    * Docs: https://developers.zoom.us/docs/api/meetings/#tag/cloud-recording
    */
-  async findTranscriptFile(meetingUUID: string, accessToken: string): Promise<string | null> {
+  async fetchTranscriptUrl(meetingUUID: string, accessToken: string): Promise<string | null> {
     const encodedUUID = encodeURIComponent(meetingUUID)
 
     try {
@@ -114,27 +115,6 @@ export class ZoomClient {
         throw new RuntimeError(`Failed to fetch recordings: HTTP ${status || 'network error'}`)
       }
 
-      throw error
-    }
-  }
-
-  /**
-   * Download VTT transcript file from Zoom
-   * The download_url is obtained from the recordings response
-   */
-  async fetchVttFile(url: string, accessToken: string): Promise<string> {
-    try {
-      const { data } = await axios.get<string>(url, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        responseType: 'text',
-        timeout: 30000,
-      })
-
-      return data
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new RuntimeError(`Failed to download VTT file: HTTP ${error.response.status}`)
-      }
       throw error
     }
   }

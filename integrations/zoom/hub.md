@@ -95,8 +95,6 @@ Back in your Zoom OAuth App:
 - Click **Validate** next to the endpoint URL (you should see Validated)
 - Click **Save**
 
-**Important:** Only subscribe to the `recording.transcript_completed` event to avoid unnecessary webhook calls.
-
 ---
 
 ## Done!
