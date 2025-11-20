@@ -5,7 +5,7 @@ export { actions } from './actions'
 
 export const configuration = {
   schema: z.object({
-    host: z.string().title('Host').describe('Atlassian Host Domain (e.g. yourcompany.atlassian.net)'),
+    host: z.string().title('Host').describe('Atlassian Host Domain (e.g. https://yourcompany.atlassian.net/)'),
     email: z.string().title('Email').describe('Email in Atlassian Account'),
     apiToken: z.string().title('API Token').describe('API Token'),
   }),
