@@ -133,6 +133,31 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
+  integrations/zoom:
+    dependencies:
+      '@botpress/client':
+        specifier: 1.18.0
+        version: 1.18.0
+      '@botpress/sdk':
+        specifier: 4.15.1
+        version: 4.15.1(@bpinternal/zui@1.2.2)(esbuild@0.16.17)
+      axios:
+        specifier: ^1.13.2
+        version: 1.13.2
+      exponential-backoff:
+        specifier: ^3.1.3
+        version: 3.1.3
+      zod:
+        specifier: ^4.0.5
+        version: 4.1.12
+    devDependencies:
+      '@types/node':
+        specifier: ^18.19.67
+        version: 18.19.130
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
 packages:
 
   '@anatine/zod-openapi@1.12.1':
@@ -316,11 +341,29 @@ packages:
     resolution: {integrity: sha512-amkqZKYAZRe7ocQearb6dNJgfrUWrLqUeb06g2KWoJfBCp+a71T7dE/Asleie0TRVqkogZn1Nv0dZ5PAZqcGKg==}
     engines: {node: '>=18.0.0'}
 
+  '@botpress/client@1.18.0':
+    resolution: {integrity: sha512-0rKRgzJNwhSs0VFhftyj5LszS7puhhOngUmQKks2tk7CtVGEE6p0il/rhT8jz6ObIWAnKUFkDJgRNV9YWqJogQ==}
+    engines: {node: '>=18.0.0'}
+
+  '@botpress/client@1.20.0':
+    resolution: {integrity: sha512-21tDe0mKbrYW1AgPM4nfAEfpML5tZiI1FGHpOjwcFEDZiNgU+YAPdZsAvwXv57bkNxzhI9oISq9qgCZ6YBFR4A==}
+    engines: {node: '>=18.0.0'}
+
   '@botpress/sdk@4.13.0':
     resolution: {integrity: sha512-qhw5r/0XvXVk99l461O6vFpKqX3spcp9zNLtiz2/yUiz2ECoMGiT74zv32nMDZH9EIYNIiz/458WRhKQ6AH6dA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@bpinternal/zui': ^1.0.0
+      esbuild: ^0.16.12
+    peerDependenciesMeta:
+      esbuild:
+        optional: true
+
+  '@botpress/sdk@4.15.1':
+    resolution: {integrity: sha512-s6b/ayxD5n2wlLxUoe45s4uT29I5rIcfaw7QVH7jFJ/JUoj/39BkPFgSVd5HiXd/fb6zcSrgXHtzHOZBTtOxQg==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@bpinternal/zui': ^1.0.1
       esbuild: ^0.16.12
     peerDependenciesMeta:
       esbuild:
@@ -1684,6 +1727,9 @@ packages:
   axios@1.13.1:
     resolution: {integrity: sha512-hU4EGxxt+j7TQijx1oYdAjw4xuIp1wRQSsbMFwSthCWeBQur1eF+qJ5iQ5sN3Tw8YRzQNKb8jszgBdMDVqwJcw==}
 
+  axios@1.13.2:
+    resolution: {integrity: sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==}
+
   axios@1.2.5:
     resolution: {integrity: sha512-9pU/8mmjSSOb4CXVsvGIevN+MlO/t9OWtKadTaLuN85Gge3HGorUckgp8A/2FH4V4hJ7JuQ3LIeI7KAV9ITZrQ==}
 
@@ -2304,6 +2350,9 @@ packages:
   expect-type@1.2.2:
     resolution: {integrity: sha512-JhFGDVJ7tmDJItKhYgJCGLOWjuK9vPxiXoUFLwLDc99NlmklilbiQJwoctZtt13+xMw91MCk/REan6MWHqDjyA==}
     engines: {node: '>=12.0.0'}
+
+  exponential-backoff@3.1.3:
+    resolution: {integrity: sha512-ZgEeZXj30q+I0EN+CbSSpIyPaJ5HVQD18Z1m+u1FXbAeT94mr1zw50q4q6jiiC447Nl/YTcIYSAftiGqetwXCA==}
 
   express@4.21.2:
     resolution: {integrity: sha512-28HqgMZAmih1Czt9ny7qr6ek2qddF4FclbMzwhCREB6OFfH+rXAnuNCwo1/wFvrtbgsQDb4kSbX9de9lFbrXnA==}
@@ -4313,6 +4362,9 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
+  zod@4.1.12:
+    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
+
 snapshots:
 
   '@anatine/zod-openapi@1.12.1(openapi3-ts@2.0.2)(zod@3.22.4)':
@@ -4815,9 +4867,37 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  '@botpress/client@1.18.0':
+    dependencies:
+      axios: 1.13.2
+      axios-retry: 4.5.0(axios@1.13.2)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/client@1.20.0':
+    dependencies:
+      axios: 1.13.2
+      axios-retry: 4.5.0(axios@1.13.2)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+
   '@botpress/sdk@4.13.0(@bpinternal/zui@1.2.2)(esbuild@0.16.17)':
     dependencies:
       '@botpress/client': 1.16.1
+      '@bpinternal/zui': 1.2.2
+      browser-or-node: 2.1.1
+    optionalDependencies:
+      esbuild: 0.16.17
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/sdk@4.15.1(@bpinternal/zui@1.2.2)(esbuild@0.16.17)':
+    dependencies:
+      '@botpress/client': 1.20.0
       '@bpinternal/zui': 1.2.2
       browser-or-node: 2.1.1
     optionalDependencies:
@@ -6241,7 +6321,20 @@ snapshots:
       axios: 1.13.1
       is-retry-allowed: 2.2.0
 
+  axios-retry@4.5.0(axios@1.13.2):
+    dependencies:
+      axios: 1.13.2
+      is-retry-allowed: 2.2.0
+
   axios@1.13.1:
+    dependencies:
+      follow-redirects: 1.15.11
+      form-data: 4.0.4
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.13.2:
     dependencies:
       follow-redirects: 1.15.11
       form-data: 4.0.4
@@ -7020,6 +7113,8 @@ snapshots:
       strip-final-newline: 3.0.0
 
   expect-type@1.2.2: {}
+
+  exponential-backoff@3.1.3: {}
 
   express@4.21.2:
     dependencies:
@@ -9111,3 +9206,5 @@ snapshots:
   zod@3.22.4: {}
 
   zod@3.25.76: {}
+
+  zod@4.1.12: {}
