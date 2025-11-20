@@ -11,21 +11,6 @@ export const configuration = {
   }),
 } satisfies IntegrationDefinitionProps['configuration']
 
-export const states = {
-  // voidStateOne: {
-  //   type: 'integration',
-  //   schema: z.object({
-  //     dataField: z.string(),
-  //   }),
-  // },
-  // voidStateTwo: {
-  //   type: 'conversation',
-  //   schema: z.object({
-  //     otherDataField: z.string(),
-  //   }),
-  // },
-} satisfies IntegrationDefinitionProps['states']
-
 export const user = {
   tags: {
     // id: {},
