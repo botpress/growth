@@ -2,7 +2,7 @@ import { z, IntegrationDefinition } from '@botpress/sdk'
 
 export default new IntegrationDefinition({
   name: 'plus/zoom',
-  version: '3.0.3',
+  version: '3.1.0',
   title: 'Zoom',
   description: 'Receives Zoom webhook and processes transcript for meetings.',
   icon: 'icon.svg',
@@ -23,6 +23,7 @@ export default new IntegrationDefinition({
       description: 'Fires when a transcript is received from Zoom',
       schema: z.object({
         meetingUUID: z.string(),
+        hostId: z.string(),
         transcript: z.string(),
         rawVtt: z.string().optional(),
       }),
