@@ -10,9 +10,3 @@ export const configuration = {
     apiToken: z.string().title('API Token').describe('API Token'),
   }),
 } satisfies IntegrationDefinitionProps['configuration']
-
-export const user = {
-  tags: {
-    // id: {},
-  },
-} satisfies IntegrationDefinitionProps['user']
