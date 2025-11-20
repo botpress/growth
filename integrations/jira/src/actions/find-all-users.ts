@@ -6,9 +6,14 @@ import { getClient } from '../utils'
 export const findAllUsers: bp.IntegrationProps['actions']['findAllUsers'] = async ({ ctx, input, logger }) => {
   const validatedInput = findAllUsersInputSchema.parse(input)
   const jiraClient = getClient(ctx.configuration)
-  const addParams = {
-    startAt: validatedInput.startAt,
-    maxResults: validatedInput.maxResults,
+
+  // Only include parameters if they're provided
+  const addParams: { startAt?: number; maxResults?: number } = {}
+  if (validatedInput.startAt !== undefined) {
+    addParams.startAt = validatedInput.startAt
+  }
+  if (validatedInput.maxResults !== undefined) {
+    addParams.maxResults = validatedInput.maxResults
   }
   let response
   try {
