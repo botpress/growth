@@ -1,6 +1,6 @@
 import { IntegrationDefinition } from '@botpress/sdk'
 
-import { configuration, states, user, actions } from './src/definitions'
+import { configuration, user, actions } from './src/definitions'
 
 export default new IntegrationDefinition({
   name: 'plus/jira',
@@ -13,5 +13,4 @@ export default new IntegrationDefinition({
   user,
   actions,
   events: {},
-  states,
 })
