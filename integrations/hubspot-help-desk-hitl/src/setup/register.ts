@@ -17,6 +17,39 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
 
     await hubspotClient.refreshAccessToken()
 
+    // Check if channel already exists in state
+    let existingChannelId: string | null = null
+
+    try {
+      const { state } = await client.getState({
+        id: ctx.integrationId,
+        name: 'channelInfo',
+        type: 'integration',
+      })
+
+      if (state?.payload?.channelId && state?.payload?.channelAccountId) {
+        existingChannelId = state.payload.channelId
+        logger.forBot().info(`Found existing channel in state: ${existingChannelId}`)
+      }
+    } catch (error) {
+      // State doesn't exist yet - expected for first registration
+      logger.forBot().info('No existing channel state found.')
+    }
+
+    // If we have existing channel info, validate it still exists in HubSpot
+    if (existingChannelId) {
+      const channels = await hubspotClient.getCustomChannels()
+      const channelExists = channels.results.some((channel: any) => channel.id === existingChannelId)
+
+      if (channelExists) {
+        logger.forBot().info(`Existing channel ${existingChannelId} verified in HubSpot. Skipping channel creation.`)
+        logger.forBot().info('Hubspot configuration validated successfully.')
+        return
+      } else {
+        logger.forBot().warn(`Stored channel ${existingChannelId} not found in HubSpot. Will create new channel.`)
+      }
+    }
+
     const channelName = 'Botpress Channel'
 
     const newChannelId = await hubspotClient.createCustomChannel(
