@@ -1,5 +1,6 @@
 import * as bp from '../.botpress'
 import { getClient } from './client'
+import { RuntimeError } from '@botpress/client'
 
 export const channels: bp.Integration['channels'] = {
   hitl: {
@@ -40,14 +41,10 @@ export const channels: bp.Integration['channels'] = {
         const userEmail = userInfoState?.state.payload.email
 
         if (!userPhoneNumber && !userEmail) {
-          logger.forBot().error('No user identifier (phone number or email) found in state for HITL.')
-          return {
-            success: false,
-            message:
-              'User identifier (phone number or email) not found. Please ensure the user is created with an identifier.',
-            data: null,
-            conversationId: 'error_no_user_identifier',
-          }
+          const errorMessage =
+            'User identifier (phone number or email) not found. Please ensure the user is created with an identifier.'
+          logger.forBot().error(errorMessage)
+          throw new RuntimeError(errorMessage)
         }
 
         const { name } = userInfoState.state.payload

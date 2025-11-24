@@ -27,14 +27,9 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     })
 
     if (!state?.payload?.channelId) {
-      logger.forBot().error('No channelId found in state')
-
-      return {
-        success: false,
-        message: 'Channel ID not found in state. Cannot start HITL.',
-        data: null,
-        conversationId: 'error_no_channel_id',
-      }
+      const errorMessage = 'Channel ID not found in state. Cannot start HITL.'
+      logger.forBot().error(errorMessage)
+      throw new RuntimeError(errorMessage)
     }
 
     const userInfoState = await client.getState({
@@ -48,14 +43,10 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     const userEmail = userInfoState?.state.payload.email
 
     if (!userPhoneNumber && !userEmail) {
-      logger.forBot().error('No user identifier (phone number or email) found in state for HITL.')
-      return {
-        success: false,
-        message:
-          'User identifier (phone number or email) not found. Please ensure the user is created with an identifier.',
-        data: null,
-        conversationId: 'error_no_user_identifier',
-      }
+      const errorMessage =
+        'User identifier (phone number or email) not found. Please ensure the user is created with an identifier.'
+      logger.forBot().error(errorMessage)
+      throw new RuntimeError(errorMessage)
     }
 
     // Prefer phone number if available, otherwise use email for creating the conversation.
@@ -78,7 +69,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       integrationThreadId,
       name,
       contactIdentifier,
-      title,
+      title || 'New Support Request',
       description
     )
     const hubspotConversationId = result.data.conversationsThreadId
@@ -108,13 +99,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     logger.forBot().error(`'Create Conversation' exception: ${errorMessage}`)
-
-    return {
-      success: false,
-      message: errorMessage,
-      data: null,
-      conversationId: 'error_conversation_id',
-    }
+    throw new RuntimeError(errorMessage)
   }
 }
 
