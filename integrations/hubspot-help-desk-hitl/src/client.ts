@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios'
 import * as bp from '.botpress'
 import { ApiResponse, ThreadInfo } from './misc/types'
+import { RuntimeError } from '@botpress/sdk'
 
 const hubspot_api_base_url = 'https://api.hubapi.com'
 
@@ -302,6 +303,31 @@ export class HubSpotApi {
   }
 
   /**
+   * Deletes a custom channel from HubSpot.
+   *
+   * @param {string} channelId - The channel ID to delete.
+   * @returns {Promise<boolean>} True if deleted successfully, false otherwise.
+   */
+  public async deleteCustomChannel(channelId: string): Promise<boolean> {
+    try {
+      await axios.delete(`${hubspot_api_base_url}/conversations/v3/custom-channels/${channelId}`, {
+        params: {
+          hapikey: this.ctx.configuration.developerApiKey,
+          appId: this.ctx.configuration.appId,
+        },
+        headers: {
+          Accept: 'application/json',
+        },
+      })
+      this.logger.forBot().info(`Successfully deleted channel ${channelId} from HubSpot`)
+      return true
+    } catch (error: any) {
+      this.logger.forBot().error('Failed to delete custom channel:', error.response?.data || error.message)
+      return false
+    }
+  }
+
+  /**
    * Connects a HubSpot custom channel to a specific Help Desk.
    *
    * @param {string} channelId - The channel ID.
@@ -409,12 +435,7 @@ export class HubSpotApi {
     })
 
     if (!state?.payload?.channelId || !state?.payload?.channelAccountId) {
-      return {
-        success: false,
-        message: 'Missing channel info',
-        data: null,
-        conversationId: 'error_conversation_id',
-      }
+      throw new RuntimeError('Missing channel info')
     }
 
     const { channelId, channelAccountId } = state.payload
