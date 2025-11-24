@@ -1,10 +1,10 @@
 import * as bp from '../.botpress'
 import { getClient } from './client'
 
-export const channels = {
+export const channels: bp.Integration['channels'] = {
   hitl: {
     messages: {
-      text: async ({ client, ctx, conversation, logger, ...props }: bp.AnyMessageProps) => {
+      text: async ({ client, ctx, conversation, logger, ...props }: bp.MessageProps['hitl']['text']) => {
         const hubSpotClient = getClient(
           ctx,
           client,
@@ -66,6 +66,21 @@ export const channels = {
           contactIdentifier,
           botpressUser.tags.integrationThreadId as string
         )
+      },
+      image: async ({ logger }) => {
+        logger.forBot().warn('Image messages are not supported yet')
+      },
+      video: async ({ logger }) => {
+        logger.forBot().warn('Video messages are not supported yet')
+      },
+      audio: async ({ logger }) => {
+        logger.forBot().warn('Audio messages are not supported yet')
+      },
+      file: async ({ logger }) => {
+        logger.forBot().warn('File messages are not supported yet')
+      },
+      bloc: async ({ logger }) => {
+        logger.forBot().warn('Bloc messages are not supported yet')
       },
     },
   },
