@@ -28,19 +28,35 @@ export const handleIncomingReply = async (
   const htmlBody = latestPart.body || ''
   const attachments = latestPart.attachments || []
 
-  // Extracting the image URLs from the HTML body
-  const imageUrls: string[] = []
-  const htmlWithoutImages = htmlBody.replace(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi, (_match: string, url: string) => {
-    imageUrls.push(url)
-    return ''
-  })
+  // Split HTML into ordered content blocks
+  const contentBlocks: Array<{ type: 'text'; content: string } | { type: 'image'; url: string }> = []
+  const imgTagRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
 
-  const replyText = htmlToFormattedText(htmlWithoutImages)
+  let lastIndex = 0
+  let match
+
+  while ((match = imgTagRegex.exec(htmlBody)) !== null) {
+    const textBefore = htmlBody.slice(lastIndex, match.index)
+    if (textBefore.trim()) {
+      contentBlocks.push({ type: 'text', content: htmlToFormattedText(textBefore) })
+    }
+
+    const imageUrl = match[1]
+    if (imageUrl) {
+      contentBlocks.push({ type: 'image', url: imageUrl })
+    }
+    lastIndex = match.index + match[0].length
+  }
+
+  const remainingText = htmlBody.slice(lastIndex)
+  if (remainingText.trim()) {
+    contentBlocks.push({ type: 'text', content: htmlToFormattedText(remainingText) })
+  }
 
   logger.forBot().info('Processing conversation.admin.replied event', {
     conversationId,
     adminId,
-    imagesFound: imageUrls.length,
+    contentBlocksCount: contentBlocks.length,
     attachmentsCount: attachments.length,
   })
 
@@ -66,31 +82,28 @@ export const handleIncomingReply = async (
     return
   }
 
-  if (replyText && replyText.trim()) {
-    await client.createMessage({
-      conversationId: conversation.id,
-      tags: {},
-      type: 'text',
-      payload: {
-        text: replyText,
-      },
-      userId: adminUser.id,
-    })
+  // Send in order
+  for (const block of contentBlocks) {
+    if (block.type === 'text' && block.content.trim()) {
+      await client.createMessage({
+        conversationId: conversation.id,
+        tags: {},
+        type: 'text',
+        payload: { text: block.content },
+        userId: adminUser.id,
+      })
+    } else if (block.type === 'image') {
+      await client.createMessage({
+        conversationId: conversation.id,
+        tags: {},
+        type: 'image',
+        payload: { imageUrl: block.url },
+        userId: adminUser.id,
+      })
+    }
   }
 
-  // Send images separately
-  for (const imageUrl of imageUrls) {
-    await client.createMessage({
-      conversationId: conversation.id,
-      tags: {},
-      type: 'image',
-      payload: { imageUrl },
-      userId: adminUser.id,
-    })
-    logger.forBot().info('Sent image', { url: imageUrl })
-  }
-
-  // Send rest
+  // Send attachments
   for (const attachment of attachments) {
     const url = attachment.url
     const contentType = attachment.content_type || ''
@@ -132,6 +145,6 @@ export const handleIncomingReply = async (
     conversationId: conversation.id,
     adminId,
     adminUserId: adminUser?.id,
-    replyText,
+    contentBlocksCount: contentBlocks.length,
   })
 }
