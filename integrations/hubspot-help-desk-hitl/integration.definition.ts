@@ -5,7 +5,7 @@ import { events, configuration, states, channels, user } from './src/definitions
 export default new IntegrationDefinition({
   name: 'plus/hubspot-help-desk-hitl',
   title: 'HubSpot Help Desk HITL',
-  version: '3.0.1',
+  version: '3.1.0',
   icon: 'icon.svg',
   description:
     'This integration allows your bot to use HubSpot as a HITL provider. Messages will appear in HubSpot Help Desk.',
