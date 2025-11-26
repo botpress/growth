@@ -1,13 +1,16 @@
 import * as bp from '.botpress'
 import { adminRepliedEventSchema } from 'src/definitions/intercomEvents'
-import { htmlToText } from 'html-to-text'
+import TurndownService from 'turndown'
 
-// Helper function to strip HTML tags and convert to plain text
-const htmlToFormattedText = (html: string): string => {
-  return htmlToText(html, {
-    wordwrap: false,
-    preserveNewlines: true,
-  })
+// HTML to Markdown converter tool
+const turndownService = new TurndownService({
+  headingStyle: 'atx',
+  bulletListMarker: '-',
+})
+
+const htmlToMarkdown = (html: string): string => {
+  if (!html?.trim()) return ''
+  return turndownService.turndown(html).trim()
 }
 
 export const handleIncomingReply = async (
@@ -28,19 +31,13 @@ export const handleIncomingReply = async (
   const htmlBody = latestPart.body || ''
   const attachments = latestPart.attachments || []
 
-  // Extracting the image URLs from the HTML body
-  const imageUrls: string[] = []
-  const htmlWithoutImages = htmlBody.replace(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi, (_match: string, url: string) => {
-    imageUrls.push(url)
-    return ''
-  })
-
-  const replyText = htmlToFormattedText(htmlWithoutImages)
+  // Convert HTML to Markdown
+  const markdownContent = htmlToMarkdown(htmlBody)
 
   logger.forBot().info('Processing conversation.admin.replied event', {
     conversationId,
     adminId,
-    imagesFound: imageUrls.length,
+    hasContent: !!markdownContent,
     attachmentsCount: attachments.length,
   })
 
@@ -66,31 +63,17 @@ export const handleIncomingReply = async (
     return
   }
 
-  if (replyText && replyText.trim()) {
+  if (markdownContent) {
     await client.createMessage({
       conversationId: conversation.id,
       tags: {},
       type: 'text',
-      payload: {
-        text: replyText,
-      },
+      payload: { text: markdownContent },
       userId: adminUser.id,
     })
   }
 
-  // Send images separately
-  for (const imageUrl of imageUrls) {
-    await client.createMessage({
-      conversationId: conversation.id,
-      tags: {},
-      type: 'image',
-      payload: { imageUrl },
-      userId: adminUser.id,
-    })
-    logger.forBot().info('Sent image', { url: imageUrl })
-  }
-
-  // Send rest
+  // Send attachments
   for (const attachment of attachments) {
     const url = attachment.url
     const contentType = attachment.content_type || ''
@@ -132,6 +115,6 @@ export const handleIncomingReply = async (
     conversationId: conversation.id,
     adminId,
     adminUserId: adminUser?.id,
-    replyText,
+    markdownContent,
   })
 }
