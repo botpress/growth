@@ -1,13 +1,16 @@
 import * as bp from '.botpress'
 import { adminRepliedEventSchema } from 'src/definitions/intercomEvents'
-import { htmlToText } from 'html-to-text'
+import TurndownService from 'turndown'
 
-// Helper function to strip HTML tags and convert to plain text
-const htmlToFormattedText = (html: string): string => {
-  return htmlToText(html, {
-    wordwrap: false,
-    preserveNewlines: true,
-  })
+// HTML to Markdown converter tool
+const turndownService = new TurndownService({
+  headingStyle: 'atx',
+  bulletListMarker: '-',
+})
+
+const htmlToMarkdown = (html: string): string => {
+  if (!html?.trim()) return ''
+  return turndownService.turndown(html).trim()
 }
 
 export const handleIncomingReply = async (
@@ -28,35 +31,13 @@ export const handleIncomingReply = async (
   const htmlBody = latestPart.body || ''
   const attachments = latestPart.attachments || []
 
-  // Split HTML into ordered content blocks
-  const contentBlocks: Array<{ type: 'text'; content: string } | { type: 'image'; url: string }> = []
-  const imgTagRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
-
-  let lastIndex = 0
-  let match
-
-  while ((match = imgTagRegex.exec(htmlBody)) !== null) {
-    const textBefore = htmlBody.slice(lastIndex, match.index)
-    if (textBefore.trim()) {
-      contentBlocks.push({ type: 'text', content: htmlToFormattedText(textBefore) })
-    }
-
-    const imageUrl = match[1]
-    if (imageUrl) {
-      contentBlocks.push({ type: 'image', url: imageUrl })
-    }
-    lastIndex = match.index + match[0].length
-  }
-
-  const remainingText = htmlBody.slice(lastIndex)
-  if (remainingText.trim()) {
-    contentBlocks.push({ type: 'text', content: htmlToFormattedText(remainingText) })
-  }
+  // Convert HTML to Markdown
+  const markdownContent = htmlToMarkdown(htmlBody)
 
   logger.forBot().info('Processing conversation.admin.replied event', {
     conversationId,
     adminId,
-    contentBlocksCount: contentBlocks.length,
+    hasContent: !!markdownContent,
     attachmentsCount: attachments.length,
   })
 
@@ -82,25 +63,14 @@ export const handleIncomingReply = async (
     return
   }
 
-  // Send in order
-  for (const block of contentBlocks) {
-    if (block.type === 'text' && block.content.trim()) {
-      await client.createMessage({
-        conversationId: conversation.id,
-        tags: {},
-        type: 'text',
-        payload: { text: block.content },
-        userId: adminUser.id,
-      })
-    } else if (block.type === 'image') {
-      await client.createMessage({
-        conversationId: conversation.id,
-        tags: {},
-        type: 'image',
-        payload: { imageUrl: block.url },
-        userId: adminUser.id,
-      })
-    }
+  if (markdownContent) {
+    await client.createMessage({
+      conversationId: conversation.id,
+      tags: {},
+      type: 'text',
+      payload: { text: markdownContent },
+      userId: adminUser.id,
+    })
   }
 
   // Send attachments
@@ -145,6 +115,6 @@ export const handleIncomingReply = async (
     conversationId: conversation.id,
     adminId,
     adminUserId: adminUser?.id,
-    contentBlocksCount: contentBlocks.length,
+    markdownContent,
   })
 }
