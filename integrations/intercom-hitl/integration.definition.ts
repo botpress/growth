@@ -3,7 +3,7 @@ import hitl from './bp_modules/hitl'
 import { events, configuration, states, channels, user } from './src/definitions'
 
 export default new IntegrationDefinition({
-  name: 'intercom-hitl',
+  name: 'plus/intercom-hitl',
   title: 'Intercom HITL',
   version: '2.0.4',
   icon: 'icon.svg',
