@@ -22,7 +22,7 @@ export const sendMail: bp.IntegrationProps['actions']['sendMail'] = async ({ inp
     </div>`
       : `<div>
     <p>${header}</p>
-    ${input.body ? `<p>${input.body}</p>` : ''}
+    ${input.body ? `<p>${input.body.replace(/\r?\n/g, '<br>')}</p>` : ''}
     ${EMAIL_SIGNATURE}
     <p><a href="{{amazonSESUnsubscribeUrl}}">Unsubscribe</a></p>
     </div>`
