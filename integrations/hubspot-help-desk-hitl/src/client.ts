@@ -306,9 +306,9 @@ export class HubSpotApi {
    * Deletes a custom channel from HubSpot.
    *
    * @param {string} channelId - The channel ID to delete.
-   * @returns {Promise<boolean>} True if deleted successfully, false otherwise.
+   * @returns {Promise<{success: boolean}>} True if deleted successfully, false otherwise.
    */
-  public async deleteCustomChannel(channelId: string): Promise<boolean> {
+  public async deleteCustomChannel(channelId: string): Promise<{ success: boolean }> {
     try {
       await axios.delete(`${hubspot_api_base_url}/conversations/v3/custom-channels/${channelId}`, {
         params: {
@@ -320,10 +320,10 @@ export class HubSpotApi {
         },
       })
       this.logger.forBot().info(`Successfully deleted channel ${channelId} from HubSpot`)
-      return true
+      return { success: true }
     } catch (error: any) {
       this.logger.forBot().error('Failed to delete custom channel:', error.response?.data || error.message)
-      return false
+      return { success: false }
     }
   }
 

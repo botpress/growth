@@ -31,7 +31,7 @@ export const unregister: UnregisterFunction = async ({ ctx, client, logger }) =>
 
     const deleted = await hubspotClient.deleteCustomChannel(channelId)
 
-    if (deleted) {
+    if (deleted.success) {
       logger.forBot().info(`Successfully cleaned up channel ${channelId} from HubSpot.`)
     } else {
       logger.forBot().warn(`Could not delete channel ${channelId} from HubSpot. It may need to be deleted manually.`)
