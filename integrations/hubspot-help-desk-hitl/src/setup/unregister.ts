@@ -5,7 +5,6 @@ export const unregister: UnregisterFunction = async ({ ctx, client, logger }) =>
   logger.forBot().info('Unregistering HubSpot Help Desk HITL integration...')
 
   try {
-    // Get existing channel state
     const { state } = await client.getState({
       id: ctx.integrationId,
       name: 'channelInfo',
@@ -21,7 +20,6 @@ export const unregister: UnregisterFunction = async ({ ctx, client, logger }) =>
 
     logger.forBot().info(`Found channel ${channelId} to clean up.`)
 
-    // Initialize HubSpot client and delete the channel
     const hubspotClient = getClient(
       ctx,
       client,

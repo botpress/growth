@@ -36,7 +36,6 @@ export const channels: bp.Integration['channels'] = {
           type: 'user',
         })
 
-        // Check if either phoneNumber or email is present in the userInfo state
         const userPhoneNumber = userInfoState?.state.payload.phoneNumber
         const userEmail = userInfoState?.state.payload.email
 

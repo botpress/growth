@@ -17,7 +17,6 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
 
     await hubspotClient.refreshAccessToken()
 
-    // Check if channel already exists in state
     let existingChannelId: string | null = null
 
     try {
@@ -32,11 +31,9 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
         logger.forBot().info(`Found existing channel in state: ${existingChannelId}`)
       }
     } catch (error) {
-      // State doesn't exist yet - expected for first registration
       logger.forBot().info('No existing channel state found.')
     }
 
-    // If we have existing channel info, validate it still exists in HubSpot
     if (existingChannelId) {
       const channels = await hubspotClient.getCustomChannels()
       const channelExists = channels.results.some((channel: any) => channel.id === existingChannelId)
@@ -59,10 +56,9 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
 
     logger.forBot().info(`Created custom channel with ID: ${newChannelId}`)
 
-    // Retry loop with exponential backoff (up to 1 minute)
     let channelExists = false
     let attempt = 0
-    let maxAttempts = 6 // 1s, 2s, 4s, 8s, 16s, 32s = total ~63s
+    let maxAttempts = 6 
 
     while (attempt < maxAttempts) {
       const channels = await hubspotClient.getCustomChannels()
@@ -90,7 +86,6 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       channelName
     )
     logger.forBot().info('Connected new custom channel to help desk.')
-    // Save channelId to integration state
     await client.setState({
       id: ctx.integrationId,
       type: 'integration',

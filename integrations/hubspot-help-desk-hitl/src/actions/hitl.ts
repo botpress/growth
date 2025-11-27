@@ -37,7 +37,6 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       type: 'user',
     })
 
-    // Check if either phoneNumber or email is present in the userInfo state
     const userPhoneNumber = userInfoState?.state.payload.phoneNumber
     const userEmail = userInfoState?.state.payload.email
 
@@ -47,7 +46,6 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       throw new RuntimeError(errorMessage)
     }
 
-    // Prefer phone number if available, otherwise use email for creating the conversation.
     const contactIdentifier = userPhoneNumber || userEmail! // userEmail is guaranteed to be present if userPhoneNumber is not
     if (userPhoneNumber) {
       logger.forBot().info(`Using phone number for HITL: ${userPhoneNumber}`)
@@ -105,7 +103,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({}) =
   return {}
 }
 
-export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, ctx, logger }) => {
+export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, logger }) => {
   try {
     // The 'email' input field can accept either an email address or a phone number.
     const { name = 'None', email = 'None', pictureUrl = 'None' } = input
