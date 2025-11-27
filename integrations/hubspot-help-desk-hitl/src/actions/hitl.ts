@@ -28,7 +28,6 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     if (!state?.payload?.channelId) {
       const errorMessage = 'Channel ID not found in state. Cannot start HITL.'
-      logger.forBot().error(errorMessage)
       throw new RuntimeError(errorMessage)
     }
 
@@ -45,7 +44,6 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     if (!userPhoneNumber && !userEmail) {
       const errorMessage =
         'User identifier (phone number or email) not found. Please ensure the user is created with an identifier.'
-      logger.forBot().error(errorMessage)
       throw new RuntimeError(errorMessage)
     }
 
@@ -114,7 +112,6 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
 
     if (email === 'None' || !email || !email.trim()) {
       const errorMessage = 'An identifier (email or phone number) is required for HITL user creation.'
-      logger.forBot().error(errorMessage)
       throw new RuntimeError(errorMessage)
     }
 
