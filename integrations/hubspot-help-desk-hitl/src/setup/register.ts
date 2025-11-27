@@ -60,16 +60,16 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     logger.forBot().info(`Created custom channel with ID: ${newChannelId}`)
 
     // Retry loop with exponential backoff (up to 1 minute)
-    let alreadyConnected = false
+    let channelExists = false
     let attempt = 0
     let maxAttempts = 6 // 1s, 2s, 4s, 8s, 16s, 32s = total ~63s
 
     while (attempt < maxAttempts) {
       const channels = await hubspotClient.getCustomChannels()
 
-      alreadyConnected = channels.results.some((channel: any) => channel.id === newChannelId)
+      channelExists = channels.results.some((channel: any) => channel.id === newChannelId)
 
-      if (alreadyConnected) {
+      if (channelExists) {
         logger.forBot().info(`Channel ID ${newChannelId} found in channel list after ${attempt + 1} attempt(s).`)
         break
       }
@@ -80,7 +80,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       attempt++
     }
 
-    if (!alreadyConnected) {
+    if (!channelExists) {
       logger.forBot().warn(`Channel ID ${newChannelId} not found in list after retries.`)
     }
 
