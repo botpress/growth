@@ -80,7 +80,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       logger.forBot().warn(`Channel ID ${newChannelId} not found in list after retries.`)
     }
 
-    const connectChannel = await hubspotClient.connectCustomChannel(
+    const connectedChannel = await hubspotClient.connectCustomChannel(
       newChannelId,
       ctx.configuration.helpDeskId,
       channelName
@@ -92,7 +92,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       name: 'channelInfo',
       payload: {
         channelId: newChannelId,
-        channelAccountId: connectChannel.data.id,
+        channelAccountId: connectedChannel.data.id,
       },
     })
 
