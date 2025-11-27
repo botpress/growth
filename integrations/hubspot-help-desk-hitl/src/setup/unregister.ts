@@ -12,12 +12,13 @@ export const unregister: UnregisterFunction = async ({ ctx, client, logger }) =>
       type: 'integration',
     })
 
-    if (!state?.payload?.channelId) {
+    const { channelId } = state.payload
+
+    if (!channelId) {
       logger.forBot().info('No channel found to clean up during unregistration.')
       return
     }
-
-    const { channelId } = state.payload
+    
     logger.forBot().info(`Found channel ${channelId} to clean up.`)
 
     // Initialize HubSpot client and delete the channel
