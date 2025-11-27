@@ -58,7 +58,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
 
     let channelExists = false
     let attempt = 0
-    let maxAttempts = 6 
+    let maxAttempts = 6
 
     while (attempt < maxAttempts) {
       const channels = await hubspotClient.getCustomChannels()
