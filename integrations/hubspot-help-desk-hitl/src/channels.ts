@@ -1,6 +1,6 @@
 import * as bp from '../.botpress'
 import { getClient } from './client'
-import { RuntimeError } from '@botpress/client'
+import { RuntimeError } from '@botpress/sdk'
 
 export const channels: bp.Integration['channels'] = {
   hitl: {
