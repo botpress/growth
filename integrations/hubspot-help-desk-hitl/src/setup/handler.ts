@@ -87,5 +87,11 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
     return
   }
 
+  if (payload.type === 'CHANNEL_ACCOUNT_CREATED') {
+    logger.forBot().info('Channel Created')
+    logger.forBot().info(`Channel information: ${JSON.stringify(payload)}`)
+    return
+  }
+
   logger.forBot().warn('Unhandled HubSpot event format')
 }

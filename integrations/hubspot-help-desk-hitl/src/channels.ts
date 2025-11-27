@@ -1,10 +1,11 @@
 import * as bp from '../.botpress'
 import { getClient } from './client'
+import { RuntimeError } from '@botpress/sdk'
 
-export const channels = {
+export const channels: bp.Integration['channels'] = {
   hitl: {
     messages: {
-      text: async ({ client, ctx, conversation, logger, ...props }: bp.AnyMessageProps) => {
+      text: async ({ client, ctx, conversation, logger, ...props }: bp.MessageProps['hitl']['text']) => {
         const hubSpotClient = getClient(
           ctx,
           client,
@@ -35,19 +36,14 @@ export const channels = {
           type: 'user',
         })
 
-        // Check if either phoneNumber or email is present in the userInfo state
         const userPhoneNumber = userInfoState?.state.payload.phoneNumber
         const userEmail = userInfoState?.state.payload.email
 
         if (!userPhoneNumber && !userEmail) {
-          logger.forBot().error('No user identifier (phone number or email) found in state for HITL.')
-          return {
-            success: false,
-            message:
-              'User identifier (phone number or email) not found. Please ensure the user is created with an identifier.',
-            data: null,
-            conversationId: 'error_no_user_identifier',
-          }
+          const errorMessage =
+            'User identifier (phone number or email) not found. Please ensure the user is created with an identifier.'
+          logger.forBot().error(errorMessage)
+          throw new RuntimeError(errorMessage)
         }
 
         const { name } = userInfoState.state.payload
@@ -66,6 +62,21 @@ export const channels = {
           contactIdentifier,
           botpressUser.tags.integrationThreadId as string
         )
+      },
+      image: async ({ logger }) => {
+        logger.forBot().warn('Image messages are not supported yet')
+      },
+      video: async ({ logger }) => {
+        logger.forBot().warn('Video messages are not supported yet')
+      },
+      audio: async ({ logger }) => {
+        logger.forBot().warn('Audio messages are not supported yet')
+      },
+      file: async ({ logger }) => {
+        logger.forBot().warn('File messages are not supported yet')
+      },
+      bloc: async ({ logger }) => {
+        logger.forBot().warn('Bloc messages are not supported yet')
       },
     },
   },
