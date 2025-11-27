@@ -273,7 +273,7 @@ export class HubSpotApi {
     )
 
     if (!response.success || !response.data) {
-      throw new Error(`HubSpot createConversation failed: ${response.message}`)
+      throw new Error(`HubSpot createCustomChannel failed: ${response.message}`)
     }
 
     return response.data.id

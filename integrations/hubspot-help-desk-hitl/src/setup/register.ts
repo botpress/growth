@@ -80,26 +80,26 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       attempt++
     }
 
-    if (alreadyConnected) {
-      logger.forBot().info(`Channel ID ${newChannelId} is already connected. Skipping connection.`)
-    } else {
-      let connectChannel = await hubspotClient.connectCustomChannel(
-        newChannelId,
-        ctx.configuration.helpDeskId,
-        channelName
-      )
-      logger.forBot().info('Connected new custom channel to help desk.')
-      // Save channelId to integration state
-      await client.setState({
-        id: ctx.integrationId,
-        type: 'integration',
-        name: 'channelInfo',
-        payload: {
-          channelId: newChannelId,
-          channelAccountId: connectChannel.data.id,
-        },
-      })
+    if (!alreadyConnected) {
+      logger.forBot().warn(`Channel ID ${newChannelId} not found in list after retries.`)
     }
+
+    const connectChannel = await hubspotClient.connectCustomChannel(
+      newChannelId,
+      ctx.configuration.helpDeskId,
+      channelName
+    )
+    logger.forBot().info('Connected new custom channel to help desk.')
+    // Save channelId to integration state
+    await client.setState({
+      id: ctx.integrationId,
+      type: 'integration',
+      name: 'channelInfo',
+      payload: {
+        channelId: newChannelId,
+        channelAccountId: connectChannel.data.id,
+      },
+    })
 
     logger.forBot().info('Hubspot configuration validated successfully.')
   } catch (error) {
