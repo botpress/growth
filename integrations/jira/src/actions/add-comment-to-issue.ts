@@ -1,6 +1,5 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/sdk'
-import { addCommentToIssueInputSchema } from '../misc/custom-schemas'
 import { getClient } from '../utils'
 import { getErrorMessage } from '../utils/error-handler'
 
@@ -10,16 +9,13 @@ export const addCommentToIssue: bp.IntegrationProps['actions']['addCommentToIssu
   logger,
 }) => {
   try {
-    const validatedInput = addCommentToIssueInputSchema.parse(input)
     const jiraClient = getClient(ctx.configuration)
     const comment = {
-      issueIdOrKey: validatedInput.issueKey,
-      body: validatedInput.body,
+      issueIdOrKey: input.issueKey,
+      body: input.body,
     }
     const response = await jiraClient.addCommentToIssue(comment)
-    logger
-      .forBot()
-      .info(`Successful - Add Comment to Issue - with issueKey: ${validatedInput.issueKey} - id: ${response}`)
+    logger.forBot().info(`Successful - Add Comment to Issue - with issueKey: ${input.issueKey} - id: ${response}`)
     return { id: response }
   } catch (error) {
     const errorMessage = getErrorMessage(error)

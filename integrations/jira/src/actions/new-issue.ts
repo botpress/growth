@@ -1,34 +1,32 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/sdk'
 import { Version3Parameters } from 'jira.js'
-import { newIssueInputSchema } from '../misc/custom-schemas'
 import { getClient } from '../utils'
 import { getErrorMessage } from '../utils/error-handler'
 
 export const newIssue: bp.IntegrationProps['actions']['newIssue'] = async ({ ctx, input, logger }) => {
   try {
-    const validatedInput = newIssueInputSchema.parse(input)
     const jiraClient = getClient(ctx.configuration)
 
     const fields: Version3Parameters.CreateIssue['fields'] = {
-      summary: validatedInput.summary,
+      summary: input.summary,
       issuetype: {
-        name: validatedInput.issueType,
+        name: input.issueType,
       },
       project: {
-        key: validatedInput.projectKey,
+        key: input.projectKey,
       },
     }
 
     // Only include optional fields if they're provided
-    if (validatedInput.description !== undefined) {
-      fields.description = validatedInput.description
+    if (input.description !== undefined) {
+      fields.description = input.description
     }
-    if (validatedInput.parentKey !== undefined) {
-      fields.parent = { key: validatedInput.parentKey }
+    if (input.parentKey !== undefined) {
+      fields.parent = { key: input.parentKey }
     }
-    if (validatedInput.assigneeId !== undefined) {
-      fields.assignee = { id: validatedInput.assigneeId }
+    if (input.assigneeId !== undefined) {
+      fields.assignee = { id: input.assigneeId }
     }
 
     const issue: Version3Parameters.CreateIssue = {
