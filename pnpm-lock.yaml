@@ -55,7 +55,7 @@ importers:
         version: 51.4.1(eslint@9.39.1)
       eslint-plugin-oxlint:
         specifier: ^1.5.0
-        version: 1.25.0
+        version: 1.30.0
       eslint-plugin-prettier:
         specifier: ^5.5.1
         version: 5.5.4(eslint-config-prettier@10.1.8(eslint@9.39.1))(eslint@9.39.1)(prettier@3.6.2)
@@ -70,13 +70,13 @@ importers:
         version: 9.1.7
       lint-staged:
         specifier: ^16.1.2
-        version: 16.2.6
+        version: 16.2.7
       npm-check-updates:
         specifier: ^18.0.1
         version: 18.3.1
       oxlint:
         specifier: ^1.5.0
-        version: 1.25.0
+        version: 1.30.0
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -140,17 +140,17 @@ importers:
         version: 1.27.1
       '@botpress/sdk':
         specifier: ^4.17.2
-        version: 4.20.0(@bpinternal/zui@1.2.2)(esbuild@0.25.12)
+        version: 4.20.2(@bpinternal/zui@1.2.2)(esbuild@0.25.12)
       axios:
         specifier: ^1.8.1
-        version: 1.13.1
+        version: 1.13.2
       zod:
         specifier: ^3.24.2
         version: 3.25.76
     devDependencies:
       '@botpress/cli':
         specifier: ^4.17.2
-        version: 4.26.0(@bpinternal/zui@1.2.2)
+        version: 4.27.3(@bpinternal/zui@1.2.2)
       '@types/node':
         specifier: ^18.19.76
         version: 18.19.130
@@ -161,29 +161,6 @@ importers:
         specifier: ^5.8.2
         version: 5.9.3
 
-  integrations/zoom:
-    dependencies:
-      '@botpress/client':
-        specifier: 1.18.0
-        version: 1.18.0
-      '@botpress/sdk':
-        specifier: 4.15.1
-        version: 4.15.1(@bpinternal/zui@1.2.2)(esbuild@0.16.17)
-      axios:
-        specifier: ^1.13.2
-        version: 1.13.2
-      exponential-backoff:
-        specifier: ^3.1.3
-        version: 3.1.3
-      zod:
-        specifier: ^4.0.5
-        version: 4.1.12
-    devDependencies:
-      '@types/node':
-        specifier: ^18.19.67
-        version: 18.19.130
-      typescript:
-        specifier: ^5.8.3
   integrations/jira:
     dependencies:
       '@botpress/client':
@@ -410,8 +387,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  '@botpress/cli@4.26.0':
-    resolution: {integrity: sha512-OmqiBVPmZwR8E2AwOqrwW8qH3Lbvx770D8oXJS6Z2noC4tm3knRs4PQQDZz2EH7Q+nSM0ogQ7fNicqbPKm00oQ==}
+  '@botpress/cli@4.27.3':
+    resolution: {integrity: sha512-ylkM13ZCFZm2VuiExX8Q81prDgbf7LNoOPuebOdjhG9briuz7784Gri2r9sfsrO+CPgJF7KO9RRNIXKSVYSMKA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -440,6 +417,10 @@ packages:
 
   '@botpress/client@1.27.1':
     resolution: {integrity: sha512-c6EDjUphVehm6WIZse4qTHaYL0oudObrdGnRg6r2040lNIF+nFl7e24EvbO5fB4pxp1/ApoQMPJaPA5nJVOVLg==}
+    engines: {node: '>=18.0.0'}
+
+  '@botpress/client@1.27.2':
+    resolution: {integrity: sha512-fTP42EDRnhRZDdRFAUQlMUDQ0CxMYchnhDsT/4Luubz6n8gKea9eBz5t0UngCzD98Eat5D+UbnfkAR89IQDWpA==}
     engines: {node: '>=18.0.0'}
 
   '@botpress/sdk@4.13.0':
@@ -472,8 +453,8 @@ packages:
       esbuild:
         optional: true
 
-  '@botpress/sdk@4.20.0':
-    resolution: {integrity: sha512-2K0Fn9BXJFKRBg6wA2/Uh+eRiwAzkBoKsFNkYwrua2bdri/HraXdZ3iX7JAxUwKFOTzmJrNnVKydCClnLdmBvw==}
+  '@botpress/sdk@4.20.2':
+    resolution: {integrity: sha512-x4H1GlHBybBGjcd14oxW5jDnSdB/J57+U7X71toPG6nfFrzS3+FdJY0sklL/tCJAEsnRoYMaPkUKk4/l+GQgmg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@bpinternal/zui': 1.2.1
@@ -960,43 +941,43 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@oxlint/darwin-arm64@1.25.0':
-    resolution: {integrity: sha512-OLx4XyUv5SO7k8y5FzJIoTKan+iKK53T1Ws8fBIl4zblUIWI66ZIqSVG2A2rxOBA7XfINqCz8UipGzOW9yzKcg==}
+  '@oxlint/darwin-arm64@1.30.0':
+    resolution: {integrity: sha512-vIiTk1FBObXHvaG3WK/SpwCZP06fuHhSrn8mK2hEs2uSFWG63WgvLAHSGhI4U1X29JGf36zhfUzuKirDIVdKBQ==}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxlint/darwin-x64@1.25.0':
-    resolution: {integrity: sha512-srndNPiliA0rchYKqYfOdqA9kqyVQ6YChK3XJe9Lxo/YG8tTJ5K65g2A5SHTT2s1Nm5DnQa5AKZH7w+7KI/m8A==}
+  '@oxlint/darwin-x64@1.30.0':
+    resolution: {integrity: sha512-DP4ueul8Vza52gJX1/+jyXQjUsgjmPe4Pq5uYOVa8k2V8cKRb2JzBls+DugbeP7yzKNTmlSp3J2mUnHQXuntLA==}
     cpu: [x64]
     os: [darwin]
 
-  '@oxlint/linux-arm64-gnu@1.25.0':
-    resolution: {integrity: sha512-W9+DnHDbygprpGV586BolwWES+o2raOcSJv404nOFPQjWZ09efG24nuXrg/fpyoMQb4YoW2W1fvlnyMVU+ADcw==}
+  '@oxlint/linux-arm64-gnu@1.30.0':
+    resolution: {integrity: sha512-1e9NvTvjzG6t1tnUzNU9HZTVwNwhZw2BDQxwIsXV743g54BIkvyZNNXOEGic/Jw4IuIXHzpX3ztVWZaSzvDopg==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint/linux-arm64-musl@1.25.0':
-    resolution: {integrity: sha512-1tIMpQhKlItm7uKzs3lluG7KorZR5ItoNKd1iFYF/IPmZ+i0/iuZ7MVWXRjBcgQMhMYSdfZpSVEdFKcFz2HDxA==}
+  '@oxlint/linux-arm64-musl@1.30.0':
+    resolution: {integrity: sha512-szb5RB8Tbk756/z/GAdmUn+H1E2815BbcM7s6JZYQgyCJxR0RCL1yFXgKyz3BjIDqzR98Tw8H3g4TeJbN2etAg==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint/linux-x64-gnu@1.25.0':
-    resolution: {integrity: sha512-xVkmk/zkIulc5o0OUWY04DyBfKotnq9+60O9I5c0DpdKAELVLhZkLmct0apx3jAX6Z/3yYPzhc6Lw1Ia3jU3VQ==}
+  '@oxlint/linux-x64-gnu@1.30.0':
+    resolution: {integrity: sha512-yOWGu4a82yA8xLusaznW41IF5ZkvBNz/U++M2/tCYAQUoJKSfJuAS5AhApRMKZLKeX0Vmdagh0YwvC+e98QG0w==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint/linux-x64-musl@1.25.0':
-    resolution: {integrity: sha512-IeO10dZosJV58YzN0gckhRYac+FM9s5VCKUx2ghgbKR91z/bpSRcRl8Sy5cWTkcVwu3ZTikhK8aXC6j7XIqKNw==}
+  '@oxlint/linux-x64-musl@1.30.0':
+    resolution: {integrity: sha512-qL1902VF4EMTZTZdJEIzzUQ+UD0IbH+IW6dhYZXbP9nTXJnItW1fk4cyJq5zfUVu1IoVwKK2FP1jUMqEsBlWTw==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint/win32-arm64@1.25.0':
-    resolution: {integrity: sha512-mpdiXZm2oNuSQAbTEPRDuSeR6v1DCD7Cl/xouR2ggHZu3AKZ4XYmm29hyrzIxrYVoQ/5j+182TGdOpGYn9xQJg==}
+  '@oxlint/win32-arm64@1.30.0':
+    resolution: {integrity: sha512-QK6C1djHKI7g1l5g6W9vkz9sd+sn1QJe6PbaV2sWFjVVoT0tO6LWygVWaci09ZHYVJ+lnCbbaFEgZ9jQhIs05A==}
     cpu: [arm64]
     os: [win32]
 
-  '@oxlint/win32-x64@1.25.0':
-    resolution: {integrity: sha512-opoIACOkcFloWQO6dubBLbcWwW52ML8+3deFdr0WE0PeM9UXdLB0jRMuLsEnplmBoy9TRvmxDJ+Pw8xc2PsOfQ==}
+  '@oxlint/win32-x64@1.30.0':
+    resolution: {integrity: sha512-tbPnJIBUKke9KpceV+DpGyfN3LdhGaEPJHSuD4/mUEwP9Kk6IKSoDNih681RVGhgvaEZg3uHmQr6n9Uh0P3Yrg==}
     cpu: [x64]
     os: [win32]
 
@@ -2364,8 +2345,8 @@ packages:
     peerDependencies:
       eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
 
-  eslint-plugin-oxlint@1.25.0:
-    resolution: {integrity: sha512-grS4KdR9FAxoQC+wMkepeQHL4osMhoYfUI11Pot6Gitqr4wWi+JZrX0Shr8Bs9fjdWhEjtaZIV6cr4mbfytmyw==}
+  eslint-plugin-oxlint@1.30.0:
+    resolution: {integrity: sha512-agkV2OauZuFWLFNuG5/EunH4IwUcd/eyUbBE/Y9SAKvvvdMmY066IX09Uz2/3a/qdQ00LaL+lEAbP12eA19qJQ==}
 
   eslint-plugin-prettier@5.5.4:
     resolution: {integrity: sha512-swNtI95SToIz05YINMA6Ox5R057IMAmWZ26GqPxusAp1TZzj+IdY9tXNWWD3vkF/wEqydCONcwjTFpxybBqZsg==}
@@ -3101,8 +3082,8 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
-  lint-staged@16.2.6:
-    resolution: {integrity: sha512-s1gphtDbV4bmW1eylXpVMk2u7is7YsrLl8hzrtvC70h4ByhcMLZFY01Fx05ZUDNuv1H8HO4E+e2zgejV1jVwNw==}
+  lint-staged@16.2.7:
+    resolution: {integrity: sha512-lDIj4RnYmK7/kXMya+qJsmkRFkGolciXjrsZ6PC25GdTfWOAWetR0ZbsNXRAj1EHHImRSalc+whZFg56F5DVow==}
     engines: {node: '>=20.17'}
     hasBin: true
 
@@ -3436,12 +3417,12 @@ packages:
     resolution: {integrity: sha512-qFOyK5PjiWZd+QQIh+1jhdb9LpxTF0qs7Pm8o5QHYZ0M3vKqSqzsZaEB6oWlxZ+q2sJBMI/Ktgd2N5ZwQoRHfg==}
     engines: {node: '>= 0.4'}
 
-  oxlint@1.25.0:
-    resolution: {integrity: sha512-O6iJ9xeuy9eQCi8/EghvsNO6lzSaUPs0FR1uLy51Exp3RkVpjvJKyPPhd9qv65KLnfG/BNd2HE/rH0NbEfVVzA==}
+  oxlint@1.30.0:
+    resolution: {integrity: sha512-6Mcpj7Gn26QNRUpue9kRZKQg623mH10kLPl597sNCOfXeUZHTglrc2O54eskHMRA+tR7c0u73nW4GPwSFePLkA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
-      oxlint-tsgolint: '>=0.4.0'
+      oxlint-tsgolint: '>=0.8.1'
     peerDependenciesMeta:
       oxlint-tsgolint:
         optional: true
@@ -4983,12 +4964,12 @@ snapshots:
       - encoding
       - utf-8-validate
 
-  '@botpress/cli@4.26.0(@bpinternal/zui@1.2.2)':
+  '@botpress/cli@4.27.3(@bpinternal/zui@1.2.2)':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.9.3
       '@botpress/chat': 0.5.4
-      '@botpress/client': 1.27.1
-      '@botpress/sdk': 4.20.0(@bpinternal/zui@1.2.2)(esbuild@0.25.12)
+      '@botpress/client': 1.27.2
+      '@botpress/sdk': 4.20.2(@bpinternal/zui@1.2.2)(esbuild@0.25.12)
       '@bpinternal/const': 0.1.2
       '@bpinternal/tunnel': 0.1.25
       '@bpinternal/verel': 0.2.0
@@ -4999,7 +4980,7 @@ snapshots:
       '@stoplight/spectral-parsers': 1.0.5
       '@types/lodash': 4.17.20
       '@types/verror': 1.10.11
-      axios: 1.13.1
+      axios: 1.13.2
       bluebird: 3.7.2
       boxen: 5.1.2
       chalk: 4.1.2
@@ -5023,8 +5004,8 @@ snapshots:
 
   '@botpress/client@0.41.0':
     dependencies:
-      axios: 1.13.1
-      axios-retry: 4.5.0(axios@1.13.1)
+      axios: 1.13.2
+      axios-retry: 4.5.0(axios@1.13.2)
       browser-or-node: 2.1.1
       qs: 6.14.0
       type-fest: 3.13.1
@@ -5080,8 +5061,15 @@ snapshots:
     dependencies:
       axios: 1.13.2
       axios-retry: 4.5.0(axios@1.13.2)
-      axios: 1.13.1
-      axios-retry: 4.5.0(axios@1.13.1)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/client@1.27.2':
+    dependencies:
+      axios: 1.13.2
+      axios-retry: 4.5.0(axios@1.13.2)
       browser-or-node: 2.1.1
       qs: 6.14.0
     transitivePeerDependencies:
@@ -5117,9 +5105,9 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@botpress/sdk@4.20.0(@bpinternal/zui@1.2.2)(esbuild@0.25.12)':
+  '@botpress/sdk@4.20.2(@bpinternal/zui@1.2.2)(esbuild@0.25.12)':
     dependencies:
-      '@botpress/client': 1.27.1
+      '@botpress/client': 1.27.2
       '@bpinternal/zui': 1.2.2
       browser-or-node: 2.1.1
       semver: 7.7.3
@@ -5505,28 +5493,28 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@oxlint/darwin-arm64@1.25.0':
+  '@oxlint/darwin-arm64@1.30.0':
     optional: true
 
-  '@oxlint/darwin-x64@1.25.0':
+  '@oxlint/darwin-x64@1.30.0':
     optional: true
 
-  '@oxlint/linux-arm64-gnu@1.25.0':
+  '@oxlint/linux-arm64-gnu@1.30.0':
     optional: true
 
-  '@oxlint/linux-arm64-musl@1.25.0':
+  '@oxlint/linux-arm64-musl@1.30.0':
     optional: true
 
-  '@oxlint/linux-x64-gnu@1.25.0':
+  '@oxlint/linux-x64-gnu@1.30.0':
     optional: true
 
-  '@oxlint/linux-x64-musl@1.25.0':
+  '@oxlint/linux-x64-musl@1.30.0':
     optional: true
 
-  '@oxlint/win32-arm64@1.25.0':
+  '@oxlint/win32-arm64@1.30.0':
     optional: true
 
-  '@oxlint/win32-x64@1.25.0':
+  '@oxlint/win32-x64@1.30.0':
     optional: true
 
   '@paralleldrive/cuid2@2.3.1':
@@ -6451,7 +6439,7 @@ snapshots:
       '@crawlee/types': 3.15.2
       agentkeepalive: 4.6.0
       async-retry: 1.3.3
-      axios: 1.13.1
+      axios: 1.13.2
       content-type: 1.0.5
       ow: 0.28.2
       tslib: 2.8.1
@@ -7219,7 +7207,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-oxlint@1.25.0:
+  eslint-plugin-oxlint@1.30.0:
     dependencies:
       jsonc-parser: 3.3.1
 
@@ -7879,7 +7867,7 @@ snapshots:
   jira.js@2.20.1:
     dependencies:
       atlassian-jwt: 2.0.3
-      axios: 1.13.1
+      axios: 1.13.2
       form-data: 4.0.4
       oauth: 0.10.2
       tslib: 2.8.1
@@ -8025,7 +8013,7 @@ snapshots:
       prelude-ls: 1.2.1
       type-check: 0.4.0
 
-  lint-staged@16.2.6:
+  lint-staged@16.2.7:
     dependencies:
       commander: 14.0.2
       listr2: 9.0.5
@@ -8342,16 +8330,16 @@ snapshots:
       object-keys: 1.1.1
       safe-push-apply: 1.0.0
 
-  oxlint@1.25.0:
+  oxlint@1.30.0:
     optionalDependencies:
-      '@oxlint/darwin-arm64': 1.25.0
-      '@oxlint/darwin-x64': 1.25.0
-      '@oxlint/linux-arm64-gnu': 1.25.0
-      '@oxlint/linux-arm64-musl': 1.25.0
-      '@oxlint/linux-x64-gnu': 1.25.0
-      '@oxlint/linux-x64-musl': 1.25.0
-      '@oxlint/win32-arm64': 1.25.0
-      '@oxlint/win32-x64': 1.25.0
+      '@oxlint/darwin-arm64': 1.30.0
+      '@oxlint/darwin-x64': 1.30.0
+      '@oxlint/linux-arm64-gnu': 1.30.0
+      '@oxlint/linux-arm64-musl': 1.30.0
+      '@oxlint/linux-x64-gnu': 1.30.0
+      '@oxlint/linux-x64-musl': 1.30.0
+      '@oxlint/win32-arm64': 1.30.0
+      '@oxlint/win32-x64': 1.30.0
 
   p-cancelable@1.1.0: {}
 
