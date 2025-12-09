@@ -5,7 +5,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, client, log
   const payload: ChatwootWebhookPayload = JSON.parse(req.body || '{}')
 
   if (payload.event !== 'message_created') return
-  if (payload.sender?.type !== 'user') return // 'user' = agent in Chatwoot
+  if (payload.sender?.type !== 'user') return
 
   const chatwootConvId = payload.conversation?.id?.toString()
   if (!chatwootConvId) return

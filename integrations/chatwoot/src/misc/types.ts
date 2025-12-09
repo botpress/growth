@@ -22,6 +22,12 @@ export interface ChatwootConversation {
   inbox_id: number
   status: string
   channel?: string
+  meta?: {
+    assignee?: {
+      id: number
+      name: string
+    }
+  }
 }
 
 export interface ChatwootInbox {

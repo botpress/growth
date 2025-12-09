@@ -8,6 +8,7 @@ import {
   ChatwootContactCreateResponse,
   ChatwootConversationResponse,
   ChatwootStatusToggleResponse,
+  ChatwootConversation,
 } from './misc/types'
 import FormData from 'form-data'
 
@@ -81,6 +82,9 @@ export const searchContactByEmail = async (
     params: { q: email },
     headers: { api_access_token: apiAccessToken },
   })
+  if (response.status !== 200) {
+    throw new RuntimeError(`Failed to search contact by email: ${response.data.description}`)
+  }
   return response.data as ChatwootContactSearchResponse
 }
 
@@ -96,7 +100,27 @@ export const createContact = async (
     { email, name, inbox_id: ctx.configuration.inboxId },
     { headers: { api_access_token: apiAccessToken } }
   )
+  if (response.status !== 200) {
+    throw new RuntimeError(`Failed to create contact: ${response.data.description}`)
+  }
   return response.data as ChatwootContactCreateResponse
+}
+
+export const updateContact = async (
+  ctx: bp.Context,
+  accountId: string,
+  contactId: string,
+  name: string
+): Promise<void> => {
+  const apiAccessToken = getApiAccessToken(ctx)
+  const response = await axios.put(
+    `${BASE_URL}/accounts/${accountId}/contacts/${contactId}`,
+    { name },
+    { headers: { api_access_token: apiAccessToken } }
+  )
+  if (response.status !== 200) {
+    throw new RuntimeError(`Failed to update contact: ${response.data.description}`)
+  }
 }
 
 export const createConversation = async (
@@ -115,6 +139,9 @@ export const createConversation = async (
     },
     { headers: { api_access_token: apiAccessToken } }
   )
+  if (response.status !== 200) {
+    throw new RuntimeError(`Failed to create conversation: ${response.data.description}`)
+  }
   return response.data as ChatwootConversationResponse
 }
 
@@ -129,5 +156,55 @@ export const resolveConversation = async (
     { status: 'resolved' },
     { headers: { api_access_token: apiAccessToken } }
   )
+  if (response.status !== 200) {
+    throw new RuntimeError(`Failed to resolve conversation: ${response.data.description}`)
+  }
   return response.data as ChatwootStatusToggleResponse
+}
+
+export const getContactConversations = async (
+  ctx: bp.Context,
+  accountId: string,
+  contactId: string
+): Promise<ChatwootConversation[]> => {
+  const apiAccessToken = getApiAccessToken(ctx)
+  const response = await axios.get(`${BASE_URL}/accounts/${accountId}/contacts/${contactId}/conversations`, {
+    headers: { api_access_token: apiAccessToken },
+  })
+  if (response.status !== 200) {
+    throw new RuntimeError(`Failed to get contact conversations: ${response.data.description}`)
+  }
+  return response.data.payload || []
+}
+
+export const assignConversation = async (
+  ctx: bp.Context,
+  accountId: string,
+  conversationId: string,
+  assigneeId: string
+): Promise<void> => {
+  const apiAccessToken = getApiAccessToken(ctx)
+  const response = await axios.post(
+    `${BASE_URL}/accounts/${accountId}/conversations/${conversationId}/assignments`,
+    { assignee_id: assigneeId },
+    { headers: { api_access_token: apiAccessToken } }
+  )
+  if (response.status !== 200) {
+    throw new RuntimeError(`Failed to assign conversation: ${response.data.description}`)
+  }
+  return response.data as void
+}
+
+export const getPreviousAgentId = async (
+  ctx: bp.Context,
+  accountId: string,
+  contactId: string
+): Promise<number | null> => {
+  const conversations = await getContactConversations(ctx, accountId, contactId)
+
+  const withAssignee = conversations
+    .filter((c) => c.meta?.assignee?.id)
+    .sort((a, b) => b.id - a.id)
+
+  return withAssignee[0]?.meta?.assignee?.id || null
 }
