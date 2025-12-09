@@ -20,13 +20,6 @@ export const handleOperatorAssignedUpdate = async ({
     return
   }
 
-  const { conversation } = await client.getOrCreateConversation({
-    channel: 'hitl',
-    tags: {
-      id: threadInfo.id,
-    },
-  })
-
   // Try to find existing user by email first, then by phone number
   let user
   let emailUserToDelete = null
@@ -102,6 +95,13 @@ export const handleOperatorAssignedUpdate = async ({
       )
     return
   }
+
+  const { conversation } = await client.getOrCreateConversation({
+    channel: 'hitl',
+    tags: {
+      id: threadInfo.id,
+    },
+  })
 
   await client.createEvent({
     type: 'hitlAssigned',
