@@ -8,6 +8,7 @@ import {
   resolveConversation,
   getPreviousAgentId,
   assignConversation,
+  sendMessage,
 } from '../client'
 
 export const getAccountId = async (client: bp.Client, ctx: bp.Context) => {
@@ -95,6 +96,10 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
   const chatwootConv = await createConversation(ctx, accountId, chatwootContactId)
   const chatwootConvId = chatwootConv.id.toString()
+
+  if (description) {
+    await sendMessage(ctx, accountId, chatwootConvId, description)
+  }
 
   try {
     const previousAgentId = await getPreviousAgentId(ctx, accountId, chatwootContactId)

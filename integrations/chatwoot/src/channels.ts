@@ -5,11 +5,7 @@ import { getAccountId } from './actions/hitl'
 
 type MessageHandlerProps<T extends keyof bp.MessageProps['hitl']> = bp.MessageProps['hitl'][T]
 
-const getConversationContext = async (
-  client: bp.Client,
-  ctx: bp.Context,
-  conversation: { tags: { id?: string } }
-) => {
+const getConversationContext = async (client: bp.Client, ctx: bp.Context, conversation: { tags: { id?: string } }) => {
   const chatwootConvId = conversation.tags.id
   if (!chatwootConvId) throw new RuntimeError('No Chatwoot conversation ID')
   const accountId = await getAccountId(client, ctx)
@@ -65,49 +61,39 @@ export const channels = {
 
       audio: async (props: MessageHandlerProps<'audio'>) => {
         const { ctx, client, conversation, payload, ack } = props
-        await sendTextToChatwoot(ctx, client, conversation, `[Audio: ${payload.audioUrl}]`, ack)
+        await sendTextToChatwoot(ctx, client, conversation, payload.audioUrl, ack)
       },
 
       bloc: async (props: MessageHandlerProps<'bloc'>) => {
         const { ctx, client, conversation, payload, ack } = props
-        const items = payload.items
-          .map((item) => {
-            if (item.type === 'text') return item.payload.text
-            if (item.type === 'markdown') return item.payload.markdown
-            return null
-          })
-          .filter(Boolean)
-          .join('\n')
-        await sendTextToChatwoot(ctx, client, conversation, items || '[Bloc message]', ack)
+        const text = payload.items.map((item) => ('text' in item.payload ? item.payload.text : '')).join('\n')
+        await sendTextToChatwoot(ctx, client, conversation, text || '[Message]', ack)
       },
 
       card: async (props: MessageHandlerProps<'card'>) => {
         const { ctx, client, conversation, payload, ack } = props
-        const text = [payload.title, payload.subtitle].filter(Boolean).join('\n')
-        await sendTextToChatwoot(ctx, client, conversation, text || '[Card]', ack)
+        await sendTextToChatwoot(ctx, client, conversation, payload.title || '[Card]', ack)
       },
 
       carousel: async (props: MessageHandlerProps<'carousel'>) => {
         const { ctx, client, conversation, payload, ack } = props
-        const items = payload.items.map((item) => item.title).filter(Boolean).join('\n')
-        await sendTextToChatwoot(ctx, client, conversation, items || '[Carousel]', ack)
+        const text = payload.items.map((item) => item.title).join('\n')
+        await sendTextToChatwoot(ctx, client, conversation, text || '[Carousel]', ack)
       },
 
       choice: async (props: MessageHandlerProps<'choice'>) => {
         const { ctx, client, conversation, payload, ack } = props
-        const options = payload.options.map((opt) => opt.label).join(', ')
-        await sendTextToChatwoot(ctx, client, conversation, `${payload.text}\nOptions: ${options}`, ack)
+        await sendTextToChatwoot(ctx, client, conversation, payload.text, ack)
       },
 
       dropdown: async (props: MessageHandlerProps<'dropdown'>) => {
         const { ctx, client, conversation, payload, ack } = props
-        const options = payload.options.map((opt) => opt.label).join(', ')
-        await sendTextToChatwoot(ctx, client, conversation, `${payload.text}\nOptions: ${options}`, ack)
+        await sendTextToChatwoot(ctx, client, conversation, payload.text, ack)
       },
 
       location: async (props: MessageHandlerProps<'location'>) => {
         const { ctx, client, conversation, payload, ack } = props
-        await sendTextToChatwoot(ctx, client, conversation, `[Location: ${payload.latitude}, ${payload.longitude}]`, ack)
+        await sendTextToChatwoot(ctx, client, conversation, `${payload.latitude}, ${payload.longitude}`, ack)
       },
 
       markdown: async (props: MessageHandlerProps<'markdown'>) => {

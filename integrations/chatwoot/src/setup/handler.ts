@@ -37,4 +37,38 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, client, log
       tags: { id: payload.id?.toString() || '', conversationId: chatwootConvId },
     })
   }
+
+  if (payload.attachments?.length) {
+    for (const attachment of payload.attachments) {
+      switch (attachment.file_type) {
+        case 'image':
+          await client.createMessage({
+            conversationId: hitlConv.id,
+            userId: agentUser.id,
+            type: 'image',
+            payload: { imageUrl: attachment.data_url },
+            tags: { id: payload.id?.toString() || '', conversationId: chatwootConvId },
+          })
+          break
+        case 'video':
+          await client.createMessage({
+            conversationId: hitlConv.id,
+            userId: agentUser.id,
+            type: 'video',
+            payload: { videoUrl: attachment.data_url },
+            tags: { id: payload.id?.toString() || '', conversationId: chatwootConvId },
+          })
+          break
+        case 'file':
+          await client.createMessage({
+            conversationId: hitlConv.id,
+            userId: agentUser.id,
+            type: 'file',
+            payload: { fileUrl: attachment.data_url, title: 'File' },
+            tags: { id: payload.id?.toString() || '', conversationId: chatwootConvId },
+          })
+          break
+      }
+    }
+  }
 }
