@@ -9,6 +9,7 @@ import {
   getPreviousAgentId,
   assignConversation,
   sendMessage,
+  getActiveConversation,
 } from '../client'
 
 export const getAccountId = async (client: bp.Client, ctx: bp.Context) => {
@@ -94,8 +95,18 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     }
   }
 
-  const chatwootConv = await createConversation(ctx, accountId, chatwootContactId)
-  const chatwootConvId = chatwootConv.id.toString()
+  const activeConversation = await getActiveConversation(ctx, accountId, chatwootContactId)
+
+  let chatwootConvId: string
+
+  if (activeConversation) {
+    chatwootConvId = activeConversation.id.toString()
+    logger.forBot().info(`Reusing existing conversation: ${chatwootConvId}`)
+  } else {
+    const chatwootConv = await createConversation(ctx, accountId, chatwootContactId)
+    chatwootConvId = chatwootConv.id.toString()
+    logger.forBot().info(`Created new conversation: ${chatwootConvId}`)
+  }
 
   if (description) {
     await sendMessage(ctx, accountId, chatwootConvId, description)

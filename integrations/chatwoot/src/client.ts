@@ -202,9 +202,16 @@ export const getPreviousAgentId = async (
 ): Promise<number | null> => {
   const conversations = await getContactConversations(ctx, accountId, contactId)
 
-  const withAssignee = conversations
-    .filter((c) => c.meta?.assignee?.id)
-    .sort((a, b) => b.id - a.id)
+  const withAssignee = conversations.filter((c) => c.meta?.assignee?.id).sort((a, b) => b.id - a.id)
 
   return withAssignee[0]?.meta?.assignee?.id || null
+}
+
+export const getActiveConversation = async (
+  ctx: bp.Context,
+  accountId: string,
+  contactId: string
+): Promise<ChatwootConversation | null> => {
+  const conversations = await getContactConversations(ctx, accountId, contactId)
+  return conversations.find((c) => c.status === 'open') || null
 }
