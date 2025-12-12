@@ -6,9 +6,7 @@ export type ChatwootEventType =
   | 'conversation_status_changed'
   | 'webwidget_triggered'
 
-export type ChatwootMessageType = 'incoming' | 'outgoing'
-
-export interface ChatwootSender {
+export type ChatwootSender = {
   id: number
   name?: string
   email?: string
@@ -17,30 +15,48 @@ export interface ChatwootSender {
   avatar_url?: string
 }
 
-export interface ChatwootConversation {
+export type ChatwootAgent = {
   id: number
+  account_id: number
+  email: string
+  name: string
+  role: 'agent' | 'administrator'
+  availability_status?: string
+  avatar_url?: string
+  confirmed?: boolean
+}
+
+export type ChatwootConversation = {
+  id: number
+  account_id?: number
   inbox_id: number
-  status: string
+  status: 'open' | 'resolved' | 'pending' | 'snoozed' | string
   channel?: string
+  unread_count?: number
+  can_reply?: boolean
+  muted?: boolean
+  created_at?: number
+  last_activity_at?: number
   meta?: {
     assignee?: {
       id: number
       name: string
+      email?: string
+      avatar_url?: string
+    }
+    sender?: {
+      id: number
+      name: string
+      email?: string
     }
   }
 }
 
-export interface ChatwootInbox {
-  id: number
-  name: string
+export type ChatwootContactConversationsResponse = {
+  payload: ChatwootConversation[]
 }
 
-export interface ChatwootAccount {
-  id: number
-  name: string
-}
-
-export interface ChatwootAttachment {
+export type ChatwootAttachment = {
   id: number
   message_id: number
   file_type: 'image' | 'video' | 'file'
@@ -48,21 +64,18 @@ export interface ChatwootAttachment {
   thumb_url?: string
 }
 
-export interface ChatwootWebhookPayload {
+export type ChatwootWebhookPayload = {
   event: ChatwootEventType
   id?: number
   content?: string
   created_at?: string
-  message_type?: ChatwootMessageType
   private?: boolean
   sender?: ChatwootSender
   conversation?: ChatwootConversation
-  inbox?: ChatwootInbox
-  account?: ChatwootAccount
   attachments?: ChatwootAttachment[]
 }
 
-export interface ChatwootProfile {
+export type ChatwootProfile = {
   id: number
   name: string
   email: string
@@ -73,7 +86,7 @@ export interface ChatwootProfile {
   }>
 }
 
-export interface ChatwootMessageResponse {
+export type ChatwootMessageResponse = {
   id: number
   content: string
   message_type: number
@@ -81,7 +94,7 @@ export interface ChatwootMessageResponse {
   created_at: number
 }
 
-export interface ChatwootContact {
+export type ChatwootContact = {
   id: number
   name: string
   email: string
@@ -90,17 +103,17 @@ export interface ChatwootContact {
   created_at: string
 }
 
-export interface ChatwootContactSearchResponse {
+export type ChatwootContactSearchResponse = {
   payload: ChatwootContact[]
 }
 
-export interface ChatwootContactCreateResponse {
+export type ChatwootContactCreateResponse = {
   payload: {
     contact: ChatwootContact
   }
 }
 
-export interface ChatwootConversationResponse {
+export type ChatwootConversationResponse = {
   id: number
   inbox_id: number
   status: string
@@ -108,7 +121,7 @@ export interface ChatwootConversationResponse {
   created_at: number
 }
 
-export interface ChatwootStatusToggleResponse {
+export type ChatwootStatusToggleResponse = {
   success: boolean
   current_status: string
   conversation_id: number

@@ -2,10 +2,10 @@ import { z, IntegrationDefinition } from '@botpress/sdk'
 import hitl from './bp_modules/hitl'
 
 export default new IntegrationDefinition({
-  name: 'chatwoot',
+  name: 'plus/chatwoot',
   title: 'ChatWoot',
   description: 'Connect your Botpress bot to ChatWoot with HITL support',
-  version: '0.2.0',
+  version: '1.0.0',
   readme: 'hub.md',
   icon: 'icon.svg',
 
@@ -40,12 +40,6 @@ export default new IntegrationDefinition({
       type: 'user',
       schema: z.object({
         email: z.string(),
-        chatwootContactId: z.string(),
-      }),
-    },
-    chatwootContact: {
-      type: 'conversation',
-      schema: z.object({
         chatwootContactId: z.string(),
       }),
     },
@@ -92,10 +86,7 @@ export default new IntegrationDefinition({
 
   user: {
     tags: {
-      id: { title: 'User ID' },
-      name: { title: 'User Name' },
       email: { title: 'User Email' },
-      chatwootContactId: { title: 'Chatwoot Contact ID' },
       chatwootAgentId: { title: 'Chatwoot Agent ID' },
     },
   },

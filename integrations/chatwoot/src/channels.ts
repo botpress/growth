@@ -59,46 +59,36 @@ export const channels = {
         await ack({ tags: { id: '', conversationId: chatwootConvId } })
       },
 
-      audio: async (props: MessageHandlerProps<'audio'>) => {
-        const { ctx, client, conversation, payload, ack } = props
-        await sendTextToChatwoot(ctx, client, conversation, payload.audioUrl, ack)
+      audio: async ({ logger }) => {
+        logger.forBot().warn('Audio attachment not supported for Chatwoot')
       },
 
-      bloc: async (props: MessageHandlerProps<'bloc'>) => {
-        const { ctx, client, conversation, payload, ack } = props
-        const text = payload.items.map((item) => ('text' in item.payload ? item.payload.text : '')).join('\n')
-        await sendTextToChatwoot(ctx, client, conversation, text || '[Message]', ack)
+      bloc: async ({ logger }) => {
+        logger.forBot().warn('Bloc messages not supported for Chatwoot')
       },
 
-      card: async (props: MessageHandlerProps<'card'>) => {
-        const { ctx, client, conversation, payload, ack } = props
-        await sendTextToChatwoot(ctx, client, conversation, payload.title || '[Card]', ack)
+      card: async ({ logger }) => {
+        logger.forBot().warn('Card messages not supported for Chatwoot')
       },
 
-      carousel: async (props: MessageHandlerProps<'carousel'>) => {
-        const { ctx, client, conversation, payload, ack } = props
-        const text = payload.items.map((item) => item.title).join('\n')
-        await sendTextToChatwoot(ctx, client, conversation, text || '[Carousel]', ack)
+      carousel: async ({ logger }) => {
+        logger.forBot().warn('Carousel messages not supported for Chatwoot')
       },
 
-      choice: async (props: MessageHandlerProps<'choice'>) => {
-        const { ctx, client, conversation, payload, ack } = props
-        await sendTextToChatwoot(ctx, client, conversation, payload.text, ack)
+      choice: async ({ logger }) => {
+        logger.forBot().warn('Choice messages not supported for Chatwoot')
       },
 
-      dropdown: async (props: MessageHandlerProps<'dropdown'>) => {
-        const { ctx, client, conversation, payload, ack } = props
-        await sendTextToChatwoot(ctx, client, conversation, payload.text, ack)
+      dropdown: async ({ logger }) => {
+        logger.forBot().warn('Dropdown messages not supported for Chatwoot')
       },
 
-      location: async (props: MessageHandlerProps<'location'>) => {
-        const { ctx, client, conversation, payload, ack } = props
-        await sendTextToChatwoot(ctx, client, conversation, `${payload.latitude}, ${payload.longitude}`, ack)
+      location: async ({ logger }) => {
+        logger.forBot().warn('Location messages not supported for Chatwoot')
       },
 
-      markdown: async (props: MessageHandlerProps<'markdown'>) => {
-        const { ctx, client, conversation, payload, ack } = props
-        await sendTextToChatwoot(ctx, client, conversation, payload.markdown, ack)
+      markdown: async ({ logger }) => {
+        logger.forBot().warn('Markdown messages not supported for Chatwoot')
       },
     },
   },

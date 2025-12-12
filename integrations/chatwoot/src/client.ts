@@ -9,6 +9,7 @@ import {
   ChatwootConversationResponse,
   ChatwootStatusToggleResponse,
   ChatwootConversation,
+  ChatwootAgent,
 } from './misc/types'
 import FormData from 'form-data'
 
@@ -126,8 +127,7 @@ export const updateContact = async (
 export const createConversation = async (
   ctx: bp.Context,
   accountId: string,
-  contactId: string,
-  message?: string
+  contactId: string
 ): Promise<ChatwootConversationResponse> => {
   const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.post(
@@ -135,7 +135,6 @@ export const createConversation = async (
     {
       contact_id: contactId,
       inbox_id: ctx.configuration.inboxId,
-      message: message ? { content: message } : undefined,
     },
     { headers: { api_access_token: apiAccessToken } }
   )
@@ -182,7 +181,7 @@ export const assignConversation = async (
   accountId: string,
   conversationId: string,
   assigneeId: string
-): Promise<void> => {
+): Promise<ChatwootAgent> => {
   const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.post(
     `${BASE_URL}/accounts/${accountId}/conversations/${conversationId}/assignments`,
@@ -192,7 +191,7 @@ export const assignConversation = async (
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to assign conversation: ${response.data.description}`)
   }
-  return response.data as void
+  return response.data as ChatwootAgent
 }
 
 export const getPreviousAgentId = async (
