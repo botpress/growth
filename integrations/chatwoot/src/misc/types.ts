@@ -11,7 +11,7 @@ export type ChatwootSender = {
   name?: string
   email?: string
   phone_number?: string
-  type: 'contact' | 'user'
+  type: string
   avatar_url?: string
 }
 
@@ -20,7 +20,7 @@ export type ChatwootAgent = {
   account_id: number
   email: string
   name: string
-  role: 'agent' | 'administrator'
+  role: string
   availability_status?: string
   avatar_url?: string
   confirmed?: boolean
@@ -30,7 +30,7 @@ export type ChatwootConversation = {
   id: number
   account_id?: number
   inbox_id: number
-  status: 'open' | 'resolved' | 'pending' | 'snoozed' | string
+  status: string
   channel?: string
   unread_count?: number
   can_reply?: boolean
@@ -59,7 +59,7 @@ export type ChatwootContactConversationsResponse = {
 export type ChatwootAttachment = {
   id: number
   message_id: number
-  file_type: 'image' | 'video' | 'file'
+  file_type: string
   data_url: string
   thumb_url?: string
 }
@@ -67,9 +67,11 @@ export type ChatwootAttachment = {
 export type ChatwootWebhookPayload = {
   event: ChatwootEventType
   id?: number
+  status?: string
   content?: string
   created_at?: string
   private?: boolean
+  message_type?: string
   sender?: ChatwootSender
   conversation?: ChatwootConversation
   attachments?: ChatwootAttachment[]

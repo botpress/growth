@@ -12,7 +12,7 @@ export default new IntegrationDefinition({
   configuration: {
     schema: z.object({
       apiAccessToken: z.string().min(1).describe('Your ChatWoot API access token'),
-      inboxId: z.string().min(1).describe('ChatWoot Inbox ID for HITL conversations'),
+      inboxId: z.string().min(1).describe('ChatWoot Inbox ID for HITL and messaging channel conversations'),
     }),
   },
 
@@ -74,6 +74,40 @@ export default new IntegrationDefinition({
             videoUrl: z.string(),
           }),
         },
+        choice: {
+          schema: z.object({
+            text: z.string(),
+            options: z.array(z.object({ label: z.string(), value: z.string() })),
+          }),
+        },
+      },
+      message: {
+        tags: {
+          id: {},
+          conversationId: {},
+        },
+      },
+    },
+
+    channel: {
+      title: 'Chatwoot Messaging Channel',
+      description: 'Direct messaging channel for bot conversations',
+      conversation: {
+        tags: {
+          id: { title: 'Chatwoot Conversation ID' },
+        },
+      },
+      messages: {
+        text: { schema: z.object({ text: z.string() }) },
+        image: { schema: z.object({ imageUrl: z.string() }) },
+        file: { schema: z.object({ fileUrl: z.string() }) },
+        video: { schema: z.object({ videoUrl: z.string() }) },
+        choice: {
+          schema: z.object({
+            text: z.string(),
+            options: z.array(z.object({ label: z.string(), value: z.string() })),
+          }),
+        },
       },
       message: {
         tags: {
@@ -88,6 +122,7 @@ export default new IntegrationDefinition({
     tags: {
       email: { title: 'User Email' },
       chatwootAgentId: { title: 'Chatwoot Agent ID' },
+      chatwootContactId: { title: 'Chatwoot Contact ID' },
     },
   },
 

@@ -1,37 +1,105 @@
 import * as bp from '.botpress'
 import { ChatwootWebhookPayload } from '../misc/types'
 
-export const handler: bp.IntegrationProps['handler'] = async ({ req, client, logger }) => {
+export const handler: bp.IntegrationProps['handler'] = async ({ req, client }) => {
   const payload: ChatwootWebhookPayload = JSON.parse(req.body || '{}')
 
+  if (payload.event === 'conversation_status_changed') {
+    const status = payload.status
+    const convId = payload.id?.toString()
+    if (status === 'resolved' && convId) {
+      await handleConversationResolvedById(convId, client)
+    }
+    return
+  }
+
   if (payload.event !== 'message_created') return
-  if (payload.sender?.type !== 'user') return
 
-  const chatwootConvId = payload.conversation?.id?.toString()
-  if (!chatwootConvId) return
+  if (payload.message_type === 'outgoing') {
+    const chatwootConvId = payload.conversation?.id?.toString()
+    if (!chatwootConvId) return
 
+    const { conversations } = await client.listConversations({
+      tags: { id: chatwootConvId },
+    })
+
+    const hitlConv = conversations.find((c) => c.tags?.odId)
+    if (!hitlConv) {
+      return
+    }
+
+    await handleHitlMessage(payload, client, hitlConv)
+    return
+  }
+
+  if (payload.message_type === 'incoming') {
+    await handleMessagingChannelMessage(payload, client)
+    return
+  }
+}
+
+async function handleConversationResolvedById(chatwootConvId: string, client: bp.Client) {
   const { conversations } = await client.listConversations({
     tags: { id: chatwootConvId },
   })
 
-  if (!conversations.length) {
-    logger.forBot().debug(`No HITL conv for Chatwoot ${chatwootConvId}`)
+  const hitlConv = conversations.find((c) => c.tags?.odId)
+  if (!hitlConv) {
     return
   }
 
-  const hitlConv = conversations[0]
-  if (!hitlConv) return
+  await client.createEvent({
+    type: 'hitlStopped',
+    payload: { conversationId: hitlConv.id },
+  })
+}
 
-  const agentId = payload.sender?.id?.toString()
+async function handleHitlMessage(
+  payload: ChatwootWebhookPayload,
+  client: bp.Client,
+  hitlConv: { id: string; tags?: Record<string, string> }
+) {
+  const chatwootConvId = payload.conversation?.id?.toString()
+  if (!chatwootConvId) return
+
   const { user: agentUser } = await client.getOrCreateUser({
-    tags: { chatwootAgentId: agentId || 'unknown' },
+    tags: { chatwootAgentId: payload.sender?.id?.toString() || 'unknown' },
     name: payload.sender?.name || 'Agent',
   })
 
+  await createBotpressMessages(client, payload, hitlConv.id, agentUser.id, chatwootConvId)
+}
+
+async function handleMessagingChannelMessage(payload: ChatwootWebhookPayload, client: bp.Client) {
+  const chatwootConvId = payload.conversation?.id?.toString()
+  if (!chatwootConvId) {
+    return
+  }
+
+  const { conversation } = await client.getOrCreateConversation({
+    channel: 'channel',
+    tags: { id: chatwootConvId },
+  })
+
+  const { user: contactUser } = await client.getOrCreateUser({
+    tags: { chatwootContactId: payload.sender?.id?.toString() || 'unknown' },
+    name: payload.sender?.name || 'Contact',
+  })
+
+  await createBotpressMessages(client, payload, conversation.id, contactUser.id, chatwootConvId)
+}
+
+async function createBotpressMessages(
+  client: bp.Client,
+  payload: ChatwootWebhookPayload,
+  conversationId: string,
+  userId: string,
+  chatwootConvId: string
+) {
   if (payload.content?.trim()) {
     await client.createMessage({
-      conversationId: hitlConv.id,
-      userId: agentUser.id,
+      conversationId,
+      userId,
       type: 'text',
       payload: { text: payload.content },
       tags: { id: payload.id?.toString() || '', conversationId: chatwootConvId },
@@ -40,32 +108,34 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, client, log
 
   if (payload.attachments?.length) {
     for (const attachment of payload.attachments) {
+      const baseTags = { id: payload.id?.toString() || '', conversationId: chatwootConvId }
+
       switch (attachment.file_type) {
         case 'image':
           await client.createMessage({
-            conversationId: hitlConv.id,
-            userId: agentUser.id,
+            conversationId,
+            userId,
             type: 'image',
             payload: { imageUrl: attachment.data_url },
-            tags: { id: payload.id?.toString() || '', conversationId: chatwootConvId },
+            tags: baseTags,
           })
           break
         case 'video':
           await client.createMessage({
-            conversationId: hitlConv.id,
-            userId: agentUser.id,
+            conversationId,
+            userId,
             type: 'video',
             payload: { videoUrl: attachment.data_url },
-            tags: { id: payload.id?.toString() || '', conversationId: chatwootConvId },
+            tags: baseTags,
           })
           break
         case 'file':
           await client.createMessage({
-            conversationId: hitlConv.id,
-            userId: agentUser.id,
+            conversationId,
+            userId,
             type: 'file',
             payload: { fileUrl: attachment.data_url, title: 'File' },
-            tags: { id: payload.id?.toString() || '', conversationId: chatwootConvId },
+            tags: baseTags,
           })
           break
       }

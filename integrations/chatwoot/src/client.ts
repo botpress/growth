@@ -52,6 +52,24 @@ export const sendMessage = async (
   return response.data as ChatwootMessageResponse['id']
 }
 
+export const sendBotMessage = async (
+  ctx: bp.Context,
+  accountId: string,
+  conversationId: string,
+  content: string
+): Promise<ChatwootMessageResponse['id']> => {
+  const apiAccessToken = getApiAccessToken(ctx)
+  const response = await axios.post(
+    `${BASE_URL}/accounts/${accountId}/conversations/${conversationId}/messages`,
+    { content, message_type: 'outgoing', private: false },
+    { headers: { api_access_token: apiAccessToken } }
+  )
+  if (response.status !== 200) {
+    throw new RuntimeError(`Failed to send bot message: ${response.data.description}`)
+  }
+  return response.data as ChatwootMessageResponse['id']
+}
+
 export const sendAttachment = async (
   ctx: bp.Context,
   accountId: string,
