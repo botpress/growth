@@ -1,35 +1,15 @@
 import * as sdk from '@botpress/sdk'
 
-type AnyMessageType = { schema: sdk.z.ZodObject }
-const withUserId = (s: AnyMessageType) => ({
-  ...s,
-  schema: () =>
-    s.schema.extend({
-      userId: sdk.z.string().optional().describe('Allows sending a message pretending to be a certain user'),
-    }),
-})
-
 const messageSourceSchema = sdk.z.union([
   sdk.z.object({ type: sdk.z.literal('user'), userId: sdk.z.string() }),
   sdk.z.object({ type: sdk.z.literal('bot') }),
 ])
 
-const allMessages = {
-  ...sdk.messages.defaults,
-  markdown: sdk.messages.markdown,
-  bloc: sdk.messages.markdownBloc,
-} satisfies Record<string, { schema: sdk.AnyZodObject }>
-
-type Tuple<T> = [T, T, ...T[]]
-const messagePayloadSchemas: sdk.AnyZodObject[] = Object.entries(allMessages).map(([k, v]) =>
-  sdk.z.object({
-    source: messageSourceSchema,
-    type: sdk.z.literal(k),
-    payload: v.schema,
-  })
-)
-
-const messageSchema = sdk.z.union(messagePayloadSchemas as Tuple<sdk.AnyZodObject>)
+const messageSchema = sdk.z.object({
+  source: messageSourceSchema,
+  type: sdk.z.string(),
+  payload: sdk.z.record(sdk.z.any()),
+})
 
 export default new sdk.InterfaceDefinition({
   name: 'hitl',
@@ -43,10 +23,7 @@ export default new sdk.InterfaceDefinition({
   },
   events: {
     hitlAssigned: {
-      attributes: {
-        ...sdk.WELL_KNOWN_ATTRIBUTES.HIDDEN_IN_STUDIO,
-      },
-      schema: () =>
+            schema: () =>
         sdk.z.object({
           // Also known as downstreamConversationId:
           conversationId: sdk.z
@@ -62,10 +39,7 @@ export default new sdk.InterfaceDefinition({
         }),
     },
     hitlStopped: {
-      attributes: {
-        ...sdk.WELL_KNOWN_ATTRIBUTES.HIDDEN_IN_STUDIO,
-      },
-      schema: () =>
+            schema: () =>
         sdk.z.object({
           // Also known as downstreamConversationId:
           conversationId: sdk.z
@@ -78,10 +52,7 @@ export default new sdk.InterfaceDefinition({
   actions: {
     // TODO: allow for an interface to extend 'proactiveUser' and reuse its actions
     createUser: {
-      attributes: {
-        ...sdk.WELL_KNOWN_ATTRIBUTES.HIDDEN_IN_STUDIO,
-      },
-      title: 'Create external user', // <= this is a downstream user
+            title: 'Create external user', // <= this is a downstream user
       description: 'Create an end user in the external service and in Botpress',
       input: {
         schema: () =>
@@ -102,10 +73,7 @@ export default new sdk.InterfaceDefinition({
       },
     },
     startHitl: {
-      attributes: {
-        ...sdk.WELL_KNOWN_ATTRIBUTES.HIDDEN_IN_STUDIO,
-      },
-      title: 'Start new HITL session', // <= this is a downstream conversation / ticket
+            title: 'Start new HITL session', // <= this is a downstream conversation / ticket
       description: 'Create a new HITL session in the external service and in Botpress',
       input: {
         schema: (entities) =>
@@ -155,10 +123,7 @@ export default new sdk.InterfaceDefinition({
       },
     },
     stopHitl: {
-      attributes: {
-        ...sdk.WELL_KNOWN_ATTRIBUTES.HIDDEN_IN_STUDIO,
-      },
-      title: 'Stop HITL session',
+            title: 'Stop HITL session',
       description: 'Stop an existing HITL session in the external service',
       input: {
         schema: () =>
@@ -178,16 +143,47 @@ export default new sdk.InterfaceDefinition({
   channels: {
     hitl: {
       messages: {
-        text: withUserId(sdk.messages.defaults.text),
-        image: withUserId(sdk.messages.defaults.image),
-        audio: withUserId(sdk.messages.defaults.audio),
-        video: withUserId(sdk.messages.defaults.video),
-        file: withUserId(sdk.messages.defaults.file),
-        bloc: withUserId(sdk.messages.markdownBloc), // TODO: use the actual bloc message when bumping a version of the interface
+        text: {
+          schema: () => sdk.z.object({
+            text: sdk.z.string(),
+            userId: sdk.z.string().optional().describe('Allows sending a message pretending to be a certain user'),
+          }),
+        },
+        image: {
+          schema: () => sdk.z.object({
+            imageUrl: sdk.z.string(),
+            userId: sdk.z.string().optional(),
+          }),
+        },
+        audio: {
+          schema: () => sdk.z.object({
+            audioUrl: sdk.z.string(),
+            userId: sdk.z.string().optional(),
+          }),
+        },
+        video: {
+          schema: () => sdk.z.object({
+            videoUrl: sdk.z.string(),
+            userId: sdk.z.string().optional(),
+          }),
+        },
+        file: {
+          schema: () => sdk.z.object({
+            fileUrl: sdk.z.string(),
+            title: sdk.z.string().optional(),
+            userId: sdk.z.string().optional(),
+          }),
+        },
+        bloc: {
+          schema: () => sdk.z.object({
+            items: sdk.z.array(sdk.z.object({
+              type: sdk.z.string(),
+              payload: sdk.z.record(sdk.z.any()),
+            })),
+            userId: sdk.z.string().optional(),
+          }),
+        },
       },
     },
-  },
-  __advanced: {
-    useLegacyZuiTransformer: true,
   },
 })
