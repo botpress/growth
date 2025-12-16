@@ -3,16 +3,16 @@ import hitl from './bp_modules/hitl'
 
 export default new IntegrationDefinition({
   name: 'plus/chatwoot',
-  title: 'ChatWoot',
-  description: 'Connect your Botpress bot to ChatWoot with HITL support',
-  version: '1.0.0',
+  title: 'Chatwoot',
+  description: 'Connect your Botpress bot to Chatwoot with HITL support',
+  version: '1.0.1',
   readme: 'hub.md',
   icon: 'icon.svg',
 
   configuration: {
     schema: z.object({
-      apiAccessToken: z.string().min(1).describe('Your ChatWoot API access token'),
-      inboxId: z.string().min(1).describe('ChatWoot Inbox ID for HITL and messaging channel conversations'),
+      apiAccessToken: z.string().min(1).describe('Your Chatwoot API access token'),
+      inboxId: z.string().min(1).describe('Chatwoot Inbox ID for HITL and messaging channel conversations'),
     }),
   },
 
@@ -50,7 +50,7 @@ export default new IntegrationDefinition({
       conversation: {
         tags: {
           id: { title: 'Chatwoot Conversation ID', description: 'The ID of the conversation in Chatwoot' },
-          odId: { title: 'User ID', description: 'The Botpress user ID' },
+          bpUserId: { title: 'Botpress User ID', description: 'The Botpress user ID' },
         },
       },
       messages: {

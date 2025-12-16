@@ -3,7 +3,6 @@ import { RuntimeError } from '@botpress/sdk'
 import {
   searchContactByEmail,
   createContact,
-  updateContact,
   createConversation,
   resolveConversation,
   getPreviousAgentId,
@@ -22,19 +21,15 @@ export const getAccountId = async (client: bp.Client, ctx: bp.Context) => {
 }
 
 export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ ctx, client, input, logger }) => {
-  const { name: inputName, email: rawEmail } = input
+  const { email } = input
 
-  if (!rawEmail) {
+  if (!email) {
     throw new RuntimeError('Email is required for HITL')
   }
-
-  const email = rawEmail.trim().toLowerCase()
-  const name = inputName && inputName !== 'Unknown User' ? inputName : email.split('@')[0] || 'Unknown'
 
   const accountId = await getAccountId(client, ctx)
 
   const { user: botpressUser } = await client.getOrCreateUser({
-    name,
     tags: { email },
   })
 
@@ -46,16 +41,9 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
     chatwootContactId = existingContact.id.toString()
     logger.forBot().info(`Found Chatwoot contact: ${chatwootContactId}`)
   } else {
-    const newContact = await createContact(ctx, accountId, email, name)
+    const newContact = await createContact(ctx, accountId, email)
     chatwootContactId = newContact.payload.contact.id.toString()
     logger.forBot().info(`Created Chatwoot contact: ${chatwootContactId}`)
-  }
-
-  try {
-    await updateContact(ctx, accountId, chatwootContactId, name)
-    logger.forBot().info(`Updated Chatwoot contact name to: ${name}`)
-  } catch (error) {
-    logger.forBot().warn(`Failed to update contact name: ${error}`)
   }
 
   await client.setState({
@@ -77,27 +65,8 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     throw new RuntimeError('Call createUser first')
   }
 
-  const { chatwootContactId, email } = userState.state.payload
+  const { chatwootContactId } = userState.state.payload
   const accountId = await getAccountId(client, ctx)
-
-  try {
-    if (title && email) {
-      let extractedName = title.replace(email, '').trim()
-      const nameObj = JSON.parse(extractedName)
-      extractedName = `${nameObj.first || ''} ${nameObj.last || ''}`.trim()
-
-      if (extractedName && extractedName !== 'Unknown User') {
-        try {
-          await updateContact(ctx, accountId, chatwootContactId, extractedName)
-          logger.forBot().info(`Updated contact name from title: ${extractedName}`)
-        } catch (error) {
-          logger.forBot().warn(`Failed to update contact name from title: ${error}`)
-        }
-      }
-    }
-  } catch (error) {
-    logger.forBot().warn(`Failed to update contact name: ${error}`)
-  }
 
   const activeConversation = await getActiveConversation(ctx, accountId, chatwootContactId)
 
@@ -128,7 +97,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
   const { conversation } = await client.getOrCreateConversation({
     channel: 'hitl',
-    tags: { id: chatwootConvId, odId: userId },
+    tags: { id: chatwootConvId, bpUserId: userId },
   })
 
   await client.createEvent({

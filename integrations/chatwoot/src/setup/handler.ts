@@ -23,7 +23,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, client }) =
       tags: { id: chatwootConvId },
     })
 
-    const hitlConv = conversations.find((c) => c.tags?.odId)
+    const hitlConv = conversations.find((c) => c.tags?.bpUserId)
     if (!hitlConv) {
       return
     }
@@ -43,7 +43,7 @@ async function handleConversationResolvedById(chatwootConvId: string, client: bp
     tags: { id: chatwootConvId },
   })
 
-  const hitlConv = conversations.find((c) => c.tags?.odId)
+  const hitlConv = conversations.find((c) => c.tags?.bpUserId)
   if (!hitlConv) {
     return
   }

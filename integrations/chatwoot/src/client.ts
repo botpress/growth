@@ -110,36 +110,18 @@ export const searchContactByEmail = async (
 export const createContact = async (
   ctx: bp.Context,
   accountId: string,
-  email: string,
-  name: string
+  email: string
 ): Promise<ChatwootContactCreateResponse> => {
   const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.post(
     `${BASE_URL}/accounts/${accountId}/contacts`,
-    { email, name, inbox_id: ctx.configuration.inboxId },
+    { email: email, name: email, inbox_id: ctx.configuration.inboxId },
     { headers: { api_access_token: apiAccessToken } }
   )
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to create contact: ${response.data.description}`)
   }
   return response.data as ChatwootContactCreateResponse
-}
-
-export const updateContact = async (
-  ctx: bp.Context,
-  accountId: string,
-  contactId: string,
-  name: string
-): Promise<void> => {
-  const apiAccessToken = getApiAccessToken(ctx)
-  const response = await axios.put(
-    `${BASE_URL}/accounts/${accountId}/contacts/${contactId}`,
-    { name },
-    { headers: { api_access_token: apiAccessToken } }
-  )
-  if (response.status !== 200) {
-    throw new RuntimeError(`Failed to update contact: ${response.data.description}`)
-  }
 }
 
 export const createConversation = async (
