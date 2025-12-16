@@ -41,14 +41,6 @@ for (const dir of dirs) {
     console.log(`\n==> Skipping pnpm install for ${dir} (managed by workspace)`)
   }
 
-  console.log(`\n==> Generating ${dir}`)
-  try {
-    execSync('pnpm exec bp gen', { cwd, stdio: 'inherit' })
-  } catch (err) {
-    console.error(`Failed to generate ${dir}`)
-    console.error(err)
-    process.exit(1)
-  }
   console.log(`\n==> Building ${dir}`)
   try {
     execSync('pnpm exec bp build', { cwd, stdio: 'inherit' })
