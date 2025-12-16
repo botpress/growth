@@ -7,10 +7,10 @@
     "check:bplint": "bp lint"
   },
   "dependencies": {
-    "@botpress/sdk": "workspace:*"
+    "@botpress/sdk": "5.0.2"
   },
   "devDependencies": {
-    "@botpress/cli": "workspace:*",
-    "@botpress/sdk": "workspace:*"
+    "@botpress/cli": "5.1.0",
+    "@botpress/sdk": "5.0.2"
   }
 }
