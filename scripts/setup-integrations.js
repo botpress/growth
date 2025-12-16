@@ -41,19 +41,22 @@ for (const dir of dirs) {
     console.log(`\n==> Skipping pnpm install for ${dir} (managed by workspace)`);
   }
 
-  // Check if integration has local path bpDependencies
+  // Check if integration needs bp add (has local bpDependencies AND uses SDK 4.x+)
   const pkgJsonPath = path.join(cwd, 'package.json');
   let needsBpAdd = false;
   if (fs.existsSync(pkgJsonPath)) {
     const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
     const bpDeps = pkgJson.bpDependencies || {};
-    needsBpAdd = Object.values(bpDeps).some((v) => v.startsWith('../') || v.startsWith('./'));
+    const hasLocalDeps = Object.values(bpDeps).some((v) => v.startsWith('../') || v.startsWith('./'));
+    const sdkVersion = pkgJson.dependencies?.['@botpress/sdk'] || '';
+    const isModernSdk = sdkVersion.startsWith('4.') || sdkVersion.startsWith('5.');
+    needsBpAdd = hasLocalDeps && isModernSdk;
   }
 
   console.log(`\n==> Building ${dir}`);
   try {
     if (needsBpAdd) {
-      console.log(`Running bp add for ${dir} (has local bpDependencies)`);
+      console.log(`Running bp add for ${dir} (has local bpDependencies with SDK 4.x+)`);
       execSync('pnpm exec bp add -y', { cwd, stdio: 'inherit' });
     }
     execSync('pnpm exec bp build', { cwd, stdio: 'inherit' });
