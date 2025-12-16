@@ -1,5 +1,5 @@
 node_modules
-bp_modules
+bp_modules/
 dist
 gen
 local/data
