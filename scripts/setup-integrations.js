@@ -43,7 +43,6 @@ for (const dir of dirs) {
 
   console.log(`\n==> Building ${dir}`);
   try {
-    execSync('pnpm exec bp add -y', { cwd, stdio: 'inherit' });
     execSync('pnpm exec bp build', { cwd, stdio: 'inherit' });
   } catch (err) {
     console.error(`Failed to build ${dir}`);
