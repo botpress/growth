@@ -1,15 +1,11 @@
 import * as bp from '.botpress'
-import { ChatwootWebhookPayload } from '../misc/types'
+import { ChatwootWebhookPayload, chatwootWebhookPayloadSchema } from '../misc/types'
 
 export const handler: bp.IntegrationProps['handler'] = async ({ req, client }) => {
-  const payload: ChatwootWebhookPayload = JSON.parse(req.body || '{}')
+  const payload = chatwootWebhookPayloadSchema.parse(JSON.parse(req.body || '{}'))
 
-  if (payload.event === 'conversation_status_changed') {
-    const status = payload.status
-    const convId = payload.id?.toString()
-    if (status === 'resolved' && convId) {
-      await handleConversationResolvedById(convId, client)
-    }
+  if (payload.event === 'conversation_status_changed' && payload.status === 'resolved' && payload.id) {
+    await handleConversationResolvedById(payload.id.toString(), client)
     return
   }
 

@@ -1,9 +1,8 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/sdk'
-import { sendMessage, sendAttachment, sendBotMessage } from './client'
+import { sendMessage, sendAttachment, getApiAccessToken } from './client'
 import { getAccountId } from './actions/hitl'
 
-type ConfirmDelivery = (props: { tags: { id: string; conversationId: string } }) => Promise<void>
 type ConversationWithTags = { tags: { id?: string } }
 
 const getConversationContext = async (client: bp.Client, ctx: bp.Context, conversation: ConversationWithTags) => {
@@ -11,66 +10,6 @@ const getConversationContext = async (client: bp.Client, ctx: bp.Context, conver
   if (!chatwootConvId) throw new RuntimeError('No Chatwoot conversation ID')
   const accountId = await getAccountId(client, ctx)
   return { chatwootConvId, accountId }
-}
-
-const createTextHandler =
-  (sendFn: typeof sendMessage) =>
-  async (
-    ctx: bp.Context,
-    client: bp.Client,
-    conversation: ConversationWithTags,
-    text: string,
-    confirmDelivery: ConfirmDelivery
-  ) => {
-    const { chatwootConvId, accountId } = await getConversationContext(client, ctx, conversation)
-    await sendFn(ctx, accountId, chatwootConvId, text)
-    await confirmDelivery({ tags: { id: '', conversationId: chatwootConvId } })
-  }
-
-const sendTextHitl = createTextHandler(sendMessage)
-const sendTextChannel = createTextHandler(sendBotMessage)
-
-const sendImageToChatwoot = async (
-  ctx: bp.Context,
-  client: bp.Client,
-  conversation: ConversationWithTags,
-  imageUrl: string,
-  confirmDelivery: ConfirmDelivery
-) => {
-  const { chatwootConvId, accountId } = await getConversationContext(client, ctx, conversation)
-  const res = await fetch(imageUrl)
-  const buffer = Buffer.from(await res.arrayBuffer())
-  await sendAttachment(ctx, accountId, chatwootConvId, buffer, 'image.png')
-  await confirmDelivery({ tags: { id: '', conversationId: chatwootConvId } })
-}
-
-const sendFileToChatwoot = async (
-  ctx: bp.Context,
-  client: bp.Client,
-  conversation: ConversationWithTags,
-  fileUrl: string,
-  title: string,
-  confirmDelivery: ConfirmDelivery
-) => {
-  const { chatwootConvId, accountId } = await getConversationContext(client, ctx, conversation)
-  const res = await fetch(fileUrl)
-  const buffer = Buffer.from(await res.arrayBuffer())
-  await sendAttachment(ctx, accountId, chatwootConvId, buffer, title || 'file')
-  await confirmDelivery({ tags: { id: '', conversationId: chatwootConvId } })
-}
-
-const sendVideoToChatwoot = async (
-  ctx: bp.Context,
-  client: bp.Client,
-  conversation: ConversationWithTags,
-  videoUrl: string,
-  confirmDelivery: ConfirmDelivery
-) => {
-  const { chatwootConvId, accountId } = await getConversationContext(client, ctx, conversation)
-  const res = await fetch(videoUrl)
-  const buffer = Buffer.from(await res.arrayBuffer())
-  await sendAttachment(ctx, accountId, chatwootConvId, buffer, 'video.mp4')
-  await confirmDelivery({ tags: { id: '', conversationId: chatwootConvId } })
 }
 
 const unsupportedHandler =
@@ -89,25 +28,73 @@ const unsupportedMessages = {
   markdown: unsupportedHandler('Markdown'),
 }
 
+const sendMessageToOrFromChatwoot = async (
+  ctx: bp.Context,
+  client: bp.Client,
+  conversation: ConversationWithTags,
+  content: string,
+  messageType: 'incoming' | 'outgoing'
+) => {
+  const { chatwootConvId, accountId } = await getConversationContext(client, ctx, conversation)
+  await sendMessage(getApiAccessToken(ctx), accountId, chatwootConvId, content, messageType)
+}
+
+const sendImageToChatwoot = async (
+  ctx: bp.Context,
+  client: bp.Client,
+  conversation: ConversationWithTags,
+  imageUrl: string
+) => {
+  const { chatwootConvId, accountId } = await getConversationContext(client, ctx, conversation)
+  const res = await fetch(imageUrl)
+  const buffer = Buffer.from(await res.arrayBuffer())
+  await sendAttachment(getApiAccessToken(ctx), accountId, chatwootConvId, buffer, 'image.png')
+}
+
+const sendFileToChatwoot = async (
+  ctx: bp.Context,
+  client: bp.Client,
+  conversation: ConversationWithTags,
+  fileUrl: string,
+  title: string
+) => {
+  const { chatwootConvId, accountId } = await getConversationContext(client, ctx, conversation)
+  const res = await fetch(fileUrl)
+  const buffer = Buffer.from(await res.arrayBuffer())
+  await sendAttachment(getApiAccessToken(ctx), accountId, chatwootConvId, buffer, title || 'file')
+}
+
+const sendVideoToChatwoot = async (
+  ctx: bp.Context,
+  client: bp.Client,
+  conversation: ConversationWithTags,
+  videoUrl: string
+) => {
+  const { chatwootConvId, accountId } = await getConversationContext(client, ctx, conversation)
+  const res = await fetch(videoUrl)
+  const buffer = Buffer.from(await res.arrayBuffer())
+  await sendAttachment(getApiAccessToken(ctx), accountId, chatwootConvId, buffer, 'video.mp4')
+}
+
 export const channels = {
   hitl: {
     messages: {
-      text: async ({ ctx, client, conversation, payload, ack }) => {
-        await sendTextHitl(ctx, client, conversation, payload.text, ack)
+      text: async ({ ctx, client, conversation, payload }) => {
+        await sendMessageToOrFromChatwoot(ctx, client, conversation, payload.text, 'incoming')
       },
-      image: async ({ ctx, client, conversation, payload, ack }) => {
-        await sendImageToChatwoot(ctx, client, conversation, payload.imageUrl, ack)
+      image: async ({ ctx, client, conversation, payload }) => {
+        await sendImageToChatwoot(ctx, client, conversation, payload.imageUrl)
       },
-      file: async ({ ctx, client, conversation, payload, ack }) => {
-        await sendFileToChatwoot(ctx, client, conversation, payload.fileUrl, payload.title || 'file', ack)
+      file: async ({ ctx, client, conversation, payload }) => {
+        await sendFileToChatwoot(ctx, client, conversation, payload.fileUrl, payload.title || 'file')
       },
-      video: async ({ ctx, client, conversation, payload, ack }) => {
-        await sendVideoToChatwoot(ctx, client, conversation, payload.videoUrl, ack)
+      video: async ({ ctx, client, conversation, payload }) => {
+        await sendVideoToChatwoot(ctx, client, conversation, payload.videoUrl)
       },
-      choice: async ({ ctx, client, conversation, payload, ack }) => {
+      choice: async ({ ctx, client, conversation, payload }) => {
         const options = payload.options.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n')
         const text = `${payload.text}\n\n${options}`
-        await sendTextHitl(ctx, client, conversation, text, ack)
+        await sendMessageToOrFromChatwoot(ctx, client, conversation, text, 'incoming')
       },
       ...unsupportedMessages,
     },
@@ -115,22 +102,22 @@ export const channels = {
 
   channel: {
     messages: {
-      text: async ({ ctx, client, conversation, payload, ack }) => {
-        await sendTextChannel(ctx, client, conversation, payload.text, ack)
+      text: async ({ ctx, client, conversation, payload }) => {
+        await sendMessageToOrFromChatwoot(ctx, client, conversation, payload.text, 'outgoing')
       },
-      image: async ({ ctx, client, conversation, payload, ack }) => {
-        await sendImageToChatwoot(ctx, client, conversation, payload.imageUrl, ack)
+      image: async ({ ctx, client, conversation, payload }) => {
+        await sendImageToChatwoot(ctx, client, conversation, payload.imageUrl)
       },
-      file: async ({ ctx, client, conversation, payload, ack }) => {
-        await sendFileToChatwoot(ctx, client, conversation, payload.fileUrl, 'file', ack)
+      file: async ({ ctx, client, conversation, payload }) => {
+        await sendFileToChatwoot(ctx, client, conversation, payload.fileUrl, 'file')
       },
-      video: async ({ ctx, client, conversation, payload, ack }) => {
-        await sendVideoToChatwoot(ctx, client, conversation, payload.videoUrl, ack)
+      video: async ({ ctx, client, conversation, payload }) => {
+        await sendVideoToChatwoot(ctx, client, conversation, payload.videoUrl)
       },
-      choice: async ({ ctx, client, conversation, payload, ack }) => {
+      choice: async ({ ctx, client, conversation, payload }) => {
         const options = payload.options.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n')
         const text = `${payload.text}\n\n${options}`
-        await sendTextChannel(ctx, client, conversation, text, ack)
+        await sendMessageToOrFromChatwoot(ctx, client, conversation, text, 'outgoing')
       },
       ...unsupportedMessages,
     },

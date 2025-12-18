@@ -10,6 +10,14 @@ import {
   ChatwootStatusToggleResponse,
   ChatwootConversation,
   ChatwootAgent,
+  chatwootProfileSchema,
+  chatwootMessageResponseSchema,
+  chatwootContactSearchResponseSchema,
+  chatwootContactCreateResponseSchema,
+  chatwootConversationResponseSchema,
+  chatwootStatusToggleResponseSchema,
+  chatwootAgentSchema,
+  chatwootConversationSchema,
 } from './misc/types'
 import FormData from 'form-data'
 
@@ -23,61 +31,41 @@ export const getApiAccessToken = (ctx: bp.Context) => {
   return apiAccessToken
 }
 
-export const getProfile = async (ctx: bp.Context): Promise<ChatwootProfile> => {
-  const apiAccessToken = getApiAccessToken(ctx)
+export const getProfile = async (apiAccessToken: string): Promise<ChatwootProfile> => {
   const response = await axios.get(`${BASE_URL}/profile`, {
     headers: { api_access_token: apiAccessToken },
   })
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to get profile: ${response.data.description}`)
   }
-  return response.data as ChatwootProfile
+  return chatwootProfileSchema.parse(response.data)
 }
 
 export const sendMessage = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
   conversationId: string,
-  content: string
+  content: string,
+  messageType: 'incoming' | 'outgoing'
 ): Promise<ChatwootMessageResponse['id']> => {
-  const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.post(
     `${BASE_URL}/accounts/${accountId}/conversations/${conversationId}/messages`,
-    { content, message_type: 'incoming', private: false },
+    { content, message_type: messageType, private: false },
     { headers: { api_access_token: apiAccessToken } }
   )
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to send message: ${response.data.description}`)
   }
-  return response.data as ChatwootMessageResponse['id']
-}
-
-export const sendBotMessage = async (
-  ctx: bp.Context,
-  accountId: string,
-  conversationId: string,
-  content: string
-): Promise<ChatwootMessageResponse['id']> => {
-  const apiAccessToken = getApiAccessToken(ctx)
-  const response = await axios.post(
-    `${BASE_URL}/accounts/${accountId}/conversations/${conversationId}/messages`,
-    { content, message_type: 'outgoing', private: false },
-    { headers: { api_access_token: apiAccessToken } }
-  )
-  if (response.status !== 200) {
-    throw new RuntimeError(`Failed to send bot message: ${response.data.description}`)
-  }
-  return response.data as ChatwootMessageResponse['id']
+  return chatwootMessageResponseSchema.parse(response.data).id
 }
 
 export const sendAttachment = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
   conversationId: string,
   fileBuffer: Buffer,
   fileName: string
 ): Promise<ChatwootMessageResponse['id']> => {
-  const apiAccessToken = getApiAccessToken(ctx)
   const formData = new FormData()
   formData.append('attachments[]', fileBuffer, fileName)
   const response = await axios.post(
@@ -88,15 +76,14 @@ export const sendAttachment = async (
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to send attachment: ${response.data.description}`)
   }
-  return response.data as ChatwootMessageResponse['id']
+  return chatwootMessageResponseSchema.parse(response.data).id
 }
 
 export const searchContactByEmail = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
   email: string
 ): Promise<ChatwootContactSearchResponse> => {
-  const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.get(`${BASE_URL}/accounts/${accountId}/contacts/search`, {
     params: { q: email },
     headers: { api_access_token: apiAccessToken },
@@ -104,52 +91,51 @@ export const searchContactByEmail = async (
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to search contact by email: ${response.data.description}`)
   }
-  return response.data as ChatwootContactSearchResponse
+  return chatwootContactSearchResponseSchema.parse(response.data)
 }
 
 export const createContact = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
-  email: string
+  email: string,
+  inboxId: string
 ): Promise<ChatwootContactCreateResponse> => {
-  const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.post(
     `${BASE_URL}/accounts/${accountId}/contacts`,
-    { email: email, name: email, inbox_id: ctx.configuration.inboxId },
+    { email: email, name: email, inbox_id: inboxId },
     { headers: { api_access_token: apiAccessToken } }
   )
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to create contact: ${response.data.description}`)
   }
-  return response.data as ChatwootContactCreateResponse
+  return chatwootContactCreateResponseSchema.parse(response.data)
 }
 
 export const createConversation = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
-  contactId: string
+  contactId: string,
+  inboxId: string
 ): Promise<ChatwootConversationResponse> => {
-  const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.post(
     `${BASE_URL}/accounts/${accountId}/conversations`,
     {
       contact_id: contactId,
-      inbox_id: ctx.configuration.inboxId,
+      inbox_id: inboxId,
     },
     { headers: { api_access_token: apiAccessToken } }
   )
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to create conversation: ${response.data.description}`)
   }
-  return response.data as ChatwootConversationResponse
+  return chatwootConversationResponseSchema.parse(response.data)
 }
 
 export const resolveConversation = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
   conversationId: string
 ): Promise<ChatwootStatusToggleResponse> => {
-  const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.post(
     `${BASE_URL}/accounts/${accountId}/conversations/${conversationId}/toggle_status`,
     { status: 'resolved' },
@@ -158,31 +144,29 @@ export const resolveConversation = async (
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to resolve conversation: ${response.data.description}`)
   }
-  return response.data as ChatwootStatusToggleResponse
+  return chatwootStatusToggleResponseSchema.parse(response.data)
 }
 
 export const getContactConversations = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
   contactId: string
 ): Promise<ChatwootConversation[]> => {
-  const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.get(`${BASE_URL}/accounts/${accountId}/contacts/${contactId}/conversations`, {
     headers: { api_access_token: apiAccessToken },
   })
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to get contact conversations: ${response.data.description}`)
   }
-  return response.data.payload || []
+  return chatwootConversationSchema.array().parse(response.data.payload ?? [])
 }
 
 export const assignConversation = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
   conversationId: string,
   assigneeId: string
 ): Promise<ChatwootAgent> => {
-  const apiAccessToken = getApiAccessToken(ctx)
   const response = await axios.post(
     `${BASE_URL}/accounts/${accountId}/conversations/${conversationId}/assignments`,
     { assignee_id: assigneeId },
@@ -191,15 +175,15 @@ export const assignConversation = async (
   if (response.status !== 200) {
     throw new RuntimeError(`Failed to assign conversation: ${response.data.description}`)
   }
-  return response.data as ChatwootAgent
+  return chatwootAgentSchema.parse(response.data)
 }
 
 export const getPreviousAgentId = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
   contactId: string
 ): Promise<number | null> => {
-  const conversations = await getContactConversations(ctx, accountId, contactId)
+  const conversations = await getContactConversations(apiAccessToken, accountId, contactId)
 
   const withAssignee = conversations.filter((c) => c.meta?.assignee?.id).sort((a, b) => b.id - a.id)
 
@@ -207,10 +191,10 @@ export const getPreviousAgentId = async (
 }
 
 export const getActiveConversation = async (
-  ctx: bp.Context,
+  apiAccessToken: string,
   accountId: string,
   contactId: string
 ): Promise<ChatwootConversation | null> => {
-  const conversations = await getContactConversations(ctx, accountId, contactId)
+  const conversations = await getContactConversations(apiAccessToken, accountId, contactId)
   return conversations.find((c) => c.status === 'open') || null
 }

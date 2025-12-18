@@ -13,6 +13,7 @@ export default new IntegrationDefinition({
     schema: z.object({
       apiAccessToken: z.string().min(1).describe('Your Chatwoot API access token'),
       inboxId: z.string().min(1).describe('Chatwoot Inbox ID for HITL and messaging channel conversations'),
+      accountId: z.string().min(1).describe('Chatwoot Account ID'),
     }),
   },
 
@@ -30,7 +31,7 @@ export default new IntegrationDefinition({
   },
 
   states: {
-    integration: {
+    registerChatwootAccount: {
       type: 'integration',
       schema: z.object({
         accountId: z.string(),

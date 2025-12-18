@@ -1,130 +1,155 @@
-export type ChatwootEventType =
-  | 'message_created'
-  | 'message_updated'
-  | 'conversation_created'
-  | 'conversation_updated'
-  | 'conversation_status_changed'
-  | 'webwidget_triggered'
+import { z } from '@botpress/sdk'
 
-export type ChatwootSender = {
-  id: number
-  name?: string
-  email?: string
-  phone_number?: string
-  type: string
-  avatar_url?: string
-}
+export const chatwootEventTypeSchema = z.enum([
+  'message_created',
+  'message_updated',
+  'conversation_created',
+  'conversation_updated',
+  'conversation_status_changed',
+  'webwidget_triggered',
+])
 
-export type ChatwootAgent = {
-  id: number
-  account_id: number
-  email: string
-  name: string
-  role: string
-  availability_status?: string
-  avatar_url?: string
-  confirmed?: boolean
-}
+export const chatwootSenderSchema = z.object({
+  id: z.number(),
+  name: z.string().optional(),
+  email: z.string().optional(),
+  phone_number: z.string().optional(),
+  type: z.string(),
+  avatar_url: z.string().optional(),
+})
 
-export type ChatwootConversation = {
-  id: number
-  account_id?: number
-  inbox_id: number
-  status: string
-  channel?: string
-  unread_count?: number
-  can_reply?: boolean
-  muted?: boolean
-  created_at?: number
-  last_activity_at?: number
-  meta?: {
-    assignee?: {
-      id: number
-      name: string
-      email?: string
-      avatar_url?: string
-    }
-    sender?: {
-      id: number
-      name: string
-      email?: string
-    }
-  }
-}
+export const chatwootAgentSchema = z.object({
+  id: z.number(),
+  account_id: z.number(),
+  email: z.string(),
+  name: z.string(),
+  role: z.string(),
+  availability_status: z.string().optional(),
+  avatar_url: z.string().optional(),
+  confirmed: z.boolean().optional(),
+})
 
-export type ChatwootContactConversationsResponse = {
-  payload: ChatwootConversation[]
-}
+export const chatwootConversationSchema = z.object({
+  id: z.number(),
+  account_id: z.number().optional(),
+  inbox_id: z.number(),
+  status: z.string(),
+  channel: z.string().optional(),
+  unread_count: z.number().optional(),
+  can_reply: z.boolean().optional(),
+  muted: z.boolean().optional(),
+  created_at: z.number().optional(),
+  last_activity_at: z.number().optional(),
+  meta: z
+    .object({
+      assignee: z
+        .object({
+          id: z.number(),
+          name: z.string(),
+          email: z.string().optional(),
+          avatar_url: z.string().optional(),
+        })
+        .optional(),
+      sender: z
+        .object({
+          id: z.number(),
+          name: z.string(),
+          email: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+})
 
-export type ChatwootAttachment = {
-  id: number
-  message_id: number
-  file_type: string
-  data_url: string
-  thumb_url?: string
-}
+export const chatwootAttachmentSchema = z.object({
+  id: z.number(),
+  message_id: z.number(),
+  file_type: z.string(),
+  data_url: z.string(),
+  thumb_url: z.string().optional(),
+})
 
-export type ChatwootWebhookPayload = {
-  event: ChatwootEventType
-  id?: number
-  status?: string
-  content?: string
-  created_at?: string
-  private?: boolean
-  message_type?: string
-  sender?: ChatwootSender
-  conversation?: ChatwootConversation
-  attachments?: ChatwootAttachment[]
-}
+export const chatwootWebhookPayloadSchema = z.object({
+  event: chatwootEventTypeSchema,
+  id: z.number().optional(),
+  status: z.string().optional(),
+  content: z.string().optional(),
+  created_at: z.string().optional(),
+  private: z.boolean().optional(),
+  message_type: z.string().optional(),
+  sender: chatwootSenderSchema.optional(),
+  conversation: chatwootConversationSchema.optional(),
+  attachments: z.array(chatwootAttachmentSchema).optional(),
+})
 
-export type ChatwootProfile = {
-  id: number
-  name: string
-  email: string
-  accounts: Array<{
-    id: number
-    name: string
-    role: string
-  }>
-}
+export const chatwootProfileSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
+  accounts: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      role: z.string(),
+    })
+  ),
+})
 
-export type ChatwootMessageResponse = {
-  id: number
-  content: string
-  message_type: number
-  conversation_id: number
-  created_at: number
-}
+export const chatwootMessageResponseSchema = z.object({
+  id: z.number(),
+  content: z.string().nullable().optional(),
+  message_type: z.number(),
+  conversation_id: z.number(),
+  created_at: z.number(),
+})
 
-export type ChatwootContact = {
-  id: number
-  name: string
-  email: string
-  phone_number?: string
-  avatar_url?: string
-  created_at: string
-}
+export const chatwootContactSchema = z.object({
+  id: z.number(),
+  name: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  phone_number: z.string().nullable().optional(),
+  avatar_url: z.string().nullable().optional(),
+  created_at: z.string().nullable().optional(),
+})
 
-export type ChatwootContactSearchResponse = {
-  payload: ChatwootContact[]
-}
+export const chatwootContactSearchResponseSchema = z.object({
+  payload: z.array(chatwootContactSchema),
+})
 
-export type ChatwootContactCreateResponse = {
-  payload: {
-    contact: ChatwootContact
-  }
-}
+export const chatwootContactCreateResponseSchema = z.object({
+  payload: z.object({
+    contact: chatwootContactSchema,
+  }),
+})
 
-export type ChatwootConversationResponse = {
-  id: number
-  inbox_id: number
-  status: string
-  contact_last_seen_at?: string
-  created_at: number
-}
+export const chatwootConversationResponseSchema = z.object({
+  id: z.number(),
+  inbox_id: z.number(),
+  status: z.string(),
+  contact_last_seen_at: z.string().nullable().optional(),
+  created_at: z.number(),
+})
 
-export type ChatwootStatusToggleResponse = {
-  success: boolean
-  current_status: string
-  conversation_id: number
-}
+export const chatwootStatusToggleResponseSchema = z.object({
+  success: z.boolean(),
+  current_status: z.string(),
+  conversation_id: z.number(),
+})
+
+export const chatwootContactConversationsResponseSchema = z.object({
+  payload: z.array(chatwootConversationSchema),
+})
+
+export type ChatwootEventType = z.infer<typeof chatwootEventTypeSchema>
+export type ChatwootSender = z.infer<typeof chatwootSenderSchema>
+export type ChatwootAgent = z.infer<typeof chatwootAgentSchema>
+export type ChatwootConversation = z.infer<typeof chatwootConversationSchema>
+export type ChatwootAttachment = z.infer<typeof chatwootAttachmentSchema>
+export type ChatwootWebhookPayload = z.infer<typeof chatwootWebhookPayloadSchema>
+export type ChatwootProfile = z.infer<typeof chatwootProfileSchema>
+export type ChatwootMessageResponse = z.infer<typeof chatwootMessageResponseSchema>
+export type ChatwootContact = z.infer<typeof chatwootContactSchema>
+export type ChatwootContactSearchResponse = z.infer<typeof chatwootContactSearchResponseSchema>
+export type ChatwootContactCreateResponse = z.infer<typeof chatwootContactCreateResponseSchema>
+export type ChatwootConversationResponse = z.infer<typeof chatwootConversationResponseSchema>
+export type ChatwootStatusToggleResponse = z.infer<typeof chatwootStatusToggleResponseSchema>

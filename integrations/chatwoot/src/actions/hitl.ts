@@ -9,12 +9,13 @@ import {
   assignConversation,
   sendMessage,
   getActiveConversation,
+  getApiAccessToken,
 } from '../client'
 
 export const getAccountId = async (client: bp.Client, ctx: bp.Context) => {
   const { state } = await client.getState({
     type: 'integration',
-    name: 'integration',
+    name: 'registerChatwootAccount',
     id: ctx.integrationId,
   })
   return state.payload.accountId
@@ -27,87 +28,103 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
     throw new RuntimeError('Email is required for HITL')
   }
 
-  const accountId = await getAccountId(client, ctx)
+  try {
+    const accountId = await getAccountId(client, ctx)
 
-  const { user: botpressUser } = await client.getOrCreateUser({
-    tags: { email },
-  })
+    const { user: botpressUser } = await client.getOrCreateUser({
+      tags: { email },
+    })
 
-  let chatwootContactId: string
-  const searchResult = await searchContactByEmail(ctx, accountId, email)
+    let chatwootContactId: string
+    const searchResult = await searchContactByEmail(getApiAccessToken(ctx), accountId, email)
 
-  const existingContact = searchResult.payload?.[0]
-  if (existingContact) {
-    chatwootContactId = existingContact.id.toString()
-    logger.forBot().info(`Found Chatwoot contact: ${chatwootContactId}`)
-  } else {
-    const newContact = await createContact(ctx, accountId, email)
-    chatwootContactId = newContact.payload.contact.id.toString()
-    logger.forBot().info(`Created Chatwoot contact: ${chatwootContactId}`)
+    const existingContact = searchResult.payload?.[0]
+    if (existingContact) {
+      chatwootContactId = existingContact.id.toString()
+      logger.forBot().info(`Found Chatwoot contact: ${chatwootContactId}`)
+    } else {
+      const newContact = await createContact(getApiAccessToken(ctx), accountId, email, ctx.configuration.inboxId)
+      chatwootContactId = newContact.payload.contact.id.toString()
+      logger.forBot().info(`Created Chatwoot contact: ${chatwootContactId}`)
+    }
+
+    await client.setState({
+      id: botpressUser.id,
+      type: 'user',
+      name: 'userInfo',
+      payload: { email, chatwootContactId },
+    })
+
+    return { userId: botpressUser.id }
+  } catch (error) {
+    logger.forBot().error(`createUser failed: ${error}`)
+    throw new RuntimeError(`Failed to create user: ${error instanceof Error ? error.message : String(error)}`)
   }
-
-  await client.setState({
-    id: botpressUser.id,
-    type: 'user',
-    name: 'userInfo',
-    payload: { email, chatwootContactId },
-  })
-
-  return { userId: botpressUser.id }
 }
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, input, logger }) => {
   const { userId, title, description = 'HITL started' } = input
 
-  const userState = await client.getState({ id: userId, name: 'userInfo', type: 'user' })
-
-  if (!userState?.state?.payload?.chatwootContactId) {
-    throw new RuntimeError('Call createUser first')
-  }
-
-  const { chatwootContactId } = userState.state.payload
-  const accountId = await getAccountId(client, ctx)
-
-  const activeConversation = await getActiveConversation(ctx, accountId, chatwootContactId)
-
-  let chatwootConvId: string
-
-  if (activeConversation) {
-    chatwootConvId = activeConversation.id.toString()
-    logger.forBot().info(`Reusing existing conversation: ${chatwootConvId}`)
-  } else {
-    const chatwootConv = await createConversation(ctx, accountId, chatwootContactId)
-    chatwootConvId = chatwootConv.id.toString()
-    logger.forBot().info(`Created new conversation: ${chatwootConvId}`)
-  }
-
-  if (description) {
-    await sendMessage(ctx, accountId, chatwootConvId, description)
-  }
-
   try {
-    const previousAgentId = await getPreviousAgentId(ctx, accountId, chatwootContactId)
-    if (previousAgentId) {
-      await assignConversation(ctx, accountId, chatwootConvId, previousAgentId.toString())
-      logger.forBot().info(`Assigned to previous agent: ${previousAgentId}`)
+    const apiAccessToken = getApiAccessToken(ctx)
+
+    const userState = await client.getState({ id: userId, name: 'userInfo', type: 'user' })
+
+    if (!userState?.state?.payload?.chatwootContactId) {
+      throw new RuntimeError('Call createUser first')
     }
+
+    const { chatwootContactId } = userState.state.payload
+    const accountId = await getAccountId(client, ctx)
+
+    const activeConversation = await getActiveConversation(apiAccessToken, accountId, chatwootContactId)
+
+    let chatwootConvId: string
+
+    if (activeConversation) {
+      chatwootConvId = activeConversation.id.toString()
+      logger.forBot().info(`Reusing existing conversation: ${chatwootConvId}`)
+    } else {
+      const chatwootConv = await createConversation(
+        apiAccessToken,
+        accountId,
+        chatwootContactId,
+        ctx.configuration.inboxId
+      )
+      chatwootConvId = chatwootConv.id.toString()
+      logger.forBot().info(`Created new conversation: ${chatwootConvId}`)
+    }
+
+    if (description) {
+      await sendMessage(apiAccessToken, accountId, chatwootConvId, description, 'incoming')
+    }
+
+    try {
+      const previousAgentId = await getPreviousAgentId(apiAccessToken, accountId, chatwootContactId)
+      if (previousAgentId) {
+        await assignConversation(apiAccessToken, accountId, chatwootConvId, previousAgentId.toString())
+        logger.forBot().info(`Assigned to previous agent: ${previousAgentId}`)
+      }
+    } catch (error) {
+      logger.forBot().warn(`Failed to assign to previous agent: ${error}`)
+    }
+
+    const { conversation } = await client.getOrCreateConversation({
+      channel: 'hitl',
+      tags: { id: chatwootConvId, bpUserId: userId },
+    })
+
+    await client.createEvent({
+      type: 'hitlStarted',
+      conversationId: conversation.id,
+      payload: { conversationId: conversation.id, userId, title: title ?? 'HITL', description },
+    })
+
+    logger.forBot().info(`HITL started: ${conversation.id} → Chatwoot ${chatwootConvId}`)
+    return { conversationId: conversation.id }
   } catch (error) {
-    logger.forBot().warn(`Failed to assign to previous agent: ${error}`)
+    throw new RuntimeError(`Failed to start HITL: ${error instanceof Error ? error.message : String(error)}`)
   }
-
-  const { conversation } = await client.getOrCreateConversation({
-    channel: 'hitl',
-    tags: { id: chatwootConvId, bpUserId: userId },
-  })
-
-  await client.createEvent({
-    type: 'hitlStarted',
-    conversationId: conversation.id,
-    payload: { conversationId: conversation.id, userId, title: title ?? 'HITL', description },
-  })
-
-  logger.forBot().info(`HITL started: ${conversation.id} → Chatwoot ${chatwootConvId}`)
-  return { conversationId: conversation.id }
 }
 
 export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx, client, input }) => {
@@ -122,7 +139,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
     }
 
     const accountId = await getAccountId(client, ctx)
-    await resolveConversation(ctx, accountId, chatwootConvId)
+    await resolveConversation(getApiAccessToken(ctx), accountId, chatwootConvId)
 
     await client.createEvent({
       type: 'hitlStopped',
