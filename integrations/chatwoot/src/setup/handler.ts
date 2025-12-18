@@ -11,7 +11,11 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, client }) =
 
   if (payload.event !== 'message_created') return
 
-  if (payload.message_type === 'outgoing') {
+  // message_type: 0/"incoming" or 1/"outgoing" - string for API calls, number for webhooks
+  const isOutgoing = payload.message_type === 1 || payload.message_type === 'outgoing'
+  const isIncoming = payload.message_type === 0 || payload.message_type === 'incoming'
+
+  if (isOutgoing) {
     const chatwootConvId = payload.conversation?.id?.toString()
     if (!chatwootConvId) return
 
@@ -28,7 +32,7 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, client }) =
     return
   }
 
-  if (payload.message_type === 'incoming') {
+  if (isIncoming) {
     await handleMessagingChannelMessage(payload, client)
     return
   }
@@ -105,6 +109,8 @@ async function createBotpressMessages(
   if (payload.attachments?.length) {
     for (const attachment of payload.attachments) {
       const baseTags = { id: payload.id?.toString() || '', conversationId: chatwootConvId }
+      const attachmentUrl = attachment.data_url || attachment.file_url
+      if (!attachmentUrl) continue
 
       switch (attachment.file_type) {
         case 'image':
@@ -112,7 +118,7 @@ async function createBotpressMessages(
             conversationId,
             userId,
             type: 'image',
-            payload: { imageUrl: attachment.data_url },
+            payload: { imageUrl: attachmentUrl },
             tags: baseTags,
           })
           break
@@ -121,7 +127,7 @@ async function createBotpressMessages(
             conversationId,
             userId,
             type: 'video',
-            payload: { videoUrl: attachment.data_url },
+            payload: { videoUrl: attachmentUrl },
             tags: baseTags,
           })
           break
@@ -130,7 +136,7 @@ async function createBotpressMessages(
             conversationId,
             userId,
             type: 'file',
-            payload: { fileUrl: attachment.data_url, title: 'File' },
+            payload: { fileUrl: attachmentUrl, title: attachment.filename || 'File' },
             tags: baseTags,
           })
           break

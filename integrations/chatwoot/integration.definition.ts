@@ -5,7 +5,7 @@ export default new IntegrationDefinition({
   name: 'plus/chatwoot',
   title: 'Chatwoot',
   description: 'Connect your Botpress bot to Chatwoot with HITL support',
-  version: '1.0.1',
+  version: '1.0.2',
   readme: 'hub.md',
   icon: 'icon.svg',
 
