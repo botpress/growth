@@ -2,6 +2,8 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+const SKIP_INTEGRATIONS = ['jira'];
+
 const integrationsDir = path.join(__dirname, '..', 'integrations');
 if (!fs.existsSync(integrationsDir)) {
   console.error('No integrations directory found');
@@ -25,6 +27,11 @@ const dirs = fs.readdirSync(integrationsDir).filter((d) => {
 });
 
 for (const dir of dirs) {
+  if (SKIP_INTEGRATIONS.includes(dir)) {
+    console.log(`\n==> Skipping ${dir} (in SKIP_INTEGRATIONS list)`);
+    continue;
+  }
+
   const cwd = path.join(integrationsDir, dir);
   
   // Skip pnpm install for directories in the workspace
