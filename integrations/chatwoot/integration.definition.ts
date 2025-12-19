@@ -5,7 +5,7 @@ export default new IntegrationDefinition({
   name: 'plus/chatwoot',
   title: 'Chatwoot',
   description: 'Connect your Botpress bot to Chatwoot with HITL support',
-  version: '1.0.2',
+  version: '1.0.3',
   readme: 'hub.md',
   icon: 'icon.svg',
 
@@ -31,12 +31,6 @@ export default new IntegrationDefinition({
   },
 
   states: {
-    registerChatwootAccount: {
-      type: 'integration',
-      schema: z.object({
-        accountId: z.string(),
-      }),
-    },
     userInfo: {
       type: 'user',
       schema: z.object({
@@ -68,11 +62,13 @@ export default new IntegrationDefinition({
         file: {
           schema: z.object({
             fileUrl: z.string(),
+            title: z.string().optional(),
           }),
         },
         video: {
           schema: z.object({
             videoUrl: z.string(),
+            title: z.string().optional(),
           }),
         },
         choice: {
@@ -101,8 +97,8 @@ export default new IntegrationDefinition({
       messages: {
         text: { schema: z.object({ text: z.string() }) },
         image: { schema: z.object({ imageUrl: z.string() }) },
-        file: { schema: z.object({ fileUrl: z.string() }) },
-        video: { schema: z.object({ videoUrl: z.string() }) },
+        file: { schema: z.object({ fileUrl: z.string(), title: z.string().optional() }) },
+        video: { schema: z.object({ videoUrl: z.string(), title: z.string().optional() }) },
         choice: {
           schema: z.object({
             text: z.string(),

@@ -12,13 +12,8 @@ import {
   getApiAccessToken,
 } from '../client'
 
-export const getAccountId = async (client: bp.Client, ctx: bp.Context) => {
-  const { state } = await client.getState({
-    type: 'integration',
-    name: 'registerChatwootAccount',
-    id: ctx.integrationId,
-  })
-  return state.payload.accountId
+export const getAccountId = async (_client: bp.Client, ctx: bp.Context) => {
+  return ctx.configuration.accountId
 }
 
 export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ ctx, client, input, logger }) => {

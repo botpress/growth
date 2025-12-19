@@ -1,11 +1,11 @@
 import * as bp from '.botpress'
 import { ChatwootWebhookPayload, chatwootWebhookPayloadSchema } from '../misc/types'
 
-export const handler: bp.IntegrationProps['handler'] = async ({ req, client }) => {
+export const handler: bp.IntegrationProps['handler'] = async ({ req, client, logger }) => {
   const payload = chatwootWebhookPayloadSchema.parse(JSON.parse(req.body || '{}'))
 
   if (payload.event === 'conversation_status_changed' && payload.status === 'resolved' && payload.id) {
-    await handleConversationResolvedById(payload.id.toString(), client)
+    await handleConversationResolvedById(payload.id.toString(), client, logger)
     return
   }
 
@@ -19,39 +19,34 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, client }) =
     const chatwootConvId = payload.conversation?.id?.toString()
     if (!chatwootConvId) return
 
-    const { conversations } = await client.listConversations({
-      tags: { id: chatwootConvId },
-    })
-
-    const hitlConv = conversations.find((c) => c.tags?.bpUserId)
-    if (!hitlConv) {
-      return
-    }
+    const hitlConv = await findHitlConversation(client, chatwootConvId, logger)
+    if (!hitlConv) return
 
     await handleHitlMessage(payload, client, hitlConv)
-    return
-  }
-
-  if (isIncoming) {
+  } else if (isIncoming) {
     await handleMessagingChannelMessage(payload, client)
-    return
   }
 }
 
-async function handleConversationResolvedById(chatwootConvId: string, client: bp.Client) {
-  const { conversations } = await client.listConversations({
-    tags: { id: chatwootConvId },
-  })
-
-  const hitlConv = conversations.find((c) => c.tags?.bpUserId)
-  if (!hitlConv) {
-    return
-  }
+async function handleConversationResolvedById(chatwootConvId: string, client: bp.Client, logger: bp.Logger) {
+  const hitlConv = await findHitlConversation(client, chatwootConvId, logger)
+  if (!hitlConv) return
 
   await client.createEvent({
     type: 'hitlStopped',
     payload: { conversationId: hitlConv.id },
   })
+}
+
+async function findHitlConversation(client: bp.Client, chatwootConvId: string, logger: bp.Logger) {
+  const { conversations } = await client.listConversations({
+    tags: { id: chatwootConvId },
+  })
+  const hitlConv = conversations.find((c) => c.tags?.bpUserId)
+  if (!hitlConv) {
+    logger.forBot().error(`No hitl conversation found for chatwoot conversation ${chatwootConvId}`)
+  }
+  return hitlConv
 }
 
 async function handleHitlMessage(
