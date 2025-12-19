@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const SKIP_INTEGRATIONS = ['jira'];
+const SKIP_INTEGRATIONS = [];
 
 const integrationsDir = path.join(__dirname, '..', 'integrations');
 if (!fs.existsSync(integrationsDir)) {
