@@ -12,10 +12,6 @@ import {
   getApiAccessToken,
 } from '../client'
 
-export const getAccountId = async (_client: bp.Client, ctx: bp.Context) => {
-  return ctx.configuration.accountId
-}
-
 export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ ctx, client, input, logger }) => {
   const { email } = input
 
@@ -24,7 +20,7 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
   }
 
   try {
-    const accountId = await getAccountId(client, ctx)
+    const accountId = ctx.configuration.accountId
 
     const { user: botpressUser } = await client.getOrCreateUser({
       tags: { email },
@@ -70,7 +66,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     }
 
     const { chatwootContactId } = userState.state.payload
-    const accountId = await getAccountId(client, ctx)
+    const accountId = ctx.configuration.accountId
 
     const activeConversation = await getActiveConversation(apiAccessToken, accountId, chatwootContactId)
 
@@ -90,9 +86,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       logger.forBot().info(`Created new conversation: ${chatwootConvId}`)
     }
 
-    if (description) {
-      await sendMessage(apiAccessToken, accountId, chatwootConvId, description, 'incoming')
-    }
+    await sendMessage(apiAccessToken, accountId, chatwootConvId, description, 'incoming')
 
     try {
       const previousAgentId = await getPreviousAgentId(apiAccessToken, accountId, chatwootContactId)
@@ -133,7 +127,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
       return { success: false, message: 'No Chatwoot conversation ID' }
     }
 
-    const accountId = await getAccountId(client, ctx)
+    const accountId = ctx.configuration.accountId
     await resolveConversation(getApiAccessToken(ctx), accountId, chatwootConvId)
 
     await client.createEvent({
