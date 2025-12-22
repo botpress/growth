@@ -2,10 +2,10 @@ import { z, IntegrationDefinition } from '@botpress/sdk'
 import hitl from './bp_modules/hitl'
 
 export default new IntegrationDefinition({
-  name: 'chatwoot',
+  name: 'plus/chatwoot',
   title: 'Chatwoot',
   description: 'Connect your Botpress bot to Chatwoot with HITL support',
-  version: '1.0.3',
+  version: '1.0.4',
   readme: 'hub.md',
   icon: 'icon.svg',
 
