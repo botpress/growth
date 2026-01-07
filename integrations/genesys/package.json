@@ -1,0 +1,27 @@
+{
+  "name": "@bp-integrations/genesys-hitl",
+  "version": "0.1.0",
+  "scripts": {
+    "check:type": "tsc --noEmit",
+    "version": "bp --version",
+    "login": "bp login",
+    "gen": "bp gen",
+    "deploy": "bp deploy"
+  },
+  "private": true,
+  "dependencies": {
+    "@botpress/client": "1.26.0",
+    "@botpress/sdk": "4.17.1",
+    "axios": "^1.8.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@botpress/cli": "^4.17.3",
+    "@types/node": "^22.16.4",
+    "typescript": "^5.6.3",
+    "ts-node": "^10.9.2"
+  },
+  "bpDependencies": {
+    "hitl": "../../interfaces/hitl"
+  }
+}
