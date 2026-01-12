@@ -41,9 +41,12 @@ When setting up the integration in Botpress, provide the following information:
 
 - **Client ID**: Your Genesys OAuth2 Client ID
 - **Client Secret**: Your Genesys OAuth2 Client Secret
-- **Region Domain**: Your Genesys region domain (e.g., `mypurecloud.com`, `mypurecloud.ie`, `mypurecloud.com.au`)
+- **Region Domain**: Your Genesys region domain - use the **full domain** (e.g., `mypurecloud.com`, `mec1.pure.cloud`, `mypurecloud.ie`)
 
-**Note**: The Integration ID is pre-configured in the integration code and does not need to be provided during setup.
+**Important Notes:**
+
+- Use the full domain name, not just the region code (e.g., use `mec1.pure.cloud`, not `mec1`)
+- The Integration ID is pre-configured in the integration code and does not need to be provided during setup
 
 ## Usage
 
@@ -140,19 +143,31 @@ The following message types are not yet implemented but can be added:
 
 Common Genesys Cloud region domains:
 
-- Americas (US East): `mypurecloud.com`
-- Americas (US East 2): `use2.us-gov-pure.cloud`
-- Americas (US West): `usw2.pure.cloud`
-- Americas (Canada): `cac1.pure.cloud`
-- Americas (São Paulo): `sae1.pure.cloud`
-- EMEA (Dublin): `mypurecloud.ie`
-- EMEA (London): `euw2.pure.cloud`
-- EMEA (Frankfurt): `mypurecloud.de`
-- EMEA (Zurich): `euc1.pure.cloud`
-- Asia Pacific (Mumbai): `aps1.pure.cloud`
-- Asia Pacific (Seoul): `apne2.pure.cloud`
-- Asia Pacific (Sydney): `mypurecloud.com.au`
-- Asia Pacific (Tokyo): `mypurecloud.jp`
+**Americas:**
+
+- US East: `mypurecloud.com`
+- US East 2 (Government): `use2.us-gov-pure.cloud`
+- US West: `usw2.pure.cloud`
+- Canada: `cac1.pure.cloud`
+- São Paulo: `sae1.pure.cloud`
+
+**EMEA:**
+
+- Dublin: `mypurecloud.ie`
+- London: `euw2.pure.cloud`
+- Frankfurt: `mypurecloud.de`
+- Zurich: `euc1.pure.cloud`
+- Middle East (UAE): `mec1.pure.cloud`
+
+**Asia Pacific:**
+
+- Mumbai: `aps1.pure.cloud`
+- Seoul: `apne2.pure.cloud`
+- Sydney: `mypurecloud.com.au`
+- Tokyo: `mypurecloud.jp`
+- Osaka: `apne3.pure.cloud`
+
+> **Note:** Use the full domain (e.g., `mec1.pure.cloud`), not just the region code (e.g., `mec1`).
 
 ## Support
 

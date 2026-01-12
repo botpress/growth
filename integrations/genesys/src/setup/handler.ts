@@ -41,24 +41,27 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, cli
       `Handler: Processing Genesys message from user: ${externalUserId}, nickname: ${nickname || 'N/A'}, text: "${text}"`
     )
 
-  // Get or create the HITL conversation
-  const { conversation } = await client.getOrCreateConversation({
-    channel: 'hitl',
-    tags: {
-      id: externalUserId,
-    },
-  })
-
-  logger.forBot().info(`Got/Created HITL conversation with ID: ${conversation.id}`)
-
-  // Get or create the user
+  // Get or create the user first
   const { user } = await client.getOrCreateUser({
     tags: {
       id: externalUserId,
     },
   })
 
-  // Update user state with latest info
+  logger.forBot().info(`Got/Created user with ID: ${user.id}`)
+
+  // Get or create the HITL conversation with both id and userId tags
+  const { conversation } = await client.getOrCreateConversation({
+    channel: 'hitl',
+    tags: {
+      id: externalUserId,
+      userId: user.id,
+    },
+  })
+
+  logger.forBot().info(`Got/Created HITL conversation with ID: ${conversation.id}`)
+
+  // Update user state and tags with latest info
   await client.setState({
     id: user.id,
     type: 'user',
@@ -69,7 +72,14 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, cli
     },
   })
 
-  logger.forBot().info(`Got/Created user with ID: ${user.id}`)
+  // Update user tags for better querying
+  await client.updateUser({
+    ...user,
+    tags: {
+      ...user.tags,
+      genesysConversationId: externalUserId,
+    },
+  })
 
   // Create the message in Botpress
   await client.createMessage({

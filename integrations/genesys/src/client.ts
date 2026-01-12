@@ -88,7 +88,7 @@ export class GenesysApi {
         data: payload,
       })
 
-      logger.forBot().info('Successfully sent message to Genesys')
+      logger.forBot().info('Successfully sent message to Genesys', response.data)
       return response.data
     } catch (error) {
       if (axios.isAxiosError(error)) {

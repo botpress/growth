@@ -1,6 +1,6 @@
 import { IntegrationDefinition, z } from '@botpress/sdk'
 import hitl from './bp_modules/hitl'
-import { events, configuration, channels as baseChannels, states, user } from './src/definitions'
+import { events, configuration, channels, states, user } from './src/definitions'
 
 export default new IntegrationDefinition({
   name: 'genesys-hitl',
@@ -11,11 +11,18 @@ export default new IntegrationDefinition({
   icon: 'icon.svg',
   configuration,
   states,
-  channels: baseChannels,
+  channels,
   events,
   user,
-}).extend(hitl, () => ({
-  entities: {},
+  entities: {
+    ticket: {
+      schema: z.object({}),
+    },
+  },
+}).extend(hitl, (self) => ({
+  entities: {
+    hitlSession: self.entities.ticket,
+  },
   channels: {
     hitl: {
       title: 'Genesys HITL',
@@ -25,6 +32,10 @@ export default new IntegrationDefinition({
           id: {
             title: 'Genesys Conversation ID',
             description: 'The external user ID used in Genesys Open Message.',
+          },
+          userId: {
+            title: 'User ID',
+            description: 'The ID of the user in Botpress',
           },
         },
       },

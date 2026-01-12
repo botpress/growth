@@ -29,5 +29,9 @@ export const user = {
       title: 'Genesys External User ID',
       description: "The user's external ID used in Genesys Open Message.",
     },
+    genesysConversationId: {
+      title: 'Genesys Conversation ID',
+      description: 'The Genesys conversation ID associated with this user.',
+    },
   },
 } satisfies IntegrationDefinitionProps['user']

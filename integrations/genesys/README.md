@@ -79,8 +79,10 @@ pnpm run deploy
 | ------------- | ---------------------------- | ----------------- | --------------------- |
 | clientId      | Genesys OAuth2 Client ID     | `abc123...`       | User Configuration    |
 | clientSecret  | Genesys OAuth2 Client Secret | `xyz789...`       | User Configuration    |
-| regionDomain  | Genesys region domain        | `mypurecloud.com` | User Configuration    |
+| regionDomain  | Genesys region domain (full) | `mec1.pure.cloud` | User Configuration    |
 | integrationId | Open Message Integration ID  | `uuid-format-id`  | `src/constants.ts` ✨ |
+
+**Note:** For `regionDomain`, use the full domain (e.g., `mec1.pure.cloud`), not just the region code (e.g., `mec1`).
 
 ## Testing
 

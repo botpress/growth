@@ -52,15 +52,28 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     await genesysClient.sendMessage(uniqueHitlId, nickname, initialMessage)
     logger.forBot().info('Successfully created Genesys conversation via API.')
 
-    // Create or get the Botpress HITL conversation
+    // Get the user to link in conversation tags
+    const { user: hitlUser } = await client.getUser({ id: userId })
+
+    // Create or get the Botpress HITL conversation with both id and userId tags
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
       tags: {
         id: uniqueHitlId,
+        userId: hitlUser.id,
       },
     })
 
     logger.forBot().info(`Got/Created Botpress HITL channel conversation with ID: ${conversation.id}`)
+
+    // Update user tags with Genesys conversation ID for better querying
+    await client.updateUser({
+      ...hitlUser,
+      tags: {
+        ...hitlUser.tags,
+        genesysConversationId: uniqueHitlId,
+      },
+    })
 
     // Create the hitlAssigned event
     await client.createEvent({
