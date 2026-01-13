@@ -10,6 +10,8 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
   try {
     const { userId, title, description = 'No description available' } = input
 
+    logger.forBot().info(`HITL - Input - Title: "${title}", Description: "${description}", UserId: "${userId}"`)
+
     const { user } = await client.getUser({ id: userId })
 
     const userInfoState = await client.getState({
@@ -36,7 +38,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       throw new RuntimeError('No Intercom contact ID found in user state')
     }
 
-    const createdConversation = await intercomClient.createConversation(intercomContactId, email, description)
+    const createdConversation = await intercomClient.createConversation(intercomContactId, email, description, title)
 
     if (!createdConversation.success || !createdConversation.data?.conversation_id) {
       logger.forBot().error(`Failed to create Intercom conversation. Response: ${JSON.stringify(createdConversation)}`)
