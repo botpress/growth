@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@botpress/client':
-        specifier: 1.26.0
-        version: 1.26.0
+        specifier: 1.27.1
+        version: 1.27.1
       '@botpress/sdk':
-        specifier: 4.17.1
-        version: 4.17.1(@bpinternal/zui@0.13.6)(esbuild@0.25.12)
+        specifier: 4.21.0
+        version: 4.21.0(@bpinternal/zui@0.13.6)(esbuild@0.25.12)
       axios:
         specifier: ^1.8.1
         version: 1.13.2
@@ -22,7 +22,7 @@ importers:
         version: 3.25.76
     devDependencies:
       '@botpress/cli':
-        specifier: ^4.17.3
+        specifier: 4.27.4
         version: 4.27.4(@bpinternal/zui@0.13.6)
       '@types/node':
         specifier: ^22.16.4
@@ -49,23 +49,13 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  '@botpress/client@1.26.0':
-    resolution: {integrity: sha512-XJmD1K8B6aPx4IR7CIRuS+LhVWIi4dQA+GfWbSCrGJIGRZKoTaNlZwZ5vdUZvC65NIH1vRB2FzcXwgNeQ/douw==}
+  '@botpress/client@1.27.1':
+    resolution: {integrity: sha512-c6EDjUphVehm6WIZse4qTHaYL0oudObrdGnRg6r2040lNIF+nFl7e24EvbO5fB4pxp1/ApoQMPJaPA5nJVOVLg==}
     engines: {node: '>=18.0.0'}
 
   '@botpress/client@1.27.2':
     resolution: {integrity: sha512-fTP42EDRnhRZDdRFAUQlMUDQ0CxMYchnhDsT/4Luubz6n8gKea9eBz5t0UngCzD98Eat5D+UbnfkAR89IQDWpA==}
     engines: {node: '>=18.0.0'}
-
-  '@botpress/sdk@4.17.1':
-    resolution: {integrity: sha512-V5XKWrzXcTP7sKtGFLKOWnvBHgV2823vHFVcB7QnaKerRtQjOw406ZhJkKBJarcTNCLuq1k7EPo8q8e/2B7d+A==}
-    engines: {node: '>=18.0.0'}
-    peerDependencies:
-      '@bpinternal/zui': 1.2.1
-      esbuild: ^0.16.12
-    peerDependenciesMeta:
-      esbuild:
-        optional: true
 
   '@botpress/sdk@4.21.0':
     resolution: {integrity: sha512-Jj6FgVFI6uE5vrgf6FcZhbDXRlQkgRti54Zodm+V49vQx/Uym3Ro1ifZmcfcrNWfp8HcJ840yEcKnLJK5f3GtQ==}
@@ -1578,7 +1568,7 @@ snapshots:
       - encoding
       - utf-8-validate
 
-  '@botpress/client@1.26.0':
+  '@botpress/client@1.27.1':
     dependencies:
       axios: 1.13.2
       axios-retry: 4.5.0(axios@1.13.2)
@@ -1593,16 +1583,6 @@ snapshots:
       axios-retry: 4.5.0(axios@1.13.2)
       browser-or-node: 2.1.1
       qs: 6.14.1
-    transitivePeerDependencies:
-      - debug
-
-  '@botpress/sdk@4.17.1(@bpinternal/zui@0.13.6)(esbuild@0.25.12)':
-    dependencies:
-      '@botpress/client': 1.26.0
-      '@bpinternal/zui': 0.13.6
-      browser-or-node: 2.1.1
-    optionalDependencies:
-      esbuild: 0.25.12
     transitivePeerDependencies:
       - debug
 

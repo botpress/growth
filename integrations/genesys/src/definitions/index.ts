@@ -1,6 +1,5 @@
 import { z, IntegrationDefinitionProps } from '@botpress/sdk'
 import { GenesysConfigurationSchema } from './schemas'
-import { channels } from './channels'
 
 export const configuration = {
   schema: GenesysConfigurationSchema,
@@ -15,9 +14,6 @@ export const states = {
     }),
   },
 } satisfies IntegrationDefinitionProps['states']
-
-export { events } from './events'
-export { channels }
 
 /**
  * Defines the tags that can be associated with a Botpress user.
@@ -35,3 +31,7 @@ export const user = {
     },
   },
 } satisfies IntegrationDefinitionProps['user']
+
+export { events } from './events'
+export { channels } from './channels'
+export { entities } from './entities'

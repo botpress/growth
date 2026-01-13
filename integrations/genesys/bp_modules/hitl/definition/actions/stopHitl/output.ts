@@ -4,5 +4,5 @@
 
 import { z } from "@botpress/sdk";
 export const output = {
-  schema: z.object({}),
+  schema: z.object({}).catchall(z.never()),
 };

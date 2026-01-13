@@ -4,13 +4,28 @@
 
 import { z } from "@botpress/sdk";
 export const input = {
-  schema: z.object({
-    name: /** Display name of the end user */ z.string(),
-    pictureUrl: /** URL of the end user's avatar */ z.optional(
-      /** URL of the end user's avatar */ z.string(),
-    ),
-    email: /** Email address of the end user */ z.optional(
-      /** Email address of the end user */ z.string(),
-    ),
-  }),
+  schema: z
+    .object({
+      name: z
+        .string()
+        .title("Display name")
+        .describe("Display name of the end user"),
+      pictureUrl: z
+        .optional(
+          z
+            .string()
+            .title("Picture URL")
+            .describe("URL of the end user\'s avatar"),
+        )
+        .describe("URL of the end user\'s avatar"),
+      email: z
+        .optional(
+          z
+            .string()
+            .title("Email address")
+            .describe("Email address of the end user"),
+        )
+        .describe("Email address of the end user"),
+    })
+    .catchall(z.never()),
 };
