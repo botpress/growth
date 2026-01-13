@@ -2,7 +2,6 @@ import axios from 'axios'
 import * as bp from '.botpress'
 import { IntegrationLogger } from '@botpress/sdk'
 import { genesysTokenResponseSchema } from './definitions/genesys-schemas'
-import { GENESYS_INTEGRATION_ID } from './constants'
 
 const logger = new IntegrationLogger()
 
@@ -18,7 +17,7 @@ export class GenesysApi {
     this.clientId = ctx.configuration.clientId
     this.clientSecret = ctx.configuration.clientSecret
     this.regionDomain = ctx.configuration.regionDomain
-    this.integrationId = GENESYS_INTEGRATION_ID
+    this.integrationId = ctx.configuration.integrationId
   }
 
   private async getAccessToken(): Promise<string> {
