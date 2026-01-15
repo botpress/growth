@@ -1,9 +1,9 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/client'
-import { executeOdooMethod, getAuthenticatedOdooClient } from 'src/services/odoo'
+import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
 
 export const createTicket: bp.Integration['actions']['createTicket'] = async ({ ctx, input, logger }) => {
-  const odooClient = await getAuthenticatedOdooClient({ ...ctx.configuration, logger })
+  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   const { name, description, teamId, priority, stageId, customerId } = input
 
   const ticketPayload: Record<string, any> = {
@@ -16,7 +16,8 @@ export const createTicket: bp.Integration['actions']['createTicket'] = async ({ 
   }
 
   const ticketId = (await executeOdooMethod({
-    client: odooClient,
+    odooApiUrl: ctx.configuration.odooApiUrl,
+    cookie,
     model: 'helpdesk.ticket',
     method: 'create',
     args: [ticketPayload],
@@ -37,14 +38,15 @@ export const createTicket: bp.Integration['actions']['createTicket'] = async ({ 
 }
 
 export const fetchTicketById: bp.Integration['actions']['fetchTicketById'] = async ({ ctx, input, logger }) => {
-  const odooClient = await getAuthenticatedOdooClient({ ...ctx.configuration, logger })
+  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   const { id } = input
 
   const filters = [id]
   const fields = ['id', 'name', 'description', 'team_id', 'priority', 'stage_id', 'partner_id']
 
   const rawTicket = (await executeOdooMethod({
-    client: odooClient,
+    odooApiUrl: ctx.configuration.odooApiUrl,
+    cookie,
     model: 'helpdesk.ticket',
     method: 'read',
     args: [filters, fields],
@@ -82,13 +84,14 @@ export const fetchTicketsByCustomerId: bp.Integration['actions']['fetchTicketsBy
   input,
   logger,
 }) => {
-  const odooClient = await getAuthenticatedOdooClient({ ...ctx.configuration, logger })
+  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   const { customerId } = input
   const filters: any[] = [['partner_id', '=', customerId]]
   const fields: string[] = ['id', 'name', 'description', 'team_id', 'priority', 'stage_id']
 
   const rawTickets = await executeOdooMethod({
-    client: odooClient,
+    odooApiUrl: ctx.configuration.odooApiUrl,
+    cookie,
     model: 'helpdesk.ticket',
     method: 'search_read',
     args: [filters, fields],
@@ -120,12 +123,13 @@ export const fetchTicketsByCustomerEmail: bp.Integration['actions']['fetchTicket
   input,
   logger,
 }) => {
-  const odooClient = await getAuthenticatedOdooClient({ ...ctx.configuration, logger })
+  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   const { customerEmail } = input
   const filters: any[] = [['partner_id.email', '=', customerEmail]]
   const fields: string[] = ['id', 'name', 'description', 'team_id', 'priority', 'stage_id']
   const rawTickets = await executeOdooMethod({
-    client: odooClient,
+    odooApiUrl: ctx.configuration.odooApiUrl,
+    cookie,
     model: 'helpdesk.ticket',
     method: 'search_read',
     args: [filters, fields],
@@ -153,7 +157,7 @@ export const fetchTicketsByCustomerEmail: bp.Integration['actions']['fetchTicket
 }
 
 export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({ ctx, input, logger }) => {
-  const odooClient = await getAuthenticatedOdooClient({ ...ctx.configuration, logger })
+  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   const { ticket } = input
 
   const newTicketPayload: Record<string, any> = {
@@ -165,7 +169,8 @@ export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({ 
   }
 
   const success = (await executeOdooMethod({
-    client: odooClient,
+    odooApiUrl: ctx.configuration.odooApiUrl,
+    cookie,
     model: 'helpdesk.ticket',
     method: 'write',
     args: [[ticket.id], newTicketPayload],

@@ -1,6 +1,6 @@
 import * as bp from '.botpress'
 import { z } from '@botpress/sdk'
-import { executeOdooMethod, getAuthenticatedOdooClient } from 'src/services/odoo'
+import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
 import { helpdeskTeamSchema, stageSchema } from 'definitions/schemas'
 
 // Botpress action handlers
@@ -11,13 +11,15 @@ export const getHelpdeskTeams = async ({
   ctx: bp.Context
   logger: bp.Logger
 }): Promise<{ helpdeskTeams: Array<z.infer<typeof helpdeskTeamSchema>> }> => {
-  const odooClient = await getAuthenticatedOdooClient({ ...ctx.configuration, logger })
+  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
+  logger.forBot().info(`Odoo authentication cookie obtained successfully`)
 
   const filters: any[] = [['active', '=', true]]
   const fields: string[] = ['name', 'id']
 
   const rawOdooHelpdeskTeams = await executeOdooMethod({
-    client: odooClient,
+    odooApiUrl: ctx.configuration.odooApiUrl,
+    cookie,
     model: 'helpdesk.team',
     method: 'search_read',
     args: [filters, fields],
@@ -43,7 +45,7 @@ export const getStages = async ({
   input: { teamIds: number[] }
   logger: bp.Logger
 }): Promise<{ stages: Array<z.infer<typeof stageSchema>> }> => {
-  const odooClient = await getAuthenticatedOdooClient({ ...ctx.configuration, logger })
+  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
   const teamIds = input.teamIds
   const filters: any[] = [['active', '=', true]]
@@ -54,7 +56,8 @@ export const getStages = async ({
   const fields: string[] = ['name', 'id', 'team_ids']
 
   const rawOdooStages = await executeOdooMethod({
-    client: odooClient,
+    odooApiUrl: ctx.configuration.odooApiUrl,
+    cookie,
     model: 'helpdesk.stage',
     method: 'search_read',
     args: [filters, fields],
