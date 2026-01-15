@@ -50,7 +50,7 @@ export const getStages = async ({
   const teamIds = input.teamIds
   const filters: any[] = [['active', '=', true]]
   if (teamIds) {
-    filters.push(['team_id', 'in', teamIds])
+    filters.push(['team_ids', 'in', teamIds])
   }
 
   const fields: string[] = ['name', 'id', 'team_ids']

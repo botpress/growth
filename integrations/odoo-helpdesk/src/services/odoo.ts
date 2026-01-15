@@ -10,14 +10,14 @@ const cookieCache = new Map<string, string>()
 const extractCookies = (headers: Record<string, any>): string => {
   // Axios normalizes headers to lowercase
   const setCookieHeaders = headers['set-cookie'] || headers['Set-Cookie']
-  
+
   if (!setCookieHeaders) {
     return ''
   }
 
   // Handle both array and string formats
   const cookies = Array.isArray(setCookieHeaders) ? setCookieHeaders : [setCookieHeaders]
-  
+
   // Extract cookie name=value pairs from Set-Cookie headers
   // Set-Cookie format: "name=value; Path=/; HttpOnly"
   // We only need "name=value"
@@ -125,37 +125,34 @@ export const executeOdooMethod = async ({
       `Executing Odoo method: ${method} on model: ${model} with args: ${JSON.stringify(args)} and kwargs: ${JSON.stringify(kwargs)}`
     )
 
-  const response = await axios.post(
-    `${odooApiUrl}/web/dataset/call_kw`,
-    {
-      jsonrpc: '2.0',
-      method: 'call',
-      params: {
-        model,
-        method,
-        args: args ?? [],
-        kwargs: kwargs ?? {},
-      },
-      id: Math.floor(Date.now() / 1000),
+  const url = `${odooApiUrl}/web/dataset/call_kw`
+  const body = {
+    jsonrpc: '2.0',
+    params: {
+      model,
+      method,
+      args: args ?? [],
+      kwargs: kwargs ?? {},
     },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookie,
-      },
-    }
-  )
+  }
+  const headers = {
+    'Content-Type': 'application/json',
+    Cookie: cookie,
+  }
+  logger.forBot().info(`Odoo method: ${method} on model: ${model} executing with URL: ${url} and body: ${JSON.stringify(body)} and headers: ${JSON.stringify(headers)}`)
+  const response = await axios.post(url, body, { headers })
 
-  logger.forBot().info(`Odoo method: ${method} on model: ${model} executed successfully`)
+  logger.forBot().info(`Odoo Request response data: ${JSON.stringify(response.data)}`)
 
   if (response.data.error) {
+    logger.forBot().error(`Odoo API error: ${JSON.stringify(response.data.error)}`)
     throw new Error(`Odoo API error: ${JSON.stringify(response.data.error)}`)
   }
 
   logger
     .forBot()
     .info(
-      `Odoo method: ${method} on model: ${model} executed successfully with result: ${JSON.stringify(response.data.result)}`
+      `Odoo Request response data result: ${JSON.stringify(response.data.result)}`
     )
 
   return response.data.result
