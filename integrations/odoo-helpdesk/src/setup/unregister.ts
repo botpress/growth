@@ -1,7 +1,6 @@
 import * as bp from '.botpress'
-import { print } from 'src/utils'
 
-export const unregister: bp.IntegrationProps['unregister'] = async (params) => {
-  print(`Unregistering Odoo Helpdesk Integration...`)
-  print(`Params: ${JSON.stringify(params)}`)
+export const unregister: bp.IntegrationProps['unregister'] = async ({ logger }) => {
+  logger.forBot().info(`Unregistering Odoo Helpdesk Integration...`)
+  logger.forBot().info(`Odoo Helpdesk Integration unregistered successfully`)
 }

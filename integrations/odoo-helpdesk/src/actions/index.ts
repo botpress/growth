@@ -1,8 +1,10 @@
 import * as bp from '.botpress'
-import * as tickets from './tickets'
-import * as customers from './customers'
+import * as ticketsActions from './tickets'
+import * as customersActions from './customers'
+import * as helpdeskActions from './helpdesk'
 
 export default {
-  ...tickets,
-  ...customers,
+  ...ticketsActions,
+  ...customersActions,
+  ...helpdeskActions,
 } satisfies bp.IntegrationProps['actions']

@@ -1,9 +1,10 @@
 import { z, IntegrationDefinition } from '@botpress/sdk'
 import { integrationName } from './package.json'
-import { actions } from './definitions/actions'
+import { actions, states } from './definitions'
+// import { states } from './definitions/states'
 
 export default new IntegrationDefinition({
-  version: '0.1.0',
+  version: '0.1.4',
   name: integrationName,
   title: 'Odoo Helpdesk',
   description: 'Connect with Odoo Helpdesk to manage tickets and customers',
@@ -16,16 +17,16 @@ export default new IntegrationDefinition({
       odooDb: z.string().describe('The Odoo database name (Case sensitive).'),
       odooEmail: z.string().describe('The Odoo email address.'),
       odooPassword: z.string().describe('The Odoo password.').secret(),
-      odooTicketStatuses: z.array(z.string()).describe('The Odoo ticket statuses.'),
     }),
   },
   user: {
     tags: {
       id: { title: 'User ID', description: 'The ID of the user' },
       email: { title: 'Email', description: 'The email of the user' },
-      odooUserId: { title: 'Odoo User ID', description: 'The ID of the Odoo user' },
+      odooId: { title: 'Odoo ID', description: 'The ID of the Odoo user' },
       conversationId: { title: 'Conversation ID', description: 'The ID of the conversation' },
     },
   },
   actions,
+  states,
 })

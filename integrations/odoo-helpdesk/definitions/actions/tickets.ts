@@ -1,41 +1,42 @@
 import { z, ActionDefinition } from '@botpress/sdk'
-import { customerSchema, ticketSchema } from 'definitions/schemas'
+import { ticketSchema } from 'definitions/schemas'
 
 export const createTicket: ActionDefinition = {
   title: 'Create Ticket',
   description: 'Create a new ticket',
   input: {
     schema: z.object({
-      subject: z.string().title('Subject').describe('The subject of the ticket'),
+      name: z.string().title('Name').describe('The name of the ticket'),
       description: z.string().title('Description').describe('The description of the ticket'),
-      status: z.string().title('Status').describe('The status of the ticket'),
+      teamId: z.number().title('Team ID').describe('The helpdesk team ID associated with the ticket'),
       priority: z.string().title('Priority').describe('The priority of the ticket'),
-      customer: customerSchema.title('Customer').describe('The customer associated with the ticket'),
+      customerId: z.number().title('Customer ID').describe('The customer ID associated with the ticket'),
+      stageId: z.number().title('Stage ID').describe('The stage ID associated with the ticket').optional(),
     }),
   },
   output: {
     schema: z.object({
-      odooTicket: ticketSchema.title('Odoo Ticket').describe('The created ticket').optional(),
+      ticket: ticketSchema.title('Ticket').describe('The created ticket').optional(),
     }),
   },
 }
 
-export const fetchTicket: ActionDefinition = {
+export const fetchTicketById: ActionDefinition = {
   title: 'Fetch Ticket',
   description: 'Fetch a ticket by id',
   input: {
     schema: z.object({
-      odooTicketId: z.number().title('Odoo Ticket ID').describe('The id of the ticket to fetch'),
+      id: z.number().title('Ticket ID').describe('The id of the ticket to fetch'),
     }),
   },
   output: {
     schema: z.object({
-      odooTicket: ticketSchema.title('Odoo Ticket').describe('The fetched ticket').optional(),
+      ticket: ticketSchema.title('Ticket').describe('The fetched ticket').optional(),
     }),
   },
 }
 
-export const fetchTickets: ActionDefinition = {
+export const fetchTicketsByCustomerId: ActionDefinition = {
   title: 'Fetch Tickets by Customer',
   description: 'Fetch all tickets by customer',
   input: {
@@ -45,7 +46,22 @@ export const fetchTickets: ActionDefinition = {
   },
   output: {
     schema: z.object({
-      odooTickets: z.array(ticketSchema).title('Odoo Tickets').describe('The list of tickets associated with the customer'),
+      tickets: z.array(ticketSchema).title('Tickets').describe('The list of tickets associated with the customer'),
+    }),
+  },
+}
+
+export const fetchTicketsByCustomerEmail: ActionDefinition = {
+  title: 'Fetch Tickets by Customer Email',
+  description: 'Fetch all tickets by customer email',
+  input: {
+    schema: z.object({
+      customerEmail: z.string().title('Customer Email').describe('The email of the customer'),
+    }),
+  },
+  output: {
+    schema: z.object({
+      tickets: z.array(ticketSchema).title('Tickets').describe('The list of tickets associated with the customer'),
     }),
   },
 }
@@ -55,41 +71,25 @@ export const updateTicket: ActionDefinition = {
   description: 'Update a ticket by id',
   input: {
     schema: z.object({
-      odooTicket: ticketSchema.title('Odoo Ticket').describe('The ticket to update'),
-      subject: z.string().title('Subject').describe('The subject of the ticket'),
-      description: z.string().title('Description').describe('The description of the ticket'),
-      status: z.string().title('Status').describe('The status of the ticket'),
-      priority: z.string().title('Priority').describe('The priority of the ticket'),
+      ticket: ticketSchema.title('Ticket').describe('The ticket to update'),
+      name: z.string().title('Name').describe('The name of the ticket').optional(),
+      description: z.string().title('Description').describe('The description of the ticket').optional(),
+      teamId: z.number().title('Team ID').describe('The helpdesk team ID associated with the ticket').optional(),
+      priority: z.string().title('Priority').describe('The priority of the ticket').optional(),
+      stageId: z.number().title('Stage ID').describe('The stage ID associated with the ticket').optional(),
     }),
   },
   output: {
     schema: z.object({
-      success: z.boolean().title('Success').describe('The success of the update'),
-      error: z.string().title('Error').describe('The error message if the update failed').optional(),
-    }),
-  },
-}
-
-export const closeTicket: ActionDefinition = {
-  title: 'Close Ticket',
-  description: 'Close a ticket by id',
-  input: {
-    schema: z.object({
-      odooTicketId: z.number().title('Odoo Ticket ID').describe('The id of the ticket to close'),
-    }),
-  },
-  output: {
-    schema: z.object({
-      odooTicket: ticketSchema.title('Odoo Ticket').describe('The closed ticket').optional(),
-      error: z.string().title('Error').describe('The error message if the ticket was not closed successfully').optional(),
+      success: z.boolean().title('Success').describe('The success of the update')
     }),
   },
 }
 
 export const actions = {
   createTicket,
-  fetchTicket,
-  fetchTickets,
+  fetchTicketById,
+  fetchTicketsByCustomerId,
+  fetchTicketsByCustomerEmail,
   updateTicket,
-  closeTicket,
 } as const
