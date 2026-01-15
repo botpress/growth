@@ -4,7 +4,8 @@
   "scripts": {
     "check:type": "tsc --noEmit",
     "build": "bp add -y && bp build",
-    "deploy": "bp deploy -y"
+    "deploy": "bp deploy -y",
+    "version-bump-and-deploy": "node version-bump-and-deploy.js"
   },
   "private": true,
   "dependencies": {

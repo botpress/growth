@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios'
+import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import * as bp from '.botpress'
 
 // Cache clients per configuration to avoid re-authenticating
@@ -39,10 +39,20 @@ export const getAuthenticatedOdooClient = async ({
       login: odooEmail,
       password: odooPassword,
     },
-  })
+    id: Math.floor(Date.now() / 1000), // id field for JSON-RPC compliance
+  }) as AxiosResponse<{ result: { uid: number }, error?: { message: string } }>
+  logger.forBot().info(`Authentication response: ${JSON.stringify(response.data)}`)
 
+  // Check for errors first
+  if (response.data?.error) {
+    logger.forBot().error(`Authentication error: ${JSON.stringify(response.data.error)}`)
+    throw new Error(`Authentication failed: ${JSON.stringify(response.data.error)}`)
+  }
+
+  // Then check for uid
   if (!response.data.result?.uid) {
-    throw new Error('Authentication failed')
+    logger.forBot().error(`Authentication failed - no uid in response: ${JSON.stringify(response.data)}`)
+    throw new Error('Authentication failed - no uid in response')
   }
 
   logger.forBot().info(`Authentication successful. UID: ${response.data.result.uid}`)
