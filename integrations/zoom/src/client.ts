@@ -72,7 +72,10 @@ export class ZoomClient {
    * API: GET /meetings/{meetingId}/recordings
    * Docs: https://developers.zoom.us/docs/api/meetings/#tag/cloud-recording
    */
-  async fetchTranscriptUrl(meetingUUID: string, accessToken: string): Promise<string | null> {
+  async fetchTranscriptUrl(
+    meetingUUID: string,
+    accessToken: string
+  ): Promise<{ transcriptUrl: string; audioUrl: string } | null> {
     const encodedUUID = encodeURIComponent(meetingUUID)
 
     try {
@@ -97,14 +100,22 @@ export class ZoomClient {
             throw new Error('Transcript not ready')
           }
 
-          return transcriptFile.download_url
+          const audioFile = validation.data.recording_files?.find((f) => f.file_type === 'M4A')
+
+          if (!audioFile?.download_url) {
+            throw new Error('Audio not ready')
+          }
+
+          return { transcriptUrl: transcriptFile.download_url, audioUrl: audioFile.download_url }
         },
         { numOfAttempts: 3, startingDelay: 20000 }
       )
     } catch (error) {
-      // Only return null if transcript wasn't found after retries
-      if (error instanceof Error && error.message === 'Transcript not ready') {
-        this.logger.forBot().warn(`Transcript file not found for meeting ${meetingUUID} after retries`)
+      // Return null if transcript or audio wasn't found after retries
+      if (error instanceof Error && (error.message === 'Transcript not ready' || error.message === 'Audio not ready')) {
+        this.logger
+          .forBot()
+          .warn(`Recording files not found for meeting ${meetingUUID} after retries: ${error.message}`)
         return null
       }
 
