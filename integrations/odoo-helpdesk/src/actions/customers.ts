@@ -1,16 +1,17 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/client'
 import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
-import { customerSchema, Customer } from 'definitions/schemas'
-import { z } from '@botpress/sdk'
+import { Customer } from 'definitions/schemas'
 
 export const createCustomer: bp.Integration['actions']['createCustomer'] = async ({
-  ctx, client, input, logger
+  ctx,
+  client,
+  input: { id, email, name, phone },
+  logger,
 }) => {
-  logger.forBot().info(`Creating customer: ${JSON.stringify(input)}`)
+  logger.forBot().info(`Creating customer: ${JSON.stringify({ id, email, name, phone })}`)
 
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-  const { id, email, name, phone } = input
 
   const customerPayload: Record<string, any> = {
     email,
@@ -18,45 +19,37 @@ export const createCustomer: bp.Integration['actions']['createCustomer'] = async
     name,
   }
 
-  const odooId = (await executeOdooMethod({
+  const odooIdResult = await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'res.partner',
     method: 'create',
     args: [customerPayload],
     logger,
-  })) as Customer['odooId']
+  }) as string | number
 
-  // Store the mapping of bp id to odoo id
-  const { state } = (await client.getOrSetState({
+  const odooId : number = typeof odooIdResult === 'number' ? odooIdResult : parseInt(odooIdResult as string, 10)
+
+  // Store the mapping of bp id to odoo id (as string for storage)
+  const { state } = await client.getOrSetState({
     type: 'integration',
     name: 'customerIdMapping',
     id: ctx.integrationId,
     payload: { customerIdMapping: {} },
-  } as any)) as unknown as {
-    state: { payload: { customerIdMapping: Record<string, string> } }
-  }
+  })
 
   const mapping = state.payload?.customerIdMapping || {}
-  if (odooId) {
-    mapping[id] = odooId.toString()
-  }
+  mapping[id] = odooId.toString()
 
   await client.setState({
     type: 'integration',
     name: 'customerIdMapping',
     id: ctx.integrationId,
     payload: { customerIdMapping: mapping },
-  } as any)
+  })
 
   return {
-    customer: {
-      id,
-      odooId,
-      email,
-      name,
-      phone,
-    } as Customer
+    odooId,
   }
 }
 
@@ -66,9 +59,9 @@ const fetchCustomer = async ({
   logger,
 }: {
   ctx: bp.Context
-  input: { id: string; odooId?: string; email?: string }
+  input: { id?: string; odooId?: string; email?: string }
   logger: bp.Logger
-}): Promise<{ customer: z.infer<typeof customerSchema> }> => {
+}): Promise<Customer> => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   const fields = ['id', 'email', 'name', 'phone']
   const filters: any[] = odooId ? [['id', '=', odooId]] : email ? [['email', '=', email]] : []
@@ -80,7 +73,7 @@ const fetchCustomer = async ({
     method: 'search_read',
     args: [filters, fields],
     logger,
-  }) as Array<Customer>
+  })
 
   if (rawCustomer.length === 0 || !rawCustomer[0])
     throw new RuntimeError('Customer not found')
@@ -88,17 +81,20 @@ const fetchCustomer = async ({
   if (rawCustomer.length > 1)
     throw new RuntimeError('Multiple customers found for the same id')
 
-  const customer = rawCustomer[0] as Customer
+  const customerData = rawCustomer[0]
 
-  return {
-    customer: {
-      id,
-      odooId: customer.id,
-      email: customer.email,
-      name: customer.name,
-      phone: customer.phone,
-    } as z.infer<typeof customerSchema>,
+  const customer: Customer = {
+    odooId: customerData.id as number,
+    email: customerData.email as string,
+    name: customerData.name as string,
+    phone: customerData.phone as string,
   }
+
+  if (id) {
+    customer.id = id
+  }
+
+  return customer
 }
 export const fetchCustomerById: bp.Integration['actions']['fetchCustomerById'] = async ({
   ctx,
@@ -109,14 +105,12 @@ export const fetchCustomerById: bp.Integration['actions']['fetchCustomerById'] =
   logger.forBot().info(`Fetching customer by id: ${JSON.stringify(input)}`)
 
   // Look up the odoo id from the bp id mapping
-  const { state } = (await client.getOrSetState({
+  const { state } = await client.getOrSetState({
     type: 'integration',
     name: 'customerIdMapping',
     id: ctx.integrationId,
     payload: { customerIdMapping: {} },
-  } as any)) as unknown as {
-    state: { payload: { customerIdMapping: Record<string, string> } }
-  }
+  })
 
   const mapping = state.payload?.customerIdMapping || {}
   const odooId = mapping[input.id]
@@ -125,7 +119,8 @@ export const fetchCustomerById: bp.Integration['actions']['fetchCustomerById'] =
     throw new RuntimeError(`No Odoo ID found for customer ID: ${input.id}`)
   }
 
-  return fetchCustomer({ ctx, input: { id: input.id, odooId }, logger })
+  const customer = await fetchCustomer({ ctx, input: { id: input.id, odooId }, logger })
+  return { customer }
 }
 export const fetchCustomerByOdooId: bp.Integration['actions']['fetchCustomerByOdooId'] = async ({
   ctx,
@@ -133,7 +128,8 @@ export const fetchCustomerByOdooId: bp.Integration['actions']['fetchCustomerByOd
   logger,
 }) => {
   logger.forBot().info(`Fetching customer by odoo id: ${JSON.stringify(input)}`)
-  return fetchCustomer({ ctx, input: { id: input.id, odooId: input.odooId }, logger })
+  const customer = await fetchCustomer({ ctx, input: { id: input.id, odooId: input.odooId }, logger })
+  return { customer }
 }
 export const fetchCustomerByEmail: bp.Integration['actions']['fetchCustomerByEmail'] = async ({
   ctx,
@@ -141,7 +137,8 @@ export const fetchCustomerByEmail: bp.Integration['actions']['fetchCustomerByEma
   logger,
 }) => {
   logger.forBot().info(`Fetching customer by email: ${JSON.stringify(input)}`)
-  return fetchCustomer({ ctx, input: { id: input.id, email: input.email }, logger })
+  const customer = await fetchCustomer({ ctx, input: { email: input.email }, logger })
+  return { customer }
 }
 
 const updateCustomer = async ({
@@ -159,19 +156,17 @@ const updateCustomer = async ({
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
   let odooId: string
-  let currentCustomer: { customer: Customer }
+  let currentCustomer: Customer
 
   // Determine odoo id based on input
   if (input.id) {
     // Look up the odoo id from the bp id mapping
-    const { state } = (await client.getOrSetState({
+    const { state } = await client.getOrSetState({
       type: 'integration',
       name: 'customerIdMapping',
       id: ctx.integrationId,
       payload: { customerIdMapping: {} },
-    } as any)) as unknown as {
-      state: { payload: { customerIdMapping: Record<string, string> } }
-    }
+    })
 
     const mapping = state.payload?.customerIdMapping || {}
     const mappedOdooId = mapping[input.id]
@@ -183,11 +178,12 @@ const updateCustomer = async ({
     odooId = mappedOdooId
     currentCustomer = await fetchCustomer({ ctx, input: { id: input.id, odooId }, logger })
   } else if (input.email) {
-    currentCustomer = await fetchCustomer({ ctx, input: { id: '', email: input.email }, logger })
-    if (!currentCustomer.customer?.odooId) {
+    currentCustomer = await fetchCustomer({ ctx, input: { email: input.email }, logger })
+    const customerOdooId = currentCustomer.odooId
+    if (customerOdooId === undefined) {
       throw new RuntimeError('Customer not found or missing Odoo ID')
     }
-    odooId = currentCustomer.customer.odooId
+    odooId = customerOdooId.toString()
   } else {
     throw new RuntimeError('Must provide an id or email to update a customer')
   }

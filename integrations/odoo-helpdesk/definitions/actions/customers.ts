@@ -8,13 +8,13 @@ export const createCustomer: ActionDefinition = {
     schema: z.object({
       id: z.string().title('ID').describe('The id of the customer'),
       email: z.string().title('Email').describe('The email of the customer'),
-      name: z.string().title('Name').describe('The name of the customer').optional(),
-      phone: z.string().title('Phone').describe('The phone of the customer').optional(),
+      name: z.string().title('Name').describe('The name of the customer'),
+      phone: z.string().title('Phone').describe('The phone of the customer'),
     }),
   },
   output: {
     schema: z.object({
-      customer: customerSchema.title('Customer').describe('The created customer').optional(),
+      odooId: z.number().title('Odoo ID').describe('The odoo id of the created customer'),
     }),
   },
 }
@@ -55,7 +55,6 @@ export const fetchCustomerByEmail: ActionDefinition = {
   description: 'Fetch a customer by email',
   input: {
     schema: z.object({
-      id: z.string().title('ID').describe('The id of the customer to fetch'),
       email: z.string().title('Email').describe('The email of the customer to fetch'),
     }),
   },
