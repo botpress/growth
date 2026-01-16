@@ -9,9 +9,9 @@ export const createTicket: ActionDefinition = {
       name: z.string().title('Name').describe('The name of the ticket'),
       description: z.string().title('Description').describe('The description of the ticket'),
       teamId: z.number().title('Team ID').describe('The helpdesk team ID associated with the ticket'),
-      priority: z.string().title('Priority').describe('The priority of the ticket'),
-      customerId: z.number().title('Customer ID').describe('The customer ID associated with the ticket'),
-      stageId: z.number().title('Stage ID').describe('The stage ID associated with the ticket').optional(),
+      priority: z.number().title('Priority').describe('The priority of the ticket (0 is the lowest priority)').optional(),
+      customerOdooId: z.number().title('Customer Odoo ID').describe('The Odoo customer ID associated with the ticket'),
+      stageId: z.number().title('Stage ID').describe('The stage ID associated with the ticket'),
     }),
   },
   output: {
@@ -41,7 +41,7 @@ export const fetchTicketsByCustomerId: ActionDefinition = {
   description: 'Fetch all tickets by customer',
   input: {
     schema: z.object({
-      customerId: z.number().title('Customer ID').describe('The id of the customer'),
+      customerOdooId: z.number().title('Customer Odoo ID').describe('The Odoo customer ID associated with the ticket'),
     }),
   },
   output: {
@@ -71,12 +71,13 @@ export const updateTicket: ActionDefinition = {
   description: 'Update a ticket by id',
   input: {
     schema: z.object({
-      ticket: ticketSchema.title('Ticket').describe('The ticket to update'),
+      ticketId: z.number().title('Ticket ID').describe('The ID of the ticket to update'),
       name: z.string().title('Name').describe('The name of the ticket').optional(),
       description: z.string().title('Description').describe('The description of the ticket').optional(),
       teamId: z.number().title('Team ID').describe('The helpdesk team ID associated with the ticket').optional(),
-      priority: z.string().title('Priority').describe('The priority of the ticket').optional(),
+      priority: z.number().title('Priority').describe('The priority of the ticket (0 is the lowest priority)').optional(),
       stageId: z.number().title('Stage ID').describe('The stage ID associated with the ticket').optional(),
+      customerOdooId: z.number().title('Customer Odoo ID').describe('The Odoo customer ID associated with the ticket').optional(),
     }),
   },
   output: {

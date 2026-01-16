@@ -1,6 +1,24 @@
-import { customerSchema } from './customer'
-import { ticketSchema } from './ticket'
-import { helpdeskTeamSchema } from './helpdesk-team'
-import { stageSchema } from './stage'
+import { customerSchema, Customer, CustomerPayload } from './customer'
+import { helpdeskTeamSchema, HelpdeskTeam, HelpdeskTeamPayload } from './helpdesk-team'
+import { prioritySchema, Priority, PriorityPayload } from './priority'
+import { stageSchema, Stage, StagePayload } from './stage'
+import { ticketSchema, Ticket, TicketPayload, TicketResponse } from './ticket'
 
-export { customerSchema, ticketSchema, helpdeskTeamSchema, stageSchema }
+export {
+  customerSchema,
+  helpdeskTeamSchema,
+  prioritySchema,
+  stageSchema,
+  ticketSchema,
+  Customer,
+  CustomerPayload,
+  HelpdeskTeam,
+  HelpdeskTeamPayload,
+  Priority,
+  PriorityPayload,
+  Stage,
+  StagePayload,
+  Ticket,
+  TicketPayload,
+  TicketResponse,
+}

@@ -14,6 +14,17 @@ const helpdeskIntegrationInfo = {
   }),
 }
 
+const customerIdMapping = {
+  type: 'integration' as const,
+  schema: z.object({
+    customerIdMapping: z
+      .record(z.string(), z.string())
+      .title('Customer ID Mapping')
+      .describe('Maps Botpress customer IDs to Odoo customer IDs'),
+  }),
+}
+
 export const states = {
   helpdeskIntegrationInfo,
+  customerIdMapping,
 } as const satisfies Record<string, StateDefinition>
