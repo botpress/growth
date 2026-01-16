@@ -29,12 +29,15 @@ const handleTranscriptCompleted = async ({
     const accessToken = await zoomClient.getAccessToken()
     const meetingUUID = payload.payload.object.uuid
 
-    const downloadUrl = await zoomClient.fetchTranscriptUrl(meetingUUID, accessToken)
-    if (!downloadUrl) {
+    const response = await zoomClient.fetchTranscriptUrl(meetingUUID, accessToken)
+
+    if (!response) {
       throw new RuntimeError('Transcript file not found after retries')
     }
 
-    const { data: vttText } = await axios.get<string>(downloadUrl, {
+    const { transcriptUrl, audioUrl } = response
+
+    const { data: vttText } = await axios.get<string>(transcriptUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
       responseType: 'text',
       timeout: 30000,
@@ -47,6 +50,7 @@ const handleTranscriptCompleted = async ({
         meetingUUID,
         hostId,
         transcript: plainText,
+        audioUrl,
         rawVtt: vttText,
       },
     })
