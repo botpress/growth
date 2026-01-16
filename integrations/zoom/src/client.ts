@@ -113,7 +113,9 @@ export class ZoomClient {
     } catch (error) {
       // Return null if transcript or audio wasn't found after retries
       if (error instanceof Error && (error.message === 'Transcript not ready' || error.message === 'Audio not ready')) {
-        this.logger.forBot().warn(`Recording files not found for meeting ${meetingUUID} after retries: ${error.message}`)
+        this.logger
+          .forBot()
+          .warn(`Recording files not found for meeting ${meetingUUID} after retries: ${error.message}`)
         return null
       }
 
