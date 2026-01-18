@@ -154,6 +154,7 @@ export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
   // Build update payload with only provided fields (Odoo's write only updates provided fields)
+  // Fields with .optional() will be undefined when not provided by the user
   const updatePayload: Partial<TicketPayload> = {}
 
   if (name !== undefined) updatePayload.name = name
