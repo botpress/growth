@@ -9,14 +9,14 @@ export const createTicket: ActionDefinition = {
       name: z.string().title('Name').describe('The name of the ticket'),
       description: z.string().title('Description').describe('The description of the ticket'),
       teamId: z.number().title('Team ID').describe('The helpdesk team ID associated with the ticket'),
-      priority: z.number().title('Priority').describe('The priority of the ticket (0 is the lowest priority)').optional(),
+      priority: z.enum(['0', '1', '2', '3']).title('Priority').describe('The priority of the ticket (0 is the lowest priority)').optional(),
       customerOdooId: z.number().title('Customer Odoo ID').describe('The Odoo customer ID associated with the ticket'),
       stageId: z.number().title('Stage ID').describe('The stage ID associated with the ticket'),
     }),
   },
   output: {
     schema: z.object({
-      ticket: ticketSchema.title('Ticket').describe('The created ticket').optional(),
+      ticketId: z.number().title('Ticket ID').describe('The ID of the created ticket'),
     }),
   },
 }
@@ -75,9 +75,8 @@ export const updateTicket: ActionDefinition = {
       name: z.string().title('Name').describe('The name of the ticket').optional(),
       description: z.string().title('Description').describe('The description of the ticket').optional(),
       teamId: z.number().title('Team ID').describe('The helpdesk team ID associated with the ticket').optional(),
-      priority: z.number().title('Priority').describe('The priority of the ticket (0 is the lowest priority)').optional(),
+      priority: z.enum(['0', '1', '2', '3']).title('Priority').describe('The priority of the ticket (0 is the lowest priority, 3 is the highest)').optional(),
       stageId: z.number().title('Stage ID').describe('The stage ID associated with the ticket').optional(),
-      customerOdooId: z.number().title('Customer Odoo ID').describe('The Odoo customer ID associated with the ticket').optional(),
     }),
   },
   output: {

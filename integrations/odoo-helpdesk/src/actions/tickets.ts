@@ -16,15 +16,16 @@ const TICKET_FIELDS = [
 
 /**
  * Maps Odoo TicketResponse to our Ticket schema
+ * Odoo returns relational fields as tuples [id, name], so we extract just the ID
  */
 const mapTicketResponseToTicket = (response: TicketResponse): Ticket => ({
   id: response.id,
-  customerOdooId: response.partner_id,
+  customerOdooId: Array.isArray(response.partner_id) ? response.partner_id[0] : response.partner_id,
   name: response.name,
   description: response.description,
-  teamId: response.team_id,
-  priority: response.priority,
-  stageId: response.stage_id,
+  teamId: Array.isArray(response.team_id) ? response.team_id[0] : response.team_id,
+  priority: response.priority !== undefined && response.priority !== null ? String(response.priority) : undefined,
+  stageId: response.stage_id ? (Array.isArray(response.stage_id) ? response.stage_id[0] : response.stage_id) : undefined,
 })
 
 
@@ -39,7 +40,7 @@ export const createTicket: bp.Integration['actions']['createTicket'] = async ({
     name,
     description,
     team_id: teamId,
-    priority,
+    ...(priority !== undefined ? { priority: String(priority) } : {}),
     partner_id: customerOdooId,
     ...(stageId ? { stage_id: stageId } : {}),
   }
@@ -69,7 +70,7 @@ export const createTicket: bp.Integration['actions']['createTicket'] = async ({
   }
 
   return {
-    ticket: mapTicketResponseToTicket(ticketResponse),
+    ticketId: mapTicketResponseToTicket(ticketResponse).id,
   }
 }
 
@@ -147,7 +148,7 @@ export const fetchTicketsByCustomerEmail: bp.Integration['actions']['fetchTicket
 
 export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({
   ctx,
-  input: { ticketId, name, description, teamId, priority, stageId, customerOdooId },
+  input: { ticketId, name, description, teamId, priority, stageId },
   logger,
 }) => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
@@ -158,14 +159,13 @@ export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({
   if (name !== undefined) updatePayload.name = name
   if (description !== undefined) updatePayload.description = description
   if (teamId !== undefined) updatePayload.team_id = teamId
-  if (customerOdooId !== undefined) updatePayload.partner_id = customerOdooId
   if (stageId !== undefined) updatePayload.stage_id = stageId
-  if (priority !== undefined) {
-    updatePayload.priority = priority
-  }
+  if (priority !== undefined) updatePayload.priority = priority
 
   // Only update if there are fields to update
   if (Object.keys(updatePayload).length === 0) return { success: true }
+
+  logger.forBot().info(`Updating ticket ${ticketId} with payload: ${JSON.stringify(updatePayload)}`)
 
   const success = (await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,

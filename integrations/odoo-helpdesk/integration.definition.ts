@@ -4,7 +4,7 @@ import { actions, states } from './definitions'
 // import { states } from './definitions/states'
 
 export default new IntegrationDefinition({
-  version: '0.1.31',
+  version: '0.1.41',
   name: integrationName,
   title: 'Odoo Helpdesk',
   description: 'Connect with Odoo Helpdesk to manage tickets and customers',
