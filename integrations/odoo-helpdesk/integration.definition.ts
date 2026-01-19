@@ -7,7 +7,7 @@ export default new IntegrationDefinition({
   title: 'Odoo Helpdesk',
   description: 'Connect with Odoo Helpdesk to manage tickets and customers',
   readme: 'hub.md',
-  icon: 'icon.svg',
+  icon: 'odoo-logo.svg',
 
   configuration: {
     schema: z.object({
