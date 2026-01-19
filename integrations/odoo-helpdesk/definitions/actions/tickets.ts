@@ -15,7 +15,7 @@ export const createTicket: ActionDefinition = {
         .describe('The priority of the ticket (0 is the lowest priority)')
         .optional(),
       customerOdooId: z.number().title('Customer Odoo ID').describe('The Odoo customer ID associated with the ticket'),
-      stageId: z.number().title('Stage ID').describe('The stage ID associated with the ticket'),
+      stageId: z.number().optional().title('Stage ID').describe('The stage ID associated with the ticket'),
     }),
   },
   output: {

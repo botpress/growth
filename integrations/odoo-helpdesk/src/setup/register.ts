@@ -8,9 +8,9 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, client, l
 
     // Get the Odoo helpdesk teams and ticket stages
     const { helpdeskTeams } = await getHelpdeskTeams({ ctx, logger })
-    logger.forBot().info(`Odoo helpdesk teams: ${JSON.stringify(helpdeskTeams)}`)
+    logger.forBot().info(`Odoo helpdesk teams retrieved: count=${helpdeskTeams.length}`)
     const { stages } = await getStages({ ctx, input: { teamIds: helpdeskTeams.map((team) => team.id) }, logger })
-    logger.forBot().info(`Odoo ticket stages: ${JSON.stringify(stages)}`)
+    logger.forBot().info(`Odoo ticket stages retrieved: count=${stages.length}`)
 
     // Store ticket stages in integration state
     await client.getOrSetState({

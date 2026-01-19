@@ -31,7 +31,7 @@ export const getStages: bp.Integration['actions']['getStages'] = async ({ ctx, c
   let stages = state.payload.helpdeskIntegrationInfo.stages
   logger.forBot().info(`Cached stages: ${JSON.stringify(stages)}`)
 
-  if (input && input.teamId) {
+  if (input.teamId) {
     stages = state.payload.helpdeskIntegrationInfo.stages.filter((stage) =>
       stage.teamIds.includes(input.teamId as number)
     ) as Array<z.infer<typeof stageSchema>>
