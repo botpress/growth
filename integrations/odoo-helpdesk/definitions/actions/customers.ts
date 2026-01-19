@@ -40,7 +40,11 @@ export const fetchCustomerByOdooId: ActionDefinition = {
   input: {
     schema: z.object({
       odooId: z.number().title('Odoo ID').describe('The odoo id of the customer to fetch'),
-      id: z.string().title('ID').describe('The id of the customer to fetch. If provided, the returned customer will have this id.').optional(),
+      id: z
+        .string()
+        .title('ID')
+        .describe('The id of the customer to fetch. If provided, the returned customer will have this id.')
+        .optional(),
     }),
   },
   output: {
@@ -56,7 +60,11 @@ export const fetchCustomerByEmail: ActionDefinition = {
   input: {
     schema: z.object({
       email: z.string().title('Email').describe('The email of the customer to fetch'),
-      id: z.string().title('ID').describe('The id of the customer to fetch. If provided, the returned customer will have this id.').optional(),
+      id: z
+        .string()
+        .title('ID')
+        .describe('The id of the customer to fetch. If provided, the returned customer will have this id.')
+        .optional(),
     }),
   },
   output: {
