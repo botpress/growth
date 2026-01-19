@@ -2,7 +2,15 @@ import axios, { AxiosResponse } from 'axios'
 import * as bp from '.botpress'
 
 // Cache cookies per configuration to avoid re-authenticating
-const cookieCache = new Map<string, string>()
+// 30 minutes TTL
+const COOKIE_TTL_MS = 30 * 60 * 1000
+
+interface CachedCookie {
+  cookie: string
+  timestamp: number
+}
+
+const cookieCache = new Map<string, CachedCookie>()
 
 /**
  * Extracts cookies from Set-Cookie headers and returns them as a Cookie header string
@@ -46,10 +54,18 @@ export const getAuthenticatedCookie = async ({
   // Create a cache key from configuration
   const cacheKey = `${odooApiUrl}-${odooDb}-${odooEmail}`
 
-  // Return cached cookie if it exists
-  if (cookieCache.has(cacheKey)) {
-    logger.forBot().debug(`Returning cached Odoo authentication cookie for: ${cacheKey}`)
-    return cookieCache.get(cacheKey)!
+  // Check if cached cookie exists and is still valid
+  const cached = cookieCache.get(cacheKey)
+  if (cached) {
+    const age = Date.now() - cached.timestamp
+    if (age < COOKIE_TTL_MS) {
+      logger.forBot().debug(`Returning cached Odoo authentication cookie for: ${cacheKey}`)
+      return cached.cookie
+    } else {
+      // Cookie expired, remove from cache
+      cookieCache.delete(cacheKey)
+      logger.forBot().debug(`Cached Odoo authentication cookie expired for: ${cacheKey}`)
+    }
   }
 
   // Authenticate using axios.post directly
@@ -92,8 +108,11 @@ export const getAuthenticatedCookie = async ({
 
   logger.forBot().info(`Authentication successful. UID: ${response.data.result.uid}`)
 
-  // Cache the cookie
-  cookieCache.set(cacheKey, cookie)
+  // Cache the cookie with timestamp
+  cookieCache.set(cacheKey, {
+    cookie,
+    timestamp: Date.now(),
+  })
 
   return cookie
 }
