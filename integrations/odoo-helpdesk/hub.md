@@ -29,15 +29,18 @@ Connect your Botpress chatbot with Odoo Helpdesk to manage tickets and customers
 Create a new customer in Odoo with their contact information.
 
 **Input:**
+
 - `id` (required): A unique identifier for the customer in your Botpress system
 - `email` (required): The customer's email address
 - `name` (required): The customer's name
 - `phone` (required): The customer's phone number
 
 **Output:**
+
 - `odooId`: The Odoo ID of the created customer
 
 **Example:**
+
 ```json
 {
   "id": "customer-123",
@@ -52,9 +55,11 @@ Create a new customer in Odoo with their contact information.
 Retrieve a customer using their Botpress ID. The integration automatically maps Botpress IDs to Odoo IDs.
 
 **Input:**
+
 - `id` (required): The Botpress customer ID
 
 **Output:**
+
 - `customer`: The customer object with Odoo ID, email, name, and phone
 
 #### Fetch Customer By Odoo ID
@@ -62,10 +67,12 @@ Retrieve a customer using their Botpress ID. The integration automatically maps 
 Retrieve a customer using their Odoo ID directly.
 
 **Input:**
+
 - `id` (required): The Botpress customer ID (optional, for mapping)
 - `odooId` (required): The Odoo customer ID
 
 **Output:**
+
 - `customer`: The customer object
 
 #### Fetch Customer By Email
@@ -73,9 +80,11 @@ Retrieve a customer using their Odoo ID directly.
 Retrieve a customer by their email address.
 
 **Input:**
+
 - `email` (required): The customer's email address
 
 **Output:**
+
 - `customer`: The customer object
 
 #### Update Customer By ID
@@ -83,12 +92,14 @@ Retrieve a customer by their email address.
 Update an existing customer's information using their Botpress ID.
 
 **Input:**
+
 - `id` (required): The Botpress customer ID
 - `email` (optional): New email address
 - `name` (optional): New name
 - `phone` (optional): New phone number
 
 **Output:**
+
 - `success`: Boolean indicating if the update was successful
 - `error`: Error message if the update failed
 
@@ -97,11 +108,13 @@ Update an existing customer's information using their Botpress ID.
 Update an existing customer's information using their email address.
 
 **Input:**
+
 - `email` (required): The customer's email address
 - `name` (optional): New name
 - `phone` (optional): New phone number
 
 **Output:**
+
 - `success`: Boolean indicating if the update was successful
 - `error`: Error message if the update failed
 
@@ -112,6 +125,7 @@ Update an existing customer's information using their email address.
 Create a new helpdesk ticket in Odoo.
 
 **Input:**
+
 - `name` (required): The ticket title/subject
 - `description` (required): The ticket description/details
 - `teamId` (required): The ID of the helpdesk team to assign the ticket to (minimum: 1)
@@ -120,9 +134,11 @@ Create a new helpdesk ticket in Odoo.
 - `stageId` (required): The ID of the initial ticket stage
 
 **Output:**
+
 - `ticketId`: The ID of the created ticket
 
 **Example:**
+
 ```json
 {
   "name": "Unable to access account",
@@ -139,9 +155,11 @@ Create a new helpdesk ticket in Odoo.
 Retrieve a ticket by its ID.
 
 **Input:**
+
 - `id` (required): The ticket ID
 
 **Output:**
+
 - `ticket`: The ticket object with all details including customer, team, priority, and stage
 
 #### Fetch Tickets By Customer ID
@@ -149,9 +167,11 @@ Retrieve a ticket by its ID.
 Retrieve all tickets associated with a customer using their Odoo ID.
 
 **Input:**
+
 - `customerOdooId` (required): The Odoo customer ID
 
 **Output:**
+
 - `tickets`: Array of ticket objects
 
 #### Fetch Tickets By Customer Email
@@ -159,9 +179,11 @@ Retrieve all tickets associated with a customer using their Odoo ID.
 Retrieve all tickets associated with a customer using their email address.
 
 **Input:**
+
 - `customerEmail` (required): The customer's email address
 
 **Output:**
+
 - `tickets`: Array of ticket objects
 
 #### Update Ticket
@@ -169,6 +191,7 @@ Retrieve all tickets associated with a customer using their email address.
 Update an existing ticket's properties.
 
 **Input:**
+
 - `ticketId` (required): The ID of the ticket to update
 - `name` (optional): New ticket title
 - `description` (optional): New ticket description
@@ -177,6 +200,7 @@ Update an existing ticket's properties.
 - `stageId` (optional): New stage ID
 
 **Output:**
+
 - `success`: Boolean indicating if the update was successful
 
 ### Helpdesk Configuration
@@ -188,6 +212,7 @@ Retrieve all active helpdesk teams from your Odoo instance. Teams are cached dur
 **Input:** None
 
 **Output:**
+
 - `helpdeskTeams`: Array of helpdesk team objects with `id` and `name`
 
 #### Get Stages
@@ -195,9 +220,11 @@ Retrieve all active helpdesk teams from your Odoo instance. Teams are cached dur
 Retrieve all ticket stages. Optionally filter by team ID to get stages for a specific team.
 
 **Input:**
+
 - `teamId` (optional): Filter stages by helpdesk team ID
 
 **Output:**
+
 - `stages`: Array of stage objects with `id`, `name`, and `teamIds`
 
 ## Use Cases
@@ -219,6 +246,7 @@ Retrieve all ticket stages. Optionally filter by team ID to get stages for a spe
 ## Changelog
 
 ### Version 0.1.43
+
 - Initial release of Odoo Helpdesk integration
 - Customer management actions (create, fetch, update)
 - Ticket management actions (create, fetch, update)

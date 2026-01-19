@@ -7,7 +7,7 @@ const cookieCache = new Map<string, string>()
 /**
  * Extracts cookies from Set-Cookie headers and returns them as a Cookie header string
  */
-const extractCookies = (headers: Record<string, any>): string => {
+const extractCookies = (headers: Record<string, string>): string => {
   // Axios normalizes headers to lowercase
   const setCookieHeaders = headers['set-cookie'] || headers['Set-Cookie']
 
@@ -54,7 +54,7 @@ export const getAuthenticatedCookie = async ({
 
   // Authenticate using axios.post directly
   logger.forBot().info(`Authenticating with Odoo: ${odooApiUrl}`)
-  const response = await axios.post(
+  const response = (await axios.post(
     `${odooApiUrl}/web/session/authenticate`,
     {
       jsonrpc: '2.0',
@@ -70,7 +70,7 @@ export const getAuthenticatedCookie = async ({
         'Content-Type': 'application/json',
       },
     }
-  ) as AxiosResponse<{ result: { uid: number }, error?: { message: string } }>
+  )) as AxiosResponse<{ result: { uid: number }; error?: { message: string } }>
 
   logger.forBot().info(`Authentication response: ${JSON.stringify(response.data)}`)
 
@@ -87,7 +87,7 @@ export const getAuthenticatedCookie = async ({
   }
 
   // Extract cookies from response headers
-  const cookie = extractCookies(response.headers)
+  const cookie = extractCookies(response.headers as Record<string, string>)
   if (!cookie) {
     logger.forBot().warn('No cookies found in authentication response')
   }
@@ -115,10 +115,15 @@ export const executeOdooMethod = async ({
   cookie: string
   model: 'helpdesk.ticket' | 'helpdesk.stage' | 'helpdesk.team' | 'res.partner'
   method: 'create' | 'read' | 'write' | 'search' | 'search_read'
-  args?: any[]
-  kwargs?: Record<string, any>
+  args?:
+    | (string | number)[][]
+    | (string | boolean)[][]
+    | Record<string, string>[]
+    | number[]
+    | (number | Record<string, string>)[]
+  kwargs?: Record<string, string | number>
   logger: bp.Logger
-}): Promise<any> => {
+}): Promise<Array<Record<string, any>> | number | boolean | string> => {
   logger
     .forBot()
     .info(
@@ -139,7 +144,11 @@ export const executeOdooMethod = async ({
     'Content-Type': 'application/json',
     Cookie: cookie,
   }
-  logger.forBot().info(`Odoo method: ${method} on model: ${model} executing with URL: ${url} and body: ${JSON.stringify(body)} and headers: ${JSON.stringify(headers)}`)
+  logger
+    .forBot()
+    .info(
+      `Odoo method: ${method} on model: ${model} executing with URL: ${url} and body: ${JSON.stringify(body)} and headers: ${JSON.stringify(headers)}`
+    )
   const response = await axios.post(url, body, { headers })
 
   logger.forBot().info(`Odoo Request response data: ${JSON.stringify(response.data)}`)
@@ -149,11 +158,7 @@ export const executeOdooMethod = async ({
     throw new Error(`Odoo API error: ${JSON.stringify(response.data.error)}`)
   }
 
-  logger
-    .forBot()
-    .info(
-      `Odoo Request response data result: ${JSON.stringify(response.data.result)}`
-    )
+  logger.forBot().info(`Odoo Request response data result: ${JSON.stringify(response.data.result)}`)
 
   return response.data.result
 }

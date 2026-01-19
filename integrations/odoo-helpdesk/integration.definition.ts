@@ -1,11 +1,10 @@
 import { z, IntegrationDefinition } from '@botpress/sdk'
-import { integrationName } from './package.json'
 import { actions, states } from './definitions'
 // import { states } from './definitions/states'
 
 export default new IntegrationDefinition({
-  version: '0.1.43',
-  name: integrationName,
+  version: '0.1.0',
+  name: 'plus/odoo-helpdesk-integration',
   title: 'Odoo Helpdesk',
   description: 'Connect with Odoo Helpdesk to manage tickets and customers',
   readme: 'hub.md',

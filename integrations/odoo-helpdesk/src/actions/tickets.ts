@@ -4,15 +4,7 @@ import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
 import { Priority, Ticket, TicketPayload, TicketResponse } from 'definitions/schemas'
 
 // Common fields to fetch from Odoo (id is automatically included by Odoo's read method)
-const TICKET_FIELDS = [
-  "id",
-  "name",
-  "description",
-  "team_id",
-  "priority",
-  "stage_id",
-  "partner_id",
-] as const
+const TICKET_FIELDS = ['id', 'name', 'description', 'team_id', 'priority', 'stage_id', 'partner_id'] as const
 
 /**
  * Maps Odoo TicketResponse to our Ticket schema
@@ -25,9 +17,12 @@ const mapTicketResponseToTicket = (response: TicketResponse): Ticket => ({
   description: response.description,
   teamId: Array.isArray(response.team_id) ? response.team_id[0] : response.team_id,
   priority: response.priority !== undefined && response.priority !== null ? String(response.priority) : undefined,
-  stageId: response.stage_id ? (Array.isArray(response.stage_id) ? response.stage_id[0] : response.stage_id) : undefined,
+  stageId: response.stage_id
+    ? Array.isArray(response.stage_id)
+      ? response.stage_id[0]
+      : response.stage_id
+    : undefined,
 })
-
 
 export const createTicket: bp.Integration['actions']['createTicket'] = async ({
   ctx,
@@ -50,7 +45,7 @@ export const createTicket: bp.Integration['actions']['createTicket'] = async ({
     cookie,
     model: 'helpdesk.ticket',
     method: 'create',
-    args: [ticketPayload],
+    args: [ticketPayload] as unknown as Record<string, string>[],
     logger,
   })) as TicketResponse['id']
 
@@ -74,11 +69,7 @@ export const createTicket: bp.Integration['actions']['createTicket'] = async ({
   }
 }
 
-export const fetchTicketById: bp.Integration['actions']['fetchTicketById'] = async ({
-  ctx,
-  input: { id },
-  logger,
-}) => {
+export const fetchTicketById: bp.Integration['actions']['fetchTicketById'] = async ({ ctx, input: { id }, logger }) => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
   const ticketResponses = (await executeOdooMethod({
@@ -90,10 +81,8 @@ export const fetchTicketById: bp.Integration['actions']['fetchTicketById'] = asy
     logger,
   })) as Array<TicketResponse>
 
-  if (ticketResponses.length === 0)
-    throw new RuntimeError(`Ticket with id ${id} not found`)
-  if (ticketResponses.length > 1)
-    throw new RuntimeError(`Multiple tickets found for id ${id}`)
+  if (ticketResponses.length === 0) throw new RuntimeError(`Ticket with id ${id} not found`)
+  if (ticketResponses.length > 1) throw new RuntimeError(`Multiple tickets found for id ${id}`)
 
   // We've already validated length > 0, so this is safe
   const ticketResponse = ticketResponses[0]!
@@ -108,14 +97,14 @@ export const fetchTicketsByCustomerId: bp.Integration['actions']['fetchTicketsBy
   logger,
 }) => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-  const filters: any[] = [['partner_id', '=', customerOdooId]]
+  const filters: (string | number)[][] = [['partner_id', '=', customerOdooId]]
 
   const ticketResponses = (await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.ticket',
     method: 'search_read',
-    args: [filters, [...TICKET_FIELDS]],
+    args: [filters, [...TICKET_FIELDS]] as (string | number)[][],
     logger,
   })) as Array<TicketResponse>
 
@@ -130,14 +119,14 @@ export const fetchTicketsByCustomerEmail: bp.Integration['actions']['fetchTicket
   logger,
 }) => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-  const filters: any[] = [['partner_id.email', '=', customerEmail]]
+  const filters: (string | number | boolean)[][] = [['partner_id.email', '=', customerEmail]]
 
   const ticketResponses = (await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.ticket',
     method: 'search_read',
-    args: [filters, [...TICKET_FIELDS]],
+    args: [filters, [...TICKET_FIELDS]] as (string | number)[][],
     logger,
   })) as Array<TicketResponse>
 
@@ -173,7 +162,7 @@ export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({
     cookie,
     model: 'helpdesk.ticket',
     method: 'write',
-    args: [[ticketId], updatePayload],
+    args: [[ticketId], updatePayload] as unknown as (number | Record<string, string>)[],
     logger,
   })) as boolean
 

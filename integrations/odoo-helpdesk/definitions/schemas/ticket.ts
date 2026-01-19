@@ -26,7 +26,11 @@ export const ticketResponseSchema = z.object({
   name: z.string().describe('The name of the ticket'),
   description: z.string().describe('The description of the ticket'),
   team_id: z.tuple([z.number(), z.string()]).describe('The helpdesk team ID and name as a tuple [id, name]'),
-  priority: z.string().describe('The priority of the ticket as a string (e.g., "0", "1", "2", "3")').optional().nullable(),
+  priority: z
+    .string()
+    .describe('The priority of the ticket as a string (e.g., "0", "1", "2", "3")')
+    .optional()
+    .nullable(),
   partner_id: z.tuple([z.number(), z.string()]).describe('The customer ID and name as a tuple [id, name]'),
   stage_id: z.tuple([z.number(), z.string()]).describe('The stage ID and name as a tuple [id, name]').optional(),
 })

@@ -13,22 +13,22 @@ export const createCustomer: bp.Integration['actions']['createCustomer'] = async
 
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
-  const customerPayload: Record<string, any> = {
+  const customerPayload: Record<string, string> = {
     email,
     phone,
     name,
   }
 
-  const odooIdResult = await executeOdooMethod({
+  const odooIdResult = (await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'res.partner',
     method: 'create',
     args: [customerPayload],
     logger,
-  }) as string | number
+  })) as string | number
 
-  const odooId : number = typeof odooIdResult === 'number' ? odooIdResult : parseInt(odooIdResult as string, 10)
+  const odooId: number = typeof odooIdResult === 'number' ? odooIdResult : parseInt(odooIdResult as string, 10)
 
   // Store the mapping of bp id to odoo id (as string for storage)
   const { state } = await client.getOrSetState({
@@ -64,27 +64,25 @@ const fetchCustomer = async ({
 }): Promise<Customer> => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   const fields = ['id', 'email', 'name', 'phone']
-  const filters: any[] = odooId ? [['id', '=', odooId]] : email ? [['email', '=', email]] : []
+  const filters: (string | number)[][] = odooId ? [['id', '=', odooId]] : email ? [['email', '=', email]] : []
 
-  let rawCustomer: Array<Record<string, any>> = await executeOdooMethod({
+  let rawCustomer: Array<Record<string, string>> = (await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'res.partner',
     method: 'search_read',
-    args: [filters, fields],
+    args: [filters, fields] as (string | number)[][],
     logger,
-  })
+  })) as Array<Record<string, string>>
 
-  if (rawCustomer.length === 0 || !rawCustomer[0])
-    throw new RuntimeError('Customer not found')
+  if (rawCustomer.length === 0 || !rawCustomer[0]) throw new RuntimeError('Customer not found')
 
-  if (rawCustomer.length > 1)
-    throw new RuntimeError('Multiple customers found for the same id')
+  if (rawCustomer.length > 1) throw new RuntimeError('Multiple customers found for the same id')
 
   const customerData = rawCustomer[0]
 
   const customer: Customer = {
-    odooId: customerData.id as number,
+    odooId: customerData.id as unknown as number,
     email: customerData.email as string,
     name: customerData.name as string,
     phone: customerData.phone as string,
@@ -189,7 +187,7 @@ const updateCustomer = async ({
   }
 
   // Build the update payload with only the fields that are provided
-  const customerPayload: Record<string, any> = {}
+  const customerPayload: Record<string, string> = {}
   if (input.email !== undefined) {
     customerPayload.email = input.email
   }
@@ -213,17 +211,27 @@ const updateCustomer = async ({
       cookie,
       model: 'res.partner',
       method: 'write',
-      args: [[odooIdNumber], customerPayload],
+      args: [[odooIdNumber], customerPayload] as unknown as (number | Record<string, string>)[],
       logger,
     })) as boolean,
   }
 }
 
-export const updateCustomerById: bp.Integration['actions']['updateCustomerById'] = async ({ ctx, client, input, logger }) => {
+export const updateCustomerById: bp.Integration['actions']['updateCustomerById'] = async ({
+  ctx,
+  client,
+  input,
+  logger,
+}) => {
   logger.forBot().info(`Updating customer by id: ${JSON.stringify(input)}`)
   return updateCustomer({ ctx, client, input, logger })
 }
-export const updateCustomerByEmail: bp.Integration['actions']['updateCustomerByEmail'] = async ({ ctx, client, input, logger }) => {
+export const updateCustomerByEmail: bp.Integration['actions']['updateCustomerByEmail'] = async ({
+  ctx,
+  client,
+  input,
+  logger,
+}) => {
   logger.forBot().info(`Updating customer by email: ${JSON.stringify(input)}`)
   return updateCustomer({ ctx, client, input, logger })
 }

@@ -14,21 +14,21 @@ export const getHelpdeskTeams = async ({
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   logger.forBot().info(`Odoo authentication cookie obtained successfully`)
 
-  const filters: any[] = [['active', '=', true]]
+  const filters: (string | boolean)[][] = [['active', '=', true]]
   const fields: string[] = ['name', 'id']
 
-  const rawOdooHelpdeskTeams = await executeOdooMethod({
+  const rawOdooHelpdeskTeams = (await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.team',
     method: 'search_read',
-    args: [filters, fields],
+    args: [filters, fields] as (string | number)[][],
     logger,
-  })
+  })) as Array<Record<string, string>>
 
-  const helpdeskTeams = rawOdooHelpdeskTeams.map((team: any) => ({
+  const helpdeskTeams = rawOdooHelpdeskTeams.map((team: Record<string, string>) => ({
     name: team.name as string,
-    id: team.id as number,
+    id: team.id as unknown as number,
   })) as Array<z.infer<typeof helpdeskTeamSchema>>
 
   return {
@@ -48,25 +48,25 @@ export const getStages = async ({
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
   const teamIds = input.teamIds
-  const filters: any[] = [['active', '=', true]]
+  const filters: (string | number | boolean)[][] = [['active', '=', true]]
   if (teamIds) {
-    filters.push(['team_ids', 'in', teamIds])
+    filters.push(['team_ids', 'in', teamIds] as (string | number)[])
   }
 
   const fields: string[] = ['name', 'id', 'team_ids']
 
-  const rawOdooStages = await executeOdooMethod({
+  const rawOdooStages = (await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.stage',
     method: 'search_read',
-    args: [filters, fields],
+    args: [filters, fields] as (string | number)[][],
     logger,
-  })
-  const stages = rawOdooStages.map((stage: any) => ({
+  })) as Array<Record<string, string | number>>
+  const stages = rawOdooStages.map((stage: Record<string, string | number>) => ({
     name: stage.name as string,
-    id: stage.id as number,
-    teamIds: stage.team_ids as number[],
+    id: stage.id as unknown as number,
+    teamIds: stage.team_ids as unknown as number[],
   })) as Array<z.infer<typeof stageSchema>>
 
   return {

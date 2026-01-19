@@ -23,5 +23,5 @@
     "noUnusedLocals": false,
     "baseUrl": "."
   },
-  "include": [".botpress/**/*", "src/**/*", "definitions/**/*", "*.ts", "*.json"],
+  "include": [".botpress/**/*", "src/**/*", "definitions/**/*", "*.ts", "*.json"]
 }

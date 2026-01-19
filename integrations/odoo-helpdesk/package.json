@@ -1,6 +1,5 @@
 {
   "name": "@bp-templates/empty-integration",
-  "integrationName": "erichuang/odoo-helpdesk-integration",
   "scripts": {
     "check:type": "tsc --noEmit",
     "build": "bp add -y && bp build",
