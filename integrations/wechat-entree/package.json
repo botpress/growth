@@ -1,0 +1,18 @@
+{
+  "name": "@bp-templates/empty-integration",
+  "integrationName": "aaabohan/wechat-entree",
+  "scripts": {
+    "check:type": "tsc --noEmit"
+  },
+  "private": true,
+  "dependencies": {
+    "@botpress/client": "1.27.1",
+    "@botpress/sdk": "4.21.0"
+  },
+  "devDependencies": {
+    "@botpress/cli": "4.27.4",
+    "@botpress/sdk": "4.21.0",
+    "@types/node": "^22.16.4",
+    "typescript": "^5.6.3"
+  }
+}
