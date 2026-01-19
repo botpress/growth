@@ -19,7 +19,7 @@ export const getStages: ActionDefinition = {
   description: 'Get all stages',
   input: {
     schema: z.object({
-      teamId: z.number().title('Team ID').describe('The id of the team to get the stages for'),
+      teamId: z.number().optional().title('Team ID').describe('The id of the team to get the stages for'),
     }),
   },
   output: {

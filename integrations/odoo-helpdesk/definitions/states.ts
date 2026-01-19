@@ -18,7 +18,7 @@ const customerIdMapping = {
   type: 'integration' as const,
   schema: z.object({
     customerIdMapping: z
-      .record(z.string(), z.string())
+      .record(z.string(), z.number())
       .title('Customer ID Mapping')
       .describe('Maps Botpress customer IDs to Odoo customer IDs'),
   }),

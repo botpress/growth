@@ -19,16 +19,14 @@ export const createCustomer: bp.Integration['actions']['createCustomer'] = async
     name,
   }
 
-  const odooIdResult = (await executeOdooMethod({
+  const odooId = (await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'res.partner',
     method: 'create',
     args: [customerPayload],
     logger,
-  })) as string | number
-
-  const odooId: number = typeof odooIdResult === 'number' ? odooIdResult : parseInt(odooIdResult as string, 10)
+  })) as number
 
   // Store the mapping of bp id to odoo id (as string for storage)
   const { state } = await client.getOrSetState({
@@ -39,7 +37,7 @@ export const createCustomer: bp.Integration['actions']['createCustomer'] = async
   })
 
   const mapping = state.payload?.customerIdMapping || {}
-  mapping[id] = odooId.toString()
+  mapping[id] = odooId
 
   await client.setState({
     type: 'integration',
@@ -59,7 +57,7 @@ const fetchCustomer = async ({
   logger,
 }: {
   ctx: bp.Context
-  input: { id?: string; odooId?: string; email?: string }
+  input: { id?: string; odooId?: number; email?: string }
   logger: bp.Logger
 }): Promise<Customer> => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
@@ -135,7 +133,7 @@ export const fetchCustomerByEmail: bp.Integration['actions']['fetchCustomerByEma
   logger,
 }) => {
   logger.forBot().info(`Fetching customer by email: ${JSON.stringify(input)}`)
-  const customer = await fetchCustomer({ ctx, input: { email: input.email }, logger })
+  const customer = await fetchCustomer({ ctx, input: { email: input.email, id: input.id }, logger })
   return { customer }
 }
 
@@ -147,13 +145,13 @@ const updateCustomer = async ({
 }: {
   ctx: bp.Context
   client: bp.Client
-  input: { id?: string; email?: string; name?: string; phone?: string }
+  input: { id?: string; email?: string; name?: string; phone?: string; odooId?: number }
   logger: bp.Logger
 }): Promise<{ success: boolean }> => {
   logger.forBot().info(`Updating customer: ${JSON.stringify(input)}`)
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
-  let odooId: string
+  let odooId: number = input.odooId || 0
   let currentCustomer: Customer
 
   // Determine odoo id based on input
@@ -174,14 +172,15 @@ const updateCustomer = async ({
     }
 
     odooId = mappedOdooId
-    currentCustomer = await fetchCustomer({ ctx, input: { id: input.id, odooId }, logger })
+  } else if (input.odooId) {
+    odooId = input.odooId
   } else if (input.email) {
     currentCustomer = await fetchCustomer({ ctx, input: { email: input.email }, logger })
     const customerOdooId = currentCustomer.odooId
     if (customerOdooId === undefined) {
       throw new RuntimeError('Customer not found or missing Odoo ID')
     }
-    odooId = customerOdooId.toString()
+    odooId = customerOdooId
   } else {
     throw new RuntimeError('Must provide an id or email to update a customer')
   }
@@ -203,15 +202,13 @@ const updateCustomer = async ({
     throw new RuntimeError('No fields provided to update')
   }
 
-  const odooIdNumber = parseInt(odooId, 10)
-
   return {
     success: (await executeOdooMethod({
       odooApiUrl: ctx.configuration.odooApiUrl,
       cookie,
       model: 'res.partner',
       method: 'write',
-      args: [[odooIdNumber], customerPayload] as unknown as (number | Record<string, string>)[],
+      args: [[odooId], customerPayload] as unknown as (number | Record<string, string>)[],
       logger,
     })) as boolean,
   }
@@ -224,6 +221,15 @@ export const updateCustomerById: bp.Integration['actions']['updateCustomerById']
   logger,
 }) => {
   logger.forBot().info(`Updating customer by id: ${JSON.stringify(input)}`)
+  return updateCustomer({ ctx, client, input, logger })
+}
+export const updateCustomerByOdooId: bp.Integration['actions']['updateCustomerByOdooId'] = async ({
+  ctx,
+  client,
+  input,
+  logger,
+}) => {
+  logger.forBot().info(`Updating customer by odoo id: ${JSON.stringify(input)}`)
   return updateCustomer({ ctx, client, input, logger })
 }
 export const updateCustomerByEmail: bp.Integration['actions']['updateCustomerByEmail'] = async ({

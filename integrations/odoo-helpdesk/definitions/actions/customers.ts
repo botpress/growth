@@ -39,8 +39,8 @@ export const fetchCustomerByOdooId: ActionDefinition = {
   description: 'Fetch a customer by odoo id',
   input: {
     schema: z.object({
-      id: z.string().title('ID').describe('The id of the customer to fetch'),
-      odooId: z.string().title('Odoo ID').describe('The odoo id of the customer to fetch'),
+      odooId: z.number().title('Odoo ID').describe('The odoo id of the customer to fetch'),
+      id: z.string().title('ID').describe('The id of the customer to fetch. If provided, the returned customer will have this id.').optional(),
     }),
   },
   output: {
@@ -56,6 +56,7 @@ export const fetchCustomerByEmail: ActionDefinition = {
   input: {
     schema: z.object({
       email: z.string().title('Email').describe('The email of the customer to fetch'),
+      id: z.string().title('ID').describe('The id of the customer to fetch. If provided, the returned customer will have this id.').optional(),
     }),
   },
   output: {
@@ -79,7 +80,24 @@ export const updateCustomerById: ActionDefinition = {
   output: {
     schema: z.object({
       success: z.boolean().title('Success').describe('The success of the update'),
-      error: z.string().title('Error').describe('The error message if the update failed').optional(),
+    }),
+  },
+}
+
+export const updateCustomerByOdooId: ActionDefinition = {
+  title: 'Update Customer By Odoo ID',
+  description: 'Update a customer by odoo id',
+  input: {
+    schema: z.object({
+      odooId: z.number().title('Odoo ID').describe('The odoo id of the customer to update'),
+      email: z.string().title('Email').describe('The new email of the customer').optional(),
+      name: z.string().title('Name').describe('The new name of the customer').optional(),
+      phone: z.string().title('Phone').describe('The new phone of the customer').optional(),
+    }),
+  },
+  output: {
+    schema: z.object({
+      success: z.boolean().title('Success').describe('The success of the update'),
     }),
   },
 }
@@ -97,7 +115,6 @@ export const updateCustomerByEmail: ActionDefinition = {
   output: {
     schema: z.object({
       success: z.boolean().title('Success').describe('The success of the update'),
-      error: z.string().title('Error').describe('The error message if the update failed').optional(),
     }),
   },
 }
@@ -108,5 +125,6 @@ export const actions = {
   fetchCustomerByEmail,
   fetchCustomerByOdooId,
   updateCustomerById,
+  updateCustomerByOdooId,
   updateCustomerByEmail,
 } as const

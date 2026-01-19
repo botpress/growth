@@ -1,7 +1,7 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/client'
 import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
-import { Priority, Ticket, TicketPayload, TicketResponse } from 'definitions/schemas'
+import { Ticket, TicketPayload, TicketResponse } from 'definitions/schemas'
 
 // Common fields to fetch from Odoo (id is automatically included by Odoo's read method)
 const TICKET_FIELDS = ['id', 'name', 'description', 'team_id', 'priority', 'stage_id', 'partner_id'] as const
@@ -153,7 +153,7 @@ export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({
   if (priority !== undefined) updatePayload.priority = priority
 
   // Only update if there are fields to update
-  if (Object.keys(updatePayload).length === 0) return { success: true }
+  if (Object.keys(updatePayload).length === 0) throw new RuntimeError('No fields provided to update a ticket.')
 
   logger.forBot().info(`Updating ticket ${ticketId} with payload: ${JSON.stringify(updatePayload)}`)
 

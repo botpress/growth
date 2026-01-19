@@ -33,7 +33,7 @@ export const getStages: bp.Integration['actions']['getStages'] = async ({ ctx, c
 
   if (input && input.teamId) {
     stages = state.payload.helpdeskIntegrationInfo.stages.filter((stage) =>
-      stage.teamIds.includes(input.teamId)
+      stage.teamIds.includes(input.teamId as number)
     ) as Array<z.infer<typeof stageSchema>>
     logger.forBot().info(`Filtered stages: ${JSON.stringify(stages)}`)
   }

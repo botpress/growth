@@ -48,7 +48,7 @@ export const getAuthenticatedCookie = async ({
 
   // Return cached cookie if it exists
   if (cookieCache.has(cacheKey)) {
-    logger.forBot().info(`Returning cached Odoo authentication cookie for: ${cacheKey}`)
+    logger.forBot().debug(`Returning cached Odoo authentication cookie for: ${cacheKey}`)
     return cookieCache.get(cacheKey)!
   }
 
@@ -72,8 +72,6 @@ export const getAuthenticatedCookie = async ({
     }
   )) as AxiosResponse<{ result: { uid: number }; error?: { message: string } }>
 
-  logger.forBot().info(`Authentication response: ${JSON.stringify(response.data)}`)
-
   // Check for errors first
   if (response.data?.error) {
     logger.forBot().error(`Authentication error: ${JSON.stringify(response.data.error)}`)
@@ -96,8 +94,6 @@ export const getAuthenticatedCookie = async ({
 
   // Cache the cookie
   cookieCache.set(cacheKey, cookie)
-
-  logger.forBot().info(`Odoo authentication cookie cached for: ${cacheKey}`)
 
   return cookie
 }
@@ -124,11 +120,7 @@ export const executeOdooMethod = async ({
   kwargs?: Record<string, string | number>
   logger: bp.Logger
 }): Promise<Array<Record<string, any>> | number | boolean | string> => {
-  logger
-    .forBot()
-    .info(
-      `Executing Odoo method: ${method} on model: ${model} with args: ${JSON.stringify(args)} and kwargs: ${JSON.stringify(kwargs)}`
-    )
+  logger.forBot().info(`Executing Odoo method: ${method} on model: ${model}`)
 
   const url = `${odooApiUrl}/web/dataset/call_kw`
   const body = {
@@ -144,21 +136,13 @@ export const executeOdooMethod = async ({
     'Content-Type': 'application/json',
     Cookie: cookie,
   }
-  logger
-    .forBot()
-    .info(
-      `Odoo method: ${method} on model: ${model} executing with URL: ${url} and body: ${JSON.stringify(body)} and headers: ${JSON.stringify(headers)}`
-    )
-  const response = await axios.post(url, body, { headers })
 
-  logger.forBot().info(`Odoo Request response data: ${JSON.stringify(response.data)}`)
+  const response = await axios.post(url, body, { headers })
 
   if (response.data.error) {
     logger.forBot().error(`Odoo API error: ${JSON.stringify(response.data.error)}`)
     throw new Error(`Odoo API error: ${JSON.stringify(response.data.error)}`)
   }
-
-  logger.forBot().info(`Odoo Request response data result: ${JSON.stringify(response.data.result)}`)
 
   return response.data.result
 }
