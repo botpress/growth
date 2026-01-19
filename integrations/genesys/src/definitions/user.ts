@@ -14,5 +14,9 @@ export const user = {
       title: 'Genesys Conversation ID',
       description: 'The Genesys conversation ID associated with this user.',
     },
+    genesysAgentId: {
+      title: 'Genesys Agent ID',
+      description: 'The Genesys agent ID for agents responding to customers.',
+    },
   },
 } satisfies IntegrationDefinitionProps['user']

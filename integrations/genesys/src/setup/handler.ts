@@ -25,12 +25,24 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, cli
 
   const message = validationResult.data
 
-  // Only process inbound messages from users (not outbound bot messages)
-  if (message.direction === 'Outbound') {
-    logger.forBot().debug('Skipping outbound message')
-    return { status: 200 }
+  // Handle both Inbound (user messages) and Outbound (agent messages)
+  const isInbound = message.direction === 'Inbound'
+  const isOutbound = message.direction === 'Outbound'
+
+  if (isInbound) {
+    await handleUserMessage(message, client, logger)
+  } else if (isOutbound) {
+    await handleAgentMessage(message, client, logger)
   }
 
+  return { status: 200 }
+}
+
+async function handleUserMessage(
+  message: { channel: { from: { id: string; nickname?: string } }; text?: string },
+  client: bp.Client,
+  logger: bp.Logger
+) {
   const externalUserId = message.channel.from.id
   const text = message.text || ''
   const nickname = message.channel.from.nickname
@@ -38,10 +50,10 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, cli
   logger
     .forBot()
     .info(
-      `Handler: Processing Genesys message from user: ${externalUserId}, nickname: ${nickname || 'N/A'}, text: "${text}"`
+      `Handler: Processing Genesys user message from: ${externalUserId}, nickname: ${nickname || 'N/A'}, text: "${text}"`
     )
 
-  // Get or create the user first
+  // Get or create the user
   const { user } = await client.getOrCreateUser({
     tags: {
       id: externalUserId,
@@ -90,7 +102,55 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, cli
     payload: { text },
   })
 
-  logger.forBot().info('Successfully created message in Botpress')
+  logger.forBot().info('Successfully created user message in Botpress')
+}
 
-  return { status: 200 }
+async function handleAgentMessage(
+  message: { channel: { from: { id: string; nickname?: string } }; text?: string },
+  client: bp.Client,
+  logger: bp.Logger
+) {
+  const externalUserId = message.channel.from.id
+  const text = message.text || ''
+  const nickname = message.channel.from.nickname
+
+  logger
+    .forBot()
+    .info(
+      `Handler: Processing Genesys agent message from: ${externalUserId}, nickname: ${nickname || 'N/A'}, text: "${text}"`
+    )
+
+  // Find the existing HITL conversation for this user
+  const hitlConv = await findHitlConversation(client, externalUserId, logger)
+  if (!hitlConv) return
+
+  // Create or get agent user
+  const { user: agentUser } = await client.getOrCreateUser({
+    tags: { genesysAgentId: externalUserId },
+    name: nickname || 'Genesys Agent',
+  })
+
+  logger.forBot().info(`Got/Created agent user with ID: ${agentUser.id}`)
+
+  // Create the message in Botpress HITL conversation
+  await client.createMessage({
+    tags: {},
+    type: 'text',
+    userId: agentUser.id,
+    conversationId: hitlConv.id,
+    payload: { text },
+  })
+
+  logger.forBot().info('Successfully created agent message in Botpress')
+}
+
+async function findHitlConversation(client: bp.Client, externalUserId: string, logger: bp.Logger) {
+  const { conversations } = await client.listConversations({
+    tags: { id: externalUserId },
+  })
+  const hitlConv = conversations.find((c) => c.channel === 'hitl' && c.tags?.userId)
+  if (!hitlConv) {
+    logger.forBot().error(`No HITL conversation found for user ${externalUserId}`)
+  }
+  return hitlConv
 }
