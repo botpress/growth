@@ -1,20 +1,17 @@
 import { z, ActionDefinition } from '@botpress/sdk'
-import { customerSchema } from 'definitions/schemas'
+import { customerSchema, createCustomerPayloadSchema, createCustomerResultSchema } from 'definitions/schemas'
 
 export const createCustomer: ActionDefinition = {
   title: 'Create Customer',
   description: 'Create a new customer',
   input: {
-    schema: z.object({
+    schema: createCustomerPayloadSchema.extend({
       id: z.string().title('ID').describe('The id of the customer'),
-      email: z.string().title('Email').describe('The email of the customer'),
-      name: z.string().title('Name').describe('The name of the customer'),
-      phone: z.string().title('Phone').describe('The phone of the customer').optional(),
     }),
   },
   output: {
     schema: z.object({
-      odooId: z.number().title('Odoo ID').describe('The odoo id of the created customer'),
+      odooId: createCustomerResultSchema
     }),
   },
 }

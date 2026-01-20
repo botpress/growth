@@ -1,17 +1,17 @@
 import { z } from '@botpress/sdk'
 
 export const customerSchema = z.object({
+  email: z.string().describe('The email of the customer'),
   id: z.string().describe('The id of the customer').optional(),
   odooId: z.number().describe('The Odoo ID of the customer').optional(),
-  email: z.string().describe('The email of the customer'),
   name: z.string().describe('The name of the customer').optional(),
   phone: z.string().describe('The phone of the customer').optional(),
 })
 
 export const createCustomerPayloadSchema = z.object({
   email: z.string().describe('The email of the customer'),
-  phone: z.string().describe('The phone of the customer').optional(),
-  name: z.string().describe('The name of the customer').optional(),
+  name: z.string().min(1).describe('The name of the customer').optional(),
+  phone: z.string().min(1).describe('The phone of the customer').optional(),
 })
 export const createCustomerResultSchema = z.number().describe('The Odoo ID of the created customer')
 
