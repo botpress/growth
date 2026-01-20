@@ -17,10 +17,24 @@ async function uploadMedia(
   }
 
   const mediaBuffer = await mediaResponse.arrayBuffer()
-  const mediaBlob = new Blob([mediaBuffer])
+  const contentTypeHeader = mediaResponse.headers.get('content-type')
+  const contentType = typeof contentTypeHeader === 'string' ? contentTypeHeader : ''
+  const mediaBlob = new Blob([mediaBuffer], contentType ? { type: contentType } : undefined)
+
+  const extensionByContentType: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/gif': 'gif',
+    'image/webp': 'webp',
+    'image/bmp': 'bmp',
+  }
+
+  const baseContentType = (contentType.split(';')[0] || '').trim()
+  const fileExtension = extensionByContentType[baseContentType] || 'jpg'
 
   const formData = new FormData()
-  formData.append('media', mediaBlob, 'media')
+  formData.append('media', mediaBlob, `media.${fileExtension}`)
 
   const uploadUrl = `${WECHAT_API_BASE}/media/upload?access_token=${accessToken}&type=${mediaType}`
   const uploadResponse = await fetch(uploadUrl, {
