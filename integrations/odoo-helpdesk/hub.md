@@ -33,7 +33,7 @@ Create a new customer in Odoo with their contact information.
 - `id` (required): A unique identifier for the customer in your Botpress system
 - `email` (required): The customer's email address
 - `name` (required): The customer's name
-- `phone` (required): The customer's phone number
+- `phone` (optional): The customer's phone number
 
 **Output:**
 
@@ -101,7 +101,21 @@ Update an existing customer's information using their Botpress ID.
 **Output:**
 
 - `success`: Boolean indicating if the update was successful
-- `error`: Error message if the update failed
+
+#### Update Customer By Odoo ID
+
+Update an existing customer's information using their Odoo ID directly.
+
+**Input:**
+
+- `odooId` (required): The Odoo customer ID
+- `email` (optional): New email address
+- `name` (optional): New name
+- `phone` (optional): New phone number
+
+**Output:**
+
+- `success`: Boolean indicating if the update was successful
 
 #### Update Customer By Email
 
@@ -116,7 +130,6 @@ Update an existing customer's information using their email address.
 **Output:**
 
 - `success`: Boolean indicating if the update was successful
-- `error`: Error message if the update failed
 
 ### Ticket Management
 
@@ -131,7 +144,7 @@ Create a new helpdesk ticket in Odoo.
 - `teamId` (required): The ID of the helpdesk team to assign the ticket to (minimum: 1)
 - `customerOdooId` (required): The Odoo ID of the customer associated with the ticket
 - `priority` (optional): Priority level - `"0"` (lowest), `"1"`, `"2"`, or `"3"` (highest)
-- `stageId` (required): The ID of the initial ticket stage
+- `stageId` (optional): The ID of the initial ticket stage
 
 **Output:**
 
@@ -149,6 +162,8 @@ Create a new helpdesk ticket in Odoo.
   "stageId": 1
 }
 ```
+
+Note: `stageId` is optional. If not provided, Odoo will use the default stage for the team.
 
 #### Fetch Ticket By ID
 
@@ -169,6 +184,8 @@ Retrieve all tickets associated with a customer using their Odoo ID.
 **Input:**
 
 - `customerOdooId` (required): The Odoo customer ID
+- `page` (optional): The page number to fetch (default: 1)
+- `pageSize` (optional): The number of tickets per page (default: 100)
 
 **Output:**
 
@@ -181,6 +198,8 @@ Retrieve all tickets associated with a customer using their email address.
 **Input:**
 
 - `customerEmail` (required): The customer's email address
+- `page` (optional): The page number to fetch (default: 1)
+- `pageSize` (optional): The number of tickets per page (default: 100)
 
 **Output:**
 
@@ -245,11 +264,12 @@ Retrieve all ticket stages. Optionally filter by team ID to get stages for a spe
 
 ## Changelog
 
-### Version 0.1.43
+### Version 1.0.0
 
 - Initial release of Odoo Helpdesk integration
-- Customer management actions (create, fetch, update)
-- Ticket management actions (create, fetch, update)
-- Helpdesk configuration actions (teams, stages)
+- Customer management actions (create, fetch by ID/Odoo ID/email, update by ID/Odoo ID/email)
+- Ticket management actions (create, fetch by ID/customer ID/customer email, update)
+- Helpdesk configuration actions (get teams, get stages)
 - Automatic ID mapping between Botpress and Odoo
 - Cookie-based authentication with caching
+- Pagination support for fetching tickets by customer

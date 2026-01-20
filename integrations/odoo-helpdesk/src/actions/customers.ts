@@ -1,7 +1,21 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/client'
 import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
-import { Customer } from 'definitions/schemas'
+import {
+  customerSchema,
+  createCustomerResultSchema,
+  fetchCustomerResultSchema,
+  updateCustomerPayloadSchema,
+  Customer,
+  CreateCustomerPayload,
+  CreateCustomerResult,
+  FetchCustomerResult,
+  UpdateCustomerPayload,
+  OdooRequestFilters,
+  OdooRequestFields,
+  OdooRequestArgs,
+} from 'definitions/schemas'
+import { z } from '@botpress/sdk'
 
 export const createCustomer: bp.Integration['actions']['createCustomer'] = async ({
   ctx,
@@ -9,24 +23,25 @@ export const createCustomer: bp.Integration['actions']['createCustomer'] = async
   input: { id, email, name, phone },
   logger,
 }) => {
-  logger.forBot().info(`Creating customer: ${JSON.stringify({ id, email, name, phone })}`)
+  logger.forBot().debug(`Creating customer: ${JSON.stringify({ id, email, name, phone })}`)
 
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
-  const customerPayload: Record<string, string> = {
+  const customerPayload: CreateCustomerPayload = {
     email,
     phone,
     name,
   }
 
-  const odooId = (await executeOdooMethod({
+  const odooId: CreateCustomerResult = await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'res.partner',
     method: 'create',
     args: [customerPayload],
+    schema: createCustomerResultSchema,
     logger,
-  })) as number
+  })
 
   // Store the mapping of bp id to odoo id (as string for storage)
   const { state } = await client.getOrSetState({
@@ -46,9 +61,7 @@ export const createCustomer: bp.Integration['actions']['createCustomer'] = async
     payload: { customerIdMapping: mapping },
   })
 
-  return {
-    odooId,
-  }
+  return { odooId }
 }
 
 const fetchCustomer = async ({
@@ -59,45 +72,41 @@ const fetchCustomer = async ({
   ctx: bp.Context
   input: { id?: string; odooId?: number; email?: string }
   logger: bp.Logger
-}): Promise<Customer> => {
+}): Promise<{ customer: Customer }> => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-  const fields = ['id', 'email', 'name', 'phone']
-  const filters: (string | number)[][] = odooId ? [['id', '=', odooId]] : email ? [['email', '=', email]] : []
+  const filters: OdooRequestFilters = odooId ? [['id', '=', odooId]] : email ? [['email', '=', email]] : []
+  const fields: OdooRequestFields = ['id', 'email', 'name', 'phone']
+  const args: OdooRequestArgs = [filters, fields]
 
-  let rawCustomer: Array<Record<string, string>> = (await executeOdooMethod({
+  let rawCustomer: FetchCustomerResult = await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'res.partner',
     method: 'search_read',
-    args: [filters, fields] as (string | number)[][],
+    args,
     logger,
-  })) as Array<Record<string, string>>
+    schema: fetchCustomerResultSchema,
+  })
 
-  if (rawCustomer.length === 0 || !rawCustomer[0]) throw new RuntimeError('Customer not found')
-
+  if (rawCustomer.length === 0 || rawCustomer[0]?.id === undefined) throw new RuntimeError('Customer not found')
   if (rawCustomer.length > 1) throw new RuntimeError('Multiple customers found for the same id')
 
-  const customerData = rawCustomer[0]
+  const customer: Customer = customerSchema.parse({
+    id,
+    odooId: rawCustomer[0].id,
+    email: rawCustomer[0].email,
+    name: rawCustomer[0].name,
+    phone: rawCustomer[0].phone,
+  })
 
-  const customer: Customer = {
-    odooId: customerData.id as unknown as number,
-    email: customerData.email as string,
-    name: customerData.name as string,
-    phone: customerData.phone as string,
-  }
-
-  if (id) {
-    customer.id = id
-  }
-
-  return customer
+  return { customer }
 }
 export const fetchCustomerById: bp.Integration['actions']['fetchCustomerById'] = async ({
   ctx,
   client,
   input,
   logger,
-}) => {
+}): Promise<{ customer: Customer }> => {
   logger.forBot().info(`Fetching customer by id: ${JSON.stringify(input)}`)
 
   // Look up the odoo id from the bp id mapping
@@ -111,30 +120,24 @@ export const fetchCustomerById: bp.Integration['actions']['fetchCustomerById'] =
   const mapping = state.payload?.customerIdMapping || {}
   const odooId = mapping[input.id]
 
-  if (!odooId) {
-    throw new RuntimeError(`No Odoo ID found for customer ID: ${input.id}`)
-  }
-
-  const customer = await fetchCustomer({ ctx, input: { id: input.id, odooId }, logger })
-  return { customer }
+  if (!odooId) throw new RuntimeError(`No Odoo ID found for customer ID: ${input.id}`)
+  return fetchCustomer({ ctx, input: { id: input.id, odooId }, logger })
 }
 export const fetchCustomerByOdooId: bp.Integration['actions']['fetchCustomerByOdooId'] = async ({
   ctx,
   input,
   logger,
-}) => {
+}): Promise<{ customer: Customer }> => {
   logger.forBot().info(`Fetching customer by odoo id: ${JSON.stringify(input)}`)
-  const customer = await fetchCustomer({ ctx, input: { id: input.id, odooId: input.odooId }, logger })
-  return { customer }
+  return fetchCustomer({ ctx, input: { id: input.id, odooId: input.odooId }, logger })
 }
 export const fetchCustomerByEmail: bp.Integration['actions']['fetchCustomerByEmail'] = async ({
   ctx,
   input,
   logger,
-}) => {
+}): Promise<{ customer: Customer }> => {
   logger.forBot().info(`Fetching customer by email: ${JSON.stringify(input)}`)
-  const customer = await fetchCustomer({ ctx, input: { email: input.email, id: input.id }, logger })
-  return { customer }
+  return fetchCustomer({ ctx, input: { email: input.email, id: input.id }, logger })
 }
 
 const updateCustomer = async ({
@@ -167,53 +170,39 @@ const updateCustomer = async ({
     const mapping = state.payload?.customerIdMapping || {}
     const mappedOdooId = mapping[input.id]
 
-    if (!mappedOdooId) {
-      throw new RuntimeError(`No Odoo ID found for customer ID: ${input.id}`)
-    }
+    if (!mappedOdooId) throw new RuntimeError(`No Odoo ID found for customer ID: ${input.id}`)
 
     odooId = mappedOdooId
   } else if (input.odooId) {
     odooId = input.odooId
   } else if (input.email) {
-    currentCustomer = await fetchCustomer({ ctx, input: { email: input.email }, logger })
-    const customerOdooId = currentCustomer.odooId
-    if (customerOdooId === undefined) {
-      throw new RuntimeError('Customer not found or missing Odoo ID')
-    }
-    odooId = customerOdooId
+    currentCustomer = (await fetchCustomer({ ctx, input: { email: input.email }, logger })).customer
+    if (currentCustomer.odooId === undefined) throw new RuntimeError('Customer not found or missing Odoo ID')
+    odooId = currentCustomer.odooId
   } else {
     throw new RuntimeError('Must provide an id or email to update a customer')
   }
 
   // Build the update payload with only the fields that are provided
-  const customerPayload: Record<string, string> = {}
-  if (input.email !== undefined) {
-    customerPayload.email = input.email
-  }
-  if (input.name !== undefined) {
-    customerPayload.name = input.name
-  }
-  if (input.phone !== undefined) {
-    customerPayload.phone = input.phone
-  }
+  const customerPayload: UpdateCustomerPayload = updateCustomerPayloadSchema.parse(input)
 
   // If no fields to update, return early
   if (Object.keys(customerPayload).length === 0) {
     throw new RuntimeError('No fields provided to update')
   }
 
-  return {
-    success: (await executeOdooMethod({
-      odooApiUrl: ctx.configuration.odooApiUrl,
-      cookie,
-      model: 'res.partner',
-      method: 'write',
-      args: [[odooId], customerPayload] as unknown as (number | Record<string, string>)[],
-      logger,
-    })) as boolean,
-  }
-}
+  const success: boolean = await executeOdooMethod({
+    odooApiUrl: ctx.configuration.odooApiUrl,
+    cookie,
+    model: 'res.partner',
+    method: 'write',
+    args: [[odooId], customerPayload],
+    logger,
+    schema: z.boolean(),
+  })
 
+  return { success }
+}
 export const updateCustomerById: bp.Integration['actions']['updateCustomerById'] = async ({
   ctx,
   client,

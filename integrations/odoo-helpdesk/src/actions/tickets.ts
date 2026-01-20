@@ -1,28 +1,47 @@
+import { z } from '@botpress/sdk'
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/client'
 import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
-import { Ticket, TicketPayload, TicketResponse } from 'definitions/schemas'
-
-// Common fields to fetch from Odoo (id is automatically included by Odoo's read method)
-const TICKET_FIELDS = ['id', 'name', 'description', 'team_id', 'priority', 'stage_id', 'partner_id'] as const
+import {
+  createTicketResultSchema,
+  createTicketPayloadSchema,
+  fetchTicketResultsSchema,
+  Ticket,
+  CreateTicketPayload,
+  FetchTicketResult,
+  FetchTicketResults,
+  UpdateTicketPayload,
+  CreateTicketResult,
+  OdooRequestArgs,
+  OdooRequestFilters,
+  OdooRequestFields,
+  OdooRequestKwargs,
+  OdooRequestMethod,
+  OdooResponseObject,
+} from 'definitions/schemas'
 
 /**
  * Maps Odoo TicketResponse to our Ticket schema
  * Odoo returns relational fields as tuples [id, name], so we extract just the ID
+ * Some fields can be false when not set (e.g., partner_id, stage_id)
  */
-const mapTicketResponseToTicket = (response: TicketResponse): Ticket => ({
-  id: response.id,
-  customerOdooId: Array.isArray(response.partner_id) ? response.partner_id[0] : response.partner_id,
-  name: response.name,
-  description: response.description,
-  teamId: Array.isArray(response.team_id) ? response.team_id[0] : response.team_id,
-  priority: response.priority !== undefined && response.priority !== null ? String(response.priority) : undefined,
-  stageId: response.stage_id
-    ? Array.isArray(response.stage_id)
-      ? response.stage_id[0]
-      : response.stage_id
-    : undefined,
-})
+const mapTicketResponseToTicket = (response: FetchTicketResult): Ticket => {
+  const extractId = (field: OdooResponseObject) => {
+    return Array.isArray(field) && field.length > 0 ? field[0] : undefined
+  }
+
+  const customerOdooId = extractId(response.partner_id)
+  const stageId = extractId(response.stage_id)
+  return {
+    id: response.id,
+    customerOdooId,
+    name: response.name,
+    description: response.description,
+    teamId: response.team_id[0],
+    priority: response.priority === false ? '0' : String(response.priority),
+    stageId,
+  }
+}
 
 export const createTicket: bp.Integration['actions']['createTicket'] = async ({
   ctx,
@@ -31,107 +50,142 @@ export const createTicket: bp.Integration['actions']['createTicket'] = async ({
 }) => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
-  const ticketPayload: TicketPayload = {
+  const ticketPayload: CreateTicketPayload = createTicketPayloadSchema.parse({
     name,
     description,
     team_id: teamId,
-    ...(priority !== undefined ? { priority: String(priority) } : {}),
     partner_id: customerOdooId,
+    ...(priority !== undefined ? { priority: String(priority) } : {}),
     ...(stageId ? { stage_id: stageId } : {}),
-  }
+  })
 
-  const ticketId = (await executeOdooMethod({
+  const ticketId: CreateTicketResult = await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.ticket',
     method: 'create',
-    args: [ticketPayload] as unknown as Record<string, string>[],
+    args: [ticketPayload],
+    schema: createTicketResultSchema,
     logger,
-  })) as TicketResponse['id']
+  })
 
   // Fetch the created ticket to return complete data
-  const ticketResponses = (await executeOdooMethod({
-    odooApiUrl: ctx.configuration.odooApiUrl,
-    cookie,
-    model: 'helpdesk.ticket',
+  const { tickets }: { tickets: FetchTicketResults } = await fetchRawTickets({
+    ctx,
     method: 'read',
-    args: [[ticketId], [...TICKET_FIELDS]],
+    filters: [ticketId],
     logger,
-  })) as Array<TicketResponse>
+  })
 
-  const ticketResponse = ticketResponses[0]
-  if (!ticketResponse) {
-    throw new RuntimeError('Failed to fetch created ticket')
-  }
+  if (tickets.length !== 1) throw new RuntimeError('Failed to fetch created ticket')
+
+  const ticketResult = tickets[0]
+  if (ticketResult === undefined || ticketResult === null || ticketResult.id === undefined || isNaN(ticketResult.id))
+    throw new RuntimeError('Invalid ticket result')
 
   return {
-    ticketId: mapTicketResponseToTicket(ticketResponse).id,
+    ticketId: ticketResult.id,
   }
 }
 
-export const fetchTicketById: bp.Integration['actions']['fetchTicketById'] = async ({ ctx, input: { id }, logger }) => {
+const fetchRawTickets = async ({
+  ctx,
+  method,
+  filters,
+  pageSize = 100,
+  page = 1,
+  logger,
+}: {
+  ctx: bp.Context
+  method: OdooRequestMethod
+  filters: OdooRequestFilters
+  pageSize?: number
+  page?: number
+  logger: bp.Logger
+}): Promise<{ tickets: FetchTicketResults }> => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-
-  const ticketResponses = (await executeOdooMethod({
+  const fields: OdooRequestFields = ['id', 'name', 'description', 'team_id', 'priority', 'stage_id', 'partner_id']
+  const args: OdooRequestArgs = [filters, fields]
+  const kwargs: OdooRequestKwargs =
+    method === 'search_read'
+      ? {
+          limit: pageSize,
+          offset: (page - 1) * pageSize,
+          order: 'create_date DESC',
+        }
+      : {}
+  const schema = fetchTicketResultsSchema
+  logger.forBot().info(`Fetching tickets ${JSON.stringify({ method, args, kwargs, pageSize, page })}`)
+  const tickets: FetchTicketResults = await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.ticket',
-    method: 'read',
-    args: [[id], [...TICKET_FIELDS]],
+    method,
+    args,
+    kwargs,
+    schema,
     logger,
-  })) as Array<TicketResponse>
+  })
+  logger.forBot().info(`Fetched tickets: ${JSON.stringify(tickets)}`)
+  return { tickets }
+}
 
-  if (ticketResponses.length === 0) throw new RuntimeError(`Ticket with id ${id} not found`)
-  if (ticketResponses.length > 1) throw new RuntimeError(`Multiple tickets found for id ${id}`)
+export const fetchTicketById: bp.Integration['actions']['fetchTicketById'] = async ({ ctx, input: { id }, logger }) => {
+  const { tickets } = await fetchRawTickets({
+    ctx,
+    method: 'read',
+    filters: [id],
+    logger,
+  })
+
+  logger.forBot().info(`Fetched tickets: ${JSON.stringify(tickets)}`)
+
+  if (tickets.length === 0) throw new RuntimeError(`Ticket with id ${id} not found`)
+  if (tickets.length > 1) throw new RuntimeError(`Multiple tickets found for id ${id}`)
 
   // We've already validated length > 0, so this is safe
-  const ticketResponse = ticketResponses[0]!
+  const ticketResult = tickets[0]
+  if (ticketResult === undefined || ticketResult === null || ticketResult.id === undefined || ticketResult.id === null)
+    throw new RuntimeError('Invalid ticket result')
+
   return {
-    ticket: mapTicketResponseToTicket(ticketResponse),
+    ticket: mapTicketResponseToTicket(ticketResult),
   }
 }
 
 export const fetchTicketsByCustomerId: bp.Integration['actions']['fetchTicketsByCustomerId'] = async ({
   ctx,
-  input: { customerOdooId },
+  input: { customerOdooId, page, pageSize },
   logger,
 }) => {
-  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-  const filters: (string | number)[][] = [['partner_id', '=', customerOdooId]]
-
-  const ticketResponses = (await executeOdooMethod({
-    odooApiUrl: ctx.configuration.odooApiUrl,
-    cookie,
-    model: 'helpdesk.ticket',
+  const { tickets }: { tickets: FetchTicketResults } = await fetchRawTickets({
+    ctx,
     method: 'search_read',
-    args: [filters, [...TICKET_FIELDS]] as (string | number)[][],
+    filters: [['partner_id', '=', customerOdooId]],
+    pageSize,
+    page,
     logger,
-  })) as Array<TicketResponse>
-
+  })
   return {
-    tickets: ticketResponses.map(mapTicketResponseToTicket),
+    tickets: tickets.map(mapTicketResponseToTicket),
   }
 }
 
 export const fetchTicketsByCustomerEmail: bp.Integration['actions']['fetchTicketsByCustomerEmail'] = async ({
   ctx,
-  input: { customerEmail },
+  input: { customerEmail, page, pageSize },
   logger,
 }) => {
-  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-  const filters: (string | number | boolean)[][] = [['partner_id.email', '=', customerEmail]]
-
-  const ticketResponses = (await executeOdooMethod({
-    odooApiUrl: ctx.configuration.odooApiUrl,
-    cookie,
-    model: 'helpdesk.ticket',
+  const { tickets }: { tickets: FetchTicketResults } = await fetchRawTickets({
+    ctx,
     method: 'search_read',
-    args: [filters, [...TICKET_FIELDS]] as (string | number)[][],
+    filters: [['partner_id.email', '=', customerEmail]],
+    pageSize,
+    page,
     logger,
-  })) as Array<TicketResponse>
-
+  })
   return {
-    tickets: ticketResponses.map(mapTicketResponseToTicket),
+    tickets: tickets.map(mapTicketResponseToTicket),
   }
 }
 
@@ -144,7 +198,7 @@ export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({
 
   // Build update payload with only provided fields (Odoo's write only updates provided fields)
   // Fields with .optional() will be undefined when not provided by the user
-  const updatePayload: Partial<TicketPayload> = {}
+  const updatePayload: Partial<UpdateTicketPayload> = {}
 
   if (name !== undefined) updatePayload.name = name
   if (description !== undefined) updatePayload.description = description
@@ -157,14 +211,15 @@ export const updateTicket: bp.Integration['actions']['updateTicket'] = async ({
 
   logger.forBot().info(`Updating ticket ${ticketId} with payload: ${JSON.stringify(updatePayload)}`)
 
-  const success = (await executeOdooMethod({
+  const success: boolean = await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.ticket',
     method: 'write',
-    args: [[ticketId], updatePayload] as unknown as (number | Record<string, string>)[],
+    args: [[ticketId], updatePayload],
     logger,
-  })) as boolean
+    schema: z.boolean(),
+  })
 
   return { success }
 }

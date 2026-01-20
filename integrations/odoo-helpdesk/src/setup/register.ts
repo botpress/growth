@@ -13,7 +13,7 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, client, l
     logger.forBot().info(`Odoo ticket stages retrieved: count=${stages.length}`)
 
     // Store ticket stages in integration state
-    await client.getOrSetState({
+    await client.setState({
       type: 'integration',
       name: 'helpdeskIntegrationInfo',
       id: ctx.integrationId,

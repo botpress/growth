@@ -9,7 +9,7 @@ export const createCustomer: ActionDefinition = {
       id: z.string().title('ID').describe('The id of the customer'),
       email: z.string().title('Email').describe('The email of the customer'),
       name: z.string().title('Name').describe('The name of the customer'),
-      phone: z.string().title('Phone').describe('The phone of the customer'),
+      phone: z.string().title('Phone').describe('The phone of the customer').optional(),
     }),
   },
   output: {

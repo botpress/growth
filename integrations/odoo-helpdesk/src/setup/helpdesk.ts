@@ -1,7 +1,14 @@
 import * as bp from '.botpress'
-import { z } from '@botpress/sdk'
 import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
-import { helpdeskTeamSchema, stageSchema } from 'definitions/schemas'
+import {
+  fetchHelpdeskTeamResultsSchema,
+  fetchStagesResultsSchema,
+  HelpdeskTeam,
+  FetchHelpdeskTeamResults,
+  FetchStagesResults,
+  Stage,
+  OdooRequestFilters,
+} from 'definitions/schemas'
 
 // Botpress action handlers
 export const getHelpdeskTeams = async ({
@@ -10,29 +17,25 @@ export const getHelpdeskTeams = async ({
 }: {
   ctx: bp.Context
   logger: bp.Logger
-}): Promise<{ helpdeskTeams: Array<z.infer<typeof helpdeskTeamSchema>> }> => {
+}): Promise<{ helpdeskTeams: HelpdeskTeam[] }> => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
   logger.forBot().info(`Odoo authentication cookie obtained successfully`)
 
-  const filters: (string | boolean)[][] = [['active', '=', true]]
+  const filters: OdooRequestFilters = [['active', '=', true]]
   const fields: string[] = ['name', 'id']
 
-  const rawOdooHelpdeskTeams = (await executeOdooMethod({
+  const rawOdooHelpdeskTeams: FetchHelpdeskTeamResults = await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.team',
     method: 'search_read',
-    args: [filters, fields] as (string | number)[][],
+    args: [filters, fields],
     logger,
-  })) as Array<Record<string, string>>
-
-  const helpdeskTeams = rawOdooHelpdeskTeams.map((team: Record<string, string>) => ({
-    name: team.name as string,
-    id: team.id as unknown as number,
-  })) as Array<z.infer<typeof helpdeskTeamSchema>>
+    schema: fetchHelpdeskTeamResultsSchema,
+  })
 
   return {
-    helpdeskTeams,
+    helpdeskTeams: rawOdooHelpdeskTeams,
   }
 }
 
@@ -44,32 +47,32 @@ export const getStages = async ({
   ctx: bp.Context
   input: { teamIds: number[] }
   logger: bp.Logger
-}): Promise<{ stages: Array<z.infer<typeof stageSchema>> }> => {
+}): Promise<{ stages: Stage[] }> => {
   const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
 
   const teamIds = input.teamIds
-  const filters: (string | number | boolean)[][] = [['active', '=', true]]
+  const filters: OdooRequestFilters = [['active', '=', true]]
   if (teamIds) {
-    filters.push(['team_ids', 'in', teamIds] as (string | number)[])
+    filters.push(['team_ids', 'in', teamIds])
   }
 
   const fields: string[] = ['name', 'id', 'team_ids']
 
-  const rawOdooStages = (await executeOdooMethod({
+  const rawOdooStages: FetchStagesResults = await executeOdooMethod({
     odooApiUrl: ctx.configuration.odooApiUrl,
     cookie,
     model: 'helpdesk.stage',
     method: 'search_read',
-    args: [filters, fields] as (string | number)[][],
+    args: [filters, fields],
     logger,
-  })) as Array<Record<string, string | number>>
-  const stages = rawOdooStages.map((stage: Record<string, string | number>) => ({
-    name: stage.name as string,
-    id: stage.id as unknown as number,
-    teamIds: stage.team_ids as unknown as number[],
-  })) as Array<z.infer<typeof stageSchema>>
+    schema: fetchStagesResultsSchema,
+  })
 
   return {
-    stages,
+    stages: rawOdooStages.map((stage) => ({
+      name: stage.name,
+      id: stage.id,
+      teamIds: stage.team_ids,
+    })),
   }
 }

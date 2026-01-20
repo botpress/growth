@@ -1,27 +1,32 @@
-import axios, { AxiosResponse } from 'axios'
+import { z } from '@botpress/sdk'
+import axios from 'axios'
 import * as bp from '.botpress'
+import {
+  AuthResponse,
+  AuthPayloadBody,
+  AuthHeaders,
+  Cookie,
+  OdooRequestArgs,
+  OdooRequestKwargs,
+  OdooRequestModel,
+  OdooRequestMethod,
+} from 'definitions/schemas'
+import { RuntimeError } from '@botpress/sdk'
 
 // Cache cookies per configuration to avoid re-authenticating
 // 30 minutes TTL
 const COOKIE_TTL_MS = 30 * 60 * 1000
 
-interface CachedCookie {
-  cookie: string
-  timestamp: number
-}
-
-const cookieCache = new Map<string, CachedCookie>()
+const cookieCache = new Map<string, Cookie>()
 
 /**
  * Extracts cookies from Set-Cookie headers and returns them as a Cookie header string
  */
-const extractCookies = (headers: Record<string, string>): string => {
+const extractCookiesFromHeaders = (headers: AuthResponse['headers']): Cookie['cookie'] => {
   // Axios normalizes headers to lowercase
-  const setCookieHeaders = headers['set-cookie'] || headers['Set-Cookie']
+  const setCookieHeaders = headers['set-cookie']
 
-  if (!setCookieHeaders) {
-    return ''
-  }
+  if (!setCookieHeaders) return ''
 
   // Handle both array and string formats
   const cookies = Array.isArray(setCookieHeaders) ? setCookieHeaders : [setCookieHeaders]
@@ -50,7 +55,7 @@ export const getAuthenticatedCookie = async ({
   odooEmail: string
   odooPassword: string
   logger: bp.Logger
-}): Promise<string> => {
+}): Promise<Cookie['cookie']> => {
   // Create a cache key from configuration
   const cacheKey = `${odooApiUrl}-${odooDb}-${odooEmail}`
 
@@ -70,40 +75,37 @@ export const getAuthenticatedCookie = async ({
 
   // Authenticate using axios.post directly
   logger.forBot().info(`Authenticating with Odoo: ${odooApiUrl}`)
-  const response = (await axios.post(
-    `${odooApiUrl}/web/session/authenticate`,
-    {
-      jsonrpc: '2.0',
-      params: {
-        db: odooDb,
-        login: odooEmail,
-        password: odooPassword,
-      },
-      id: Math.floor(Date.now() / 1000), // id field for JSON-RPC compliance
+  const payloadBody: AuthPayloadBody = {
+    jsonrpc: '2.0',
+    params: {
+      db: odooDb,
+      login: odooEmail,
+      password: odooPassword,
     },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  )) as AxiosResponse<{ result: { uid: number }; error?: { message: string } }>
+    id: Math.floor(Date.now() / 1000), // id field for JSON-RPC compliance
+  }
+  const headers: AuthHeaders = {
+    'Content-Type': 'application/json',
+  }
+  const response: AuthResponse = await axios.post(`${odooApiUrl}/web/session/authenticate`, payloadBody, { headers })
 
   // Check for errors first
-  if (response.data?.error) {
+  if (response.data.error) {
     logger.forBot().error(`Authentication error: ${JSON.stringify(response.data.error)}`)
-    throw new Error(`Authentication failed: ${JSON.stringify(response.data.error)}`)
+    throw new RuntimeError(`Authentication failed: ${JSON.stringify(response.data.error)}`)
   }
 
   // Then check for uid
-  if (!response.data.result?.uid) {
-    logger.forBot().error(`Authentication failed - no uid in response: ${JSON.stringify(response.data)}`)
-    throw new Error('Authentication failed - no uid in response')
+  if (response.data.result === undefined || response.data.result.uid === undefined) {
+    logger.forBot().error(`Authentication failed - no uid in response: ${JSON.stringify(response.data.result)}`)
+    throw new RuntimeError('Authentication failed - no uid in response')
   }
 
   // Extract cookies from response headers
-  const cookie = extractCookies(response.headers as Record<string, string>)
-  if (!cookie) {
+  const cookie = extractCookiesFromHeaders(response.headers)
+  if (cookie === '') {
     logger.forBot().warn('No cookies found in authentication response')
+    throw new RuntimeError('No cookies found in authentication response')
   }
 
   logger.forBot().info(`Authentication successful. UID: ${response.data.result.uid}`)
@@ -123,23 +125,20 @@ export const executeOdooMethod = async ({
   model,
   method,
   args,
+  schema,
   kwargs,
   logger,
 }: {
   odooApiUrl: string
   cookie: string
-  model: 'helpdesk.ticket' | 'helpdesk.stage' | 'helpdesk.team' | 'res.partner'
-  method: 'create' | 'read' | 'write' | 'search' | 'search_read'
-  args?:
-    | (string | number)[][]
-    | (string | boolean)[][]
-    | Record<string, string>[]
-    | number[]
-    | (number | Record<string, string>)[]
-  kwargs?: Record<string, string | number>
-  logger: bp.Logger
-}): Promise<Array<Record<string, any>> | number | boolean | string> => {
-  logger.forBot().info(`Executing Odoo method: ${method} on model: ${model}`)
+  model: OdooRequestModel
+  method: OdooRequestMethod
+  args: OdooRequestArgs
+  schema: z.ZodSchema
+  kwargs?: OdooRequestKwargs
+  logger?: bp.Logger
+}): Promise<z.infer<typeof schema>> => {
+  logger?.forBot().info(`Executing Odoo method: ${method} on model: ${model}`)
 
   const url = `${odooApiUrl}/web/dataset/call_kw`
   const body = {
@@ -159,9 +158,23 @@ export const executeOdooMethod = async ({
   const response = await axios.post(url, body, { headers })
 
   if (response.data.error) {
-    logger.forBot().error(`Odoo API error: ${JSON.stringify(response.data.error)}`)
-    throw new Error(`Odoo API error: ${JSON.stringify(response.data.error)}`)
+    throw new RuntimeError(`Odoo API error: ${JSON.stringify(response.data.error)}`)
   }
 
-  return response.data.result
+  return schema.parse(response.data.result)
+}
+
+export const clearCookieCache = async ({
+  odooApiUrl,
+  odooDb,
+  odooEmail,
+  logger,
+}: {
+  odooApiUrl: string
+  odooDb: string
+  odooEmail: string
+  logger: bp.Logger
+}): Promise<void> => {
+  cookieCache.delete(`${odooApiUrl}-${odooDb}-${odooEmail}`)
+  logger.forBot().info(`Cleared cookie cache`)
 }

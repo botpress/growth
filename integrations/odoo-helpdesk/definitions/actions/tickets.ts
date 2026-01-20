@@ -46,6 +46,14 @@ export const fetchTicketsByCustomerId: ActionDefinition = {
   input: {
     schema: z.object({
       customerOdooId: z.number().title('Customer Odoo ID').describe('The Odoo customer ID associated with the ticket'),
+      page: z.number().title('Page').describe('The page of the tickets to fetch').min(1).default(1).optional(),
+      pageSize: z
+        .number()
+        .min(1)
+        .title('Page Size')
+        .describe('The number of tickets to fetch per page')
+        .default(100)
+        .optional(),
     }),
   },
   output: {
@@ -61,6 +69,14 @@ export const fetchTicketsByCustomerEmail: ActionDefinition = {
   input: {
     schema: z.object({
       customerEmail: z.string().title('Customer Email').describe('The email of the customer'),
+      page: z.number().title('Page').describe('The page of the tickets to fetch').min(1).default(1).optional(),
+      pageSize: z
+        .number()
+        .min(1)
+        .title('Page Size')
+        .describe('The number of tickets to fetch per page')
+        .default(100)
+        .optional(),
     }),
   },
   output: {
