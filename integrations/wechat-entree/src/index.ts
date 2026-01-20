@@ -1,16 +1,9 @@
 import {
-  handleAudioMessage,
-  handleBlocMessage,
-  handleCardMessage,
-  handleCarouselMessage,
-  handleChoiceMessage,
-  handleDropdownMessage,
-  handleFileMessage,
   handleImageMessage,
-  handleLocationMessage,
   handleTextMessage,
   handleVideoMessage,
 } from './misc/message-handlers'
+import { downloadWeChatMedia, getAccessToken } from './misc/wechat-api'
 import { handleWeChatRequest } from './wechat-handler'
 import * as bp from '.botpress'
 
@@ -26,35 +19,19 @@ const integration = new bp.Integration({
     channel: {
       messages: {
         text: handleTextMessage,
-        image: handleImageMessage,
-        audio: handleAudioMessage,
+        image: handleImageMessage, //messages to be handled
         video: handleVideoMessage,
-        file: handleFileMessage,
-        location: handleLocationMessage,
-        card: handleCardMessage,
-        carousel: handleCarouselMessage,
-        dropdown: handleDropdownMessage,
-        choice: handleChoiceMessage,
-        bloc: handleBlocMessage,
       },
     },
   },
-  handler: async ({ req, client, ctx, logger }) => {
-    // Log the full request for debugging
-    logger.forBot().info('=== WeChat Handler Request ===')
-    logger.forBot().info('Method:', req.method)
-    logger.forBot().info('Path:', req.path)
-    logger.forBot().info('Query:', req.query)
-    logger.forBot().info('Body:', req.body)
-    logger.forBot().info('Headers:', JSON.stringify(req.headers))
-
+  handler: async ({ req, client, ctx }) => {
     // Extract query parameters - try from req.query first, then from path
     let signature: string | undefined
     let timestamp: string | undefined
     let nonce: string | undefined
     let echostr: string | undefined
 
-    // Try req.query if available (Botpress might pass query params here)
+    // Parse the query parameters from the request
     if (req.query) {
       const query = typeof req.query === 'string' ? new URLSearchParams(req.query) : null
       if (query) {
@@ -65,7 +42,7 @@ const integration = new bp.Integration({
       }
     }
 
-    // Fallback: try to extract from path if it contains query string
+    // ======================= this is for the signature verification step=================================
     if (!signature && req.path && req.path.includes('?')) {
       const url = new URL(req.path, 'http://localhost')
       signature = url.searchParams.get('signature') || undefined
@@ -74,27 +51,18 @@ const integration = new bp.Integration({
       echostr = url.searchParams.get('echostr') || undefined
     }
 
-    // Also check headers for forwarded requests from proxy
     if (!signature && req.headers) {
       signature = req.headers['x-wechat-signature'] || undefined
       timestamp = req.headers['x-wechat-timestamp'] || undefined
       nonce = req.headers['x-wechat-nonce'] || undefined
     }
+    
 
-    logger.forBot().info('=== Extracted Parameters ===')
-    logger.forBot().info('signature:', signature)
-    logger.forBot().info('timestamp:', timestamp)
-    logger.forBot().info('nonce:', nonce)
-    logger.forBot().info('echostr:', echostr)
-    logger.forBot().info('wechatToken:', ctx.configuration.wechatToken ? '[CONFIGURED]' : '[NOT CONFIGURED]')
-
-    // Create a logger adapter for the WeChat handler
-    const wechatLogger = {
-      info: (...args: unknown[]) => logger.forBot().info(...args),
-      debug: (...args: unknown[]) => logger.forBot().debug(...args),
-      error: (...args: unknown[]) => logger.forBot().error(...args),
-    }
-
+    // ===================================================================================================
+    
+    
+    
+    
     // Handle WeChat request with signature verification
     const result = handleWeChatRequest({
       wechatToken: ctx.configuration.wechatToken,
@@ -104,22 +72,10 @@ const integration = new bp.Integration({
       nonce,
       echostr,
       body: req.body,
-      logger: wechatLogger,
     })
 
-    logger.forBot().info('=== WeChat Handler Result ===')
-    logger.forBot().info('Status:', result.status)
-    logger.forBot().info('ContentType:', result.contentType)
-    logger.forBot().info('Body:', result.body)
-    logger.forBot().info('Message:', result.message ? JSON.stringify(result.message) : 'none')
-
-    // If this was a verification request (GET with echostr), return the echostr directly
     if (req.method === 'GET' && echostr) {
-      logger.forBot().info('=== RETURNING ECHOSTR DIRECTLY ===')
-      logger.forBot().info('echostr from query:', echostr)
-      logger.forBot().info('typeof echostr:', typeof echostr)
-      
-      // Return echostr directly as plain text - simplest possible approach
+      //  this is where the issue exist and we add a "|" to resolve the pproblem and in the proxy, it will be removed
       return {
         status: 200,
         headers: {
@@ -129,7 +85,7 @@ const integration = new bp.Integration({
       }
     }
 
-    // If we have a parsed message, create it in Botpress
+    //  Parse the message and create the conversation and user on botpress
     if (result.message) {
       const wechatMessage = result.message
       const wechatConversationId = wechatMessage.FromUserName
@@ -155,8 +111,6 @@ const integration = new bp.Integration({
         discriminateByTags: ['id'],
       })
 
-      logger.forBot().debug(`Received ${wechatMessage.MsgType} message from user ${wechatUserId}`)
-
       // Create message based on type
       if (wechatMessage.MsgType === 'text' && wechatMessage.Content) {
         await client.createMessage({
@@ -169,19 +123,43 @@ const integration = new bp.Integration({
           userId: user.id,
           conversationId: conversation.id,
         })
-        logger.forBot().info(`Text message created in Botpress: "${wechatMessage.Content}"`)
-      } else if (wechatMessage.MsgType === 'image' && wechatMessage.PicUrl) {
-        await client.createMessage({
-          tags: {
-            id: messageId || '',
-            chatId: wechatConversationId,
-          },
-          type: 'image',
-          payload: { imageUrl: wechatMessage.PicUrl },
-          userId: user.id,
-          conversationId: conversation.id,
-        })
-        logger.forBot().info(`Image message created in Botpress. PicUrl: ${wechatMessage.PicUrl}, MediaId: ${wechatMessage.MediaId}`)
+      } else if (wechatMessage.MsgType === 'image') {
+        const mediaKey = `wechat/media/image/${wechatMessage.MediaId || messageId || Date.now()}`
+        let imageUrl: string | undefined
+
+        if (wechatMessage.PicUrl) {
+          const { file } = await client.uploadFile({ // upload the image to the botpress file cloud
+            key: mediaKey,
+            url: wechatMessage.PicUrl,
+            accessPolicies: ['public_content'],
+            publicContentImmediatelyAccessible: true,
+          })
+          imageUrl = file.url
+        } else if (wechatMessage.MediaId) {
+          const accessToken = await getAccessToken(ctx.configuration.appId, ctx.configuration.appSecret)
+          const { content, contentType } = await downloadWeChatMedia(accessToken, wechatMessage.MediaId)
+          const { file } = await client.uploadFile({
+            key: mediaKey,
+            content,
+            contentType,
+            accessPolicies: ['public_content'],
+            publicContentImmediatelyAccessible: true,
+          })
+          imageUrl = file.url
+        }
+
+        if (imageUrl) {
+          await client.createMessage({
+            tags: {
+              id: messageId || '',
+              chatId: wechatConversationId,
+            },
+            type: 'image',
+            payload: { imageUrl },
+            userId: user.id,
+            conversationId: conversation.id,
+          })
+        }
       } else if (wechatMessage.MsgType === 'voice' && wechatMessage.MediaId) {
         // For voice messages, WeChat provides MediaId but not a direct URL
         // We'll create an audio message with a placeholder or fetch it from WeChat API
@@ -195,36 +173,39 @@ const integration = new bp.Integration({
           userId: user.id,
           conversationId: conversation.id,
         })
-        logger.forBot().info(`Voice message created in Botpress. MediaId: ${wechatMessage.MediaId}`)
       } else if (wechatMessage.MsgType === 'video' && wechatMessage.MediaId) {
-        // For video messages, similar to voice - MediaId provided
+        const accessToken = await getAccessToken(ctx.configuration.appId, ctx.configuration.appSecret)
+        const { content, contentType } = await downloadWeChatMedia(accessToken, wechatMessage.MediaId)
+        const { file } = await client.uploadFile({
+          key: `wechat/media/video/${wechatMessage.MediaId}`,
+          content,
+          contentType,
+          accessPolicies: ['public_content'],
+          publicContentImmediatelyAccessible: true,
+        })
         await client.createMessage({
           tags: {
             id: messageId || '',
             chatId: wechatConversationId,
           },
-          type: 'text',
-          payload: { text: `[Video Message] MediaId: ${wechatMessage.MediaId}` },
+          type: 'video',
+          payload: { videoUrl: file.url },
           userId: user.id,
           conversationId: conversation.id,
         })
-        logger.forBot().info(`Video message created in Botpress. MediaId: ${wechatMessage.MediaId}`)
       } else if (wechatMessage.MsgType === 'location') {
         await client.createMessage({
           tags: {
             id: messageId || '',
             chatId: wechatConversationId,
           },
-          type: 'location',
-          payload: { 
-            latitude: parseFloat(wechatMessage.Location_X || '0'),
-            longitude: parseFloat(wechatMessage.Location_Y || '0'),
-            address: wechatMessage.Label,
+          type: 'text',
+          payload: {
+            text: `[Location] ${wechatMessage.Label || ''} (${wechatMessage.Location_X || '0'}, ${wechatMessage.Location_Y || '0'})`,
           },
           userId: user.id,
           conversationId: conversation.id,
         })
-        logger.forBot().info(`Location message created in Botpress: ${wechatMessage.Label} (${wechatMessage.Location_X}, ${wechatMessage.Location_Y})`)
       } else if (wechatMessage.MsgType === 'link') {
         await client.createMessage({
           tags: {
@@ -236,12 +217,8 @@ const integration = new bp.Integration({
           userId: user.id,
           conversationId: conversation.id,
         })
-        logger.forBot().info(`Link message created in Botpress: ${wechatMessage.Title}`)
       } else {
-        logger.forBot().warn(`Unsupported message type: ${wechatMessage.MsgType}`)
       }
-      
-      logger.forBot().info('=== Message created in Botpress ===')
     }
     
     // Return success response for POST requests

@@ -1,4 +1,4 @@
-import { z, messages } from '@botpress/sdk'
+import { messages } from '@botpress/sdk'
 
 const _textMessageDefinition = {
   ...messages.defaults.text,
@@ -29,39 +29,8 @@ const _imageMessageDefinition = {
   ...messages.defaults.image,
 }
 
-const _audioMessageDefinition = {
-  ...messages.defaults.audio,
-}
-
-// ============== FOR FUTURE USE ==============
-// const _blocSchema = z.union([
-//   z.object({ type: z.literal('text'), payload: _textMessageDefinition.schema }),
-//   z.object({ type: z.literal('image'), payload: _imageMessageDefinition.schema }),
-//   z.object({ type: z.literal('audio'), payload: _audioMessageDefinition.schema }),
-//   z.object({ type: z.literal('video'), payload: messages.defaults.video.schema }),
-//   z.object({ type: z.literal('file'), payload: messages.defaults.file.schema }),
-//   z.object({ type: z.literal('location'), payload: messages.defaults.location.schema }),
-// ])
-// =============================================
-
-const _blocSchema = z.union([
-  z.object({ type: z.literal('text'), payload: _textMessageDefinition.schema }),
-  z.object({ type: z.literal('video'), payload: messages.defaults.video.schema }),
-  z.object({ type: z.literal('file'), payload: messages.defaults.file.schema }),
-  z.object({ type: z.literal('location'), payload: messages.defaults.location.schema }),
-])
-
-const _blocMessageDefinition = {
-  ...messages.defaults.bloc,
-  schema: z.object({
-    items: z.array(_blocSchema),
-  }),
-}
-
 export const wechatMessageChannels = {
-  ...messages.defaults,
   text: _textMessageDefinition,
   image: _imageMessageDefinition,
-  audio: _audioMessageDefinition,
-  bloc: _blocMessageDefinition,
+  video: messages.defaults.video,
 }

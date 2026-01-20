@@ -12,7 +12,7 @@ function getSHA1(...args: string[]): string {
   return sha1.digest('hex');
 }
 
-// ============== XML Parsing (like receive.py) ==============
+// ============== XML Parsing ================================================
 interface WeChatMessage {
   ToUserName: string;
   FromUserName: string;
@@ -84,7 +84,7 @@ function parseXml(webData: string): WeChatMessage | null {
   return msg;
 }
 
-// ============== XML Reply Generation (like reply.py) ==============
+// ============== XML Reply Generation ==============
 function createTextReply(toUser: string, fromUser: string, content: string): string {
   const createTime = Math.floor(Date.now() / 1000);
   return `<xml>
@@ -109,19 +109,6 @@ function createImageReply(toUser: string, fromUser: string, mediaId: string): st
 </xml>`;
 }
 
-// ============== Logger Interface ==============
-export interface Logger {
-  info: (...args: unknown[]) => void;
-  debug: (...args: unknown[]) => void;
-  error: (...args: unknown[]) => void;
-}
-
-const defaultLogger: Logger = {
-  info: (...args) => console.log(...args),
-  debug: (...args) => console.log(...args),
-  error: (...args) => console.error(...args),
-};
-
 // ============== Main Handler ==============
 export interface WeChatHandlerParams {
   wechatToken: string;
@@ -131,7 +118,6 @@ export interface WeChatHandlerParams {
   nonce?: string;
   echostr?: string;
   body?: string;
-  logger?: Logger;
 }
 
 export interface WeChatHandlerResult {
@@ -142,20 +128,12 @@ export interface WeChatHandlerResult {
 }
 
 export function handleWeChatRequest(params: WeChatHandlerParams): WeChatHandlerResult {
-  const { wechatToken, method, signature, timestamp, nonce, echostr, body, logger = defaultLogger } = params;
+  const { wechatToken, method, signature, timestamp, nonce, echostr, body } = params;
 
   // ========== Handle GET (Webhook Verification) ==========
   if (method === 'GET') {
-    logger.info('=== WeChat GET Verification ===');
-    logger.info('Token (first 4 chars):', wechatToken?.substring(0, 4) + '...');
-    logger.info('Timestamp:', timestamp);
-    logger.info('Nonce:', nonce);
-    logger.info('Signature:', signature);
-    logger.info('Echostr:', echostr);
-
     // If no signature, return greeting
     if (!signature) {
-      logger.info('GET request without signature - returning greeting');
       return {
         status: 200,
         contentType: 'text/plain',
@@ -164,25 +142,14 @@ export function handleWeChatRequest(params: WeChatHandlerParams): WeChatHandlerR
     }
 
     // Verify signature: SHA1(sorted([token, timestamp, nonce]))
-    const sortedInputs = [wechatToken, timestamp || '', nonce || ''].sort();
-    logger.info('Sorted inputs for SHA1:', sortedInputs);
-    
     const hashcode = getSHA1(wechatToken, timestamp || '', nonce || '');
-    logger.info('Computed hashcode:', hashcode);
-    logger.info('Received signature:', signature);
-    logger.info('Match:', hashcode === signature);
-
     if (hashcode === signature) {
-      logger.info('✓ Signature verified successfully, returning echostr:', echostr);
       return {
         status: 200,
         contentType: 'text/plain',
         body: echostr || '',
       };
     } else {
-      logger.error('✗ Signature verification FAILED');
-      logger.error('Expected:', hashcode);
-      logger.error('Received:', signature);
       return {
         status: 200,
         contentType: 'text/plain',
@@ -193,36 +160,22 @@ export function handleWeChatRequest(params: WeChatHandlerParams): WeChatHandlerR
 
   // ========== Handle POST (Message Receive) ==========
   if (method === 'POST') {
-    logger.info('=== WeChat POST Message ===');
-    
-    // Verify signature first (optional but recommended)
+    // Verify signature first
     if (signature && timestamp && nonce) {
-      const sortedInputs = [wechatToken, timestamp, nonce].sort();
-      logger.info('Sorted inputs for SHA1:', sortedInputs);
-      
       const hashcode = getSHA1(wechatToken, timestamp, nonce);
-      logger.info('Computed hashcode:', hashcode);
-      logger.info('Received signature:', signature);
-      logger.info('Match:', hashcode === signature);
-      
       if (hashcode !== signature) {
-        logger.error('✗ POST signature verification FAILED');
         return {
           status: 200,
           contentType: 'text/plain',
           body: '',
         };
       }
-      logger.info('✓ POST signature verified');
     }
 
     // Parse the incoming XML
-    logger.info('Parsing XML body, length:', body?.length || 0);
-    logger.info('Raw XML body:', body);
     const recMsg = parseXml(body || '');
 
     if (!recMsg) {
-      logger.error('Failed to parse XML message');
       return {
         status: 200,
         contentType: 'text/plain',
@@ -230,24 +183,8 @@ export function handleWeChatRequest(params: WeChatHandlerParams): WeChatHandlerR
       };
     }
 
-    logger.info('=== Parsed WeChat Message ===');
-    logger.info('Received message:', JSON.stringify(recMsg, null, 2));
-    logger.info('MsgType:', recMsg.MsgType);
-    logger.info('FromUserName:', recMsg.FromUserName);
-    logger.info('ToUserName:', recMsg.ToUserName);
-
-    if (recMsg.MsgType === 'text') {
-      logger.info('Content:', recMsg.Content);
-    } else if (recMsg.MsgType === 'image') {
-      logger.info('PicUrl:', recMsg.PicUrl);
-      logger.info('MediaId:', recMsg.MediaId);
-    }
-
     // Return the parsed message to be handled by Botpress
     // We return 'success' to tell WeChat we received the message
-    // The actual reply will be sent from Botpress through the message handler
-    logger.info('Message parsed successfully, returning success to WeChat');
-
     return {
       status: 200,
       contentType: 'text/plain',
