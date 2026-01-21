@@ -52,8 +52,7 @@ export class CustomerIdMappingService {
         name: 'customerIdMapping',
         id: this.integrationId,
         payload: { customerIdMapping: mapping },
-      },
-      this.logger
+      }
     )
   }
 
@@ -70,8 +69,7 @@ export class CustomerIdMappingService {
         name: 'customerIdMapping',
         id: this.integrationId,
         payload: { customerIdMapping: {} },
-      },
-      this.logger
+      }
     )
 
     // Validate payload structure.

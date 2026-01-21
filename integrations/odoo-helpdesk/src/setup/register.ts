@@ -33,7 +33,6 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, client, l
         id: ctx.integrationId,
         payload: { helpdeskIntegrationInfo: { helpdeskTeams, stages } },
       },
-      logger
     )
 
     logger.forBot().info(`Odoo Helpdesk Integration registered successfully`)

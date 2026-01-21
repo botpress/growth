@@ -14,7 +14,6 @@ import { RuntimeError } from '@botpress/client'
 export async function safeGetOrSetState(
   client: bp.Client,
   params: Parameters<bp.Client['getOrSetState']>[0],
-  logger: bp.Logger
 ): Promise<Awaited<ReturnType<bp.Client['getOrSetState']>>> {
   try {
     return await client.getOrSetState(params)
@@ -38,7 +37,6 @@ export async function safeGetOrSetState(
 export async function safeGetState(
   client: bp.Client,
   params: Parameters<bp.Client['getState']>[0],
-  logger: bp.Logger
 ): Promise<Awaited<ReturnType<bp.Client['getState']>>> {
   try {
     return await client.getState(params)
@@ -61,7 +59,6 @@ export async function safeGetState(
 export async function safeSetState(
   client: bp.Client,
   params: Parameters<bp.Client['setState']>[0],
-  logger: bp.Logger
 ): Promise<void> {
   try {
     await client.setState(params)

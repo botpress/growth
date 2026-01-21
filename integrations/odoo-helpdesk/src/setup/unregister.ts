@@ -18,8 +18,7 @@ export const unregister: bp.IntegrationProps['unregister'] = async ({ logger, cl
           stages: [],
         },
       },
-    },
-    logger
+    }
   )
 
   logger.forBot().info(`Cleared integration state`)

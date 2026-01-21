@@ -19,8 +19,7 @@ export const getHelpdeskTeams: bp.Integration['actions']['getHelpdeskTeams'] = a
       type: 'integration',
       name: 'helpdeskIntegrationInfo',
       id: ctx.integrationId,
-    },
-    logger
+    }
   )
 
   // Validate payload structure.
@@ -50,8 +49,7 @@ export const getStages: bp.Integration['actions']['getStages'] = async ({ ctx, c
       type: 'integration',
       name: 'helpdeskIntegrationInfo',
       id: ctx.integrationId,
-    },
-    logger
+    }
   )
 
   // Validate payload structure.
