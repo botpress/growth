@@ -22,7 +22,7 @@ export const createCustomer: bp.Integration['actions']['createCustomer'] = async
   logger.forBot().debug(`Creating customer: id=${id}, email=${email}`)
 
   const repository = createCustomerRepository(ctx, logger)
-  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId)
 
   const customerPayload: CreateCustomerPayload = {
     email,
@@ -64,7 +64,6 @@ async function fetchCustomerWithId(
     throw new RuntimeError('Must provide either odooId or email to fetch customer')
   }
 
-  // Add the Botpress ID if provided.
   if (id) {
     customer = { ...customer, id }
   }
@@ -91,7 +90,7 @@ export const fetchCustomerById: bp.Integration['actions']['fetchCustomerById'] =
   logger.forBot().debug(`Fetching customer by id: ${input.id}`)
 
   const repository = createCustomerRepository(ctx, logger)
-  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId)
 
   const odooId = await idMappingService.getOdooId(input.id)
   return fetchCustomerWithId(repository, input.id, odooId, undefined)
@@ -217,7 +216,7 @@ export const updateCustomerById: bp.Integration['actions']['updateCustomerById']
   logger.forBot().debug(`Updating customer by id: ${input.id}`)
 
   const repository = createCustomerRepository(ctx, logger)
-  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId)
 
   const result = await updateCustomer(repository, idMappingService, input)
   logger.forBot().info(`Customer updated successfully: id=${input.id}`)
@@ -243,7 +242,7 @@ export const updateCustomerByOdooId: bp.Integration['actions']['updateCustomerBy
   logger.forBot().debug(`Updating customer by odoo id: ${input.odooId}`)
 
   const repository = createCustomerRepository(ctx, logger)
-  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId)
 
   const result = await updateCustomer(repository, idMappingService, input)
   logger.forBot().info(`Customer updated successfully: odooId=${input.odooId}`)
@@ -269,7 +268,7 @@ export const updateCustomerByEmail: bp.Integration['actions']['updateCustomerByE
   logger.forBot().debug(`Updating customer by email: ${input.email}`)
 
   const repository = createCustomerRepository(ctx, logger)
-  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId)
 
   const result = await updateCustomer(repository, idMappingService, input)
   logger.forBot().info(`Customer updated successfully: email=${input.email}`)

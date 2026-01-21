@@ -1,20 +1,18 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/client'
+import { z } from '@botpress/sdk'
 import { safeGetOrSetState, safeSetState } from 'src/utils'
 
 /**
  * Service responsible for managing the mapping between Botpress customer IDs and Odoo customer IDs.
- * Follows Single Responsibility Principle - only handles ID mapping operations.
  */
 export class CustomerIdMappingService {
   private readonly client: bp.Client
   private readonly integrationId: string
-  private readonly logger: bp.Logger
 
-  constructor(client: bp.Client, integrationId: string, logger: bp.Logger) {
+  constructor(client: bp.Client, integrationId: string) {
     this.client = client
     this.integrationId = integrationId
-    this.logger = logger
   }
 
   /**
@@ -66,24 +64,20 @@ export class CustomerIdMappingService {
       payload: { customerIdMapping: {} },
     })
 
-    // Validate payload structure.
-    if (!state.payload || typeof state.payload !== 'object' || Array.isArray(state.payload)) {
-      return {}
+    if (
+      state.payload === undefined ||
+      state.payload === null ||
+      typeof state.payload !== 'object' ||
+      Array.isArray(state.payload)
+    ) {
+      throw new RuntimeError('Invalid state payload: customerIdMapping not found')
     }
 
-    // Type guard to safely access customerIdMapping.
     if ('customerIdMapping' in state.payload) {
-      const mapping = state.payload.customerIdMapping
-      if (
-        mapping &&
-        typeof mapping === 'object' &&
-        !Array.isArray(mapping) &&
-        Object.values(mapping).every((v) => typeof v === 'number')
-      ) {
-        return mapping as Record<string, number>
-      }
+      const mapping: Record<string, number> = z.record(z.string(), z.number()).parse(state.payload.customerIdMapping)
+      return mapping
     }
 
-    return {}
+    throw new RuntimeError('Invalid state payload: customerIdMapping not found')
   }
 }

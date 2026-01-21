@@ -19,17 +19,19 @@ export const getHelpdeskTeams: bp.Integration['actions']['getHelpdeskTeams'] = a
     id: ctx.integrationId,
   })
 
-  // Validate payload structure.
-  if (!state.payload || typeof state.payload !== 'object' || Array.isArray(state.payload)) {
+  if (
+    state.payload === undefined ||
+    state.payload === null ||
+    typeof state.payload !== 'object' ||
+    Array.isArray(state.payload)
+  ) {
     throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo not found')
   }
-
-  // Type guard to safely access helpdeskIntegrationInfo.
   if (!('helpdeskIntegrationInfo' in state.payload)) {
     throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo property missing')
   }
 
-  const payload = state.payload as HelpdeskIntegrationInfo
+  const payload: HelpdeskIntegrationInfo = state.payload
   const helpdeskTeams = payload.helpdeskIntegrationInfo.helpdeskTeams
 
   logger.forBot().info(`Retrieved ${helpdeskTeams.length} helpdesk teams`)
@@ -46,17 +48,19 @@ export const getStages: bp.Integration['actions']['getStages'] = async ({ ctx, c
     id: ctx.integrationId,
   })
 
-  // Validate payload structure.
-  if (!state.payload || typeof state.payload !== 'object' || Array.isArray(state.payload)) {
+  if (
+    state.payload === undefined ||
+    state.payload === null ||
+    typeof state.payload !== 'object' ||
+    Array.isArray(state.payload)
+  ) {
+    throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo not found')
+  }
+  if (!('helpdeskIntegrationInfo' in state.payload)) {
     throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo not found')
   }
 
-  // Type guard to safely access helpdeskIntegrationInfo.
-  if (!('helpdeskIntegrationInfo' in state.payload)) {
-    throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo property missing')
-  }
-
-  const payload = state.payload as HelpdeskIntegrationInfo
+  const payload: HelpdeskIntegrationInfo = state.payload
   let stages = payload.helpdeskIntegrationInfo.stages
 
   if (input.teamId !== undefined) {
