@@ -1,31 +1,28 @@
 import * as bp from '.botpress'
 import { RuntimeError } from '@botpress/client'
-import { executeOdooMethod, getAuthenticatedCookie } from 'src/services/odoo'
-import {
-  customerSchema,
-  createCustomerResultSchema,
-  fetchCustomerResultSchema,
-  updateCustomerPayloadSchema,
-  Customer,
-  CreateCustomerPayload,
-  CreateCustomerResult,
-  FetchCustomerResult,
-  UpdateCustomerPayload,
-  OdooRequestFilters,
-  OdooRequestFields,
-  OdooRequestArgs,
-} from 'definitions/schemas'
-import { z } from '@botpress/sdk'
+import { Customer, CreateCustomerPayload, UpdateCustomerPayload } from 'definitions/schemas'
+import { CustomerIdMappingService } from 'src/services/customerIdMapping'
+import { createCustomerRepository, CustomerRepository } from 'src/services/customerRepository'
 
+/**
+ * Creates a new customer in Odoo and stores the ID mapping.
+ *
+ * @param ctx - The Botpress context
+ * @param client - The Botpress client
+ * @param input - Customer creation input with id, email, name, and phone
+ * @param logger - The logger instance
+ * @returns The created customer's Odoo ID
+ */
 export const createCustomer: bp.Integration['actions']['createCustomer'] = async ({
   ctx,
   client,
   input: { id, email, name, phone },
   logger,
-}) => {
-  logger.forBot().debug(`Creating customer: ${JSON.stringify({ id, email, name, phone })}`)
+}): Promise<{ odooId: number }> => {
+  logger.forBot().debug(`Creating customer: id=${id}, email=${email}`)
 
-  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
+  const repository = createCustomerRepository(ctx, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
 
   const customerPayload: CreateCustomerPayload = {
     email,
@@ -33,200 +30,248 @@ export const createCustomer: bp.Integration['actions']['createCustomer'] = async
     name,
   }
 
-  const odooId: CreateCustomerResult = await executeOdooMethod({
-    odooApiUrl: ctx.configuration.odooApiUrl,
-    cookie,
-    model: 'res.partner',
-    method: 'create',
-    args: [customerPayload],
-    schema: createCustomerResultSchema,
-    logger,
-  })
+  const odooId = await repository.create(customerPayload)
+  await idMappingService.setMapping(id, odooId)
 
-  // Store the mapping of bp id to odoo id (as string for storage)
-  const { state } = await client.getOrSetState({
-    type: 'integration',
-    name: 'customerIdMapping',
-    id: ctx.integrationId,
-    payload: { customerIdMapping: {} },
-  })
-
-  const mapping = state.payload?.customerIdMapping || {}
-  mapping[id] = odooId
-
-  await client.setState({
-    type: 'integration',
-    name: 'customerIdMapping',
-    id: ctx.integrationId,
-    payload: { customerIdMapping: mapping },
-  })
-
+  logger.forBot().info(`Customer created successfully: id=${id}, odooId=${odooId}`)
   return { odooId }
 }
 
-const fetchCustomer = async ({
-  ctx,
-  input: { id, odooId, email },
-  logger,
-}: {
-  ctx: bp.Context
-  input: { id?: string; odooId?: number; email?: string }
-  logger: bp.Logger
-}): Promise<{ customer: Customer }> => {
-  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-  const filters: OdooRequestFilters = odooId ? [['id', '=', odooId]] : email ? [['email', '=', email]] : []
-  const fields: OdooRequestFields = ['id', 'email', 'name', 'phone']
-  const args: OdooRequestArgs = [filters, fields]
+/**
+ * Helper function to fetch a customer using the repository.
+ * Adds the Botpress ID to the customer object if provided.
+ *
+ * @param repository - The customer repository instance
+ * @param id - Optional Botpress customer ID
+ * @param odooId - Optional Odoo customer ID
+ * @param email - Optional customer email
+ * @returns The customer object with optional Botpress ID
+ * @throws RuntimeError if neither odooId nor email is provided
+ */
+async function fetchCustomerWithId(
+  repository: CustomerRepository,
+  id: string | undefined,
+  odooId: number | undefined,
+  email: string | undefined
+): Promise<{ customer: Customer }> {
+  let customer: Customer
 
-  let rawCustomer: FetchCustomerResult = await executeOdooMethod({
-    odooApiUrl: ctx.configuration.odooApiUrl,
-    cookie,
-    model: 'res.partner',
-    method: 'search_read',
-    args,
-    logger,
-    schema: fetchCustomerResultSchema,
-  })
+  if (odooId) {
+    customer = await repository.findByOdooId(odooId)
+  } else if (email) {
+    customer = await repository.findByEmail(email)
+  } else {
+    throw new RuntimeError('Must provide either odooId or email to fetch customer')
+  }
 
-  if (rawCustomer.length === 0 || rawCustomer[0]?.id === undefined) throw new RuntimeError('Customer not found')
-  if (rawCustomer.length > 1) throw new RuntimeError('Multiple customers found for the same id')
-
-  const customer: Customer = customerSchema.parse({
-    id,
-    odooId: rawCustomer[0].id,
-    email: rawCustomer[0].email,
-    name: rawCustomer[0].name,
-    phone: rawCustomer[0].phone,
-  })
+  // Add the Botpress ID if provided.
+  if (id) {
+    customer = { ...customer, id }
+  }
 
   return { customer }
 }
+
+/**
+ * Fetches a customer by Botpress customer ID.
+ *
+ * @param ctx - The Botpress context
+ * @param client - The Botpress client
+ * @param input - Input containing the Botpress customer ID
+ * @param logger - The logger instance
+ * @returns The customer object
+ * @throws RuntimeError if customer is not found
+ */
 export const fetchCustomerById: bp.Integration['actions']['fetchCustomerById'] = async ({
   ctx,
   client,
   input,
   logger,
 }): Promise<{ customer: Customer }> => {
-  logger.forBot().info(`Fetching customer by id: ${JSON.stringify(input)}`)
+  logger.forBot().debug(`Fetching customer by id: ${input.id}`)
 
-  // Look up the odoo id from the bp id mapping
-  const { state } = await client.getOrSetState({
-    type: 'integration',
-    name: 'customerIdMapping',
-    id: ctx.integrationId,
-    payload: { customerIdMapping: {} },
-  })
+  const repository = createCustomerRepository(ctx, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
 
-  const mapping = state.payload?.customerIdMapping || {}
-  const odooId = mapping[input.id]
-
-  if (!odooId) throw new RuntimeError(`No Odoo ID found for customer ID: ${input.id}`)
-  return fetchCustomer({ ctx, input: { id: input.id, odooId }, logger })
+  const odooId = await idMappingService.getOdooId(input.id)
+  return fetchCustomerWithId(repository, input.id, odooId, undefined)
 }
+
+/**
+ * Fetches a customer by Odoo customer ID.
+ *
+ * @param ctx - The Botpress context
+ * @param input - Input containing the Odoo customer ID and optional Botpress ID
+ * @param logger - The logger instance
+ * @returns The customer object
+ * @throws RuntimeError if customer is not found
+ */
 export const fetchCustomerByOdooId: bp.Integration['actions']['fetchCustomerByOdooId'] = async ({
   ctx,
   input,
   logger,
 }): Promise<{ customer: Customer }> => {
-  logger.forBot().info(`Fetching customer by odoo id: ${JSON.stringify(input)}`)
-  return fetchCustomer({ ctx, input: { id: input.id, odooId: input.odooId }, logger })
+  logger.forBot().debug(`Fetching customer by odoo id: ${input.odooId}`)
+
+  const repository = createCustomerRepository(ctx, logger)
+  return fetchCustomerWithId(repository, input.id, input.odooId, undefined)
 }
+
+/**
+ * Fetches a customer by email address.
+ *
+ * @param ctx - The Botpress context
+ * @param input - Input containing the customer email and optional Botpress ID
+ * @param logger - The logger instance
+ * @returns The customer object
+ * @throws RuntimeError if customer is not found
+ */
 export const fetchCustomerByEmail: bp.Integration['actions']['fetchCustomerByEmail'] = async ({
   ctx,
   input,
   logger,
 }): Promise<{ customer: Customer }> => {
-  logger.forBot().info(`Fetching customer by email: ${JSON.stringify(input)}`)
-  return fetchCustomer({ ctx, input: { email: input.email, id: input.id }, logger })
+  logger.forBot().debug(`Fetching customer by email: ${input.email}`)
+
+  const repository = createCustomerRepository(ctx, logger)
+  return fetchCustomerWithId(repository, input.id, undefined, input.email)
 }
 
-const updateCustomer = async ({
-  ctx,
-  client,
-  input,
-  logger,
-}: {
-  ctx: bp.Context
-  client: bp.Client
-  input: { id?: string; email?: string; name?: string; phone?: string; odooId?: number }
-  logger: bp.Logger
-}): Promise<{ success: boolean }> => {
-  logger.forBot().info(`Updating customer: ${JSON.stringify(input)}`)
-  const cookie = await getAuthenticatedCookie({ ...ctx.configuration, logger })
-
-  let odooId: number = input.odooId || 0
-  let currentCustomer: Customer
-
-  // Determine odoo id based on input
+/**
+ * Helper function to determine the Odoo ID from various input options.
+ * Follows Single Responsibility Principle - only handles ID resolution logic.
+ *
+ * @param repository - The customer repository instance
+ * @param idMappingService - The ID mapping service instance
+ * @param input - Input object containing id, email, or odooId
+ * @returns The resolved Odoo ID
+ * @throws RuntimeError if no valid identifier is provided or customer is not found
+ */
+async function resolveOdooId(
+  repository: CustomerRepository,
+  idMappingService: CustomerIdMappingService,
+  input: { id?: string; email?: string; odooId?: number }
+): Promise<number> {
   if (input.id) {
-    // Look up the odoo id from the bp id mapping
-    const { state } = await client.getOrSetState({
-      type: 'integration',
-      name: 'customerIdMapping',
-      id: ctx.integrationId,
-      payload: { customerIdMapping: {} },
-    })
-
-    const mapping = state.payload?.customerIdMapping || {}
-    const mappedOdooId = mapping[input.id]
-
-    if (!mappedOdooId) throw new RuntimeError(`No Odoo ID found for customer ID: ${input.id}`)
-
-    odooId = mappedOdooId
-  } else if (input.odooId) {
-    odooId = input.odooId
-  } else if (input.email) {
-    currentCustomer = (await fetchCustomer({ ctx, input: { email: input.email }, logger })).customer
-    if (currentCustomer.odooId === undefined) throw new RuntimeError('Customer not found or missing Odoo ID')
-    odooId = currentCustomer.odooId
-  } else {
-    throw new RuntimeError('Must provide an id or email to update a customer')
+    return idMappingService.getOdooId(input.id)
   }
 
-  // Build the update payload with only the fields that are provided
-  const customerPayload: UpdateCustomerPayload = updateCustomerPayloadSchema.parse(input)
-
-  // If no fields to update, return early
-  if (Object.keys(customerPayload).length === 0) {
-    throw new RuntimeError('No fields provided to update')
+  if (input.odooId) {
+    return input.odooId
   }
 
-  const success: boolean = await executeOdooMethod({
-    odooApiUrl: ctx.configuration.odooApiUrl,
-    cookie,
-    model: 'res.partner',
-    method: 'write',
-    args: [[odooId], customerPayload],
-    logger,
-    schema: z.boolean(),
-  })
+  if (input.email) {
+    const customer = await repository.findByEmail(input.email)
+    if (customer.odooId === undefined) {
+      throw new RuntimeError('Customer not found or missing Odoo ID')
+    }
+    return customer.odooId
+  }
 
+  throw new RuntimeError('Must provide an id, odooId, or email to update a customer')
+}
+
+/**
+ * Helper function to update a customer.
+ * Follows Single Responsibility Principle - only handles update orchestration.
+ *
+ * @param repository - The customer repository instance
+ * @param idMappingService - The ID mapping service instance
+ * @param input - Input object containing customer identifier and fields to update
+ * @returns Success status of the update operation
+ * @throws RuntimeError if no valid identifier is provided or customer is not found
+ */
+async function updateCustomer(
+  repository: CustomerRepository,
+  idMappingService: CustomerIdMappingService,
+  input: { id?: string; email?: string; name?: string; phone?: string; odooId?: number }
+): Promise<{ success: boolean }> {
+  const odooId = await resolveOdooId(repository, idMappingService, input)
+
+  const customerPayload: UpdateCustomerPayload = {
+    ...(input.email !== undefined && { email: input.email }),
+    ...(input.name !== undefined && { name: input.name }),
+    ...(input.phone !== undefined && { phone: input.phone }),
+  }
+
+  const success = await repository.update(odooId, customerPayload)
   return { success }
 }
+
+/**
+ * Updates a customer by Botpress customer ID.
+ *
+ * @param ctx - The Botpress context
+ * @param client - The Botpress client
+ * @param input - Input containing the Botpress customer ID and fields to update
+ * @param logger - The logger instance
+ * @returns Success status of the update operation
+ * @throws RuntimeError if customer is not found or no fields are provided
+ */
 export const updateCustomerById: bp.Integration['actions']['updateCustomerById'] = async ({
   ctx,
   client,
   input,
   logger,
 }) => {
-  logger.forBot().info(`Updating customer by id: ${JSON.stringify(input)}`)
-  return updateCustomer({ ctx, client, input, logger })
+  logger.forBot().debug(`Updating customer by id: ${input.id}`)
+
+  const repository = createCustomerRepository(ctx, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
+
+  const result = await updateCustomer(repository, idMappingService, input)
+  logger.forBot().info(`Customer updated successfully: id=${input.id}`)
+  return result
 }
+
+/**
+ * Updates a customer by Odoo customer ID.
+ *
+ * @param ctx - The Botpress context
+ * @param client - The Botpress client
+ * @param input - Input containing the Odoo customer ID and fields to update
+ * @param logger - The logger instance
+ * @returns Success status of the update operation
+ * @throws RuntimeError if customer is not found or no fields are provided
+ */
 export const updateCustomerByOdooId: bp.Integration['actions']['updateCustomerByOdooId'] = async ({
   ctx,
   client,
   input,
   logger,
 }) => {
-  logger.forBot().info(`Updating customer by odoo id: ${JSON.stringify(input)}`)
-  return updateCustomer({ ctx, client, input, logger })
+  logger.forBot().debug(`Updating customer by odoo id: ${input.odooId}`)
+
+  const repository = createCustomerRepository(ctx, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
+
+  const result = await updateCustomer(repository, idMappingService, input)
+  logger.forBot().info(`Customer updated successfully: odooId=${input.odooId}`)
+  return result
 }
+
+/**
+ * Updates a customer by email address.
+ *
+ * @param ctx - The Botpress context
+ * @param client - The Botpress client
+ * @param input - Input containing the customer email and fields to update
+ * @param logger - The logger instance
+ * @returns Success status of the update operation
+ * @throws RuntimeError if customer is not found or no fields are provided
+ */
 export const updateCustomerByEmail: bp.Integration['actions']['updateCustomerByEmail'] = async ({
   ctx,
   client,
   input,
   logger,
 }) => {
-  logger.forBot().info(`Updating customer by email: ${JSON.stringify(input)}`)
-  return updateCustomer({ ctx, client, input, logger })
+  logger.forBot().debug(`Updating customer by email: ${input.email}`)
+
+  const repository = createCustomerRepository(ctx, logger)
+  const idMappingService = new CustomerIdMappingService(client, ctx.integrationId, logger)
+
+  const result = await updateCustomer(repository, idMappingService, input)
+  logger.forBot().info(`Customer updated successfully: email=${input.email}`)
+  return result
 }

@@ -11,7 +11,7 @@ export const createCustomer: ActionDefinition = {
   },
   output: {
     schema: z.object({
-      odooId: createCustomerResultSchema
+      odooId: createCustomerResultSchema,
     }),
   },
 }

@@ -1,36 +1,78 @@
 import * as bp from '.botpress'
+import { RuntimeError } from '@botpress/client'
+import { safeGetState } from 'src/utils'
+import { HelpdeskTeam, Stage } from 'definitions/schemas'
+
+type HelpdeskIntegrationInfo = {
+  helpdeskIntegrationInfo: {
+    helpdeskTeams: HelpdeskTeam[]
+    stages: Stage[]
+  }
+}
 
 export const getHelpdeskTeams: bp.Integration['actions']['getHelpdeskTeams'] = async ({ ctx, client, logger }) => {
-  logger.forBot().info(`Getting cached helpdesk teams...`)
-  const { state } = await client.getState({
-    type: 'integration',
-    name: 'helpdeskIntegrationInfo',
-    id: ctx.integrationId,
-  })
+  logger.forBot().debug(`Getting cached helpdesk teams`)
 
-  const helpdeskTeams = state.payload.helpdeskIntegrationInfo.helpdeskTeams
+  const { state } = await safeGetState(
+    client,
+    {
+      type: 'integration',
+      name: 'helpdeskIntegrationInfo',
+      id: ctx.integrationId,
+    },
+    logger
+  )
 
-  logger.forBot().info(`Cached helpdesk teams: ${JSON.stringify(helpdeskTeams)}`)
+  // Validate payload structure.
+  if (!state.payload || typeof state.payload !== 'object' || Array.isArray(state.payload)) {
+    throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo not found')
+  }
+
+  // Type guard to safely access helpdeskIntegrationInfo.
+  if (!('helpdeskIntegrationInfo' in state.payload)) {
+    throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo property missing')
+  }
+
+  const payload = state.payload as HelpdeskIntegrationInfo
+  const helpdeskTeams = payload.helpdeskIntegrationInfo.helpdeskTeams
+
+  logger.forBot().info(`Retrieved ${helpdeskTeams.length} helpdesk teams`)
 
   return { helpdeskTeams }
 }
 
 export const getStages: bp.Integration['actions']['getStages'] = async ({ ctx, client, input, logger }) => {
-  const { state } = await client.getState({
-    type: 'integration',
-    name: 'helpdeskIntegrationInfo',
-    id: ctx.integrationId,
-  })
+  logger.forBot().debug(`Getting cached stages${input.teamId ? ` for teamId=${input.teamId}` : ''}`)
 
-  let stages = state.payload.helpdeskIntegrationInfo.stages
-  logger.forBot().info(`Cached stages: ${JSON.stringify(stages)}`)
+  const { state } = await safeGetState(
+    client,
+    {
+      type: 'integration',
+      name: 'helpdeskIntegrationInfo',
+      id: ctx.integrationId,
+    },
+    logger
+  )
 
-  if (input.teamId) {
-    stages = state.payload.helpdeskIntegrationInfo.stages.filter(
-      (stage) => input.teamId !== undefined && stage.teamIds.includes(input.teamId)
-    )
-    logger.forBot().info(`Filtered stages: ${JSON.stringify(stages)}`)
+  // Validate payload structure.
+  if (!state.payload || typeof state.payload !== 'object' || Array.isArray(state.payload)) {
+    throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo not found')
   }
 
+  // Type guard to safely access helpdeskIntegrationInfo.
+  if (!('helpdeskIntegrationInfo' in state.payload)) {
+    throw new RuntimeError('Invalid state payload: helpdeskIntegrationInfo property missing')
+  }
+
+  const payload = state.payload as HelpdeskIntegrationInfo
+  let stages = payload.helpdeskIntegrationInfo.stages
+
+  if (input.teamId !== undefined) {
+    const teamId = input.teamId
+    stages = payload.helpdeskIntegrationInfo.stages.filter((stage) => stage.teamIds.includes(teamId))
+    logger.forBot().debug(`Filtered to ${stages.length} stages for teamId=${teamId}`)
+  }
+
+  logger.forBot().info(`Retrieved ${stages.length} stages`)
   return { stages }
 }

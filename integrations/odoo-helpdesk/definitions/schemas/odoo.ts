@@ -1,6 +1,8 @@
 import { z } from '@botpress/sdk'
 
-// Base filter element schema - can be extended by other schemas
+/**
+ * Base filter element schema - can be extended by other schemas.
+ */
 export const odooRequestFilterSchema = z.union([
   z
     .tuple([
@@ -46,6 +48,23 @@ export const odooRequestKwargsSchema = z
 export const odooResponseFruitfulObjectSchema = z.tuple([z.number(), z.string()])
 export const odooResponseObjectSchema = z.union([odooResponseFruitfulObjectSchema, z.boolean()])
 
+/**
+ * Zod schema for Odoo API response wrapper.
+ * Used to validate all Odoo API responses before processing.
+ */
+export const odooApiResponseSchema = z.object({
+  jsonrpc: z.literal('2.0'),
+  result: z.unknown(),
+  error: z
+    .object({
+      code: z.number(),
+      message: z.string(),
+      data: z.unknown().optional(),
+    })
+    .optional(),
+  id: z.number().nullable().optional().describe('The ID of the Odoo API response'),
+})
+
 export type OdooRequestModel = z.infer<typeof odooRequestModelsSchema>
 export type OdooRequestMethod = z.infer<typeof odooRequestMethodsSchema>
 export type OdooRequestFilters = z.infer<typeof odooRequestFiltersSchema>
@@ -53,3 +72,4 @@ export type OdooRequestFields = z.infer<typeof odooRequestFieldsSchema>
 export type OdooRequestKwargs = z.infer<typeof odooRequestKwargsSchema>
 export type OdooResponseFruitfulObject = z.infer<typeof odooResponseFruitfulObjectSchema>
 export type OdooResponseObject = z.infer<typeof odooResponseObjectSchema>
+export type OdooApiResponse = z.infer<typeof odooApiResponseSchema>

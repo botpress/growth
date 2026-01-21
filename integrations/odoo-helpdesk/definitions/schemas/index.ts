@@ -1,5 +1,12 @@
 import { z } from '@botpress/sdk'
-import { AuthPayloadBody, AuthHeaders, AuthResponse, Cookie } from './authentication'
+import {
+  AuthPayloadBody,
+  AuthHeaders,
+  AuthResponseHeaders,
+  Cookie,
+  AuthResponseData,
+  authResponseDataSchema,
+} from './authentication'
 import {
   customerSchema,
   createCustomerPayloadSchema,
@@ -38,6 +45,7 @@ import {
   odooRequestFiltersSchema,
   odooRequestFieldsSchema,
   odooRequestKwargsSchema,
+  odooApiResponseSchema,
   OdooRequestModel,
   OdooRequestMethod,
   OdooRequestFilters,
@@ -45,9 +53,12 @@ import {
   OdooRequestKwargs,
   OdooResponseFruitfulObject,
   OdooResponseObject,
+  OdooApiResponse,
 } from './odoo'
 
-// Args schema accepts filter elements plus all payload schemas
+/**
+ * Args schema accepts filter elements plus all payload schemas.
+ */
 const odooRequestArgsSchema = z
   .union([
     z
@@ -78,6 +89,7 @@ export {
   odooRequestFiltersSchema,
   odooRequestFieldsSchema,
   odooRequestKwargsSchema,
+  odooApiResponseSchema,
   stageSchema,
   fetchStagesResultsSchema,
   ticketSchema,
@@ -85,9 +97,11 @@ export {
   createTicketResultSchema,
   fetchTicketResultSchema,
   fetchTicketResultsSchema,
+  authResponseDataSchema,
   AuthPayloadBody,
   AuthHeaders,
-  AuthResponse,
+  AuthResponseHeaders,
+  AuthResponseData,
   Cookie,
   Customer,
   CreateCustomerPayload,
@@ -104,6 +118,7 @@ export {
   OdooRequestArgs,
   OdooResponseFruitfulObject,
   OdooResponseObject,
+  OdooApiResponse,
   Stage,
   FetchStagesResults,
   Ticket,
