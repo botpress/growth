@@ -17,8 +17,17 @@ export const unregister: bp.IntegrationProps['unregister'] = async ({ logger, cl
       },
     },
   })
-
   logger.forBot().info(`Cleared integration state`)
+
+  await safeSetState(client, {
+    type: 'integration',
+    name: 'customerIdMapping',
+    id: ctx.integrationId,
+    payload: {
+      customerIdMapping: {},
+    },
+  })
+  logger.forBot().info(`Cleared customer ID mapping state`)
 
   await clearCookieCache({
     odooApiUrl: ctx.configuration.odooApiUrl,

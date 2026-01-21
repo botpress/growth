@@ -119,20 +119,16 @@ export const getAuthenticatedCookie = async ({
 
   const response = await axiosInstance.post(`${odooApiUrl}/web/session/authenticate`, payloadBody, { headers })
 
-  // Validate response structure.
   const validatedResponse = authResponseDataSchema.parse(response.data)
 
-  // Check for errors first.
   if (validatedResponse.error) {
     throw new RuntimeError(`Authentication failed: ${validatedResponse.error.message}`)
   }
 
-  // Then check for uid.
   if (validatedResponse.result === undefined || validatedResponse.result.uid === undefined) {
     throw new RuntimeError('Authentication failed - no uid in response')
   }
 
-  // Extract cookies from response headers.
   const cookie = extractCookiesFromHeaders(response.headers)
   if (cookie === '') {
     throw new RuntimeError('No cookies found in authentication response')
@@ -140,7 +136,6 @@ export const getAuthenticatedCookie = async ({
 
   logger.forBot().info(`Authentication successful. UID: ${validatedResponse.result.uid}`)
 
-  // Cache the cookie with timestamp.
   cookieCache.set(cacheKey, {
     cookie,
     timestamp: Date.now(),
@@ -187,23 +182,13 @@ export const executeOdooMethod = async <T extends z.ZodSchema>({
 
   const response = await axiosInstance.post(url, body, { headers })
 
-  logger?.forBot().debug(`Odoo API response: ${JSON.stringify(response.data)}`)
-
-  // Validate response structure.
   const validatedResponse = odooApiResponseSchema.parse(response.data)
-
-  logger?.forBot().debug(`Odoo API validated response: ${JSON.stringify(validatedResponse)}`)
-
   if (validatedResponse.error) {
     const errorMessage = validatedResponse.error.message
     logger?.forBot().error(`Odoo API error: ${errorMessage}`)
     throw new RuntimeError(`Odoo API error: ${errorMessage}`)
   }
 
-  // Log the actual result for debugging
-  logger?.forBot().debug(`Odoo API result: ${JSON.stringify(validatedResponse.result)}`)
-
-  // Validate and parse the result using the provided schema.
   return schema.parse(validatedResponse.result)
 }
 
