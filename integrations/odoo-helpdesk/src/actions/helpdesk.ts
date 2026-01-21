@@ -13,14 +13,11 @@ type HelpdeskIntegrationInfo = {
 export const getHelpdeskTeams: bp.Integration['actions']['getHelpdeskTeams'] = async ({ ctx, client, logger }) => {
   logger.forBot().debug(`Getting cached helpdesk teams`)
 
-  const { state } = await safeGetState(
-    client,
-    {
-      type: 'integration',
-      name: 'helpdeskIntegrationInfo',
-      id: ctx.integrationId,
-    }
-  )
+  const { state } = await safeGetState(client, {
+    type: 'integration',
+    name: 'helpdeskIntegrationInfo',
+    id: ctx.integrationId,
+  })
 
   // Validate payload structure.
   if (!state.payload || typeof state.payload !== 'object' || Array.isArray(state.payload)) {
@@ -43,14 +40,11 @@ export const getHelpdeskTeams: bp.Integration['actions']['getHelpdeskTeams'] = a
 export const getStages: bp.Integration['actions']['getStages'] = async ({ ctx, client, input, logger }) => {
   logger.forBot().debug(`Getting cached stages${input.teamId ? ` for teamId=${input.teamId}` : ''}`)
 
-  const { state } = await safeGetState(
-    client,
-    {
-      type: 'integration',
-      name: 'helpdeskIntegrationInfo',
-      id: ctx.integrationId,
-    }
-  )
+  const { state } = await safeGetState(client, {
+    type: 'integration',
+    name: 'helpdeskIntegrationInfo',
+    id: ctx.integrationId,
+  })
 
   // Validate payload structure.
   if (!state.payload || typeof state.payload !== 'object' || Array.isArray(state.payload)) {

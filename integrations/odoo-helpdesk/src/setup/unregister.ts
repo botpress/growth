@@ -6,20 +6,17 @@ import { safeSetState } from 'src/utils'
 export const unregister: bp.IntegrationProps['unregister'] = async ({ logger, client, ctx }) => {
   logger.forBot().info(`Unregistering Odoo Helpdesk Integration`)
 
-  await safeSetState(
-    client,
-    {
-      type: 'integration',
-      name: 'helpdeskIntegrationInfo',
-      id: ctx.integrationId,
-      payload: {
-        helpdeskIntegrationInfo: {
-          helpdeskTeams: [],
-          stages: [],
-        },
+  await safeSetState(client, {
+    type: 'integration',
+    name: 'helpdeskIntegrationInfo',
+    id: ctx.integrationId,
+    payload: {
+      helpdeskIntegrationInfo: {
+        helpdeskTeams: [],
+        stages: [],
       },
-    }
-  )
+    },
+  })
 
   logger.forBot().info(`Cleared integration state`)
 

@@ -45,15 +45,12 @@ export class CustomerIdMappingService {
     const mapping = await this.getMapping()
     mapping[bpId] = odooId
 
-    await safeSetState(
-      this.client,
-      {
-        type: 'integration',
-        name: 'customerIdMapping',
-        id: this.integrationId,
-        payload: { customerIdMapping: mapping },
-      }
-    )
+    await safeSetState(this.client, {
+      type: 'integration',
+      name: 'customerIdMapping',
+      id: this.integrationId,
+      payload: { customerIdMapping: mapping },
+    })
   }
 
   /**
@@ -62,15 +59,12 @@ export class CustomerIdMappingService {
    * @returns The mapping object with Botpress IDs as keys and Odoo IDs as values
    */
   private async getMapping(): Promise<Record<string, number>> {
-    const { state } = await safeGetOrSetState(
-      this.client,
-      {
-        type: 'integration',
-        name: 'customerIdMapping',
-        id: this.integrationId,
-        payload: { customerIdMapping: {} },
-      }
-    )
+    const { state } = await safeGetOrSetState(this.client, {
+      type: 'integration',
+      name: 'customerIdMapping',
+      id: this.integrationId,
+      payload: { customerIdMapping: {} },
+    })
 
     // Validate payload structure.
     if (!state.payload || typeof state.payload !== 'object' || Array.isArray(state.payload)) {

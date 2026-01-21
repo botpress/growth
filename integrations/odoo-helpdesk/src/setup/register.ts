@@ -25,15 +25,12 @@ export const register: bp.IntegrationProps['register'] = async ({ ctx, client, l
     logger.forBot().info(`Retrieved ${stages.length} ticket stages`)
 
     // Store ticket stages in integration state.
-    await safeSetState(
-      client,
-      {
-        type: 'integration',
-        name: 'helpdeskIntegrationInfo',
-        id: ctx.integrationId,
-        payload: { helpdeskIntegrationInfo: { helpdeskTeams, stages } },
-      },
-    )
+    await safeSetState(client, {
+      type: 'integration',
+      name: 'helpdeskIntegrationInfo',
+      id: ctx.integrationId,
+      payload: { helpdeskIntegrationInfo: { helpdeskTeams, stages } },
+    })
 
     logger.forBot().info(`Odoo Helpdesk Integration registered successfully`)
   } catch (error) {
