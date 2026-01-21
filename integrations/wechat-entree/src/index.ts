@@ -1,8 +1,4 @@
-import {
-  handleImageMessage,
-  handleTextMessage,
-  handleVideoMessage,
-} from './misc/message-handlers'
+import { handleImageMessage, handleTextMessage, handleVideoMessage } from './misc/message-handlers'
 import { downloadWeChatMedia, getAccessToken } from './misc/wechat-api'
 import { handleWeChatRequest } from './wechat-handler'
 import * as bp from '.botpress'
@@ -56,13 +52,9 @@ const integration = new bp.Integration({
       timestamp = req.headers['x-wechat-timestamp'] || undefined
       nonce = req.headers['x-wechat-nonce'] || undefined
     }
-    
 
     // ===================================================================================================
-    
-    
-    
-    
+
     // Handle WeChat request with signature verification
     const result = handleWeChatRequest({
       wechatToken: ctx.configuration.wechatToken,
@@ -128,7 +120,8 @@ const integration = new bp.Integration({
         let imageUrl: string | undefined
 
         if (wechatMessage.PicUrl) {
-          const { file } = await client.uploadFile({ // upload the image to the botpress file cloud
+          const { file } = await client.uploadFile({
+            // upload the image to the botpress file cloud
             key: mediaKey,
             url: wechatMessage.PicUrl,
             accessPolicies: ['public_content'],
@@ -169,7 +162,9 @@ const integration = new bp.Integration({
             chatId: wechatConversationId,
           },
           type: 'text',
-          payload: { text: `[Voice Message] MediaId: ${wechatMessage.MediaId}${wechatMessage.Recognition ? `\nRecognized: ${wechatMessage.Recognition}` : ''}` },
+          payload: {
+            text: `[Voice Message] MediaId: ${wechatMessage.MediaId}${wechatMessage.Recognition ? `\nRecognized: ${wechatMessage.Recognition}` : ''}`,
+          },
           userId: user.id,
           conversationId: conversation.id,
         })
@@ -213,14 +208,16 @@ const integration = new bp.Integration({
             chatId: wechatConversationId,
           },
           type: 'text',
-          payload: { text: `${wechatMessage.Title || ''}\n${wechatMessage.Description || ''}\n${wechatMessage.Url || ''}` },
+          payload: {
+            text: `${wechatMessage.Title || ''}\n${wechatMessage.Description || ''}\n${wechatMessage.Url || ''}`,
+          },
           userId: user.id,
           conversationId: conversation.id,
         })
       } else {
       }
     }
-    
+
     // Return success response for POST requests
     return {
       status: 200,

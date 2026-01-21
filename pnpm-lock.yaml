@@ -161,6 +161,28 @@ importers:
         specifier: ^5.8.2
         version: 5.9.3
 
+  integrations/wechat-entree:
+    dependencies:
+      '@botpress/client':
+        specifier: 1.27.1
+        version: 1.27.1
+      '@botpress/sdk':
+        specifier: 4.21.0
+        version: 4.21.0(@bpinternal/zui@1.2.2)(esbuild@0.25.12)
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
+    devDependencies:
+      '@botpress/cli':
+        specifier: 4.27.4
+        version: 4.27.4(@bpinternal/zui@1.2.2)
+      '@types/node':
+        specifier: ^22.16.4
+        version: 22.19.7
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
   integrations/zoom:
     dependencies:
       '@botpress/client':
@@ -367,6 +389,11 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
+  '@botpress/cli@4.27.4':
+    resolution: {integrity: sha512-dC+T3dzUgxilLWsE38VaRLndd5uevKAqRBsppgtrBBO3vsSzzIwA5jhZ1p4Gh6xiydKdvQ6cy6soSO/6+q+t8Q==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   '@botpress/client@0.41.0':
     resolution: {integrity: sha512-FAIY8M12D1jZV9K1bN2zPorFF7Nw3RZyLn9DzTEuwP958Ms2wv1pW3VH4xaCoXVIQr61amsjmFY5gEeTSyhLQA==}
 
@@ -388,6 +415,10 @@ packages:
 
   '@botpress/client@1.27.1':
     resolution: {integrity: sha512-c6EDjUphVehm6WIZse4qTHaYL0oudObrdGnRg6r2040lNIF+nFl7e24EvbO5fB4pxp1/ApoQMPJaPA5nJVOVLg==}
+    engines: {node: '>=18.0.0'}
+
+  '@botpress/client@1.27.2':
+    resolution: {integrity: sha512-fTP42EDRnhRZDdRFAUQlMUDQ0CxMYchnhDsT/4Luubz6n8gKea9eBz5t0UngCzD98Eat5D+UbnfkAR89IQDWpA==}
     engines: {node: '>=18.0.0'}
 
   '@botpress/sdk@4.13.0':
@@ -412,6 +443,16 @@ packages:
 
   '@botpress/sdk@4.20.0':
     resolution: {integrity: sha512-2K0Fn9BXJFKRBg6wA2/Uh+eRiwAzkBoKsFNkYwrua2bdri/HraXdZ3iX7JAxUwKFOTzmJrNnVKydCClnLdmBvw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@bpinternal/zui': 1.2.1
+      esbuild: ^0.16.12
+    peerDependenciesMeta:
+      esbuild:
+        optional: true
+
+  '@botpress/sdk@4.21.0':
+    resolution: {integrity: sha512-Jj6FgVFI6uE5vrgf6FcZhbDXRlQkgRti54Zodm+V49vQx/Uym3Ro1ifZmcfcrNWfp8HcJ840yEcKnLJK5f3GtQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@bpinternal/zui': 1.2.1
@@ -1500,6 +1541,9 @@ packages:
 
   '@types/node@18.19.130':
     resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
+
+  '@types/node@22.19.7':
+    resolution: {integrity: sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw==}
 
   '@types/node@24.10.0':
     resolution: {integrity: sha512-qzQZRBqkFsYyaSWXuEHc2WR9c0a0CXwiE5FWUvn7ZM+vdy1uZLfCunD38UzhuB7YN/J11ndbDBcTmOdxJo9Q7A==}
@@ -4166,6 +4210,9 @@ packages:
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
@@ -4945,6 +4992,44 @@ snapshots:
       - encoding
       - utf-8-validate
 
+  '@botpress/cli@4.27.4(@bpinternal/zui@1.2.2)':
+    dependencies:
+      '@apidevtools/json-schema-ref-parser': 11.9.3
+      '@botpress/chat': 0.5.4
+      '@botpress/client': 1.27.2
+      '@botpress/sdk': 4.21.0(@bpinternal/zui@1.2.2)(esbuild@0.25.12)
+      '@bpinternal/const': 0.1.2
+      '@bpinternal/tunnel': 0.1.25
+      '@bpinternal/verel': 0.2.0
+      '@bpinternal/yargs-extra': 0.0.3
+      '@parcel/watcher': 2.5.1
+      '@stoplight/spectral-core': 1.20.0
+      '@stoplight/spectral-functions': 1.10.1
+      '@stoplight/spectral-parsers': 1.0.5
+      '@types/lodash': 4.17.20
+      '@types/verror': 1.10.11
+      axios: 1.13.2
+      bluebird: 3.7.2
+      boxen: 5.1.2
+      chalk: 4.1.2
+      dotenv: 16.6.1
+      esbuild: 0.25.12
+      handlebars: 4.7.8
+      latest-version: 5.1.0
+      lodash: 4.17.21
+      prettier: 3.6.2
+      prompts: 2.4.2
+      semver: 7.7.3
+      uuid: 9.0.1
+      verror: 1.10.1
+      yn: 4.0.0
+    transitivePeerDependencies:
+      - '@bpinternal/zui'
+      - bufferutil
+      - debug
+      - encoding
+      - utf-8-validate
+
   '@botpress/client@0.41.0':
     dependencies:
       axios: 1.13.1
@@ -5000,6 +5085,15 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  '@botpress/client@1.27.2':
+    dependencies:
+      axios: 1.13.2
+      axios-retry: 4.5.0(axios@1.13.2)
+      browser-or-node: 2.1.1
+      qs: 6.14.0
+    transitivePeerDependencies:
+      - debug
+
   '@botpress/sdk@4.13.0(@bpinternal/zui@1.2.2)(esbuild@0.16.17)':
     dependencies:
       '@botpress/client': 1.16.1
@@ -5023,6 +5117,17 @@ snapshots:
   '@botpress/sdk@4.20.0(@bpinternal/zui@1.2.2)(esbuild@0.25.12)':
     dependencies:
       '@botpress/client': 1.27.1
+      '@bpinternal/zui': 1.2.2
+      browser-or-node: 2.1.1
+      semver: 7.7.3
+    optionalDependencies:
+      esbuild: 0.25.12
+    transitivePeerDependencies:
+      - debug
+
+  '@botpress/sdk@4.21.0(@bpinternal/zui@1.2.2)(esbuild@0.25.12)':
+    dependencies:
+      '@botpress/client': 1.27.2
       '@bpinternal/zui': 1.2.2
       browser-or-node: 2.1.1
       semver: 7.7.3
@@ -5930,7 +6035,7 @@ snapshots:
     dependencies:
       '@stoplight/json': 3.21.7
       '@stoplight/path': 1.3.2
-      '@stoplight/types': 13.6.0
+      '@stoplight/types': 13.20.0
       '@types/urijs': 1.19.26
       dependency-graph: 0.11.0
       fast-memoize: 2.5.2
@@ -6087,7 +6192,7 @@ snapshots:
 
   '@types/es-aggregate-error@1.0.6':
     dependencies:
-      '@types/node': 18.19.130
+      '@types/node': 22.19.7
 
   '@types/estree@1.0.8': {}
 
@@ -6102,7 +6207,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 18.19.130
+      '@types/node': 22.19.7
 
   '@types/lodash@4.17.20': {}
 
@@ -6114,6 +6219,10 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
+  '@types/node@22.19.7':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@24.10.0':
     dependencies:
       undici-types: 7.16.0
@@ -6122,7 +6231,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 18.19.130
+      '@types/node': 22.19.7
 
   '@types/triple-beam@1.3.5': {}
 
@@ -6132,7 +6241,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 18.19.130
+      '@types/node': 22.19.7
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -9083,6 +9192,8 @@ snapshots:
       through: 2.3.8
 
   undici-types@5.26.5: {}
+
+  undici-types@6.21.0: {}
 
   undici-types@7.16.0: {}
 

@@ -72,6 +72,7 @@ Your bot can send the following message types to WeChat users:
 3. **Bot sends reply** → Via WeChat Customer Service API (asynchronous)
 
 This integration uses WeChat's **Customer Service API** which allows:
+
 - ✅ Sending messages anytime (not limited to 5-second window)
 - ✅ Multiple messages per user interaction
 - ✅ Asynchronous bot processing (perfect for AI/LLM responses)

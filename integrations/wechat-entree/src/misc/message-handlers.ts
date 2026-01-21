@@ -4,7 +4,7 @@ import { getAccessToken, WECHAT_API_BASE } from './wechat-api'
 
 export type MessageHandlerProps<T extends keyof bp.MessageProps['channel']> = bp.MessageProps['channel'][T]
 
-// Upload media to WeChat (returns media_id) 
+// Upload media to WeChat (returns media_id)
 // for image and video messages
 async function uploadMedia(
   accessToken: string,
@@ -58,7 +58,7 @@ async function uploadMedia(
 // Send message to WeChat user, with no 5 seconds limit
 async function sendWeChatMessage(accessToken: string, toUser: string, message: object): Promise<void> {
   const url = `${WECHAT_API_BASE}/message/custom/send?access_token=${accessToken}`
-  
+
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -67,9 +67,9 @@ async function sendWeChatMessage(accessToken: string, toUser: string, message: o
       ...message,
     }),
   })
-  
-  const data = await response.json() as { errcode?: number; errmsg?: string }
-  
+
+  const data = (await response.json()) as { errcode?: number; errmsg?: string }
+
   if (data.errcode && data.errcode !== 0) {
     throw new RuntimeError(`Failed to send WeChat message: ${data.errmsg} (code: ${data.errcode})`)
   }
@@ -89,23 +89,18 @@ async function ackMessage(ack: (props: { tags: { id: string } }) => Promise<void
   await ack({ tags: { id: messageId } })
 }
 
-
-
-
-
-
 export const handleTextMessage = async (props: MessageHandlerProps<'text'>) => {
   const { payload, ctx, conversation, ack } = props
   const { text } = payload
   const chatId = getChatId(conversation)
   try {
     const accessToken = await getAccessToken(ctx.configuration.appId, ctx.configuration.appSecret)
-    
+
     await sendWeChatMessage(accessToken, chatId, {
       msgtype: 'text',
       text: { content: text },
     })
-    
+
     await ackMessage(ack, `wechat-${Date.now()}`)
   } catch (error) {
     throw error
@@ -116,21 +111,21 @@ export const handleTextMessage = async (props: MessageHandlerProps<'text'>) => {
 // export const handleImageMessage = async ({ payload, ctx, conversation, ack, logger }: MessageHandlerProps<'image'>) => {
 //   const chatId = getChatId(conversation)
 //   logger.forBot().debug(`Sending image message to WeChat user ${chatId}:`, payload.imageUrl)
-  
+
 //   try {
 //     const accessToken = await getAccessToken(ctx.configuration.appId, ctx.configuration.appSecret)
-    
+
 //     // Upload the image to WeChat and get media_id
 //     logger.forBot().debug(`Uploading image to WeChat...`)
 //     const mediaId = await uploadMedia(accessToken, payload.imageUrl, 'image')
 //     logger.forBot().debug(`Image uploaded, media_id: ${mediaId}`)
-    
+
 //     // Send image message with media_id
 //     await sendWeChatMessage(accessToken, chatId, {
 //       msgtype: 'image',
 //       image: { media_id: mediaId },
 //     })
-    
+
 //     await ackMessage(ack, `wechat-${Date.now()}`)
 //     logger.forBot().info(`Successfully sent image message to WeChat user ${chatId}`)
 //   } catch (error) {
@@ -138,36 +133,38 @@ export const handleTextMessage = async (props: MessageHandlerProps<'text'>) => {
 //     throw error
 //   }
 // }
-  // ============== END FOR FUTURE USE ==============
+// ============== END FOR FUTURE USE ==============
 
-export const handleImageMessage = async ({ payload, ctx, conversation, ack }: MessageHandlerProps<'image'>) => { // handle image messages with tencent cloud url
+export const handleImageMessage = async ({ payload, ctx, conversation, ack }: MessageHandlerProps<'image'>) => {
+  // handle image messages with tencent cloud url
   const chatId = getChatId(conversation)
   try {
     const accessToken = await getAccessToken(ctx.configuration.appId, ctx.configuration.appSecret)
-    
+
     const mediaId = await uploadMedia(accessToken, payload.imageUrl, 'image')
     await sendWeChatMessage(accessToken, chatId, {
       msgtype: 'image',
       image: { media_id: mediaId },
     })
-    
+
     await ackMessage(ack, `wechat-${Date.now()}`)
   } catch (error) {
     throw error
   }
 }
 
-export const handleVideoMessage = async ({ payload, ctx, conversation, ack }: MessageHandlerProps<'video'>) => { // not implemented yet
+export const handleVideoMessage = async ({ payload, ctx, conversation, ack }: MessageHandlerProps<'video'>) => {
+  // not implemented yet
   const chatId = getChatId(conversation)
   try {
     const accessToken = await getAccessToken(ctx.configuration.appId, ctx.configuration.appSecret)
-    
+
     // Send video URL as text (simplified - no media upload)
     await sendWeChatMessage(accessToken, chatId, {
       msgtype: 'text',
       text: { content: `[Video] ${payload.videoUrl}` },
     })
-    
+
     await ackMessage(ack, `wechat-${Date.now()}`)
   } catch (error) {
     throw error
