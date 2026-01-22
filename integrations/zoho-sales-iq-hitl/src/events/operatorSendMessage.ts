@@ -1,11 +1,11 @@
-import { ConversationWebhookPayload } from '../definitions/salesIqEvents'
+import type { OperatorRepliedEvent } from '../definitions/webhook-events'
 import * as bp from '.botpress'
 
 export const handleOperatorReplied = async ({
   salesIqEvent,
   client,
 }: {
-  salesIqEvent: ConversationWebhookPayload
+  salesIqEvent: OperatorRepliedEvent
   client: bp.Client
 }) => {
   const { conversation } = await client.getOrCreateConversation({

@@ -1,0 +1,772 @@
+Jan 22, 2026, 3:12:17 PM
+{
+  status: 200,
+  statusText: '',
+  headers: Object [AxiosHeaders] {
+    server: 'ZGS',
+    date: 'Thu, 22 Jan 2026 20:12:17 GMT',
+    'content-type': 'application/json;charset=UTF-8',
+    'content-length': '193',
+    connection: 'keep-alive',
+    'set-cookie': [
+      'zalb_2464eb5b1f=5311b21d84a608e1aa3018e2f63d9954; Path=/; Secure; HttpOnly',
+      'iamcsr=1872cf60-a55f-4bfe-851f-d32faad664e2;path=/;SameSite=Strict;Secure;priority=high'
+    ],
+    'cache-control': 'no-store',
+    'x-content-type-options': 'nosniff',
+    pragma: 'no-cache',
+    'x-frame-options': 'SAMEORIGIN',
+    'content-language': 'en-US',
+    'strict-transport-security': 'max-age=64072000; includeSubDomains; preload'
+  },
+  config: {
+    transitional: {
+      silentJSONParsing: true,
+      forcedJSONParsing: true,
+      clarifyTimeoutError: false
+    },
+    adapter: [ 'xhr', 'http', 'fetch' ],
+    transformRequest: [ [Function: transformRequest] ],
+    transformResponse: [ [Function: transformResponse] ],
+    timeout: 0,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+    maxContentLength: -1,
+    maxBodyLength: -1,
+    env: { FormData: [Function], Blob: [class Blob] },
+    validateStatus: [Function: validateStatus],
+    headers: Object [AxiosHeaders] {
+      Accept: 'application/json, text/plain, */*',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': 'axios/1.13.2',
+      'Content-Length': '212',
+      'Accept-Encoding': 'gzip, compress, deflate, br'
+    },
+    method: 'post',
+    url: 'https://accounts.zohocloud.ca/oauth/v2/token',
+    data: 'client_id=1005.VJRYW5IPIFWT2YL3LOHYE418IPW4TJ&client_secret=baabe0b94643d3d693c0b08a8bc745054020e68493&refresh_token=1005.4aabce7748693f51e51a9dbfdf59035a.1cecb1d49990c60608ee35f6aab80f49&grant_type=refresh_token',
+    allowAbsoluteUrls: true
+  },
+  request: <ref *1> ClientRequest {
+    _events: [Object: null prototype] {
+      abort: [Function (anonymous)],
+      aborted: [Function (anonymous)],
+      connect: [Function (anonymous)],
+      error: [Function (anonymous)],
+      socket: [Function (anonymous)],
+      timeout: [Function (anonymous)],
+      finish: [Function: requestOnFinish]
+    },
+    _eventsCount: 7,
+    _maxListeners: undefined,
+    outputData: [],
+    outputSize: 0,
+    writable: true,
+    destroyed: true,
+    _last: false,
+    chunkedEncoding: false,
+    shouldKeepAlive: true,
+    maxRequestsOnConnectionReached: false,
+    _defaultKeepAlive: true,
+    useChunkedEncodingByDefault: true,
+    sendDate: false,
+    _removedConnection: false,
+    _removedContLen: false,
+    _removedTE: false,
+    strictContentLength: false,
+    _contentLength: 212,
+    _hasBody: true,
+    _trailer: '',
+    finished: true,
+    _headerSent: true,
+    _closed: true,
+    socket: TLSSocket {
+      _tlsOptions: [Object],
+      _secureEstablished: true,
+      _securePending: false,
+      _newSessionPending: false,
+      _controlReleased: true,
+      secureConnecting: false,
+      _SNICallback: null,
+      servername: 'accounts.zohocloud.ca',
+      alpnProtocol: false,
+      authorized: true,
+      authorizationError: null,
+      encrypted: true,
+      _events: [Object: null prototype],
+      _eventsCount: 9,
+      connecting: false,
+      _hadError: false,
+      _parent: null,
+      _host: 'accounts.zohocloud.ca',
+      _closeAfterHandlingError: false,
+      _readableState: [ReadableState],
+      _writableState: [WritableState],
+      allowHalfOpen: false,
+      _maxListeners: undefined,
+      _sockname: null,
+      _pendingData: null,
+      _pendingEncoding: '',
+      server: undefined,
+      _server: null,
+      ssl: [TLSWrap],
+      _requestCert: true,
+      _rejectUnauthorized: true,
+      timeout: 5000,
+      parser: null,
+      _httpMessage: null,
+      [Symbol(alpncallback)]: null,
+      [Symbol(res)]: [TLSWrap],
+      [Symbol(verified)]: true,
+      [Symbol(pendingSession)]: null,
+      [Symbol(async_id_symbol)]: -1,
+      [Symbol(kHandle)]: [TLSWrap],
+      [Symbol(lastWriteQueueSize)]: 0,
+      [Symbol(timeout)]: Timeout {
+        _idleTimeout: 5000,
+        _idlePrev: [TimersList],
+        _idleNext: [TimersList],
+        _idleStart: 591,
+        _onTimeout: [Function: bound ],
+        _timerArgs: undefined,
+        _repeat: null,
+        _destroyed: false,
+        [Symbol(refed)]: false,
+        [Symbol(kHasPrimitive)]: false,
+        [Symbol(asyncId)]: 58,
+        [Symbol(triggerId)]: 56,
+        [Symbol(kResourceStore)]: [Object]
+      },
+      [Symbol(kBuffer)]: null,
+      [Symbol(kBufferCb)]: null,
+      [Symbol(kBufferGen)]: null,
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false,
+      [Symbol(kSetNoDelay)]: false,
+      [Symbol(kSetKeepAlive)]: true,
+      [Symbol(kSetKeepAliveInitialDelay)]: 1,
+      [Symbol(kBytesRead)]: 0,
+      [Symbol(kBytesWritten)]: 0,
+      [Symbol(connect-options)]: [Object]
+    },
+    _header: 'POST /oauth/v2/token HTTP/1.1\r\n' +
+      'Accept: application/json, text/plain, */*\r\n' +
+      'Content-Type: application/x-www-form-urlencoded\r\n' +
+      'User-Agent: axios/1.13.2\r\n' +
+      'Content-Length: 212\r\n' +
+      'Accept-Encoding: gzip, compress, deflate, br\r\n' +
+      'Host: accounts.zohocloud.ca\r\n' +
+      'Connection: keep-alive\r\n' +
+      '\r\n',
+    _keepAliveTimeout: 0,
+    _onPendingData: [Function: nop],
+    agent: Agent {
+      _events: [Object: null prototype],
+      _eventsCount: 2,
+      _maxListeners: undefined,
+      defaultPort: 443,
+      protocol: 'https:',
+      options: [Object: null prototype],
+      requests: [Object: null prototype] {},
+      sockets: [Object: null prototype] {},
+      freeSockets: [Object: null prototype],
+      keepAliveMsecs: 1000,
+      keepAlive: true,
+      maxSockets: Infinity,
+      maxFreeSockets: 256,
+      scheduling: 'lifo',
+      maxTotalSockets: Infinity,
+      totalSocketCount: 1,
+      maxCachedSessions: 100,
+      _sessionCache: [Object],
+      [Symbol(shapeMode)]: false,
+      [Symbol(kCapture)]: false
+    },
+    socketPath: undefined,
+    method: 'POST',
+    maxHeaderSize: undefined,
+    insecureHTTPParser: undefined,
+    joinDuplicateHeaders: undefined,
+    path: '/oauth/v2/token',
+    _ended: true,
+    res: IncomingMessage {
+      _events: [Object],
+      _readableState: [ReadableState],
+      _maxListeners: undefined,
+      socket: null,
+      httpVersionMajor: 1,
+      httpVersionMinor: 1,
+      httpVersion: '1.1',
+      complete: true,
+      rawHeaders: [Array],
+      rawTrailers: [],
+      joinDuplicateHeaders: undefined,
+      aborted: false,
+      upgrade: false,
+      url: '',
+      method: null,
+      statusCode: 200,
+      statusMessage: '',
+      client: [TLSSocket],
+      _consuming: false,
+      _dumped: false,
+      req: [Circular *1],
+      _eventsCount: 4,
+      responseUrl: 'https://accounts.zohocloud.ca/oauth/v2/token',
+      redirects: [],
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false,
+      [Symbol(kHeaders)]: [Object],
+      [Symbol(kHeadersCount)]: 26,
+      [Symbol(kTrailers)]: null,
+      [Symbol(kTrailersCount)]: 0
+    },
+    aborted: false,
+    timeoutCb: null,
+    upgradeOrConnect: false,
+    parser: null,
+    maxHeadersCount: null,
+    reusedSocket: false,
+    host: 'accounts.zohocloud.ca',
+    protocol: 'https:',
+    _redirectable: Writable {
+      _events: [Object],
+      _writableState: [WritableState],
+      _maxListeners: undefined,
+      _options: [Object],
+      _ended: true,
+      _ending: true,
+      _redirectCount: 0,
+      _redirects: [],
+      _requestBodyLength: 212,
+      _requestBodyBuffers: [],
+      _eventsCount: 3,
+      _onNativeResponse: [Function (anonymous)],
+      _currentRequest: [Circular *1],
+      _currentUrl: 'https://accounts.zohocloud.ca/oauth/v2/token',
+      _timeout: null,
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false
+    },
+    [Symbol(shapeMode)]: false,
+    [Symbol(kCapture)]: false,
+    [Symbol(kBytesWritten)]: 0,
+    [Symbol(kNeedDrain)]: false,
+    [Symbol(corked)]: 0,
+    [Symbol(kOutHeaders)]: [Object: null prototype] {
+      accept: [Array],
+      'content-type': [Array],
+      'user-agent': [Array],
+      'content-length': [Array],
+      'accept-encoding': [Array],
+      host: [Array]
+    },
+    [Symbol(errored)]: null,
+    [Symbol(kHighWaterMark)]: 16384,
+    [Symbol(kRejectNonStandardBodyWrites)]: false,
+    [Symbol(kUniqueHeaders)]: null
+  },
+  data: {
+    access_token: '1005.386b9addaa973844064419a2608ae37f.522ab3bde9e6ea7bfdedec41f8ccbd3f',
+    expires_in_sec: 3600,
+    api_domain: 'https://www.zohoapis.ca',
+    token_type: 'Bearer',
+    expires_in: 3600000
+  }
+}
+Jan 22, 2026, 3:12:17 PM
+Refresh Access Token Debug Info: {
+  "data": {
+    "access_token": "1005.386b9addaa973844064419a2608ae37f.522ab3bde9e6ea7bfdedec41f8ccbd3f",
+    "expires_in_sec": 3600,
+    "api_domain": "https://www.zohoapis.ca",
+    "token_type": "Bearer",
+    "expires_in": 3600000
+  },
+  "status": 200
+}
+Jan 22, 2026, 3:12:17 PM
+Access token refreshed successfully.
+Jan 22, 2026, 3:12:17 PM
+Params: {}
+Jan 22, 2026, 3:12:17 PM
+Making request to GET https://salesiq.zohocloud.ca/api/v2/botpress/apps/11209000000002238
+Jan 22, 2026, 3:12:17 PM
+accessToken 1005.386b9addaa973844064419a2608ae37f.522ab3bde9e6ea7bfdedec41f8ccbd3f
+Jan 22, 2026, 3:12:17 PM
+Registering configuration...
+Jan 22, 2026, 3:12:17 PM
+Get App Debug Info: {
+  "data": {
+    "reply_time": "0",
+    "homepage_configs": {
+      "offline_content": "",
+      "conversation_mode": [
+        "chat",
+        "call"
+      ],
+      "online_content": "",
+      "show_brand_logo": false
+    },
+    "allow_chat_reopen": false,
+    "call_recording": true,
+    "modified_time": "1769036166768",
+    "abusive_content_moderation": {
+      "close_chat_message": "Sorry! But, I'm forced to end the conversation right away due to usage of profanity",
+      "message_action": "pass",
+      "action": "close_chat",
+      "limit": 1,
+      "warning_message": "I'm sorry but I will have to end this chat/block you if there is another abusive message",
+      "content_library": "0",
+      "enabled": false,
+      "type": "operator_and_bots",
+      "block_user_message": "Sorry, you are blocked from sending anymore messages because you have used abusive language!"
+    },
+    "chat_inactivity_rules": {
+      "remainder_enabled": false,
+      "rules": [
+        {
+          "delay_mins": 240,
+          "message": {
+            "default": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "action": "end"
+        }
+      ]
+    },
+    "view_conversation": false,
+    "visitor_question": {
+      "default_text": "",
+      "mandatory": true,
+      "place_holder": ""
+    },
+    "allow_multiple_live_chat": false,
+    "consent_banner_content": "",
+    "waiting_time": 60,
+    "created_time": "1769036166750",
+    "enabled": true,
+    "chat_waiting_queue": {
+      "enabled": false,
+      "size": 0
+    },
+    "modifier": {
+      "name": "Eric Huang",
+      "id": "11209000000002002"
+    },
+    "unique_name": "botpress",
+    "credit_card_masking": {
+      "consent_banner_content": "",
+      "enabled": true,
+      "allow_operator_to_unmask": true,
+      "supported_roles": [
+        "Supervisor",
+        "Administrator"
+      ]
+    },
+    "name": "Botpress",
+    "contact": {
+      "address": "",
+      "email": "",
+      "name": "",
+      "enabled": true,
+      "phonenumber": ""
+    },
+    "description": {},
+    "jwt_authentication": {
+      "enabled": false,
+      "secret_key": "2b93ca534eb64b2d9c91becec1b53e37"
+    },
+    "notify_cookies": {
+      "link_content": "",
+      "link_url": "",
+      "banner_content": "",
+      "button_text": {
+        "text2": "",
+        "text1": ""
+      },
+      "code": 2
+    },
+    "form_fields_auto_pick_enabled": true,
+    "hide_when_offline": false,
+    "mail_transcript": true,
+    "offline_content": {
+      "sub_header": "",
+      "action": "",
+      "header": ""
+    },
+    "language": "default",
+    "creator": {
+      "name": "Eric Huang",
+      "id": "11209000000002002"
+    },
+    "cookie_preference": "default",
+    "seasonaltheme_enabled": false,
+    "share_screen": false,
+    "mask_visitor_ip": true,
+    "read_receipt": false,
+    "color": "#0066cc",
+    "widget_type": "float",
+    "seasonal_theme": {
+      "themes": [
+        {
+          "expiry_time": "1735583400000",
+          "enabled": false,
+          "type": "christmas",
+          "start_time": "1734460200000"
+        },
+        {
+          "expiry_time": "1730831340000",
+          "enabled": false,
+          "type": "diwali",
+          "start_time": "1729405800000"
+        },
+        {
+          "expiry_time": "1735842599000",
+          "enabled": false,
+          "type": "newyear",
+          "start_time": "1735497001000"
+        }
+      ],
+      "enabled": false
+    },
+    "notify_terms": {
+      "url": "",
+      "banner_content": "",
+      "negative_button_content": "",
+      "code": 1,
+      "positive_button_content": ""
+    },
+    "resource": {
+      "use_chat_departments": true,
+      "departments": [
+        {
+          "11209000000002024": "Botpress"
+        }
+      ]
+    },
+    "share_file": true,
+    "logo_url": "",
+    "online_content": {
+      "sub_header": "",
+      "action": "",
+      "header": ""
+    },
+    "business_hours": true,
+    "notify_googletranslator_usage": {
+      "url": "",
+      "code": 1
+    },
+    "all_dept_association": "7",
+    "id": "11209000000002238",
+    "show_brand_logo": false,
+    "track_dnt_websites": false,
+    "recording": {
+      "call_consent_message": "",
+      "type": "audio_call_and_screen_share",
+      "screenshare_consent_message": ""
+    },
+    "idle_chat_end": {
+      "enabled": true
+    },
+    "chat_assignment": "auto_assign",
+    "show_emojis": false,
+    "white_labelled": true,
+    "message_actions": {
+      "operator": {
+        "edit": true,
+        "delete": true
+      },
+      "enabled": true,
+      "visitor": {
+        "edit": false,
+        "delete": false
+      }
+    },
+    "voice_notes_enabled": true,
+    "missed_chat_end": {
+      "enabled": false,
+      "duration": "3_months"
+    },
+    "font": "Lato",
+    "departments": [
+      {
+        "11209000000002024": "Botpress"
+      }
+    ],
+    "channels": {
+      "website": {
+        "screen_share": 1,
+        "faq": 1,
+        "chat": 1,
+        "enabled": true,
+        "proactive": 0,
+        "call": 1
+      },
+      "emailsignature": {
+        "screen_share": 1,
+        "faq": 0,
+        "chat": 1,
+        "enabled": true,
+        "proactive": 0,
+        "call": 1
+      }
+    },
+    "waiting_time_config": {
+      "website": 60,
+      "emailsignature": 60
+    },
+    "widgetcode": "1c1dfdd05232ea65e6e0ea186b4b1a2758565185b6675d1919c31e3cd63ae036",
+    "privacy": false
+  }
+}
+Jan 22, 2026, 3:12:17 PM
+Zoho configuration validated successfully.
+Jan 22, 2026, 3:12:17 PM
+{
+  url: '/api/v2/botpress/apps/11209000000002238',
+  object: 'app',
+  data: {
+    reply_time: '0',
+    homepage_configs: {
+      offline_content: '',
+      conversation_mode: [Array],
+      online_content: '',
+      show_brand_logo: false
+    },
+    allow_chat_reopen: false,
+    call_recording: true,
+    modified_time: '1769036166768',
+    abusive_content_moderation: {
+      close_chat_message: "Sorry! But, I'm forced to end the conversation right away due to usage of profanity",
+      message_action: 'pass',
+      action: 'close_chat',
+      limit: 1,
+      warning_message: "I'm sorry but I will have to end this chat/block you if there is another abusive message",
+      content_library: '0',
+      enabled: false,
+      type: 'operator_and_bots',
+      block_user_message: 'Sorry, you are blocked from sending anymore messages because you have used abusive language!'
+    },
+    chat_inactivity_rules: { remainder_enabled: false, rules: [Array] },
+    view_conversation: false,
+    visitor_question: { default_text: '', mandatory: true, place_holder: '' },
+    allow_multiple_live_chat: false,
+    consent_banner_content: '',
+    waiting_time: 60,
+    created_time: '1769036166750',
+    enabled: true,
+    chat_waiting_queue: { enabled: false, size: 0 },
+    modifier: { name: 'Eric Huang', id: '11209000000002002' },
+    unique_name: 'botpress',
+    credit_card_masking: {
+      consent_banner_content: '',
+      enabled: true,
+      allow_operator_to_unmask: true,
+      supported_roles: [Array]
+    },
+    name: 'Botpress',
+    contact: {
+      address: '',
+      email: '',
+      name: '',
+      enabled: true,
+      phonenumber: ''
+    },
+    description: {},
+    jwt_authentication: { enabled: false, secret_key: '2b93ca534eb64b2d9c91becec1b53e37' },
+    notify_cookies: {
+      link_content: '',
+      link_url: '',
+      banner_content: '',
+      button_text: [Object],
+      code: 2
+    },
+    form_fields_auto_pick_enabled: true,
+    hide_when_offline: false,
+    mail_transcript: true,
+    offline_content: { sub_header: '', action: '', header: '' },
+    language: 'default',
+    creator: { name: 'Eric Huang', id: '11209000000002002' },
+    cookie_preference: 'default',
+    seasonaltheme_enabled: false,
+    share_screen: false,
+    mask_visitor_ip: true,
+    read_receipt: false,
+    color: '#0066cc',
+    widget_type: 'float',
+    seasonal_theme: { themes: [Array], enabled: false },
+    notify_terms: {
+      url: '',
+      banner_content: '',
+      negative_button_content: '',
+      code: 1,
+      positive_button_content: ''
+    },
+    resource: { use_chat_departments: true, departments: [Array] },
+    share_file: true,
+    logo_url: '',
+    online_content: { sub_header: '', action: '', header: '' },
+    business_hours: true,
+    notify_googletranslator_usage: { url: '', code: 1 },
+    all_dept_association: '7',
+    id: '11209000000002238',
+    show_brand_logo: false,
+    track_dnt_websites: false,
+    recording: {
+      call_consent_message: '',
+      type: 'audio_call_and_screen_share',
+      screenshare_consent_message: ''
+    },
+    idle_chat_end: { enabled: true },
+    chat_assignment: 'auto_assign',
+    show_emojis: false,
+    white_labelled: true,
+    message_actions: { operator: [Object], enabled: true, visitor: [Object] },
+    voice_notes_enabled: true,
+    missed_chat_end: { enabled: false, duration: '3_months' },
+    font: 'Lato',
+    departments: [ [Object] ],
+    channels: { website: [Object], emailsignature: [Object] },
+    waiting_time_config: { website: 60, emailsignature: 60 },
+    widgetcode: '1c1dfdd05232ea65e6e0ea186b4b1a2758565185b6675d1919c31e3cd63ae036',
+    privacy: false
+  }
+}
+Jan 22, 2026, 3:15:12 PM
+Params: {}
+Jan 22, 2026, 3:15:12 PM
+Making request to POST https://salesiq.zohocloud.ca/api/visitor/v1/botpress/conversations
+Jan 22, 2026, 3:15:12 PM
+accessToken 1005.386b9addaa973844064419a2608ae37f.522ab3bde9e6ea7bfdedec41f8ccbd3f
+Jan 22, 2026, 3:15:12 PM
+Create Conversation Debug Info: {
+  "data": {
+    "id": "64be824cad60f719d1dd8d3e39a23919afd16da2fe2e750c138d2deeb3aa4ba1",
+    "wms_chat_id": "LD_1582336420051416516_1110002332534",
+    "unread_chats": false,
+    "question": "Botpress - Test Tickets - No description available",
+    "department": {
+      "name": "Botpress",
+      "id": "11209000000002024"
+    },
+    "auto_assign": true,
+    "last_modified_time": "1769112912596",
+    "start_time": "1769112912596",
+    "visitor": {
+      "name": "Unknown User",
+      "id": "11209000000002318",
+      "country_code": "US",
+      "supported_operations": [
+        "bot_chat",
+        "file_share",
+        "audio_call",
+        "video_call",
+        "remote_share",
+        "edit_message",
+        "delete_message",
+        "reply_message",
+        "block_ip",
+        "article_share",
+        "read_recipients",
+        "remote_session",
+        "bookings"
+      ],
+      "first_name": "",
+      "ip": "13.220.247.125",
+      "salutation": "None",
+      "email": "user_01KFKN59TFFFV1J53EQ6PJ9WW7@no-reply.6887d3ea-c675-42b9-a39f-b44aca03932c.botpress.com",
+      "user_id": "user_01KFKN59TFFFV1J53EQ6PJ9WW7@no-reply.6887d3ea-c675-42b9-a39f-b44aca03932c.botpress.com",
+      "last_name": ""
+    },
+    "type": "chat",
+    "chat_id": "cde7ae090e9c2eb4a1528e017ce2e381a8fbcb5f77094678db21958d39924df91bc18812738350ab445761b88f88b7dc",
+    "chat_status": {
+      "state_key": "waiting",
+      "status_code": 0,
+      "state": 1,
+      "status_key": "open"
+    },
+    "conversation_id": "11209000000003001",
+    "reference_id": "2"
+  }
+}
+Jan 22, 2026, 3:15:12 PM
+Conversation ID - 11209000000003001
+Jan 22, 2026, 3:15:12 PM
+Result Data - {
+  "url": "/api/visitor/v1/botpress/conversations",
+  "object": "conversations",
+  "data": {
+    "id": "64be824cad60f719d1dd8d3e39a23919afd16da2fe2e750c138d2deeb3aa4ba1",
+    "wms_chat_id": "LD_1582336420051416516_1110002332534",
+    "unread_chats": false,
+    "question": "Botpress - Test Tickets - No description available",
+    "department": {
+      "name": "Botpress",
+      "id": "11209000000002024"
+    },
+    "auto_assign": true,
+    "last_modified_time": "1769112912596",
+    "start_time": "1769112912596",
+    "visitor": {
+      "name": "Unknown User",
+      "id": "11209000000002318",
+      "country_code": "US",
+      "supported_operations": [
+        "bot_chat",
+        "file_share",
+        "audio_call",
+        "video_call",
+        "remote_share",
+        "edit_message",
+        "delete_message",
+        "reply_message",
+        "block_ip",
+        "article_share",
+        "read_recipients",
+        "remote_session",
+        "bookings"
+      ],
+      "first_name": "",
+      "ip": "13.220.247.125",
+      "salutation": "None",
+      "email": "user_01KFKN59TFFFV1J53EQ6PJ9WW7@no-reply.6887d3ea-c675-42b9-a39f-b44aca03932c.botpress.com",
+      "user_id": "user_01KFKN59TFFFV1J53EQ6PJ9WW7@no-reply.6887d3ea-c675-42b9-a39f-b44aca03932c.botpress.com",
+      "last_name": ""
+    },
+    "type": "chat",
+    "chat_id": "cde7ae090e9c2eb4a1528e017ce2e381a8fbcb5f77094678db21958d39924df91bc18812738350ab445761b88f88b7dc",
+    "chat_status": {
+      "state_key": "waiting",
+      "status_code": 0,
+      "state": 1,
+      "status_key": "open"
+    },
+    "conversation_id": "11209000000003001",
+    "reference_id": "2"
+  }
+}
+Jan 22, 2026, 3:15:13 PM
+Handler received request from Zoho SalesIQ with payload: {"handler":"execution","entity_type":"conversation","webhook":{"id":"11209000000002314"},"org_id":"110002332534","event":"conversation.attender.updated","entity_id":"11209000000003001","attempt":1,"version":1,"app_id":"11209000000002238","entity":{"owner":{"email_id":"eric.huang@botpress.com","name":"Eric Huang","id":"11209000000002002","type":"operator","email":"eric.huang@botpress.com"},"chat_status":{"state_key":"connected","status_code":0,"state":2,"status_key":"open"},"question":"Botpress - Test Tickets - No description available","reference_id":"2","department_id":"11209000000002024","visitor_conversation_id":"64be824cad60f719d1dd8d3e39a23919afd16da2fe2e750c138d2deeb3aa4ba1","opened_time":"1769112912596","attended_time":"1769112912709","id":"11209000000003001","visitor":{"email_id":"user_01kfkn59tfffv1j53eq6pj9ww7@no-reply.6887d3ea-c675-42b9-a39f-b44aca03932c.botpress.com","name":"Unknown User","channel":"website","last_name":"User","salutation":"None","id":"11209000000002318","type":"contact","first_name":"Unknown"},"app_id":"11209000000002238","status":"Connected","participants":["11209000000002002"]},"event_time":"1769112912709"}
+Jan 22, 2026, 3:15:31 PM
+Handler received request from Zoho SalesIQ with payload: {"handler":"execution","entity_type":"conversation","webhook":{"id":"11209000000002314"},"org_id":"110002332534","event":"conversation.operator.replied","entity_id":"11209000000003001","attempt":1,"version":1,"app_id":"11209000000002238","entity":{"id":"11209000000003001","visitor_conversation_id":"64be824cad60f719d1dd8d3e39a23919afd16da2fe2e750c138d2deeb3aa4ba1","message":{"sender":{"name":"Eric Huang","id":"11209000000002002","type":"operator"},"meta":{},"msgid":"1769112930346","text":"hi"},"visitor":{"email_id":"user_01kfkn59tfffv1j53eq6pj9ww7@no-reply.6887d3ea-c675-42b9-a39f-b44aca03932c.botpress.com","name":"Unknown User","channel":"website","last_name":"User","salutation":"None","id":"11209000000002318","type":"contact","first_name":"Unknown"}},"event_time":"1769112930452"}
+Jan 22, 2026, 3:15:40 PM
+Making request to POST https://salesiq.zohocloud.ca/api/visitor/v1/botpress/conversations/11209000000003001/messages
+Jan 22, 2026, 3:15:40 PM
+accessToken 1005.386b9addaa973844064419a2608ae37f.522ab3bde9e6ea7bfdedec41f8ccbd3f
+Jan 22, 2026, 3:15:40 PM
+Params: {}
+Jan 22, 2026, 3:15:40 PM
+Send Message Debug Info: {
+  "data": "",
+  "success": true,
+  "message": "Request successful"
+}
+Jan 22, 2026, 3:15:40 PM
+Message sent successfully:
+Jan 22, 2026, 3:15:45 PM
+Handler received request from Zoho SalesIQ with payload: {"handler":"execution","entity_type":"conversation","webhook":{"id":"11209000000002314"},"org_id":"110002332534","event":"conversation.completed","entity_id":"11209000000002320","attempt":1,"version":1,"app_id":"11209000000002238","entity":{"owner":{"email_id":"eric.huang@botpress.com","name":"Eric Huang","id":"11209000000002002","type":"operator","email":"eric.huang@botpress.com"},"chat_status":{"state_key":"end","status_code":2,"label":"Attended Online","state":4,"id":"22","status_key":"closed"},"question":"Botpress - Test Tickets - No description available","reference_id":"1","department_id":"11209000000002024","end_time":"1769112944861","visitor_conversation_id":"23d26098feba9aeb47732623330f7b9c0fd534f9259ea605ad952785337eadbd","opened_time":"1769112520888","ended_by":"agent","id":"11209000000002320","visitor":{"email_id":"user_01kfkn59tfffv1j53eq6pj9ww7@no-reply.6887d3ea-c675-42b9-a39f-b44aca03932c.botpress.com","name":"Unknown User","channel":"website","last_name":"User","salutation":"None","id":"11209000000002318","type":"contact","first_name":"Unknown"},"app_id":"11209000000002238","status":"Attended Online","participants":["11209000000002002"]},"event_time":"1769112944861"}

@@ -21,15 +21,17 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     const { title = '', description = 'No description available' } = input
 
-    const result : any | null = await zohoClient.createConversation(state.payload.name, state.payload.email, title, description)
+    const result = await zohoClient.createConversation(state.payload.name, state.payload.email, title, description)
 
     if (
-      result === null ||
-      result.data.conversation_id === null ||
+      !result.success ||
+      result.data === null ||
       result.data.conversation_id === undefined ||
       result.data.conversation_id === ''
     ) {
-      throw new RuntimeError('Failed to a conversation with Zoho SalesIQ. Result: ' + JSON.stringify(result, null, 2))
+      throw new RuntimeError(
+        'Failed to create a conversation with Zoho SalesIQ. Result: ' + JSON.stringify(result, null, 2)
+      )
     }
 
     const { conversation } = await client.getOrCreateConversation({
@@ -66,7 +68,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
 
   const salesIqConversationId: string | undefined = conversation.tags.id
 
-  if (!salesIqConversationId) {
+  if (salesIqConversationId === undefined || salesIqConversationId === '') {
     return {}
   }
 
@@ -81,6 +83,8 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
 
   zohoClient.sendMessage(salesIqConversationId, 'Botpress HITL terminated.')
 
+  logger.forBot().info('Botpress HITL terminated.')
+
   return {}
 }
 
@@ -88,7 +92,7 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
   try {
     const { name = 'None', email = 'None', pictureUrl = 'None' } = input
 
-    if (!email) {
+    if (email === null || email === undefined || email === '' || email === 'None') {
       logger.forBot().error('Email necessary for HITL')
       throw new RuntimeError('Email necessary for HITL')
     }
@@ -116,7 +120,8 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
     return {
       userId: botpressUser.id,
     }
-  } catch (error: any) {
-    throw new RuntimeError(error.message)
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    throw new RuntimeError(errorMessage)
   }
 }
