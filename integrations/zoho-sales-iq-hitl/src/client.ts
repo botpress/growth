@@ -3,6 +3,7 @@ import * as bp from '.botpress'
 import * as bpclient from '@botpress/client'
 
 import { IntegrationLogger } from '@botpress/sdk'
+import { debugResponse } from './debug'
 
 const logger = new IntegrationLogger()
 
@@ -158,6 +159,8 @@ export class ZohoApi {
       )
       logger.forBot().info(response)
 
+      debugResponse('Refresh Access Token', response, logger)
+
       await this.bpClient.setState({
         id: this.ctx.integrationId,
         type: 'integration',
@@ -176,7 +179,7 @@ export class ZohoApi {
   }
 
   public async createConversation(name: string, email: string, title: string, description: string): Promise<any> {
-    const { data } = await this.makeHitlRequest(
+    const { data }: { data: any | null } = await this.makeHitlRequest(
       `${this.zohoSalesIqServerURI}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations`,
       'POST',
       {
@@ -190,7 +193,7 @@ export class ZohoApi {
         question: `Botpress - ${title} - ${description}`,
       }
     )
-
+    debugResponse('Create Conversation', data, logger)
     return data
   }
 
@@ -201,6 +204,8 @@ export class ZohoApi {
 
     try {
       const response = await this.makeHitlRequest(endpoint, 'POST', payload)
+
+      debugResponse('Send Message', response, logger)
 
       if (response.success) {
         logger.forBot().info('Message sent successfully:', response.data)
@@ -219,6 +224,7 @@ export class ZohoApi {
     const { data } = await this.makeHitlRequest(
       `${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/apps/${this.ctx.configuration.appId}`
     )
+    debugResponse('Get App', data, logger)
     return data
   }
 
@@ -226,6 +232,7 @@ export class ZohoApi {
     const { data } = await this.makeHitlRequest(
       `${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/departments/${this.ctx.configuration.departmentId}`
     )
+    debugResponse('Get Department', data, logger)
     return data
   }
 }

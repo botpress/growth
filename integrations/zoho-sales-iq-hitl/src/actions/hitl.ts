@@ -19,9 +19,18 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       type: 'integration',
     })
 
-    const { title, description = 'No description available' } = input
+    const { title = '', description = 'No description available' } = input
 
-    const result = await zohoClient.createConversation(state.payload.name, state.payload.email, title, description)
+    const result : any | null = await zohoClient.createConversation(state.payload.name, state.payload.email, title, description)
+
+    if (
+      result === null ||
+      result.data.conversation_id === null ||
+      result.data.conversation_id === undefined ||
+      result.data.conversation_id === ''
+    ) {
+      throw new RuntimeError('Failed to a conversation with Zoho SalesIQ. Result: ' + JSON.stringify(result, null, 2))
+    }
 
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
@@ -70,7 +79,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
     client
   )
 
-  void zohoClient.sendMessage(salesIqConversationId, 'Botpress HITL terminated with reason: ' + input.reason)
+  zohoClient.sendMessage(salesIqConversationId, 'Botpress HITL terminated.')
 
   return {}
 }
