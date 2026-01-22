@@ -9,9 +9,9 @@ export default new IntegrationDefinition({
   readme: 'hub.md',
   configuration: {
     schema: z.object({
-      wechatToken: z.string().min(1).describe('Token used for WeChat signature verification').title('WeChat Token'),
-      appId: z.string().min(1).describe('WeChat Official Account AppID').title('App ID'),
-      appSecret: z.string().min(1).describe('WeChat Official Account AppSecret').title('App Secret'),
+      wechatToken: z.string().trim().min(1).describe('Token used for WeChat signature verification').title('WeChat Token'),
+      appId: z.string().trim().min(1).describe('WeChat Official Account App ID').title('App ID'),
+      appSecret: z.string().trim().min(1).describe('WeChat Official Account App Secret').title('App Secret'),
     }),
   },
   channels: {
@@ -21,17 +21,15 @@ export default new IntegrationDefinition({
       messages: wechatMessageChannels,
       message: {
         tags: {
-          id: { title: 'ID', description: 'The message id' },
-          chatId: { title: 'Chat ID', description: 'The message Chat id' },
+          id: { title: 'ID', description: 'The message ID' },
+          chatId: { title: 'Chat ID', description: 'The message chat ID' },
         },
       },
       conversation: {
         tags: {
           id: { title: 'ID', description: 'The conversation ID' },
-          fromUserId: { title: 'From User ID', description: 'The conversation From User id' },
-          fromUserUsername: { title: 'From User UserName', description: 'The converstation from user username' },
-          fromUserName: { title: 'From User Name', description: 'The conversation from user name' },
-          chatId: { title: 'Chat ID', description: 'The conversation Chat id' },
+          fromUserId: { title: 'WeChat User ID', description: 'The conversation WeChat user ID' },
+          chatId: { title: 'Chat ID', description: 'The conversation chat ID' },
         },
       },
     },
@@ -40,7 +38,7 @@ export default new IntegrationDefinition({
   events: {},
   user: {
     tags: {
-      id: { title: 'ID', description: 'The id of the user' },
+      id: { title: 'ID', description: 'The ID of the user' },
     },
   },
 })

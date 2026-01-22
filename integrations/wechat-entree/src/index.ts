@@ -1,33 +1,29 @@
 import { handleImageMessage, handleTextMessage, handleVideoMessage } from './misc/message-handlers'
 import { downloadWeChatMedia, getAccessToken } from './misc/wechat-api'
-import { handleWeChatRequest } from './wechat-handler'
+import { handleWechatSignatureVerificaation } from './wechat-handler'
 import * as bp from '.botpress'
 
 const integration = new bp.Integration({
-  register: async () => {
-    // WeChat doesn't require webhook registration - it's configured in the WeChat admin console
-  },
-  unregister: async () => {
-    // WeChat doesn't require webhook unregistration
-  },
+  register: async () => {},
+  unregister: async () => {},
   actions: {},
   channels: {
     channel: {
       messages: {
+        //messages to be handled
         text: handleTextMessage,
-        image: handleImageMessage, //messages to be handled
+        image: handleImageMessage, 
         video: handleVideoMessage,
       },
     },
   },
   handler: async ({ req, client, ctx }) => {
-    // Extract query parameters - try from req.query first, then from path
+    // Extract signature params for verification (query/path/headers)
     let signature: string | undefined
     let timestamp: string | undefined
     let nonce: string | undefined
     let echostr: string | undefined
 
-    // Parse the query parameters from the request
     if (req.query) {
       const query = typeof req.query === 'string' ? new URLSearchParams(req.query) : null
       if (query) {
@@ -38,7 +34,7 @@ const integration = new bp.Integration({
       }
     }
 
-    // ======================= this is for the signature verification step=================================
+    // Get signature params from the request path
     if (!signature && req.path && req.path.includes('?')) {
       const url = new URL(req.path, 'http://localhost')
       signature = url.searchParams.get('signature') || undefined
@@ -46,19 +42,19 @@ const integration = new bp.Integration({
       nonce = url.searchParams.get('nonce') || undefined
       echostr = url.searchParams.get('echostr') || undefined
     }
-
+    // Get signature params from the headers
     if (!signature && req.headers) {
       signature = req.headers['x-wechat-signature'] || undefined
       timestamp = req.headers['x-wechat-timestamp'] || undefined
       nonce = req.headers['x-wechat-nonce'] || undefined
     }
 
-    // ===================================================================================================
 
-    // Handle WeChat request with signature verification
-    const result = handleWeChatRequest({
+    // Handle WeChat signature verification
+    const method = (req.method ?? 'POST').toUpperCase()
+    const result = handleWechatSignatureVerificaation({
       wechatToken: ctx.configuration.wechatToken,
-      method: req.method || 'POST',
+      method,
       signature,
       timestamp,
       nonce,
@@ -67,7 +63,7 @@ const integration = new bp.Integration({
     })
 
     if (req.method === 'GET' && echostr) {
-      //  this is where the issue exist and we add a "|" to resolve the pproblem and in the proxy, it will be removed
+      //  this is where the issue exist and we add a "|" to resolve the problem and in the proxy, it will be removed
       return {
         status: 200,
         headers: {
@@ -89,8 +85,6 @@ const integration = new bp.Integration({
         tags: {
           id: wechatConversationId,
           fromUserId: wechatUserId,
-          fromUserUsername: wechatUserId,
-          fromUserName: wechatUserId,
           chatId: wechatConversationId,
         },
         discriminateByTags: ['id'],
@@ -103,34 +97,63 @@ const integration = new bp.Integration({
         discriminateByTags: ['id'],
       })
 
-      // Create message based on type
-      if (wechatMessage.MsgType === 'text' && wechatMessage.Content) {
-        await client.createMessage({
-          tags: {
-            id: messageId || '',
-            chatId: wechatConversationId,
-          },
-          type: 'text',
-          payload: { text: wechatMessage.Content },
-          userId: user.id,
-          conversationId: conversation.id,
-        })
-      } else if (wechatMessage.MsgType === 'image') {
-        const mediaKey = `wechat/media/image/${wechatMessage.MediaId || messageId || Date.now()}`
-        let imageUrl: string | undefined
+      const messageTags = {
+        id: messageId || '',
+        chatId: wechatConversationId,
+      }
+      const baseMessage = {
+        tags: messageTags,
+        userId: user.id,
+        conversationId: conversation.id,
+      }
 
-        if (wechatMessage.PicUrl) {
+      const createMessage = async (
+        type: 'text',
+        payload: bp.MessageProps['channel']['text']['payload']
+      ) =>
+        client.createMessage({
+          ...baseMessage,
+          type,
+          payload,
+        })
+      const createImageMessage = async (
+        payload: bp.MessageProps['channel']['image']['payload']
+      ) =>
+        client.createMessage({
+          ...baseMessage,
+          type: 'image',
+          payload,
+        })
+      const createVideoMessage = async (
+        payload: bp.MessageProps['channel']['video']['payload']
+      ) =>
+        client.createMessage({
+          ...baseMessage,
+          type: 'video',
+          payload,
+        })
+
+      const getOrUploadWechatMedia = async (params: { // upload the media to the botpress file cloud
+        mediaId?: string
+        picUrl?: string
+        kind: 'image' | 'video'
+      }): Promise<string | undefined> => {
+        const { mediaId, picUrl, kind } = params
+        const mediaKey = `wechat/media/${kind}/${mediaId || messageId || Date.now()}`
+
+        if (picUrl) {
           const { file } = await client.uploadFile({
-            // upload the image to the botpress file cloud
             key: mediaKey,
-            url: wechatMessage.PicUrl,
+            url: picUrl,
             accessPolicies: ['public_content'],
             publicContentImmediatelyAccessible: true,
           })
-          imageUrl = file.url
-        } else if (wechatMessage.MediaId) {
+          return file.url
+        }
+
+        if (mediaId) {
           const accessToken = await getAccessToken(ctx.configuration.appId, ctx.configuration.appSecret)
-          const { content, contentType } = await downloadWeChatMedia(accessToken, wechatMessage.MediaId)
+          const { content, contentType } = await downloadWeChatMedia(accessToken, mediaId)
           const { file } = await client.uploadFile({
             key: mediaKey,
             content,
@@ -138,83 +161,57 @@ const integration = new bp.Integration({
             accessPolicies: ['public_content'],
             publicContentImmediatelyAccessible: true,
           })
-          imageUrl = file.url
+          return file.url
         }
 
-        if (imageUrl) {
-          await client.createMessage({
-            tags: {
-              id: messageId || '',
-              chatId: wechatConversationId,
-            },
-            type: 'image',
-            payload: { imageUrl },
-            userId: user.id,
-            conversationId: conversation.id,
+        return undefined
+      }
+
+      switch (wechatMessage.MsgType) {
+        case 'text':
+          if (wechatMessage.Content) {
+            await createMessage('text', { text: wechatMessage.Content })
+          }
+          break
+        case 'image': {
+          const imageUrl = await getOrUploadWechatMedia({
+            kind: 'image',
+            picUrl: wechatMessage.PicUrl,
+            mediaId: wechatMessage.MediaId,
           })
+          if (imageUrl) {
+            await createImageMessage({ imageUrl })
+          }
+          break
         }
-      } else if (wechatMessage.MsgType === 'voice' && wechatMessage.MediaId) {
-        // For voice messages, WeChat provides MediaId but not a direct URL
-        // We'll create an audio message with a placeholder or fetch it from WeChat API
-        await client.createMessage({
-          tags: {
-            id: messageId || '',
-            chatId: wechatConversationId,
-          },
-          type: 'text',
-          payload: {
-            text: `[Voice Message] MediaId: ${wechatMessage.MediaId}${wechatMessage.Recognition ? `\nRecognized: ${wechatMessage.Recognition}` : ''}`,
-          },
-          userId: user.id,
-          conversationId: conversation.id,
-        })
-      } else if (wechatMessage.MsgType === 'video' && wechatMessage.MediaId) {
-        const accessToken = await getAccessToken(ctx.configuration.appId, ctx.configuration.appSecret)
-        const { content, contentType } = await downloadWeChatMedia(accessToken, wechatMessage.MediaId)
-        const { file } = await client.uploadFile({
-          key: `wechat/media/video/${wechatMessage.MediaId}`,
-          content,
-          contentType,
-          accessPolicies: ['public_content'],
-          publicContentImmediatelyAccessible: true,
-        })
-        await client.createMessage({
-          tags: {
-            id: messageId || '',
-            chatId: wechatConversationId,
-          },
-          type: 'video',
-          payload: { videoUrl: file.url },
-          userId: user.id,
-          conversationId: conversation.id,
-        })
-      } else if (wechatMessage.MsgType === 'location') {
-        await client.createMessage({
-          tags: {
-            id: messageId || '',
-            chatId: wechatConversationId,
-          },
-          type: 'text',
-          payload: {
-            text: `[Location] ${wechatMessage.Label || ''} (${wechatMessage.Location_X || '0'}, ${wechatMessage.Location_Y || '0'})`,
-          },
-          userId: user.id,
-          conversationId: conversation.id,
-        })
-      } else if (wechatMessage.MsgType === 'link') {
-        await client.createMessage({
-          tags: {
-            id: messageId || '',
-            chatId: wechatConversationId,
-          },
-          type: 'text',
-          payload: {
-            text: `${wechatMessage.Title || ''}\n${wechatMessage.Description || ''}\n${wechatMessage.Url || ''}`,
-          },
-          userId: user.id,
-          conversationId: conversation.id,
-        })
-      } else {
+        case 'video': {
+          const videoUrl = await getOrUploadWechatMedia({ kind: 'video', mediaId: wechatMessage.MediaId })
+          if (videoUrl) {
+            await createVideoMessage({ videoUrl })
+          }
+          break
+        }
+        case 'voice': // saved into the botpress file cloud
+          if (wechatMessage.MediaId) {
+            await createMessage('text', {
+              text: `[Voice Message] MediaId: ${wechatMessage.MediaId}${
+                wechatMessage.Recognition ? `\nRecognized: ${wechatMessage.Recognition}` : ''
+              }`,
+            })
+          }
+          break
+        case 'location':
+          await createMessage('text', {
+            text: `[Location] ${wechatMessage.Label ||  'location'}\nCoordinates: (${wechatMessage.Location_X || '0'}, ${wechatMessage.Location_Y || '0'})`,
+          })
+          break
+        case 'link':
+          await createMessage('text', {
+            text: `[Link] ${wechatMessage.Title || 'Untitled'}\n${wechatMessage.Description || ''}\nURL: ${
+              wechatMessage.Url || ''
+            }`,
+          })
+          break
       }
     }
 
