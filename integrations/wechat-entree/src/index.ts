@@ -12,7 +12,7 @@ const integration = new bp.Integration({
       messages: {
         //messages to be handled
         text: handleTextMessage,
-        image: handleImageMessage, 
+        image: handleImageMessage,
         video: handleVideoMessage,
       },
     },
@@ -48,7 +48,6 @@ const integration = new bp.Integration({
       timestamp = req.headers['x-wechat-timestamp'] || undefined
       nonce = req.headers['x-wechat-nonce'] || undefined
     }
-
 
     // Handle WeChat signature verification
     const method = (req.method ?? 'POST').toUpperCase()
@@ -107,33 +106,27 @@ const integration = new bp.Integration({
         conversationId: conversation.id,
       }
 
-      const createMessage = async (
-        type: 'text',
-        payload: bp.MessageProps['channel']['text']['payload']
-      ) =>
+      const createMessage = async (type: 'text', payload: bp.MessageProps['channel']['text']['payload']) =>
         client.createMessage({
           ...baseMessage,
           type,
           payload,
         })
-      const createImageMessage = async (
-        payload: bp.MessageProps['channel']['image']['payload']
-      ) =>
+      const createImageMessage = async (payload: bp.MessageProps['channel']['image']['payload']) =>
         client.createMessage({
           ...baseMessage,
           type: 'image',
           payload,
         })
-      const createVideoMessage = async (
-        payload: bp.MessageProps['channel']['video']['payload']
-      ) =>
+      const createVideoMessage = async (payload: bp.MessageProps['channel']['video']['payload']) =>
         client.createMessage({
           ...baseMessage,
           type: 'video',
           payload,
         })
 
-      const getOrUploadWechatMedia = async (params: { // upload the media to the botpress file cloud
+      const getOrUploadWechatMedia = async (params: {
+        // upload the media to the botpress file cloud
         mediaId?: string
         picUrl?: string
         kind: 'image' | 'video'
@@ -202,7 +195,7 @@ const integration = new bp.Integration({
           break
         case 'location':
           await createMessage('text', {
-            text: `[Location] ${wechatMessage.Label ||  'location'}\nCoordinates: (${wechatMessage.Location_X || '0'}, ${wechatMessage.Location_Y || '0'})`,
+            text: `[Location] ${wechatMessage.Label || 'location'}\nCoordinates: (${wechatMessage.Location_X || '0'}, ${wechatMessage.Location_Y || '0'})`,
           })
           break
         case 'link':

@@ -41,16 +41,13 @@ interface WeChatMessage {
 }
 
 function parseWeChatMessageXml(webData: string): WeChatMessage | null {
-  if (!webData || webData.length === 0) { 
+  if (!webData || webData.length === 0) {
     return null
   }
   // parse the message from the xml
   const extractValue = (xml: string, tag: string): string | undefined => {
     // find pattern of CDATA or plain text: <Tag><![CDATA[value]]></Tag> or <Tag>value</Tag>
-    const valueRegex = new RegExp(
-      `<${tag}>\\s*(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?\\s*</${tag}>`,
-      'i'
-    )
+    const valueRegex = new RegExp(`<${tag}>\\s*(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?\\s*</${tag}>`, 'i')
     const match = xml.match(valueRegex)
     return match?.[1]
   }
@@ -117,7 +114,8 @@ export function handleWechatSignatureVerificaation(params: WeChatVerification): 
         contentType: 'text/plain',
         body: echostr || '',
       }
-    } else { //if credentials are incorrect, return empty body, wechat will not be verified
+    } else {
+      //if credentials are incorrect, return empty body, wechat will not be verified
       return {
         status: 200,
         contentType: 'text/plain',

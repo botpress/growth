@@ -109,7 +109,11 @@ async function uploadWeChatMedia(
 }
 
 // send message to WeChat user, with no 5 seconds limit
-async function sendWeChatMessage(accessToken: string, toUser: string, message: WeChatOutgoingMessage): Promise<WeChatSendResponse> {
+async function sendWeChatMessage(
+  accessToken: string,
+  toUser: string,
+  message: WeChatOutgoingMessage
+): Promise<WeChatSendResponse> {
   const url = `${WECHAT_API_BASE}/message/custom/send?access_token=${accessToken}`
 
   const response = await fetchTimeout(url, {
