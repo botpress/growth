@@ -41,9 +41,6 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       },
     })
 
-    logger.forBot().debug(`Result Data - ${JSON.stringify(result, null, 2)}`)
-    logger.forBot().debug(`Conversation ID - ${result.data.conversation_id}`)
-
     return {
       conversationId: conversation.id,
     }
@@ -114,8 +111,6 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
         id: email,
       },
     })
-
-    logger.forBot().error(botpressUser)
 
     return {
       userId: botpressUser.id,

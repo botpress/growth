@@ -2,9 +2,9 @@ import { IntegrationDefinition, z } from '@botpress/sdk'
 import hitl from './bp_modules/hitl'
 import { events, configuration, channels, states, user } from './src/definitions'
 export default new IntegrationDefinition({
-  name: 'erichuang/zoho-sales-iq-hitl',
-  title: 'Zoho Sales IQ HITL (DEV)',
-  version: '0.1.6',
+  name: 'plus/zoho-sales-iq-hitl',
+  title: 'Zoho Sales IQ HITL',
+  version: '3.0.1',
   icon: 'icon.svg',
   description: 'This integration allows your bot to use Zoho Sales IQ as a HITL Provider',
   readme: 'hub.md',

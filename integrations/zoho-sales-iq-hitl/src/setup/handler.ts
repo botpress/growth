@@ -18,8 +18,6 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, cli
     return
   }
 
-  logger.forBot().debug('Handler received request from Zoho SalesIQ with payload:', req.body)
-
   let rawPayload: JsonValue
   try {
     rawPayload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body

@@ -3,7 +3,6 @@ import * as bp from '.botpress'
 import * as bpclient from '@botpress/client'
 
 import { IntegrationLogger } from '@botpress/sdk'
-import { debugResponse } from './debug'
 import {
   OAuthTokenResponseSchema,
   ZohoAppConfigResponseSchema,
@@ -117,12 +116,9 @@ export class ZohoApi {
         Authorization: `Bearer ${creds.accessToken}`,
         Accept: 'application/json',
       }
-      logger.forBot().info('accessToken', creds.accessToken)
       if (method !== 'GET' && method !== 'DELETE') {
         headers['Content-Type'] = 'application/json'
       }
-      logger.forBot().info(`Making request to ${method} ${endpoint}`)
-      logger.forBot().info('Params:', params)
 
       const response = await axios({
         method,
@@ -187,9 +183,6 @@ export class ZohoApi {
           },
         }
       )
-      logger.forBot().info(response)
-
-      debugResponse('Refresh Access Token', response, logger)
 
       const parsed = OAuthTokenResponseSchema.safeParse(response.data)
       if (!parsed.success) {
@@ -206,7 +199,6 @@ export class ZohoApi {
         },
       })
 
-      logger.forBot().info('Access token refreshed successfully.')
     } catch (error) {
       if (axios.isAxiosError(error)) {
         logger.forBot().error('Error refreshing access token:', error.response?.data ?? error.message)
@@ -239,7 +231,6 @@ export class ZohoApi {
         question: `Botpress - ${title} - ${description}`,
       }
     )
-    debugResponse('Create Conversation', response, logger)
 
     if (!response.success) {
       return { success: false, data: null, message: response.message }
@@ -262,11 +253,7 @@ export class ZohoApi {
     try {
       const response = await this.makeHitlRequest(endpoint, 'POST', payload)
 
-      debugResponse('Send Message', response, logger)
-
-      if (response.success) {
-        logger.forBot().info('Message sent successfully:', response.data)
-      } else {
+      if (!response.success) {
         logger.forBot().error('Failed to send message:', response.message)
       }
 
@@ -281,7 +268,6 @@ export class ZohoApi {
     const response = await this.makeHitlRequest(
       `${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/apps/${this.ctx.configuration.appId}`
     )
-    debugResponse('Get App', response, logger)
 
     const parsed = ZohoAppConfigResponseSchema.safeParse(response.data)
     if (!parsed.success) {
@@ -295,7 +281,6 @@ export class ZohoApi {
     const response = await this.makeHitlRequest(
       `${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/departments/${this.ctx.configuration.departmentId}`
     )
-    debugResponse('Get Department', response, logger)
 
     const parsed = ZohoAppConfigResponseSchema.safeParse(response.data)
     if (!parsed.success) {
