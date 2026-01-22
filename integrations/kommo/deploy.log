@@ -1,0 +1,24 @@
+🤖 Botpress CLI v5.2.1
+
+   ╭──────────────────────────────────────────────╮
+   │                                              │
+   │   Update available 5.2.1 → 5.4.0             │
+   │                                              │
+   │   To update, run:                            │
+   │     for npm  npm i -g @botpress/cli          │
+   │     for yarn yarn global add @botpress/cli   │
+   │     for pnpm pnpm i -g @botpress/cli         │
+   │                                              │
+   ╰──────────────────────────────────────────────╯
+
+○ Generating typings for integration kommo...
+✔ Typings available at .botpress
+
+○ Bundling integration kommo...
+✔ Bundle available at .botpress
+
+Build completed in 165ms
+⚠ Integration already exists. If you decide to deploy, it will override the existing one.
+○ Deploying integration yl_integration/kommo v0.1.0...
+✔ Integration deployed
+
