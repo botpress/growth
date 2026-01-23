@@ -1,15 +1,5 @@
-/**
- * Kommo API Type Definitions
- *
- * These types match the actual Kommo API v4 structure.
- * Documentation: https://developers.kommo.com/reference/leads
- *
 
-/**
- * KommoLead - What Kommo returns when you get a lead
- * This matches the actual API response structure
- * Source: https://developers.kommo.com/reference/get-lead
- */
+// LEADS
 export interface KommoLead {
   id: number
   name: string
@@ -242,3 +232,54 @@ export interface KommoErrorResponse {
     }>
   }>
 }
+
+// -----CONTACTS-----
+
+// full contact with all detials
+export type KommoContact = {
+  id: number;
+  name: string;
+  first_name: string;
+  last_name: string;
+  responsible_user_id: number;
+  group_id: number;
+  updated_by: number;
+  created_at: number;
+  updated_at: number;
+  closest_task_at: number | null;
+  is_deleted: boolean;
+  account_id: number;
+
+};
+
+
+// sends data to kommo
+export type CreateContactRequest = {
+  name?: string;
+  first_name?: string
+  last_name?: string;
+  responsible_user_id: number;
+  created_by: number;
+  updated_by?: number;
+};
+
+// what kommo returns after creating contats
+export type KommoCreateContactResponse = {
+  _links:{
+    self:{
+      href:string;
+    };
+  };
+  _embedded:{
+    contacts: Array<{
+      id:number;
+      request_id: string;
+      _links:{
+        self:{
+        href:string;
+       };
+      };
+    }>;
+  };
+}
+

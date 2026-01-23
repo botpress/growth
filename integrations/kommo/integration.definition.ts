@@ -1,6 +1,6 @@
 import { z, IntegrationDefinition } from '@botpress/sdk'
 import { integrationName } from './package.json'
-import { actions, events, states } from './definitions'
+import { actions } from './definitions'
 
 export default new IntegrationDefinition({
   name: integrationName,
@@ -20,7 +20,5 @@ export default new IntegrationDefinition({
         .describe('Long-lived access token from your Kommo private integration'),
     }),
   },
-  actions, 
-  events,
-  states,
+  actions,
 })

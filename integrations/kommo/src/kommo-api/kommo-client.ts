@@ -1,8 +1,9 @@
-import axios, { AxiosInstance } from 'axios'
+import axios, { AxiosInstance, AxiosError } from 'axios'
 import * as sdk from '@botpress/sdk'
 import * as bp from '../../.botpress'
 import { CreateLeadRequest, KommoLead, KommoCreateResponse, KommoGetResponse, UpdateLeadRequest } from './types'
-
+import { CreateContactRequest, KommoContact, KommoCreateContactResponse } from './types'
+import { getErrorMessage } from './error-handler'
 // handles api communcation with kommo
 export class KommoClient {
   private _axios: AxiosInstance
@@ -52,13 +53,9 @@ export class KommoClient {
 
       this._logger.forBot().info('Lead created successfully', { leadId: lead.id })
       return lead
-    } catch (error: any) {
-      this._logger.forBot().error('Failed to create lead', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      })
-      throw new sdk.RuntimeError(`Failed to create lead in Kommo: ${error.message}`)
+    } catch (error) {
+      this._logger.forBot().error('Failed to create lead', { error })
+      throw new sdk.RuntimeError(getErrorMessage(error))
     }
   }
 
@@ -72,19 +69,14 @@ export class KommoClient {
       const lead = response.data
 
       return lead
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         this._logger.forBot().info('Lead not found', { leadId })
         return undefined
       }
 
-      this._logger.forBot().error('Failed to fetch lead', {
-        leadId,
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      })
-      throw new sdk.RuntimeError(`Failed to fetch lead from Kommo: ${error.message}`)
+      this._logger.forBot().error('Failed to fetch lead', { leadId, error })
+      throw new sdk.RuntimeError(getErrorMessage(error))
     }
   }
 
@@ -105,14 +97,50 @@ export class KommoClient {
 
       this._logger.forBot().info('Lead updated successfully', { leadId: lead.id })
       return lead
-    }catch (error: any){
-      this._logger.forBot().error('Failed to update lead', {
-        leadId,
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      })
-      throw new sdk.RuntimeError(`Failed to update lead in Kommo: ${error.message}`)
+    } catch (error) {
+      this._logger.forBot().error('Failed to update lead', { leadId, error })
+      throw new sdk.RuntimeError(getErrorMessage(error))
     }
   }
+
+  async createContact(data: CreateContactRequest): Promise<KommoContact>{
+    try{
+      this._logger.forBot().debug("creating contact in Kommo", {name: data.name})
+      // contacts sent to kommo as an array
+      const response = await this._axios.post<KommoCreateContactResponse>('/contacts', [data])
+
+      // get the ID from the response
+      const createdContactId = response.data._embedded.contacts[0]?.id
+      if(!createdContactId){
+        throw new sdk.RuntimeError("No contact ID returned from Kommo")
+      }
+      // fetch full contact details to print outback to user
+      const contact = await this.getContact(createdContactId)
+      if (!contact){
+        throw new sdk.RuntimeError("Failed to fetch created contact")
+      }
+      this._logger.forBot().info("contact created sufccessfully,", {contactId: contact.id})
+
+      return contact
+    } catch (error) {
+      this._logger.forBot().error('Failed to create contact', { error })
+      throw new sdk.RuntimeError(getErrorMessage(error))
+    }
+  }
+
+  async getContact(contactId: number): Promise<KommoContact | undefined>{
+    try{
+      this._logger.forBot().debug("Fetching Contact from Kommo", {contactId})
+
+      const response = await this._axios.get<KommoContact>(`/contacts/${contactId}`)
+      const contact = response.data
+      return contact
+    } catch (error) {
+      this._logger.forBot().error('Failed to fetch contact', { contactId, error })
+      throw new sdk.RuntimeError(getErrorMessage(error))
+    }
+
+  }
 }
+
+
