@@ -198,7 +198,6 @@ export class ZohoApi {
           accessToken: parsed.data.access_token,
         },
       })
-
     } catch (error) {
       if (axios.isAxiosError(error)) {
         logger.forBot().error('Error refreshing access token:', error.response?.data ?? error.message)
