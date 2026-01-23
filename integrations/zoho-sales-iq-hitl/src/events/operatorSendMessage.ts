@@ -1,4 +1,5 @@
 import type { OperatorRepliedEvent } from '../definitions/webhook-events'
+import { validateConversationTag, validateUserTag } from '../utils/validation'
 import * as bp from '.botpress'
 
 export const handleOperatorReplied = async ({
@@ -8,16 +9,19 @@ export const handleOperatorReplied = async ({
   salesIqEvent: OperatorRepliedEvent
   client: bp.Client
 }) => {
+  const conversationTagId = validateConversationTag(salesIqEvent.entity_id)
+  const userTagId = validateUserTag(salesIqEvent.entity.visitor.email_id)
+
   const { conversation } = await client.getOrCreateConversation({
     channel: 'hitl',
     tags: {
-      id: salesIqEvent.entity_id,
+      id: conversationTagId,
     },
   })
 
   const { user } = await client.getOrCreateUser({
     tags: {
-      id: salesIqEvent.entity.visitor.email_id,
+      id: userTagId,
     },
   })
 
