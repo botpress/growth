@@ -94,10 +94,15 @@ const extractErrorMessage = (axiosError: AxiosError): string => {
         errorMessages.push(errorItem)
       } else if (typeof errorItem === 'object' && errorItem !== null) {
         const errorObj = errorItem as Record<string, unknown>
-        if (typeof errorObj.message === 'string') {
+        // Check for the same error field names as at the top level
+        if (typeof errorObj.message === 'string' && errorObj.message) {
           errorMessages.push(errorObj.message)
-        } else if (typeof errorObj.error === 'string') {
+        } else if (typeof errorObj.error === 'string' && errorObj.error) {
           errorMessages.push(errorObj.error)
+        } else if (typeof errorObj.error_description === 'string' && errorObj.error_description) {
+          errorMessages.push(errorObj.error_description)
+        } else if (typeof errorObj.error_message === 'string' && errorObj.error_message) {
+          errorMessages.push(errorObj.error_message)
         }
       }
     }
