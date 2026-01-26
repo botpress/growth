@@ -1,5 +1,5 @@
 import * as bp from '.botpress'
-import { createLead, getLead, updateLead, moveLead, createContact, getContact } from './actions'
+import { createLead, updateLead, createContact, searchContacts, searchLeads} from './actions'
 
 export default new bp.Integration({
   register: async () => {},
@@ -7,11 +7,10 @@ export default new bp.Integration({
 
   actions: {
     createLead,
-    getLead,
     updateLead,
-    moveLead,
+    searchLeads,
     createContact,
-    getContact,
+    searchContacts,
   },
   channels: {},
   handler: async () => {},

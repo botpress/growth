@@ -1,6 +1,7 @@
 
-// LEADS
-export interface KommoLead {
+// -----LEADS------
+
+export type KommoLead = {
   id: number
   name: string
   price: number
@@ -11,7 +12,7 @@ export interface KommoLead {
   loss_reason_id: number | null
   created_by: number
   updated_by: number
-  created_at: number  // Unix timestamp
+  created_at: number 
   updated_at: number  
   closed_at: number | null
   closest_task_at: number | null
@@ -21,16 +22,14 @@ export interface KommoLead {
   labor_cost: number | null
   is_price_computed: boolean
 
-  // Custom fields (more complex than HubSpot properties)
-  // Source: https://developers.kommo.com/reference/custom-fields
   custom_fields_values?: Array<{
     field_id: number
     field_name: string
-    field_code?: string | null     // Optional - may not always be present
-    field_type: string              // 'text', 'numeric', 'select', 'category', 'textarea', etc.
+    field_code?: string | null     
+    field_type: string              
     values: Array<{
       value: string | number
-      enum_id?: number              // For select/category fields with predefined options
+      enum_id?: number              
     }>
   }>
 
@@ -58,8 +57,6 @@ export interface KommoLead {
       }
     }>
   }
-
-  // HATEOAS links
   _links?: {
     self: {
       href: string
@@ -67,12 +64,8 @@ export interface KommoLead {
   }
 }
 
-/**
- * CreateLeadRequest - What to send when creating a lead
- * IMPORTANT: Kommo expects an ARRAY even for single lead!
- * Source: https://developers.kommo.com/reference/post-leads
- */
-export interface CreateLeadRequest {
+
+export type CreateLeadRequest = {
   name: string  // REQUIRED - only required field!
   price?: number
   responsible_user_id?: number
@@ -95,8 +88,8 @@ export interface CreateLeadRequest {
   // Embedded data (tags, contacts, companies)
   _embedded?: {
     tags?: Array<{
-      id?: number  // Existing tag ID
-      name?: string  // Or new tag name
+      id?: number  
+      name?: string  
     }>
     contacts?: Array<{
       id: number
@@ -108,12 +101,9 @@ export interface CreateLeadRequest {
   }
 }
 
-/**
- * UpdateLeadRequest - What to send when updating a lead
- * Source: https://developers.kommo.com/reference/patch-lead
- */
-export interface UpdateLeadRequest {
-  id?: number  // Required for update
+
+export type UpdateLeadRequest = {
+  id?: number 
   name?: string
   price?: number
   responsible_user_id?: number
@@ -127,12 +117,8 @@ export interface UpdateLeadRequest {
   }>
 }
 
-/**
- * KommoCreateResponse - What Kommo returns after creating leads
- * IMPORTANT: Response contains _embedded.leads array
- * Source: https://developers.kommo.com/reference/post-leads
- */
-export interface KommoCreateResponse {
+
+export type KommoCreateResponse = {
   _links: {
     self: {
       href: string
@@ -141,7 +127,7 @@ export interface KommoCreateResponse {
   _embedded: {
     leads: Array<{
       id: number
-      request_id: string  // Index of lead in request array
+      request_id: string  
       _links: {
         self: {
           href: string
@@ -151,22 +137,8 @@ export interface KommoCreateResponse {
   }
 }
 
-/**
- * KommoGetResponse - What Kommo returns when getting a lead by ID
- * NOTE: Unlike the list endpoint, GET /leads/:id returns the lead directly,
- * not wrapped in _embedded.leads. The _embedded contains related data (tags, contacts, companies).
- * Source: https://developers.kommo.com/reference/get-lead
- */
-export interface KommoGetResponse extends KommoLead {
-  // The response IS the lead object itself
-  // Inherits all KommoLead properties (id, name, price, etc.)
-}
 
-/**
- * KommoUpdateResponse - What Kommo returns after updating a lead
- * Same structure as GetResponse
- */
-export interface KommoUpdateResponse {
+export type KommoUpdateResponse = {
   _links: {
     self: {
       href: string
@@ -177,65 +149,22 @@ export interface KommoUpdateResponse {
   }
 }
 
-/**
- * KommoListResponse - What Kommo returns when listing leads
- * Source: https://developers.kommo.com/reference/get-leads
- */
-export interface KommoListResponse {
+export type KommoSearchLeadResponse = {
   _page: number
   _links: {
     self: {
       href: string
     }
-    next?: {
-      href: string
-    }
   }
   _embedded: {
     leads: KommoLead[]
   }
 }
 
-/**
- * Generic wrapper for Kommo API responses
- * Used for axios response typing
- */
-export interface KommoApiResponse<T> {
-  _embedded: {
-    leads: T[]
-  }
-  _links?: {
-    self: {
-      href: string
-    }
-    next?: {
-      href: string
-    }
-  }
-}
 
-/**
- * Kommo API Error Response
- * Source: https://developers.kommo.com/docs/error-codes
- */
-export interface KommoErrorResponse {
-  title: string
-  type: string
-  status: number
-  detail: string
-  validation_errors?: Array<{
-    request_id: string
-    errors: Array<{
-      code: string
-      path: string
-      detail: string
-    }>
-  }>
-}
+// -------------CONTACTS-------------
 
-// -----CONTACTS-----
-
-// full contact with all detials
+// full contact with all details
 export type KommoContact = {
   id: number;
   name: string;
@@ -283,3 +212,34 @@ export type KommoCreateContactResponse = {
   };
 }
 
+// for searching contacts by phone number
+export type KommoSearchContactsResponse = {
+  _page: number;
+  _links: {
+    self: {
+      href: string;
+    };
+    next?: {
+      href: string;
+    };
+  };
+  _embedded: {
+    contacts: KommoContact[];
+  };
+}
+
+//----General-----
+export type KommoErrorResponse = {
+  title: string
+  type: string
+  status: number
+  detail: string
+  validation_errors?: Array<{
+    request_id: string
+    errors: Array<{
+      code: string
+      path: string
+      detail: string
+    }>
+  }>
+}

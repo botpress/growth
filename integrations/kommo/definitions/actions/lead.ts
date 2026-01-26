@@ -2,8 +2,6 @@ import { z } from '@bpinternal/zui'
 import { ActionDefinition } from '@botpress/sdk'
 
 // Lead Schema: defines what a Kommo lead looks like in Botpress
-// This is a simplified version: we only expose the fields bots need
-
 export const leadSchema = z.object({
   id: z.number().describe('Lead ID'),
   name: z.string().describe('Lead name'),
@@ -15,10 +13,7 @@ export const leadSchema = z.object({
   updatedAt: z.number().describe('When last updated (Unix timestamp)'),
 })
 
-/**
- * Create Lead Action
- * Creates a new lead in Kommo CRM
- */
+
 const createLead: ActionDefinition = {
   title: 'Create Lead',
   description: 'Creates a new lead in Kommo CRM',
@@ -38,29 +33,7 @@ const createLead: ActionDefinition = {
   },
 }
 
-/**
- * Get Lead Action
- * Retrieves a lead by its ID
- */
-const getLead: ActionDefinition = {
-  title: 'Get Lead',
-  description: 'Retrieves a lead by ID from Kommo',
-  input: {
-    schema: z.object({
-      leadId: z.number().describe('The ID of the lead to retrieve'),
-    }),
-  },
-  output: {
-    schema: z.object({
-      lead: leadSchema.optional().describe('The lead (undefined if not found)'),
-    }),
-  },
-}
 
-/**
- * Update Lead Action
- * Updates an existing lead's information
- */
 const updateLead: ActionDefinition = {
   title: 'Update Lead',
   description: 'Updates an existing lead in Kommo',
@@ -81,31 +54,24 @@ const updateLead: ActionDefinition = {
   },
 }
 
-/**
- * Move Lead Action
- * Moves a lead to a different pipeline stage
- */
-const moveLead: ActionDefinition = {
-  title: 'Move Lead',
-  description: 'Moves a lead to a different pipeline stage',
-  input: {
+const searchLeads: ActionDefinition = {
+  title: 'Search Leads',
+  description: 'search for leads by name or other fields',
+  input:{
     schema: z.object({
-      leadId: z.number().describe('Lead ID to move'),
-      statusId: z.number().describe('New status/stage ID'),
-      pipelineId: z.number().describe('Pipeline ID'),
+      query: z.string().describe('Search query')
     }),
   },
   output: {
     schema: z.object({
-      lead: leadSchema,
-    }),
-  },
+      leads: z.array(leadSchema).describe('Array of matching leads (empty if none found)')
+    })
+  }
 }
 
 // Export all lead actions
 export const actions = {
   createLead,
-  getLead,
+  searchLeads,
   updateLead,
-  moveLead,
 } as const

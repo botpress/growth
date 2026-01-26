@@ -37,23 +37,23 @@ const createContact: ActionDefinition = {
     }
 
 }
-
-const getContact: ActionDefinition = {
-    title: 'Get Contact',
-    description: 'retrieves a contact by ID',
-    input: {
+const searchContacts: ActionDefinition = {
+    title: "Search Contacts",
+    description: 'Search for contacts by name, phone number, or email',
+    input:{
         schema: z.object({
-            contactId: z.number().describe('The ID of the contact to retrieve'),
+            query: z.string().describe('Search query (name, phone number, or email)')
         }),
     },
     output: {
         schema: z.object({
-            contact: contactSchema.optional().describe('The contact (undefined if not found)')
+            contacts: z.array(contactSchema).describe('Array of matching contacts (empty if none found)')
         })
+
     }
 }
 
 export const actions = {
     createContact,
-    getContact,
+    searchContacts,
 } as const

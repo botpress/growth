@@ -1,13 +1,10 @@
 import * as sdk from '@botpress/sdk'
 import * as bp from '.botpress'
-import {KommoClient} from '../kommo-api/kommo-client'
-import {CreateContactRequest, KommoContact} from '../kommo-api/types'
-import {getErrorMessage} from '../kommo-api/error-handler'
+import { KommoClient, CreateContactRequest, KommoContact, getErrorMessage } from '../kommo-api'
 
-//changed to botpress format
-
-function mapKommoContactToBotpress(contact: KommoContact){
-    return{
+// mapping kommo to local schema
+function mapKommoContactToBotpress(contact: KommoContact) {
+    return {
         id: contact.id,
         name: contact.name,
         firstName: contact.first_name,
@@ -28,14 +25,11 @@ export const createContact: bp.IntegrationProps['actions']['createContact'] = as
     input,
     logger,
 }) => {
-    try{
-        logger.forBot().info("creating a contact with input", input)
-        const{baseDomain, accessToken} = ctx.configuration
+    try {
+        logger.forBot().info('Creating contact with input:', input)
 
-        if (!baseDomain || !accessToken){
-            throw new sdk.RuntimeError('Missing baseDomain or accessToken in confguration')
-        }
-        const kommoClient = new KommoClient(accessToken, baseDomain, logger) 
+        const {baseDomain, accessToken} = ctx.configuration
+        const kommoClient = new KommoClient(accessToken, baseDomain, logger)
 
         const contactData: CreateContactRequest = {
             name: input.name,
@@ -43,7 +37,7 @@ export const createContact: bp.IntegrationProps['actions']['createContact'] = as
             last_name: input.lastName,
             responsible_user_id: input.responsibleUserId,
             created_by: input.createdBy,
-            ...(input.updatedBy && { updated_by: input.updatedBy }),
+            updated_by: input.updatedBy,
         }
 
         logger.forBot().info('Contact data to send:', contactData)
@@ -53,35 +47,31 @@ export const createContact: bp.IntegrationProps['actions']['createContact'] = as
             contact: mapKommoContactToBotpress(kommoContact),
         }
 
-    } catch (error){
-        logger.forBot().error("failed to create contact", {error})
+    } catch (error) {
+        logger.forBot().error('Failed to create contact', {error})
         throw new sdk.RuntimeError(getErrorMessage(error))
     }
 }
 
-export const getContact: bp.IntegrationProps['actions']['getContact'] = async ({
-  ctx,
-  input,
-  logger,
+export const searchContacts: bp.IntegrationProps['actions']['searchContacts'] = async ({
+    ctx,
+    input,
+    logger,
 }) => {
-  try {
-    logger.forBot().info('Getting contact:', { contactId: input.contactId })
+    try {
+        logger.forBot().info('Searching contacts:', {query: input.query})
+        const {baseDomain, accessToken} = ctx.configuration
 
-    const { baseDomain, accessToken } = ctx.configuration
+        const kommoClient = new KommoClient(accessToken, baseDomain, logger)
+        const kommoContacts = await kommoClient.searchContacts(input.query)
 
-    const kommoClient = new KommoClient(accessToken, baseDomain, logger)
-    const kommoContact = await kommoClient.getContact(input.contactId)
+        const contacts = kommoContacts.map(mapKommoContactToBotpress)
 
-    if (!kommoContact) {
-      logger.forBot().info('Contact not found:', { contactId: input.contactId })
-      return { contact: undefined }
+        logger.forBot().info('Search complete:', {count: contacts.length})
+
+        return {contacts}
+    } catch (error) {
+        logger.forBot().error('Failed to search contacts', {error})
+        throw new sdk.RuntimeError(getErrorMessage(error))
     }
-
-    return {
-      contact: mapKommoContactToBotpress(kommoContact),
-    }
-  } catch (error) {
-    logger.forBot().error('Failed to get contact', { error })
-    throw new sdk.RuntimeError(getErrorMessage(error))
-  }
 }
