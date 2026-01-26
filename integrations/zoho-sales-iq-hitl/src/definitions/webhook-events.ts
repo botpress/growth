@@ -1,14 +1,6 @@
 import { z } from '@botpress/sdk'
+import { JsonValueSchema } from './literals'
 
-// JSON value type for flexible metadata
-const JsonLiteralSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
-type JsonLiteral = z.infer<typeof JsonLiteralSchema>
-type JsonValue = JsonLiteral | { [key: string]: JsonValue } | JsonValue[]
-const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
-  z.union([JsonLiteralSchema, z.array(JsonValueSchema), z.record(JsonValueSchema)])
-)
-
-// Base webhook structure
 const WebhookBaseSchema = z.object({
   entity_type: z.literal('conversation'),
   webhook: z.object({ id: z.string() }),
@@ -20,7 +12,6 @@ const WebhookBaseSchema = z.object({
   event_time: z.string(),
 })
 
-// Shared visitor schema for webhooks
 const WebhookVisitorSchema = z
   .object({
     email_id: z.string(),

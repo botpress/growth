@@ -19,18 +19,28 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       type: 'integration',
     })
 
-    const { title = '', description = 'No description available' } = input
+    const { title, description = 'No description available' } = input
+
+    if (title === undefined || title === null || title.trim() === '') {
+      throw new RuntimeError('Title is required to create a Zoho SalesIQ conversation')
+    }
 
     const result = await zohoClient.createConversation(state.payload.name, state.payload.email, title, description)
 
     if (
-      !result.success ||
+      result.success === false ||
+      result.success === undefined ||
+      result.data === undefined ||
       result.data === null ||
       result.data.conversation_id === undefined ||
       result.data.conversation_id === ''
     ) {
+      const safeResultInfo = {
+        success: result.success,
+        conversationId: result.data?.conversation_id,
+      }
       throw new RuntimeError(
-        'Failed to create a conversation with Zoho SalesIQ. Result: ' + JSON.stringify(result, null, 2)
+        'Failed to create a conversation with Zoho SalesIQ. Result: ' + JSON.stringify(safeResultInfo, null, 2)
       )
     }
 

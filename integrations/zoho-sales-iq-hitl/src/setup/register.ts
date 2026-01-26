@@ -21,10 +21,6 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     console.log('Registering configuration...')
     console.log(appResponse)
 
-    if (!appResponse) {
-      throw new bpclient.RuntimeError('Invalid Zoho configuration! Unable to get App ID.')
-    }
-
     logger.info('Zoho configuration validated successfully.')
   } catch (error) {
     logger.error('Error during integration registration:', error)

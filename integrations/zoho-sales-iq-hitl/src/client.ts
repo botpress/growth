@@ -10,10 +10,7 @@ import {
   type CreateConversationData,
   type AppConfigData,
 } from './definitions/schemas'
-
-type JsonValue = string | number | boolean | null | JsonObject | JsonArray
-type JsonObject = { [key: string]: JsonValue }
-type JsonArray = JsonValue[]
+import { JsonValue, JsonValueSchema } from './definitions/literals'
 
 type ZohoApiResponse = {
   success: boolean
@@ -102,8 +99,8 @@ export class ZohoApi {
   private async makeHitlRequest(
     endpoint: string,
     method: string = 'GET',
-    data: JsonObject | null = null,
-    params: JsonObject = {}
+    data: JsonValue | null = null,
+    params: JsonValue = {}
   ): Promise<ZohoApiResponse> {
     try {
       const creds = await this.getStoredCredentials()
@@ -254,6 +251,8 @@ export class ZohoApi {
 
       if (!response.success) {
         logger.forBot().error('Failed to send message:', response.message)
+      } else {
+        logger.forBot().info('Message sent successfully:', response.data)
       }
 
       return response
@@ -263,7 +262,7 @@ export class ZohoApi {
     }
   }
 
-  public async getApp(): Promise<AppConfigData | null> {
+  public async getApp(): Promise<AppConfigData> {
     const response = await this.makeHitlRequest(
       `${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/apps/${this.ctx.configuration.appId}`
     )
@@ -271,20 +270,7 @@ export class ZohoApi {
     const parsed = ZohoAppConfigResponseSchema.safeParse(response.data)
     if (!parsed.success) {
       logger.forBot().error('Invalid app config response:', parsed.error)
-      return null
-    }
-    return parsed.data.data
-  }
-
-  public async getDepartment(): Promise<AppConfigData | null> {
-    const response = await this.makeHitlRequest(
-      `${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/departments/${this.ctx.configuration.departmentId}`
-    )
-
-    const parsed = ZohoAppConfigResponseSchema.safeParse(response.data)
-    if (!parsed.success) {
-      logger.forBot().error('Invalid department config response:', parsed.error)
-      return null
+      throw new bpclient.RuntimeError('Invalid app config response from Zoho SalesIQ')
     }
     return parsed.data.data
   }

@@ -1,23 +1,20 @@
 import { RuntimeError } from '@botpress/client'
 
-export const validateConversationTag = (tagValue: string | number | undefined): string => {
+const validateTag = (errorPrefix: string, tagValue: string | number | undefined): string => {
   if (tagValue === undefined || tagValue === null) {
-    throw new RuntimeError('Invalid conversation tag: entity_id is required')
+    throw new RuntimeError(`${errorPrefix}: tagValue is required`)
   }
   const stringValue = String(tagValue).trim()
   if (stringValue === '') {
-    throw new RuntimeError('Invalid conversation tag: entity_id cannot be empty')
+    throw new RuntimeError(`${errorPrefix}: tagValue cannot be empty`)
   }
   return stringValue
 }
 
-export const validateUserTag = (emailId: string | undefined): string => {
-  if (emailId === undefined || emailId === null) {
-    throw new RuntimeError('Invalid user tag: email_id is required')
-  }
-  const stringValue = String(emailId).trim()
-  if (stringValue === '') {
-    throw new RuntimeError('Invalid user tag: email_id is required and cannot be empty')
-  }
-  return emailId
+export const validateConversationTag = (tagValue: string | number | undefined): string => {
+  return validateTag('Invalid conversation tag', tagValue)
+}
+
+export const validateUserTag = (tagValue: string | undefined): string => {
+  return validateTag('Invalid user tag', tagValue)
 }
