@@ -51,6 +51,71 @@ const getZohoAuthUrl = (region: string): string => zohoAuthUrls.get(region) ?? '
 // Function to get the Zoho SalesIQ Server URL
 const getZohoSalesIQUrl = (region: string): string => zohoSalesIQUrls.get(region) ?? 'https://salesiq.zoho.com' // Default to US if region not found
 
+/**
+ * Extracts error message from various error response structures
+ * Handles different API error formats including:
+ * - response.data.message
+ * - response.data.error
+ * - response.data.error_description
+ * - response.data.error_message
+ * - response.data.errors (array)
+ * Falls back to axiosError.message if no response data is available
+ */
+const extractErrorMessage = (axiosError: AxiosError): string => {
+  const data = axiosError.response?.data as Record<string, unknown> | undefined
+
+  if (!data) {
+    return axiosError.message
+  }
+
+  // Check for common error message fields
+  if (typeof data.message === 'string' && data.message) {
+    return data.message
+  }
+
+  if (typeof data.error === 'string' && data.error) {
+    return data.error
+  }
+
+  if (typeof data.error_description === 'string' && data.error_description) {
+    return data.error_description
+  }
+
+  if (typeof data.error_message === 'string' && data.error_message) {
+    return data.error_message
+  }
+
+  // Handle error arrays
+  if (Array.isArray(data.errors) && data.errors.length > 0) {
+    const firstError = data.errors[0]
+    if (typeof firstError === 'string') {
+      return firstError
+    }
+    if (typeof firstError === 'object' && firstError !== null) {
+      const errorObj = firstError as Record<string, unknown>
+      if (typeof errorObj.message === 'string') {
+        return errorObj.message
+      }
+      if (typeof errorObj.error === 'string') {
+        return errorObj.error
+      }
+    }
+  }
+
+  // If data exists but no recognizable error field, try to stringify it
+  try {
+    const stringified = JSON.stringify(data)
+    if (stringified && stringified !== '{}') {
+      return stringified
+    }
+  } catch {
+    // Ignore JSON stringify errors
+  }
+
+  // Final fallback to axiosError.message
+  return axiosError.message
+}
+
 export class ZohoApi {
   private refreshToken: string
   private clientId: string
@@ -135,7 +200,7 @@ export class ZohoApi {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError<{ message?: string }>
+        const axiosError: AxiosError = error
         logger.forBot().error(axiosError.response)
 
         if (axiosError.response?.status === 401 || axiosError.response?.status === 400) {
@@ -145,7 +210,7 @@ export class ZohoApi {
           return this.makeHitlRequest(endpoint, method, data, params)
         }
 
-        const errorMessage = axiosError.response?.data?.message ?? axiosError.message
+        const errorMessage = extractErrorMessage(axiosError)
         logger.forBot().error(`Error in ${method} ${endpoint}:`, axiosError.response?.data ?? axiosError.message)
 
         return {
@@ -200,7 +265,8 @@ export class ZohoApi {
       })
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        logger.forBot().error('Error refreshing access token:', error.response?.data ?? error.message)
+        const errorMessage = extractErrorMessage(error)
+        logger.forBot().error('Error refreshing access token:', errorMessage)
       } else {
         logger
           .forBot()
