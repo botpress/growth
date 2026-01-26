@@ -87,32 +87,28 @@ const extractErrorMessage = (axiosError: AxiosError): string => {
 
   // Handle error arrays
   if (Array.isArray(data.errors) && data.errors.length > 0) {
-    const firstError = data.errors[0]
-    if (typeof firstError === 'string') {
-      return firstError
+    const errorMessages: string[] = []
+
+    for (const errorItem of data.errors) {
+      if (typeof errorItem === 'string') {
+        errorMessages.push(errorItem)
+      } else if (typeof errorItem === 'object' && errorItem !== null) {
+        const errorObj = errorItem as Record<string, unknown>
+        if (typeof errorObj.message === 'string') {
+          errorMessages.push(errorObj.message)
+        } else if (typeof errorObj.error === 'string') {
+          errorMessages.push(errorObj.error)
+        }
+      }
     }
-    if (typeof firstError === 'object' && firstError !== null) {
-      const errorObj = firstError as Record<string, unknown>
-      if (typeof errorObj.message === 'string') {
-        return errorObj.message
-      }
-      if (typeof errorObj.error === 'string') {
-        return errorObj.error
-      }
+
+    if (errorMessages.length > 0) {
+      return errorMessages.join('; ')
     }
   }
 
-  // If data exists but no recognizable error field, try to stringify it
-  try {
-    const stringified = JSON.stringify(data)
-    if (stringified && stringified !== '{}') {
-      return stringified
-    }
-  } catch {
-    // Ignore JSON stringify errors
-  }
-
-  // Final fallback to axiosError.message
+  // If data exists but no recognizable error field, fall back to axiosError.message
+  // This ensures we don't lose the default error message from axios
   return axiosError.message
 }
 
