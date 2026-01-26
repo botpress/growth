@@ -1,4 +1,4 @@
-import { z } from "@botpress/sdk"
+import { z } from '@botpress/sdk'
 
 export const JsonLiteralSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
 export type JsonLiteral = z.infer<typeof JsonLiteralSchema>

@@ -29,7 +29,7 @@ export const handleOperatorAssignedUpdate = async ({
     type: 'hitlAssigned',
     payload: {
       conversationId: conversation.id,
-      userId: user.id as string,
+      userId: user.id,
     },
   })
 }

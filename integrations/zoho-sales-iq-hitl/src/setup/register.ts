@@ -1,6 +1,7 @@
-import { getClient } from 'src/client'
 import * as bpclient from '@botpress/client'
+
 import type { RegisterFunction } from '../misc/types'
+import { getClient } from 'src/client'
 
 export const register: RegisterFunction = async ({ ctx, client, logger }) => {
   try {
@@ -18,12 +19,11 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     // Validate Zoho Configuration
     const appResponse = await zohoClient.getApp()
 
-    console.log('Registering configuration...')
-    console.log(appResponse)
-
+    logger.info('Registering configuration...', appResponse)
     logger.info('Zoho configuration validated successfully.')
-  } catch (error) {
-    logger.error('Error during integration registration:', error)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Error during integration registration:', errorMessage)
     throw new bpclient.RuntimeError('Configuration Error! Unable to retrieve app details.')
   }
 }

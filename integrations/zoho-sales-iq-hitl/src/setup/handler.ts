@@ -1,15 +1,15 @@
 import * as bp from '.botpress'
-import { handleConversationCompleted } from 'src/events/operatorConversationCompleted'
-import { handleOperatorAssignedUpdate } from 'src/events/operatorAssignedUpdate'
-import { handleConversationMissed } from 'src/events/operatorConversationMissed'
-import { handleOperatorReplied } from 'src/events/operatorSendMessage'
+import { JsonValue } from 'src/definitions/literals'
 import {
-  OperatorRepliedEventSchema,
   AttenderUpdatedEventSchema,
   ConversationCompletedEventSchema,
   ConversationMissedEventSchema,
+  OperatorRepliedEventSchema,
 } from 'src/definitions/webhook-events'
-import {JsonValue} from 'src/definitions/literals'
+import { handleOperatorAssignedUpdate } from 'src/events/operatorAssignedUpdate'
+import { handleConversationCompleted } from 'src/events/operatorConversationCompleted'
+import { handleConversationMissed } from 'src/events/operatorConversationMissed'
+import { handleOperatorReplied } from 'src/events/operatorSendMessage'
 
 export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, client }) => {
   if (!req.body) {
@@ -25,9 +25,8 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, cli
     return
   }
 
-  const payloadEvent = typeof rawPayload === 'object' && rawPayload !== null && 'event' in rawPayload
-    ? String(rawPayload.event)
-    : null
+  const payloadEvent =
+    typeof rawPayload === 'object' && rawPayload !== null && 'event' in rawPayload ? String(rawPayload.event) : null
 
   const validationErrors: Array<{ eventType: string; issues: unknown[] }> = []
 

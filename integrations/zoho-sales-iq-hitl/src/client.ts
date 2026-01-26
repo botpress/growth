@@ -1,16 +1,16 @@
-import axios, { AxiosError } from 'axios'
-import * as bp from '.botpress'
 import * as bpclient from '@botpress/client'
-
 import { IntegrationLogger } from '@botpress/sdk'
+import axios, { AxiosError } from 'axios'
+
+import * as bp from '.botpress'
+import { JsonValue } from './definitions/literals'
 import {
+  type AppConfigData,
+  type CreateConversationData,
   OAuthTokenResponseSchema,
   ZohoAppConfigResponseSchema,
   ZohoCreateConversationResponseSchema,
-  type CreateConversationData,
-  type AppConfigData,
 } from './definitions/schemas'
-import { JsonValue, JsonValueSchema } from './definitions/literals'
 
 type ZohoApiResponse = {
   success: boolean
@@ -20,7 +20,6 @@ type ZohoApiResponse = {
 
 const logger = new IntegrationLogger()
 
-// Zoho Data Centers
 const zohoAuthUrls = new Map<string, string>([
   ['us', 'https://accounts.zoho.com'],
   ['eu', 'https://accounts.zoho.eu'],
@@ -31,7 +30,6 @@ const zohoAuthUrls = new Map<string, string>([
   ['ca', 'https://accounts.zohocloud.ca'],
 ])
 
-// Define a Map for Zoho SalesIQ Server URIs
 const zohoSalesIQUrls = new Map<string, string>([
   ['us', 'https://salesiq.zoho.com'],
   ['ca', 'https://salesiq.zohocloud.ca'],
@@ -42,11 +40,9 @@ const zohoSalesIQUrls = new Map<string, string>([
   ['jp', 'https://salesiq.zoho.jp'],
 ])
 
-// Function to get the Zoho Auth URL
 const getZohoAuthUrl = (region: string): string => zohoAuthUrls.get(region) ?? 'https://accounts.zoho.ca'
 
-// Function to get the Zoho SalesIQ Server URL
-const getZohoSalesIQUrl = (region: string): string => zohoSalesIQUrls.get(region) ?? 'https://salesiq.zoho.com' // Default to US if region not found
+const getZohoSalesIQUrl = (region: string): string => zohoSalesIQUrls.get(region) ?? 'https://salesiq.zoho.com'
 
 export class ZohoApi {
   private refreshToken: string

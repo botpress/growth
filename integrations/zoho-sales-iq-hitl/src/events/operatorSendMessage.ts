@@ -28,7 +28,7 @@ export const handleOperatorReplied = async ({
   await client.createMessage({
     tags: {},
     type: 'text',
-    userId: user?.id as string,
+    userId: user.id,
     conversationId: conversation.id,
     payload: { text: salesIqEvent.entity.message.text },
   })

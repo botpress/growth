@@ -1,5 +1,6 @@
-import { getClient } from '../client'
 import { RuntimeError } from '@botpress/client'
+
+import { getClient } from '../client'
 import * as bp from '.botpress'
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, logger, input }) => {
