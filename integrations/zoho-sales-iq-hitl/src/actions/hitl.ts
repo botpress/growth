@@ -127,7 +127,7 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
       userId: botpressUser.id,
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage = error instanceof Error ? error.message : String(error)
     throw new RuntimeError(errorMessage)
   }
 }
