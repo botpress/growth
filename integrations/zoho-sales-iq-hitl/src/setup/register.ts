@@ -22,7 +22,7 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     logger.info('Registering configuration...', appResponse)
     logger.info('Zoho configuration validated successfully.')
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorMessage = error instanceof Error ? error.message : String(error)
     logger.error('Error during integration registration:', errorMessage)
     throw new bpclient.RuntimeError('Configuration Error! Unable to retrieve app details.')
   }
