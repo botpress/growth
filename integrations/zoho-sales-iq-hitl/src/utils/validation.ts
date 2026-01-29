@@ -1,7 +1,7 @@
 import { RuntimeError } from '@botpress/client'
 
 const validateTag = (errorPrefix: string, tagValue: string | number | undefined): string => {
-  if (tagValue === undefined || tagValue === null) {
+  if (tagValue === undefined) {
     throw new RuntimeError(`${errorPrefix}: tagValue is required`)
   }
   const stringValue = String(tagValue).trim()

@@ -1,4 +1,3 @@
-import * as bpclient from '@botpress/client'
 import { IntegrationLogger } from '@botpress/sdk'
 import axios, { AxiosError } from 'axios'
 
@@ -70,7 +69,7 @@ export class ZohoApi {
     this.zohoSalesIqServerURI = getZohoSalesIQUrl(this.dataCenter)
   }
 
-  async getStoredCredentials(): Promise<{ accessToken: string } | null> {
+  async getStoredCredentials(): Promise<{ accessToken: string; accessTokenExpiresAt: number } | null> {
     try {
       const { state } = await this.bpClient.getState({
         id: this.ctx.integrationId,
@@ -78,13 +77,14 @@ export class ZohoApi {
         type: 'integration',
       })
 
-      if (!state?.payload?.accessToken) {
+      if (!state?.payload?.accessToken || typeof state?.payload?.accessTokenExpiresAt !== 'number') {
         logger.forBot().error('No credentials found in state')
         return null
       }
 
       return {
         accessToken: state.payload.accessToken,
+        accessTokenExpiresAt: state.payload.accessTokenExpiresAt,
       }
     } catch (error) {
       logger.forBot().error('Error retrieving credentials from state:', error)
@@ -98,13 +98,21 @@ export class ZohoApi {
     data: JsonValue | null = null,
     params: JsonValue = {}
   ): Promise<ZohoApiResponse> {
-    try {
-      const creds = await this.getStoredCredentials()
-      if (!creds) {
-        logger.forBot().error('Error retrieving credentials.')
-        throw new bpclient.RuntimeError('Error grabbing credentials.')
-      }
+    let creds = await this.getStoredCredentials()
 
+    if (!creds) {
+      logger.forBot().info('Credentials missing, attempting refresh...')
+      const refreshResult = await this.refreshAccessToken()
+      if (!refreshResult.success) {
+        return { success: false, message: refreshResult.error ?? 'Authentication failed', data: null }
+      }
+      creds = await this.getStoredCredentials()
+      if (!creds) {
+        return { success: false, message: 'Failed to retrieve credentials after refresh', data: null }
+      }
+    }
+
+    try {
       const headers: Record<string, string> = {
         Authorization: `Bearer ${creds.accessToken}`,
         Accept: 'application/json',
@@ -134,7 +142,10 @@ export class ZohoApi {
         if (axiosError.response?.status === 401 || axiosError.response?.status === 400) {
           logger.forBot().warn('Access token expired. Refreshing...', error)
 
-          await this.refreshAccessToken()
+          const refreshResult = await this.refreshAccessToken()
+          if (!refreshResult.success) {
+            return { success: false, message: refreshResult.error ?? 'Authentication failed', data: null }
+          }
           return this.makeHitlRequest(endpoint, method, data, params)
         }
 
@@ -159,7 +170,7 @@ export class ZohoApi {
     }
   }
 
-  async refreshAccessToken() {
+  async refreshAccessToken(): Promise<{ success: boolean; error?: string }> {
     try {
       const requestData = new URLSearchParams()
       requestData.append('client_id', this.clientId)
@@ -180,17 +191,20 @@ export class ZohoApi {
       const parsed = OAuthTokenResponseSchema.safeParse(response.data)
       if (!parsed.success) {
         logger.forBot().error('Invalid OAuth token response:', parsed.error)
-        throw new bpclient.RuntimeError('Invalid OAuth token response from Zoho')
+        return { success: false, error: 'Invalid OAuth token response from Zoho' }
       }
 
+      // NOTE: Zoho refresh tokens never expire, only access tokens do
       await this.bpClient.setState({
         id: this.ctx.integrationId,
         type: 'integration',
         name: 'credentials',
         payload: {
           accessToken: parsed.data.access_token,
+          accessTokenExpiresAt: Date.now() + 60 * 60 * 1000, // 1 hour
         },
       })
+      return { success: true }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         logger.forBot().error('Error refreshing access token:', error.response?.data ?? error.message)
@@ -199,7 +213,7 @@ export class ZohoApi {
           .forBot()
           .error('Error refreshing access token:', error instanceof Error ? error.message : 'Unknown error')
       }
-      throw new bpclient.RuntimeError('Authentication error. Please reauthorize the integration.')
+      return { success: false, error: 'Authentication error. Please reauthorize the integration.' }
     }
   }
 
@@ -239,36 +253,29 @@ export class ZohoApi {
 
   public async sendMessage(conversationId: string, message: string) {
     const endpoint = `${this.zohoSalesIqServerURI}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations/${conversationId}/messages`
+    const response = await this.makeHitlRequest(endpoint, 'POST', { text: message })
 
-    const payload = { text: message }
-
-    try {
-      const response = await this.makeHitlRequest(endpoint, 'POST', payload)
-
-      if (!response.success) {
-        logger.forBot().error('Failed to send message:', response.message)
-      } else {
-        logger.forBot().info('Message sent successfully:', response.data)
-      }
-
-      return response
-    } catch (error) {
-      logger.forBot().error('Error sending message to Zoho SalesIQ:', error)
-      throw error
+    if (!response.success) {
+      logger.forBot().error('Failed to send message:', response.message)
     }
+    return response
   }
 
-  public async getApp(): Promise<AppConfigData> {
+  public async getApp(): Promise<{ success: boolean; data: AppConfigData | null; message: string }> {
     const response = await this.makeHitlRequest(
       `${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/apps/${this.ctx.configuration.appId}`
     )
 
+    if (!response.success) {
+      return { success: false, data: null, message: response.message }
+    }
+
     const parsed = ZohoAppConfigResponseSchema.safeParse(response.data)
     if (!parsed.success) {
       logger.forBot().error('Invalid app config response:', parsed.error)
-      throw new bpclient.RuntimeError('Invalid app config response from Zoho SalesIQ')
+      return { success: false, data: null, message: 'Invalid app config response from Zoho SalesIQ' }
     }
-    return parsed.data.data
+    return { success: true, data: parsed.data.data, message: 'App config retrieved' }
   }
 }
 

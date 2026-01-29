@@ -20,22 +20,19 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       type: 'integration',
     })
 
-    const { title, description = 'No description available' } = input
+    const { title, description} = input
 
-    if (title === undefined || title === null || title.trim() === '') {
-      throw new RuntimeError('Title is required to create a Zoho SalesIQ conversation')
-    }
+    const normalizedTitle = title?.trim() || 'Untitled Ticket'
+    const normalizedDescription = description?.trim() || 'No description available'
 
-    const result = await zohoClient.createConversation(state.payload.name, state.payload.email, title, description)
+    const result = await zohoClient.createConversation(
+      state.payload.name,
+      state.payload.email,
+      normalizedTitle,
+      normalizedDescription
+    )
 
-    if (
-      result.success === false ||
-      result.success === undefined ||
-      result.data === undefined ||
-      result.data === null ||
-      result.data.conversation_id === undefined ||
-      result.data.conversation_id === ''
-    ) {
+    if ( result.success === false || result.data === null ) {
       const safeResultInfo = {
         success: result.success,
         conversationId: result.data?.conversation_id,
@@ -47,16 +44,14 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
-      tags: {
-        id: `${result.data.conversation_id}`,
-      },
+      tags: { id: `${result.data.conversation_id}` },
     })
 
     return {
       conversationId: conversation.id,
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage = error instanceof Error ? error.message : String(error)
 
     logger.forBot().error(`'Create Conversation' exception: ${errorMessage}`)
 
@@ -76,7 +71,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
 
   const salesIqConversationId: string | undefined = conversation.tags.id
 
-  if (salesIqConversationId === undefined || salesIqConversationId === '') {
+  if (!salesIqConversationId) {
     return {}
   }
 
@@ -96,12 +91,11 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
   return {}
 }
 
-export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, ctx, logger }) => {
+export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, ctx }) => {
   try {
-    const { name = 'None', email = 'None', pictureUrl = 'None' } = input
+    const { name, email, pictureUrl } = input
 
-    if (email === null || email === undefined || email === '' || email === 'None') {
-      logger.forBot().error('Email necessary for HITL')
+    if (!email) {
       throw new RuntimeError('Email necessary for HITL')
     }
 
