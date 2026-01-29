@@ -1,4 +1,4 @@
-import {RuntimeError} from '@botpress/sdk'
+import { RuntimeError } from '@botpress/sdk'
 
 import type { RegisterFunction } from '../misc/types'
 import { getClient } from 'src/client'

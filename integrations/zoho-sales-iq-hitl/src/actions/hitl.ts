@@ -20,7 +20,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       type: 'integration',
     })
 
-    const { title, description} = input
+    const { title, description } = input
 
     const normalizedTitle = title?.trim() || 'Untitled Ticket'
     const normalizedDescription = description?.trim() || 'No description available'
@@ -32,7 +32,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       normalizedDescription
     )
 
-    if ( result.success === false || result.data === null ) {
+    if (result.success === false || result.data === null) {
       const safeResultInfo = {
         success: result.success,
         conversationId: result.data?.conversation_id,
