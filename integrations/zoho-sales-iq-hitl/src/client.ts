@@ -96,20 +96,34 @@ export class ZohoApi {
     endpoint: string,
     method: string = 'GET',
     data: JsonValue | null = null,
-    params: JsonValue = {}
+    params: JsonValue = {},
+    retryCount: number = 0
   ): Promise<ZohoApiResponse> {
     let creds = await this.getStoredCredentials()
 
-    if (!creds) {
-      logger.forBot().info('Credentials missing, attempting refresh...')
+    // Refresh token if credentials are missing or expired
+    const needsRefresh = !creds || (creds.accessTokenExpiresAt && Date.now() >= creds.accessTokenExpiresAt)
+    if (needsRefresh) {
+      logger
+        .forBot()
+        .info(
+          creds
+            ? 'Stored access token appears expired, attempting refresh before request...'
+            : 'Credentials missing, attempting refresh...'
+        )
       const refreshResult = await this.refreshAccessToken()
       if (!refreshResult.success) {
         return { success: false, message: refreshResult.error ?? 'Authentication failed', data: null }
       }
       creds = await this.getStoredCredentials()
       if (!creds) {
-        return { success: false, message: 'Failed to retrieve credentials after refresh', data: null }
+        return { success: false, message: 'Failed to retrieve credentials after token refresh', data: null }
       }
+    }
+
+    // At this point, creds is guaranteed to be non-null (either from initial fetch or after refresh)
+    if (!creds) {
+      return { success: false, message: 'No credentials available', data: null }
     }
 
     try {
@@ -140,13 +154,19 @@ export class ZohoApi {
         logger.forBot().error(axiosError.response)
 
         if (axiosError.response?.status === 401 || axiosError.response?.status === 400) {
+          // Prevent infinite retry loops - only retry once
+          if (retryCount >= 1) {
+            logger.forBot().error('Token refresh failed after retry. Authentication error persists.')
+            return { success: false, message: 'Authentication failed after token refresh retry', data: null }
+          }
+
           logger.forBot().warn('Access token expired. Refreshing...', error)
 
           const refreshResult = await this.refreshAccessToken()
           if (!refreshResult.success) {
             return { success: false, message: refreshResult.error ?? 'Authentication failed', data: null }
           }
-          return this.makeHitlRequest(endpoint, method, data, params)
+          return this.makeHitlRequest(endpoint, method, data, params, retryCount + 1)
         }
 
         const errorMessage = axiosError.response?.data?.message ?? axiosError.message
@@ -201,7 +221,7 @@ export class ZohoApi {
         name: 'credentials',
         payload: {
           accessToken: parsed.data.access_token,
-          accessTokenExpiresAt: Date.now() + 60 * 60 * 1000, // 1 hour
+          accessTokenExpiresAt: Date.now() + parsed.data.expires_in_sec * 1000,
         },
       })
       return { success: true }

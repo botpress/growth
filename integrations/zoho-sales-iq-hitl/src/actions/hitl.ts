@@ -1,5 +1,4 @@
-import { RuntimeError } from '@botpress/client'
-
+import { RuntimeError } from '@botpress/sdk'
 import { getClient } from '../client'
 import * as bp from '.botpress'
 
@@ -37,9 +36,13 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
         success: result.success,
         conversationId: result.data?.conversation_id,
       }
-      throw new RuntimeError(
-        'Failed to create a conversation with Zoho SalesIQ. Result: ' + JSON.stringify(safeResultInfo, null, 2)
-      )
+      return {
+        success: false,
+        message:
+          'Failed to create a conversation with Zoho SalesIQ. Result: ' + JSON.stringify(safeResultInfo, null, 2),
+        data: null,
+        conversationId: 'error_conversation_id',
+      }
     }
 
     const { conversation } = await client.getOrCreateConversation({
@@ -84,7 +87,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
     client
   )
 
-  zohoClient.sendMessage(salesIqConversationId, 'Botpress HITL terminated.')
+  await zohoClient.sendMessage(salesIqConversationId, 'Botpress HITL terminated.')
 
   logger.forBot().info('Botpress HITL terminated.')
 

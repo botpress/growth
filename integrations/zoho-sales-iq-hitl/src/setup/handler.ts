@@ -30,57 +30,64 @@ export const handler: bp.IntegrationProps['handler'] = async ({ req, logger, cli
 
   const validationErrors: Array<{ eventType: string; issues: unknown[] }> = []
 
-  const operatorReplied = OperatorRepliedEventSchema.safeParse(rawPayload)
-  if (operatorReplied.success) {
-    await handleOperatorReplied({ salesIqEvent: operatorReplied.data, client })
-    return
-  } else if (payloadEvent === 'conversation.operator.replied') {
-    validationErrors.push({
-      eventType: 'conversation.operator.replied',
-      issues: operatorReplied.error.issues,
-    })
+  switch (payloadEvent) {
+    case 'conversation.operator.replied': {
+      const operatorReplied = OperatorRepliedEventSchema.safeParse(rawPayload)
+      if (operatorReplied.success) {
+        await handleOperatorReplied({ salesIqEvent: operatorReplied.data, client })
+      } else {
+        validationErrors.push({
+          eventType: payloadEvent,
+          issues: operatorReplied.error.issues,
+        })
+      }
+      break
+    }
+    case 'conversation.attender.updated': {
+      const attenderUpdated = AttenderUpdatedEventSchema.safeParse(rawPayload)
+      if (attenderUpdated.success) {
+        await handleOperatorAssignedUpdate({ salesIqEvent: attenderUpdated.data, client })
+      } else {
+        validationErrors.push({
+          eventType: payloadEvent,
+          issues: attenderUpdated.error.issues,
+        })
+      }
+      break
+    }
+    case 'conversation.completed': {
+      const conversationCompleted = ConversationCompletedEventSchema.safeParse(rawPayload)
+      if (conversationCompleted.success) {
+        await handleConversationCompleted({ salesIqEvent: conversationCompleted.data, client })
+      } else {
+        validationErrors.push({
+          eventType: payloadEvent,
+          issues: conversationCompleted.error.issues,
+        })
+      }
+      break
+    }
+    case 'conversation.missed': {
+      const conversationMissed = ConversationMissedEventSchema.safeParse(rawPayload)
+      if (conversationMissed.success) {
+        await handleConversationMissed({ salesIqEvent: conversationMissed.data, client })
+      } else {
+        validationErrors.push({
+          eventType: payloadEvent,
+          issues: conversationMissed.error.issues,
+        })
+      }
+      break
+    }
+    default:
+      logger.forBot().error('No handler found for event type', { payloadEvent })
+      break
   }
 
-  const attenderUpdated = AttenderUpdatedEventSchema.safeParse(rawPayload)
-  if (attenderUpdated.success) {
-    await handleOperatorAssignedUpdate({ salesIqEvent: attenderUpdated.data, client })
-    return
-  } else if (payloadEvent === 'conversation.attender.updated') {
-    validationErrors.push({
-      eventType: 'conversation.attender.updated',
-      issues: attenderUpdated.error.issues,
-    })
-  }
-
-  const conversationCompleted = ConversationCompletedEventSchema.safeParse(rawPayload)
-  if (conversationCompleted.success) {
-    await handleConversationCompleted({ salesIqEvent: conversationCompleted.data, client })
-    return
-  } else if (payloadEvent === 'conversation.completed') {
-    validationErrors.push({
-      eventType: 'conversation.completed',
-      issues: conversationCompleted.error.issues,
-    })
-  }
-
-  const conversationMissed = ConversationMissedEventSchema.safeParse(rawPayload)
-  if (conversationMissed.success) {
-    await handleConversationMissed({ salesIqEvent: conversationMissed.data, client })
-    return
-  } else if (payloadEvent === 'conversation.missed') {
-    validationErrors.push({
-      eventType: 'conversation.missed',
-      issues: conversationMissed.error.issues,
-    })
-  }
-
-  // Only log if all validations failed
   if (validationErrors.length > 0) {
-    logger.forBot().warn('Event payload matched a known event type but failed validation', {
+    logger.forBot().error('Event payload matched a known event type but failed validation', {
       validationErrors,
       rawPayload,
     })
-  } else {
-    logger.forBot().warn('Unrecognized event payload', { rawPayload })
   }
 }
