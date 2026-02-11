@@ -3,7 +3,7 @@ import * as bp from '.botpress'
 export class BotpressHelper {
   constructor(private bpClient: bp.Client) {}
 
-  async uploadFile(filename: string, content: string, extension: string, kbId: string): Promise<void> {
+  async uploadFile(filename: string, content: string, extension: string, kbId: string, sourceUrl?: string): Promise<void> {
     // Ensure filename is not too long and has valid characters
     const safeFilename = filename.substring(0, 100).replace(/[^a-zA-Z0-9_-]/g, '_')
     const fullFilename = `${safeFilename}.${extension}`
@@ -14,6 +14,7 @@ export class BotpressHelper {
         kbId: kbId,
         dsType: 'document',
         source: 'knowledge-base',
+        ...(sourceUrl ? { sourceUrl } : {}),
       },
       content: Buffer.from(content, 'utf8'),
       contentType: this.getContentType(extension),

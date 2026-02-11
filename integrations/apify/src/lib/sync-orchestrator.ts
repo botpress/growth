@@ -74,6 +74,8 @@ export class SyncOrchestrator {
     for (const item of items) {
       const url = item.url || item.metadata?.url || 'unknown'
 
+      this.logger.forBot().debug(`🔗 Original URL from Apify: ${url}`)
+
       try {
         const processedItem = this.dataTransformer.processItemContent(item)
         if (!processedItem) {
@@ -83,6 +85,7 @@ export class SyncOrchestrator {
         }
 
         const filename = this.dataTransformer.generateFilename(item)
+        this.logger.forBot().debug(`📄 Generated filename: ${filename} ← ${url}`)
 
         // retry on 409
         let retries = 5
@@ -93,7 +96,7 @@ export class SyncOrchestrator {
 
         while (retries > 0) {
           try {
-            await this.botpressHelper.uploadFile(filename, processedItem.content, processedItem.extension, kbId)
+            await this.botpressHelper.uploadFile(filename, processedItem.content, processedItem.extension, kbId, url)
             filesCreated++
             this.logger.forBot().debug(`✓ Uploaded: ${filename} (${url})`)
             break
