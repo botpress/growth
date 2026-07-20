@@ -112,7 +112,7 @@ This will make your integration available to all Botpress users on the [Botpress
 
 ## Issues
 
-To raise an issue, please do on the main [Botpress repository](https://github.com/botpress/botpress/issues), or on our [Discord server](https://discord.gg/botpress).
+To raise an issue, please do so in the main [Botpress repository](https://github.com/botpress/botpress/issues), or reach out on our [Discord server](https://discord.gg/botpress).
 
 ## Licensing
 
