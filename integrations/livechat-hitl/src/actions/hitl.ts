@@ -31,7 +31,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
 
     const { email } = payload
 
-    if (!ctx.configuration.agentToken || ctx.configuration.groupId == null) {
+    if (!ctx.configuration.agentToken || ctx.configuration.groupId === null) {
       throw new RuntimeError('Agent token and group ID are required for HITL conversations')
     }
 
