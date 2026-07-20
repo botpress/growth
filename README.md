@@ -110,13 +110,9 @@ This will make your integration available to all Botpress users on the [Botpress
 - [Botpress SDK](https://www.npmjs.com/package/@botpress/sdk)
 - [Botpress CLI](https://www.npmjs.com/package/@botpress/cli)
 
-## Contributing
+## Issues
 
-- Format and lint code using `pnpm fix` or run `pnpm check` before committing.
-- Keep commit messages concise and in the imperative mood.
-- New integrations should place code under `integrations/<name>` and include a `package.json` with a unique `integrationName` field.
-
-We love contributions from the community! For bugs or features related to the advanced bot template, integrations, botpress-integration-runner or anything else, please talk to us on [Discord](https://discord.gg/botpress) instead.
+To raise an issue, please do on the main [Botpress repository](https://github.com/botpress/botpress/issues), or on our [Discord server](https://discord.gg/botpress).
 
 ## Licensing
 
