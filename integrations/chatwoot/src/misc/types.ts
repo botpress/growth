@@ -45,7 +45,7 @@ export const chatwootWebhookPayloadSchema = z.object({
   event: chatwootEventTypeSchema,
   id: z.number().optional(),
   status: z.string().optional(),
-  content: z.string().nullable(),
+  content: z.string().nullish(),
   message_type: z.union([z.string(), z.number()]).optional(),
   sender: chatwootSenderSchema.optional(),
   conversation: chatwootConversationSchema.optional(),
