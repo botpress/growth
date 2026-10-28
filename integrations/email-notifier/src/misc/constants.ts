@@ -1,4 +1,4 @@
-export const FROM_EMAIL_ADDRESS = 'noreply@bp-mailer.com'
+export const FROM_EMAIL_ADDRESS = 'noreply@botpress-mailer.com'
 export const CONTACT_LIST = 'default'
 
 export const EMAIL_SIGNATURE = `
