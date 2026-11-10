@@ -158,6 +158,12 @@ The integration handles the following LiveChat events:
 - Personal agent token authentication
 - Secure token management
 
+## Changelog
+
+### 3.0.4
+
+- Escalated users now appear in LiveChat with their name instead of "Unnamed customer". The name passed to `createUser` is saved to the LiveChat customer profile when `startHitl` runs. Users without a name are unaffected.
+
 ## Support
 
 For support, please contact the Botpress team or refer to the [LiveChat API documentation](https://developers.livechat.com/).

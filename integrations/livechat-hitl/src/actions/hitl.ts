@@ -55,7 +55,8 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
     const accessToken = customerTokenResponse.access_token
 
     await liveChatClient.customerUpdate(accessToken, {
-      email: email,
+      email,
+      ...(user.name && { name: user.name }),
     })
 
     const addCustomerResult = await liveChatClient.addCustomerToChat(

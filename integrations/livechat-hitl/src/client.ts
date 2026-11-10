@@ -211,6 +211,7 @@ export class LiveChatApi {
     accessToken: string,
     customerData: {
       email?: string
+      name?: string
     }
   ): Promise<any> {
     validateRequiredParams({ accessToken, customerData }, 'customerUpdate')
