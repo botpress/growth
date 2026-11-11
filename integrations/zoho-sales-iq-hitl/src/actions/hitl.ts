@@ -1,5 +1,5 @@
+import { RuntimeError } from '@botpress/sdk'
 import { getClient } from '../client'
-import { RuntimeError } from '@botpress/client'
 import * as bp from '.botpress'
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, logger, input }) => {
@@ -19,25 +19,42 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       type: 'integration',
     })
 
-    const { title, description = 'No description available' } = input
+    const { title, description } = input
 
-    const result = await zohoClient.createConversation(state.payload.name, state.payload.email, title, description)
+    const normalizedTitle = title?.trim() || 'Untitled Ticket'
+    const normalizedDescription = description?.trim() || 'No description available'
+
+    const result = await zohoClient.createConversation(
+      state.payload.name,
+      state.payload.email,
+      normalizedTitle,
+      normalizedDescription
+    )
+
+    if (result.success === false || result.data === null) {
+      const safeResultInfo = {
+        success: result.success,
+        conversationId: result.data?.conversation_id,
+      }
+      return {
+        success: false,
+        message:
+          'Failed to create a conversation with Zoho SalesIQ. Result: ' + JSON.stringify(safeResultInfo, null, 2),
+        data: null,
+        conversationId: 'error_conversation_id',
+      }
+    }
 
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
-      tags: {
-        id: `${result.data.conversation_id}`,
-      },
+      tags: { id: `${result.data.conversation_id}` },
     })
-
-    logger.forBot().debug(`Result Data - ${JSON.stringify(result, null, 2)}`)
-    logger.forBot().debug(`Conversation ID - ${result.data.conversation_id}`)
 
     return {
       conversationId: conversation.id,
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage = error instanceof Error ? error.message : String(error)
 
     logger.forBot().error(`'Create Conversation' exception: ${errorMessage}`)
 
@@ -70,17 +87,18 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
     client
   )
 
-  void zohoClient.sendMessage(salesIqConversationId, 'Botpress HITL terminated with reason: ' + input.reason)
+  await zohoClient.sendMessage(salesIqConversationId, 'Botpress HITL terminated.')
+
+  logger.forBot().info('Botpress HITL terminated.')
 
   return {}
 }
 
-export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, ctx, logger }) => {
+export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input, ctx }) => {
   try {
-    const { name = 'None', email = 'None', pictureUrl = 'None' } = input
+    const { name, email, pictureUrl } = input
 
     if (!email) {
-      logger.forBot().error('Email necessary for HITL')
       throw new RuntimeError('Email necessary for HITL')
     }
 
@@ -102,12 +120,11 @@ export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
       },
     })
 
-    logger.forBot().error(botpressUser)
-
     return {
       userId: botpressUser.id,
     }
-  } catch (error: any) {
-    throw new RuntimeError(error.message)
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    throw new RuntimeError(errorMessage)
   }
 }

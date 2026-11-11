@@ -1,30 +1,34 @@
-import { ConversationWebhookPayload } from '../definitions/salesIqEvents'
+import type { OperatorRepliedEvent } from '../definitions/webhook-events'
+import { validateConversationTag, validateUserTag } from '../utils/validation'
 import * as bp from '.botpress'
 
 export const handleOperatorReplied = async ({
   salesIqEvent,
   client,
 }: {
-  salesIqEvent: ConversationWebhookPayload
+  salesIqEvent: OperatorRepliedEvent
   client: bp.Client
 }) => {
+  const conversationTagId = validateConversationTag(salesIqEvent.entity_id)
+  const userTagId = validateUserTag(salesIqEvent.entity.visitor.email_id)
+
   const { conversation } = await client.getOrCreateConversation({
     channel: 'hitl',
     tags: {
-      id: salesIqEvent.entity_id,
+      id: conversationTagId,
     },
   })
 
   const { user } = await client.getOrCreateUser({
     tags: {
-      id: salesIqEvent.entity.visitor.email_id,
+      id: userTagId,
     },
   })
 
   await client.createMessage({
     tags: {},
     type: 'text',
-    userId: user?.id as string,
+    userId: user.id,
     conversationId: conversation.id,
     payload: { text: salesIqEvent.entity.message.text },
   })

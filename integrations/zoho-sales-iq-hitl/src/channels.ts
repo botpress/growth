@@ -4,7 +4,7 @@ import { getClient } from './client'
 export const channels = {
   hitl: {
     messages: {
-      text: async ({ client, ctx, conversation, logger, ...props }: bp.AnyMessageProps) => {
+      text: async ({ client, ctx, conversation, logger, payload }) => {
         const zohoClient = getClient(
           ctx.configuration.refreshToken,
           ctx.configuration.clientId,
@@ -14,16 +14,30 @@ export const channels = {
           client
         )
 
-        const { text: userMessage, userId } = props.payload
-
+        const userMessage = payload.text
         const zohoConversationId = conversation.tags.id
 
-        if (!zohoConversationId?.length) {
-          logger.forBot().error('No Freshchat Conversation Id')
+        if (zohoConversationId === undefined || zohoConversationId === '') {
+          logger.forBot().error('No Zoho Conversation Id')
           return
         }
 
-        return await zohoClient.sendMessage(zohoConversationId as string, userMessage)
+        await zohoClient.sendMessage(zohoConversationId, userMessage)
+      },
+      bloc: async ({ logger }) => {
+        logger.forBot().warn('Unsupported message type: bloc')
+      },
+      file: async ({ logger }) => {
+        logger.forBot().warn('Unsupported message type: file')
+      },
+      video: async ({ logger }) => {
+        logger.forBot().warn('Unsupported message type: video')
+      },
+      audio: async ({ logger }) => {
+        logger.forBot().warn('Unsupported message type: audio')
+      },
+      image: async ({ logger }) => {
+        logger.forBot().warn('Unsupported message type: image')
       },
     },
   },

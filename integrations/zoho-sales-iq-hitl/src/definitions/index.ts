@@ -14,6 +14,7 @@ export const states = {
     type: 'integration',
     schema: z.object({
       accessToken: z.string(),
+      accessTokenExpiresAt: z.number(),
     }),
   },
   userInfo: {
