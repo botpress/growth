@@ -35,53 +35,81 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ c
       throw new RuntimeError('Agent token and group ID are required for HITL conversations')
     }
 
-    const initialMessage = `${title}\n\n${description}`
-    const agentResult = await liveChatClient.startAgentChat(
-      ctx.configuration.agentToken,
-      ctx.configuration.groupId,
-      initialMessage
-    )
+    const createCustomer = async () => {
+      const customerTokenResponse = await liveChatClient.createCustomerToken(
+        `https://webhook.botpress.cloud/${ctx.webhookId}`
+      )
+      const accessToken = customerTokenResponse.access_token
 
-    if (!agentResult.success || !agentResult.chatId) {
-      throw new RuntimeError(agentResult.message || 'Failed to create LiveChat conversation via Agent API')
+      await liveChatClient.customerUpdate(accessToken, {
+        email,
+        ...(user.name && { name: user.name }),
+      })
+      return accessToken
     }
 
-    const liveChatConversationId = agentResult.chatId
-    logger.forBot().info(`Agent chat started with ID: ${liveChatConversationId}`)
+    let liveChatConversationId: string
+    let accessToken: string
 
-    const customerTokenResponse = await liveChatClient.createCustomerToken(
-      `https://webhook.botpress.cloud/${ctx.webhookId}`
-    )
-    const accessToken = customerTokenResponse.access_token
+    if (ctx.configuration.startChatAsCustomer) {
+      accessToken = await createCustomer()
+      const customerResult = await liveChatClient.startChat(
+        title ?? 'Untitled ticket',
+        description,
+        accessToken,
+        ctx.configuration.groupId
+      )
 
-    await liveChatClient.customerUpdate(accessToken, {
-      email: email,
-    })
+      if (!customerResult.success || !customerResult.data?.chat_id) {
+        throw new RuntimeError(
+          `Failed to create LiveChat conversation via Customer API: ${JSON.stringify(customerResult.message)}`
+        )
+      }
 
-    const addCustomerResult = await liveChatClient.addCustomerToChat(
-      ctx.configuration.agentToken,
-      liveChatConversationId,
-      accessToken,
-      { email, name: user.name }
-    )
-
-    if (!addCustomerResult.success) {
-      const errorMessage = `Failed to add customer to chat: ${addCustomerResult.message}`
-      logger.forBot().error(errorMessage)
-      throw new RuntimeError(errorMessage)
-    }
-
-    logger.forBot().info(`Transferring chat to group ${ctx.configuration.groupId} to ensure proper placement...`)
-    const transferResult = await liveChatClient.transferChat(
-      ctx.configuration.agentToken,
-      liveChatConversationId,
-      ctx.configuration.groupId
-    )
-
-    if (transferResult.success) {
-      logger.forBot().info(`Chat transferred successfully to group ${ctx.configuration.groupId}`)
+      liveChatConversationId = customerResult.data.chat_id
+      logger.forBot().info(`Customer chat started with ID: ${liveChatConversationId}`)
     } else {
-      logger.forBot().warn(`Failed to transfer chat: ${transferResult.message}`)
+      const initialMessage = `${title}\n\n${description}`
+      const agentResult = await liveChatClient.startAgentChat(
+        ctx.configuration.agentToken,
+        ctx.configuration.groupId,
+        initialMessage
+      )
+
+      if (!agentResult.success || !agentResult.chatId) {
+        throw new RuntimeError(agentResult.message || 'Failed to create LiveChat conversation via Agent API')
+      }
+
+      liveChatConversationId = agentResult.chatId
+      logger.forBot().info(`Agent chat started with ID: ${liveChatConversationId}`)
+
+      accessToken = await createCustomer()
+
+      const addCustomerResult = await liveChatClient.addCustomerToChat(
+        ctx.configuration.agentToken,
+        liveChatConversationId,
+        accessToken,
+        { email, name: user.name }
+      )
+
+      if (!addCustomerResult.success) {
+        const errorMessage = `Failed to add customer to chat: ${addCustomerResult.message}`
+        logger.forBot().error(errorMessage)
+        throw new RuntimeError(errorMessage)
+      }
+
+      logger.forBot().info(`Transferring chat to group ${ctx.configuration.groupId} to ensure proper placement...`)
+      const transferResult = await liveChatClient.transferChat(
+        ctx.configuration.agentToken,
+        liveChatConversationId,
+        ctx.configuration.groupId
+      )
+
+      if (transferResult.success) {
+        logger.forBot().info(`Chat transferred successfully to group ${ctx.configuration.groupId}`)
+      } else {
+        logger.forBot().warn(`Failed to transfer chat: ${transferResult.message}`)
+      }
     }
 
     const { conversation } = await client.getOrCreateConversation({

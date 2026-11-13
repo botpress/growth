@@ -105,7 +105,7 @@ export class LiveChatApi {
     }
   }
 
-  public async startChat(title: string, description: string, accessToken: string): Promise<any> {
+  public async startChat(title: string, description: string, accessToken: string, groupId?: number): Promise<any> {
     validateRequiredParams({ title, accessToken }, 'startChat')
     if (description === null || description === undefined) {
       throw new Error('Missing required parameter for startChat: description')
@@ -113,6 +113,7 @@ export class LiveChatApi {
 
     const payload = {
       chat: {
+        ...(groupId !== undefined && { access: { group_ids: [groupId] } }),
         thread: {
           events: [
             {
@@ -211,6 +212,7 @@ export class LiveChatApi {
     accessToken: string,
     customerData: {
       email?: string
+      name?: string
     }
   ): Promise<any> {
     validateRequiredParams({ accessToken, customerData }, 'customerUpdate')
