@@ -16,6 +16,13 @@ export const LiveChatConfigurationSchema = z.object({
     .default(false)
     .title('Ignore non-HITL conversations')
     .describe('Ignore conversations that were not created by the startHitl action'),
+  startChatAsCustomer: z
+    .boolean()
+    .default(false)
+    .title('Start chats as the customer')
+    .describe(
+      'Start the LiveChat chat as the customer so it arrives as a new incoming chat, instead of being started by the agent token owner and transferred to the group'
+    ),
 })
 
 export type LiveChatConfiguration = z.infer<typeof LiveChatConfigurationSchema>

@@ -20,10 +20,9 @@ export const handleChatTransferred = async (
     },
   })
 
+  const agentId = transferred_to.agent_ids[0]
   const { user: botpressUser } = await client.getOrCreateUser({
-    tags: {
-      livechatConversationId: chat_id,
-    },
+    tags: agentId ? { agentId } : { livechatConversationId: chat_id },
   })
 
   await client.createEvent({
