@@ -33,4 +33,16 @@ export const handleChatTransferred = async (
       userId: botpressUser.id as string,
     },
   })
+
+  const tokenState = await client
+    .getState({ id: conversation.id, name: 'livechatToken', type: 'conversation' })
+    .catch(() => undefined)
+  if (tokenState) {
+    await client.setState({
+      id: conversation.id,
+      name: 'livechatToken',
+      type: 'conversation',
+      payload: { ...tokenState.state.payload, agentAssigned: true },
+    })
+  }
 }

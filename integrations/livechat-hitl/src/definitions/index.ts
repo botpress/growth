@@ -15,6 +15,7 @@ export const states = {
     schema: z.object({
       livechatConversationId: z.string(),
       customerAccessToken: z.string(),
+      agentAssigned: z.boolean().optional(),
     }),
   },
   userInfo: {

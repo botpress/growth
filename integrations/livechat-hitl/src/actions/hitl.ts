@@ -199,7 +199,7 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
     if (!(accessTokenState?.state.payload as any)?.livechatConversationId) {
       throw new RuntimeError('No LiveChat conversation ID found in state')
     }
-    const { livechatConversationId: stateConversationId } = accessTokenState.state
+    const { livechatConversationId: stateConversationId, customerAccessToken } = accessTokenState.state
       .payload as unknown as LivechatTokenPayload
 
     if (!stateConversationId) {
@@ -213,7 +213,19 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
       throw new RuntimeError('Agent token is required to stop HITL conversation')
     }
 
-    await liveChatClient.deactivateChatWithAgent(ctx.configuration.agentToken, liveChatConversationId)
+    const agentClose = await liveChatClient.deactivateChatWithAgent(
+      ctx.configuration.agentToken,
+      liveChatConversationId
+    )
+
+    if (!agentClose.success) {
+      const customerClose = await liveChatClient.deactivateChat(liveChatConversationId, customerAccessToken)
+      if (!customerClose.success) {
+        logger
+          .forBot()
+          .warn(`Failed to close LiveChat chat ${liveChatConversationId}: ${JSON.stringify(customerClose.message)}`)
+      }
+    }
 
     await client.createEvent({
       type: 'hitlStopped',

@@ -20,6 +20,7 @@ The integration requires the following configuration:
 - `webhookSecret`: Secret key for webhook verification
 - `agentToken`: Your LiveChat personal agent token (Base64 encoded)
 - `groupId`: LiveChat Group ID for routing HITL conversations
+- `startChatAsCustomer` (optional): Start the chat as the customer so it arrives as a new incoming chat, instead of being started by the agent token owner and transferred to the group. Off by default
 
 ## LiveChat App Setup for Botpress Integration
 
@@ -77,6 +78,7 @@ This guide walks you through the creation and configuration of a LiveChat app vi
 - In your **Botpress LiveChat integration config**, paste this Group ID in the `groupId` field
 - **Note:** All HITL conversations will be routed to this group
 - **Important:** By default, the initial agent assignment will be the agent that created the chat, so that agent must be in the specified group. Additionally, there need to be other available agents in the group besides the initial agent for the assignment to work properly. If necessary, you can set primary/backup agents in the group configuration.
+- **Start chats as the customer:** With `startChatAsCustomer` enabled, the customer starts the chat directly in the group and no transfer takes place, so the note above does not apply. Whether the chat waits in the queue or is assigned to an agent right away depends on your LiveChat chat assignment setting. The agent token owner still needs access to the group so the bot can close the chat.
 
 #### 6. Configure Webhooks
 

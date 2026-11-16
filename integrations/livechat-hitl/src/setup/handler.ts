@@ -150,7 +150,8 @@ export const handler: bp.IntegrationProps['handler'] = async ({ ctx, req, logger
             webhookPayload,
             logger,
             client,
-            conversation as bp.AnyMessageProps['conversation']
+            conversation as bp.AnyMessageProps['conversation'],
+            ctx
           )
           break
 

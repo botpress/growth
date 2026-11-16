@@ -163,9 +163,10 @@ export class LiveChatApi {
   public async deactivateChatWithAgent(agentToken: string, chatId: string): Promise<any> {
     validateRequiredParams({ agentToken, chatId }, 'deactivateChatWithAgent')
 
-    const url = 'https://api.livechatinc.com/v3.5/agent/action/close_chat'
+    const url = 'https://api.livechatinc.com/v3.5/agent/action/deactivate_chat'
     const payload = {
-      chat_id: chatId,
+      id: chatId,
+      ignore_requester_presence: true,
     }
 
     try {
