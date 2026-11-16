@@ -20,10 +20,9 @@ export const handleChatTransferred = async (
     },
   })
 
+  const agentId = transferred_to.agent_ids[0]
   const { user: botpressUser } = await client.getOrCreateUser({
-    tags: {
-      livechatConversationId: chat_id,
-    },
+    tags: agentId ? { agentId } : { livechatConversationId: chat_id },
   })
 
   await client.createEvent({
@@ -33,16 +32,4 @@ export const handleChatTransferred = async (
       userId: botpressUser.id as string,
     },
   })
-
-  const tokenState = await client
-    .getState({ id: conversation.id, name: 'livechatToken', type: 'conversation' })
-    .catch(() => undefined)
-  if (tokenState) {
-    await client.setState({
-      id: conversation.id,
-      name: 'livechatToken',
-      type: 'conversation',
-      payload: { ...tokenState.state.payload, agentAssigned: true },
-    })
-  }
 }
